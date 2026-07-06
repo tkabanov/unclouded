@@ -1,0 +1,69 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-06T15:46:00.000Z",
+  "ok": true,
+  "readiness_pct": 88,
+  "coverage_confidence_pct": 84,
+  "scores": { "completeness": 4, "grounding": 4, "actionability": 5 },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Expand JOURNAL-04 and JOURNAL-05 ui_refs during implement using ir/slices/bTHDb____root.json subtree under entry-detail-popup (ai_RNbBHXkh) and milestones-tab-content (ai_RNbBHXjO) — anchor ids alone risk missing badge rows, delete-confirm, and relapse disclaimer groups.",
+    "Add AC or layout_notes for PopupClosed form-reset parity (bTIYE/bTIYM ResetGroup workflows) on new-entry and entry-detail popups.",
+    "Clarify JOURNAL-04 ENUM-03 depends_on: cite state_energy_level_os / state_nervous_system_os in scope if required, or remove dependency.",
+    "Land SHELL-07 and DS-01 before JOURNAL-01; wire popup open/close events across JOURNAL-02 → JOURNAL-03/04/06/07 chain."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "JOURNAL-04-entry-detail-and-ai-reflection lists 11 ui_refs for entry-detail-popup (ai_RNbBHXkh) while layout_notes cite ~55 entities; ACs name generate-reflection-btn and delete-confirm-section but omit ai_RNbBHXlL, ai_RNbBHXla, ai_RNbBHXkl, and ai-reflection-disclaimer (ai_RNbBHXlQ) from ui_refs.",
+      "alternative": "Expand ui_refs to include reflection header row (ai_RNbBHXlF), generate-reflection-btn (ai_RNbBHXlL), ai-reflection-text (ai_RNbBHXlP), disclaimer (ai_RNbBHXlQ), and delete-confirm subtree (ai_RNbBHXlX/ai_RNbBHXle), or cite ir/slices/bTHDb____root.json pointer for ai_RNbBHXkh subtree in layout_notes.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json", "ir/slices/bTHDb____root.json", "ir/resolver.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "JOURNAL-05-milestones-and-relapse-list and JOURNAL-02-journal-entries-list use ~10 anchor ui_refs each for RepeatingGroup regions (~38 and ~20 entities per layout_notes) without card-internal ids (e.g. milestone-card-meta ai_RNbBHXjc–ai_RNbBHXjk, relapse-private-badge ai_RNbBHXjs, journal-entries-label ai_RNbBHXiq).",
+      "alternative": "Add ui_refs for actions-row siblings (ai_RNbBHXip/ai_RNbBHXiq), milestone card date/meta groups, and relapse divider (ai_RNbBHXjr) or document full RG cell template paths from inventory under ai_RNbBHXjb/ai_RNbBHXjz.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json", "ir/slices/bTHDb____root.json", "ir/resolver.json"]
+    },
+    {
+      "id": "C-3",
+      "area": "behavior",
+      "priority": "medium",
+      "finding": "JOURNAL-03-new-entry-popup layout_notes reference create workflows bTIYE/bTIYG cluster and slice includes PopupClosed workflows (bTIYE, bTIYM, bTIYK, bTIYS) with ResetGroup actions, but no AC requires form reset on popup close/cancel matching Bubble behavior.",
+      "alternative": "Add AC-4 requiring new-entry and entry-detail popups reset bound fields on close/cancel per bTIYE/bTIYM workflow parity, or document intentional Vue v-model reset as equivalent.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json", "ir/slices/bTHDb____root.json", "ir/inventory.json"]
+    },
+    {
+      "id": "C-4",
+      "area": "scope",
+      "priority": "low",
+      "finding": "JOURNAL-04-entry-detail-and-ai-reflection depends_on ENUM-03-path-coaching-and-state-enums but item scope and ACs do not reference path_enrollment_status, ai_coaching_mode_os, or state_* enums; dependency appears speculative for AI reflection unless mood/state labels consume ENUM-03 maps.",
+      "alternative": "Remove ENUM-03 from JOURNAL-04 depends_on, or add scope/AC clause binding reflection/mood UI to state_energy_level_os / state_nervous_system_os from ENUM-03.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json", "cursor-impl-cycle/output/decompose/MOD-DRSAM-ENUMS.json", "cursor-impl-cycle/state/item-registry.json"]
+    },
+    {
+      "id": "C-5",
+      "area": "scope",
+      "priority": "low",
+      "finding": "All seven items state frontend migration but omit explicit out-of-scope lines for project/ writes and provider-adapter routes per implementation-constraints checklist; only JOURNAL-02 AC-2 mentions no project/ schema edits.",
+      "alternative": "Append one-line out-of-scope clause per item: no project/supabase mutations; adapter only if server secret required (journal CRUD should use Supabase client from frontend).",
+      "evidence": ["cursor-impl-cycle/prompts/implementation-constraints.md", "cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json"]
+    }
+  ],
+  "criteria_audit": [
+    { "id": "ir_roots_covered", "status": "pass", "evidence": ["bTHDa → all 7 JOURNAL items ir_refs[]"], "gap": null },
+    { "id": "depends_on_resolved", "status": "pass", "evidence": ["SHELL-07, DS-01, ENUM-01, ENUM-03 in cursor-impl-cycle/state/item-registry.json", "Same-module JOURNAL-01..07 chain"], "gap": null },
+    { "id": "item_granularity", "status": "pass", "evidence": ["7 items for estimated_size large", "~406 entities in ir/slices/bTHDb____root.json", "Distinct journeys: tabs, entries, 4 popup pairs, milestones/relapse"], "gap": null },
+    { "id": "scope_boundaries", "status": "partial", "evidence": ["Shell chrome ai_RNbBKLUl/m excluded to SHELL-07", "DailyCheckIn UI deferred to MOD-DRSAM-DASHBOARD DASH-04"], "gap": "No explicit project/ or adapter out-of-scope per item; module-map purpose overstates daily check-ins on journal page" },
+    { "id": "ac_quality", "status": "pass", "evidence": ["ACs reference data-bubble-id, Supabase table names (uds_journalentry, uds_milestone, uds_relapseevent), style_ref via DS-01"], "gap": "PopupClosed reset workflows not testable from ACs" },
+    { "id": "ui_refs", "status": "partial", "evidence": ["All major regions anchored: journal-main, tab panels, popups, RG templates"], "gap": "Shallow ui_refs vs layout_notes entity counts on JOURNAL-02/04/05" },
+    { "id": "no_duplicate_items", "status": "pass", "evidence": ["Non-overlapping popup vs list vs tab scopes"], "gap": null },
+    { "id": "grounding", "status": "pass", "evidence": ["ir_refs bTHDa only per module-map", "layout_notes cite slice entity counts and workflow ids", "Supabase contracts read-only from project/"], "gap": null }
+  ]
+}

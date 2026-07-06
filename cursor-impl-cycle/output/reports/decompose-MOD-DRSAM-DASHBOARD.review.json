@@ -1,0 +1,166 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-DASHBOARD",
+  "assessed_at": "2026-07-06T16:00:00.000Z",
+  "ok": true,
+  "readiness_pct": 91,
+  "coverage_confidence_pct": 84,
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Amend DASH-07 before implement: remove frontend/src/features/dashboard/CrisisSupportCard.vue from target_files, add depends_on CRISIS-01-crisis-support-reusable, and narrow AC-1 to bTIfU CustomElement mount importing @/components/crisis.",
+    "Expand DASH-05 ui_refs with ai_RNbBHXSD (cited in AC-3), bTIvC progress wrapper, and bTIuw DS-02 CustomElement host per layout_notes.",
+    "Add DASH-06 ui_refs for chat-preview-meta siblings ai_RNbBHXSQ, ai_RNbBHXSR, ai_RNbBHXSV, ai_RNbBHXSX to match ai_RNbBHXSU subtree depth.",
+    "Extend DASH-07 AC-3 with bTJEQ RG cell template ids and bTJDw/bTJEC ChangePage navigation parity for services panel enrollment rows.",
+    "Remove spurious DASH-05 depends_on DASH-04 unless a concrete data coupling exists between path card and check-in card."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "integration",
+      "priority": "blocker_candidate",
+      "finding": "DASH-07-crisis-onboarding-services-overlays lists frontend/src/features/dashboard/CrisisSupportCard.vue in target_files and AC-1 re-specifies full bTIdW interior parity, while CRISIS-01 canonical export is frontend/src/components/crisis/CrisisSupportCard.vue; DASH-07 lacks depends_on CRISIS-01-crisis-support-reusable and DASH module priority 5 precedes CRISIS priority 9.",
+      "alternative": "Patch DASH-07 decompose: drop CrisisSupportCard.vue from target_files, add depends_on CRISIS-01-crisis-support-reusable, rewrite AC-1 as mount-only (import CrisisSupportCard at bTIfU with data-bubble-id on host CE).",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CRISIS.json",
+        "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-CRISIS.review.json",
+        "cursor-impl-cycle/state/module-map.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "DASH-05-insights-and-path-cards AC-3 names insight icon ai_RNbBHXSD and layout_notes cite progress bar wrapper bTIvC, but ui_refs omit ai_RNbBHXSD, bTIvC, and bTIuw (DS-02 CustomElement host inside path-progress-bar-wrap).",
+      "alternative": "Add ai_RNbBHXSD, bTIvC, bTIuw, and style_ref:bTIvC to DASH-05 ui_refs; reference DS-02-progress-bar-reusable mount contract in AC-2.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json",
+        "ir/slices/bTHDU____root.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "DASH-06-chat-and-journal-previews ui_refs cover chat card anchors but omit chat-preview-meta subtree nodes ai_RNbBHXSQ, ai_RNbBHXSR, ai_RNbBHXSV, ai_RNbBHXSX present in bTHDU____root.json between ai_RNbBHXSP and ai_RNbBHXSY.",
+      "alternative": "Expand DASH-06 ui_refs to include full chat-preview-meta row and style_ref:ai_RNbBHXSX for last-message timestamp/label parity.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json",
+        "ir/slices/bTHDU____root.json"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "behavior",
+      "priority": "medium",
+      "finding": "DASH-07 ServicesFloatingPanel AC-3 names bTJEO/bTJEQ search binding but omits RG cell interior ids and bTJDw ButtonClicked → bTJEC ChangePage workflow for enrollment row navigation; DASH-03 micro-commitment cells include button bTJGe with workflow bTJGk likewise absent from ACs.",
+      "alternative": "Add AC-4 for services RG cell click routing via bTJDw parity; add DASH-03 AC-4 for bTJGe/bTJGk session navigation to /paths session route.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json",
+        "ir/inventory.json",
+        "ir/slices/bTHDU____root.json"
+      ]
+    },
+    {
+      "id": "C-5",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Dashboard item scopes state frontend migration but omit explicit out-of-scope lines for project/ writes and provider-adapter passthrough routes per implementation-constraints checklist.",
+      "alternative": "Append one-line out-of-scope clause per item: no project/supabase schema changes; Supabase client reads/writes only via existing APIs; no adapter unless server secret required.",
+      "evidence": [
+        "cursor-impl-cycle/prompts/implementation-constraints.md",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json"
+      ]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "bTHDT → all 7 items ir_refs",
+        "Page elements in bTHDU____root.json mapped across DASH-01..07 widget boundaries"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "SHELL-06, DS-01, DS-02, DS-05, ENUM-01, ENUM-03, AUTH-05 resolve in cursor-impl-cycle/state/item-registry.json"
+      ],
+      "gap": "CRISIS-01 not listed on DASH-07 despite bTIdW interior AC overlap"
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "7 items for estimated_size medium with ~205-entity bTHDU____root.json slice",
+        "Scaffold + 6 widget items align to dashboard-grid regions without artificial single-element splits"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "partial",
+      "evidence": [
+        "DASH-01 defers widget internals; SHELL-06 owns chrome via depends_on",
+        "DASH-07 separates page-level overlays from dashboard-main subtree"
+      ],
+      "gap": "No explicit project/ or adapter out-of-scope lines per item"
+    },
+    {
+      "id": "ac_quality",
+      "status": "pass",
+      "evidence": [
+        "Prior chip misattribution fix applied: DASH-05 AC-3 covers insights-list only; DASH-06 AC-1 owns chat prompt chips ai_RNbBHXSc/Sd/Se",
+        "ACs reference data-bubble-id, workflow ids (bTIVW, bTIqQ), Supabase table names, and route targets"
+      ],
+      "gap": "Services panel and micro-commitment click workflows not in ACs"
+    },
+    {
+      "id": "ui_refs",
+      "status": "partial",
+      "evidence": [
+        "DASH-02, DASH-04, DASH-06 journal subtree have strong depth",
+        "DASH-07 crisis subtree lists bTIdb..bTIdz hotline groups"
+      ],
+      "gap": "DASH-05 missing ai_RNbBHXSD/bTIvC/bTIuw; DASH-06 missing chat-meta siblings; DASH-07 services RG cells thin"
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "Widget boundaries non-overlapping after chip fix",
+        "Cross-module crisis overlap is integration duplication vs intra-module duplicate items"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "pass",
+      "evidence": [
+        "ir_refs bTHDT matches module-map ir_roots",
+        "Element ids trace to ir/slices/bTHDU____root.json and ir/inventory.json",
+        "style_ref tokens align with styles.json entries in slice"
+      ],
+      "gap": null
+    },
+    {
+      "id": "cross_module_reuse",
+      "status": "partial",
+      "evidence": [
+        "CRISIS-01 exports shared component at frontend/src/components/crisis/",
+        "DASH-07 still claims duplicate target_files path and full interior AC"
+      ],
+      "gap": "DASH-07 must import CRISIS-01 component rather than re-implement bTIdW markup"
+    }
+  ]
+}

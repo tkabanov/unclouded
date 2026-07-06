@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Impl cycle critique triage",
+  "type": "object",
+  "required": ["phase", "target_id", "assessed_at", "ok_to_advance", "rewrite_required", "decisions"],
+  "properties": {
+    "phase": { "type": "string", "enum": ["scope", "decompose", "implement"] },
+    "target_id": { "type": "string" },
+    "assessed_at": { "type": "string" },
+    "review_ref": { "type": "string" },
+    "ok_to_advance": { "type": "boolean" },
+    "rewrite_required": { "type": "boolean" },
+    "summary": { "type": "string" },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["critique_id", "severity", "action_required", "rationale"],
+        "properties": {
+          "critique_id": { "type": "string" },
+          "severity": { "type": "string", "enum": ["block", "fix", "defer", "accept"] },
+          "resolution": { "type": "string", "enum": ["fix_now", "defer", "accept"] },
+          "action_required": { "type": "boolean" },
+          "rationale": { "type": "string", "minLength": 5 },
+          "deferred_to_item": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "asyncapi": "3.0.0",
+  "info": {
+    "title": "M2 Streaming Baseline",
+    "version": "0.1.0-m2-baseline"
+  },
+  "x-b2c": {
+    "generated_from": "inventory+views",
+    "message_count": 0
+  },
+  "channels": {},
+  "components": {
+    "messages": {}
+  }
+}

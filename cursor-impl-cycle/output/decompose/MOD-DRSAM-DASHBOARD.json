@@ -1,0 +1,298 @@
+{
+  "module_id": "MOD-DRSAM-DASHBOARD",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "DASH-01-dashboard-content-scaffold",
+      "title": "Dashboard main content scaffold",
+      "scope": "frontend — populate SHELL-06 content slot with dashboard-main (ai_RNbBHXRD) region tree: dashboard-content, greeting-row, and responsive dashboard-grid columns; bind CurrentUser context; no widget internals",
+      "acceptance_criteria": [
+        "AC-1: DashboardMain.vue mounts inside DashboardPage content slot with data-bubble-id=\"ai_RNbBHXRD\" on root and child regions ai_RNbBHXRE and ai_RNbBHXRW preserving IR nesting",
+        "AC-2: dashboard-grid uses fluid multi-column layout matching Bubble fit_width semantics — left column hosts G - daily check in (ai_RNbBHXRX), right column hosts path/chat/journal/crisis card slots",
+        "AC-3: current_user data binding from IR flows through a dashboard composable supplying user display fields to child widget slots without re-implementing header/sidebar chrome"
+      ],
+      "ir_refs": ["bTHDT"],
+      "ui_refs": ["bTHDT", "ai_RNbBHXRD", "ai_RNbBHXRE", "ai_RNbBHXRF", "ai_RNbBHXRW", "ai_RNbBHXRX"],
+      "layout_notes": "SHELL-06 owns page chrome; this item only fills dashboard-main. Grid is two-column on desktop with stacked cards on narrow viewports per Bubble container_layout on ai_RNbBHXRW.",
+      "depends_on": [
+        "SHELL-06-dashboard-page-shell",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/dashboard/DashboardMain.vue",
+        "frontend/src/pages/DashboardPage.vue",
+        "frontend/src/features/dashboard/useDashboardUser.ts"
+      ]
+    },
+    {
+      "id": "DASH-02-greeting-coaching-quick-actions",
+      "title": "Greeting card, coaching mode, and quick actions",
+      "scope": "frontend — migrate dashboard-greeting-card (ai_RNbBHXRG): avatar, personalized greeting, mode badge, coaching note, ai_coaching_mode_os dropdown (bTIVE/bTIVQ), and dashboard-quick-actions plan/reflect buttons",
+      "acceptance_criteria": [
+        "AC-1: DashboardGreetingCard.vue preserves ai_RNbBHXRG hierarchy with data-bubble-id on greeting-top (ai_RNbBHXRH), greeting-avatar (ai_RNbBHXRI), greeting-name (ai_RNbBHXRL), mode-pill (ai_RNbBHXRN), and coaching-note (ai_RNbBHXRO)",
+        "AC-2: Coaching mode dropdown bTIVQ renders ai_coaching_mode_os options from ENUM-03 with style_ref:bTIVE and InputChanged workflow parity (bTIVW) updating user coaching preference via Supabase client",
+        "AC-3: DashboardQuickActions.vue renders ai_RNbBHXRP with dashboard-qa-plan (ai_RNbBHXRQ, Button_accent_) and dashboard-qa-reflect (ai_RNbBHXRS, Button_outline_) routing to /paths and /journal respectively"
+      ],
+      "ir_refs": ["bTHDT"],
+      "ui_refs": [
+        "ai_RNbBHXRG",
+        "ai_RNbBHXRH",
+        "ai_RNbBHXRI",
+        "ai_RNbBHXRK",
+        "ai_RNbBHXRL",
+        "ai_RNbBHXRM",
+        "ai_RNbBHXRN",
+        "ai_RNbBHXRO",
+        "ai_RNbBHXRP",
+        "ai_RNbBHXRQ",
+        "ai_RNbBHXRS",
+        "bTIVE",
+        "bTIVK",
+        "bTIVQ",
+        "style_ref:bTIVE"
+      ],
+      "layout_notes": "Greeting card is horizontal flex: avatar left, greeting text and mode badge center stack, coaching note below. Quick-actions row sits as sibling group under dashboard-greeting-row (ai_RNbBHXRF), not inside greeting card.",
+      "depends_on": [
+        "DASH-01-dashboard-content-scaffold",
+        "ENUM-01-navigation-and-onboarding-labels",
+        "ENUM-03-path-coaching-and-state-enums",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/dashboard/DashboardGreetingCard.vue",
+        "frontend/src/features/dashboard/DashboardQuickActions.vue",
+        "frontend/src/features/dashboard/coachingModeApi.ts"
+      ]
+    },
+    {
+      "id": "DASH-03-micro-commitments-widget",
+      "title": "Micro-commitments row widget",
+      "scope": "frontend — migrate G - micro-commitment (bTJFv) and RG - m-commitment (bTJGH) under dashboard-greeting-row: path session chips with completion state from parent path enrollment context",
+      "acceptance_criteria": [
+        "AC-1: DashboardMicroCommitments.vue renders bTJFv with data-bubble-id and nests RG - m-commitment (bTJGH) preserving RepeatingGroup_list_ style_ref",
+        "AC-2: Repeating group cells (bTJGS/bTJGY) display path session titles and completion indicators matching IR text nodes and Group_transparent_ presentation",
+        "AC-3: Row visibility and data source mirror Bubble element_ref binding to custom.pathsession under active pathenrollment — read via Supabase client, no adapter passthrough"
+      ],
+      "ir_refs": ["bTHDT"],
+      "ui_refs": [
+        "bTJFv",
+        "bTJGH",
+        "bTJGS",
+        "bTJGY",
+        "bTJGB",
+        "style_ref:bTJFv",
+        "style_ref:bTJGH",
+        "RepeatingGroup_list_"
+      ],
+      "layout_notes": "Micro-commitment row spans greeting-row width below greeting card and quick actions; RG cells are horizontal chip list with wrap — preserve fit_width fluid layout from IR.",
+      "depends_on": [
+        "DASH-01-dashboard-content-scaffold",
+        "ENUM-03-path-coaching-and-state-enums",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/dashboard/DashboardMicroCommitments.vue",
+        "frontend/src/features/dashboard/microCommitmentsApi.ts"
+      ]
+    },
+    {
+      "id": "DASH-04-daily-checkin-card",
+      "title": "Daily check-in card and submit workflow",
+      "scope": "frontend — migrate dashboard-checkin-card (ai_RNbBHXRY): streak badge, mood/energy sliders, reflection input, and checkin-submit workflow creating DailyCheckIn rows via Supabase client (dailycheckin: mood, energy_stress_level, reflection, date, user)",
+      "acceptance_criteria": [
+        "AC-1: DashboardCheckinCard.vue preserves ai_RNbBHXRY tree with data-bubble-id on checkin-card-header (ai_RNbBHXRZ), checkin-streak-badge (ai_RNbBHXRd), and checkin-form (ai_RNbBHXRg)",
+        "AC-2: Mood slider (ai_RNbBHXRk) and energy slider (ai_RNbBHXRo) bind to checkin-mood-value and checkin-energy-value text nodes with IR style_ref tokens — no placeholder slider styling",
+        "AC-3: checkin-submit-btn (ai_RNbBHXRw) triggers workflow bTIqQ parity: insert dailycheckin record for current user and refresh streak badge from user.daily_check_in_streak_number"
+      ],
+      "ir_refs": ["bTHDT", "dailycheckin"],
+      "ui_refs": [
+        "ai_RNbBHXRX",
+        "ai_RNbBHXRY",
+        "ai_RNbBHXRZ",
+        "ai_RNbBHXRc",
+        "ai_RNbBHXRd",
+        "ai_RNbBHXRf",
+        "ai_RNbBHXRg",
+        "ai_RNbBHXRh",
+        "ai_RNbBHXRi",
+        "ai_RNbBHXRj",
+        "ai_RNbBHXRk",
+        "ai_RNbBHXRl",
+        "ai_RNbBHXRn",
+        "ai_RNbBHXRo",
+        "ai_RNbBHXRp",
+        "ai_RNbBHXRq",
+        "ai_RNbBHXRr",
+        "ai_RNbBHXRw",
+        "style_ref:ai_RNbBHXRc",
+        "style_ref:ai_RNbBHXRd"
+      ],
+      "layout_notes": "Check-in card is primary left-column widget under G - daily check in (ai_RNbBHXRX). Form stacks mood group, energy group, reflection MultiLineInput, then submit button — preserve vertical spacing from IR padding.",
+      "depends_on": [
+        "DASH-01-dashboard-content-scaffold",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/dashboard/DashboardCheckinCard.vue",
+        "frontend/src/features/dashboard/checkinApi.ts"
+      ]
+    },
+    {
+      "id": "DASH-05-insights-and-path-cards",
+      "title": "Insights and current path cards",
+      "scope": "frontend — migrate dashboard-insights-card (ai_RNbBHXRx) with insights-list repeating insight items and disclaimer, plus G - current path (ai_RNbBHXSf) with path RG, progress bar (DS-02), and next-step label",
+      "acceptance_criteria": [
+        "AC-1: DashboardInsightsCard.vue renders ai_RNbBHXRx with insights-card-header (ai_RNbBHXRy), insights-card-title (ai_RNbBHXSA), insights-list (ai_RNbBHXSB) insight-item groups, and insights-disclaimer (ai_RNbBHXSL) with data-bubble-id markers",
+        "AC-2: DashboardCurrentPathCard.vue renders ai_RNbBHXSf with path-card-header (ai_RNbBHXSg), path-name (ai_RNbBHXSm), ProgressBar (DS-02) in path-progress-bar-wrap (ai_RNbBHXSn), and path-next-step (ai_RNbBHXSt) fed by pathenrollment search binding from IR",
+        "AC-3: path-card-link (ai_RNbBHXSk) routes to /paths per Bubble Link navigation; insights-list (ai_RNbBHXSB) renders insight-item groups ai_RNbBHXSC (icon ai_RNbBHXSD, text ai_RNbBHXSE) and ai_RNbBHXSF with data-bubble-id markers preserving IR hierarchy"
+      ],
+      "ir_refs": ["bTHDT"],
+      "ui_refs": [
+        "ai_RNbBHXRx",
+        "ai_RNbBHXRy",
+        "ai_RNbBHXSA",
+        "ai_RNbBHXSB",
+        "ai_RNbBHXSC",
+        "ai_RNbBHXSE",
+        "ai_RNbBHXSF",
+        "ai_RNbBHXSI",
+        "ai_RNbBHXSK",
+        "ai_RNbBHXSL",
+        "ai_RNbBHXSf",
+        "ai_RNbBHXSg",
+        "ai_RNbBHXSj",
+        "ai_RNbBHXSk",
+        "ai_RNbBHXSl",
+        "ai_RNbBHXSm",
+        "ai_RNbBHXSn",
+        "ai_RNbBHXSo",
+        "ai_RNbBHXSp",
+        "ai_RNbBHXSq",
+        "ai_RNbBHXSt",
+        "ai_RNbBHXSu",
+        "ai_RNbBHXSv",
+        "bTIrY",
+        "style_ref:ai_RNbBHXSA",
+        "style_ref:ai_RNbBHXSL"
+      ],
+      "layout_notes": "Insights card stacks below check-in card in left column. Current path card is first right-column widget with RG - path (bTIrY) cells; progress bar uses fit_height row wrapper (bTIvC) from IR.",
+      "depends_on": [
+        "DASH-01-dashboard-content-scaffold",
+        "DASH-04-daily-checkin-card",
+        "DS-01-design-tokens-and-bubble-styles",
+        "DS-02-progress-bar-reusable",
+        "ENUM-03-path-coaching-and-state-enums"
+      ],
+      "target_files": [
+        "frontend/src/features/dashboard/DashboardInsightsCard.vue",
+        "frontend/src/features/dashboard/DashboardCurrentPathCard.vue",
+        "frontend/src/features/dashboard/pathEnrollmentApi.ts"
+      ]
+    },
+    {
+      "id": "DASH-06-chat-and-journal-previews",
+      "title": "Chat and journal preview cards",
+      "scope": "frontend — migrate G - chat (ai_RNbBHXSM) dashboard-chat-preview-card with prompt chips and chat-preview-link, and G - recent journal (ai_RNbBHXSx) with RG - recent journal entry list — read-only previews routing to /chat and /journal",
+      "acceptance_criteria": [
+        "AC-1: DashboardChatPreviewCard.vue renders ai_RNbBHXSN hierarchy: chat-preview-header (ai_RNbBHXSO), chat-preview-meta (ai_RNbBHXSU), chat-quick-start (ai_RNbBHXSZ) with prompt chips (chip-plan-day ai_RNbBHXSc, chip-reflect-week ai_RNbBHXSd, chip-set-goal ai_RNbBHXSe), and chat-preview-link (ai_RNbBHXSS) with data-bubble-id",
+        "AC-2: DashboardJournalPreviewCard.vue renders ai_RNbBHXSx with journal-card-header (ai_RNbBHXSy), journal-card-link (ai_RNbBHXTC), and RG - recent journal (ai_RNbBHXTD) cells showing journal-entry-title (ai_RNbBHXTG), preview (ai_RNbBHXTH), mood (ai_RNbBHXTJ), and date (ai_RNbBHXTK)",
+        "AC-3: Chat preview loads last message text into chat-preview-last-msg (ai_RNbBHXSY) via Supabase read; journal RG lists recent JournalEntry rows for current user ordered by date"
+      ],
+      "ir_refs": ["bTHDT"],
+      "ui_refs": [
+        "ai_RNbBHXSM",
+        "ai_RNbBHXSN",
+        "ai_RNbBHXSO",
+        "ai_RNbBHXSP",
+        "ai_RNbBHXSS",
+        "ai_RNbBHXST",
+        "ai_RNbBHXSU",
+        "ai_RNbBHXSW",
+        "ai_RNbBHXSY",
+        "ai_RNbBHXSZ",
+        "ai_RNbBHXSa",
+        "ai_RNbBHXSb",
+        "ai_RNbBHXSc",
+        "ai_RNbBHXSd",
+        "ai_RNbBHXSe",
+        "ai_RNbBHXSx",
+        "ai_RNbBHXSy",
+        "ai_RNbBHXSz",
+        "ai_RNbBHXTA",
+        "ai_RNbBHXTB",
+        "ai_RNbBHXTC",
+        "ai_RNbBHXTD",
+        "ai_RNbBHXTE",
+        "ai_RNbBHXTF",
+        "ai_RNbBHXTG",
+        "ai_RNbBHXTH",
+        "ai_RNbBHXTI",
+        "ai_RNbBHXTJ",
+        "ai_RNbBHXTK",
+        "style_ref:ai_RNbBHXSj",
+        "style_ref:ai_RNbBHXTB",
+        "style_ref:ai_RNbBHXTG"
+      ],
+      "layout_notes": "Chat and journal cards stack in right column below current path card. Chat prompt chips are horizontal chip row; journal RG is vertical list with entry-left/entry-right split per ai_RNbBHXTE cell template.",
+      "depends_on": [
+        "DASH-01-dashboard-content-scaffold",
+        "DS-01-design-tokens-and-bubble-styles",
+        "DS-05-chat-header-and-messages",
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
+      "target_files": [
+        "frontend/src/features/dashboard/DashboardChatPreviewCard.vue",
+        "frontend/src/features/dashboard/DashboardJournalPreviewCard.vue",
+        "frontend/src/features/dashboard/chatPreviewApi.ts",
+        "frontend/src/features/dashboard/journalPreviewApi.ts"
+      ]
+    },
+    {
+      "id": "DASH-07-crisis-onboarding-services-overlays",
+      "title": "Crisis card, onboarding banner, and services panel",
+      "scope": "frontend — migrate RE - crisis support instance (bTIfU/bTIdW), G - continue onboarding banner (bTIpm) with resume CTA, and FG - services floating panel (bTJEO) with PathEnrollment RG — page-level overlays outside shell chrome",
+      "acceptance_criteria": [
+        "AC-1: CrisisSupportCard.vue mounts bTIfU CustomElement with data-bubble-id on RE - crisis support root (bTIdW) preserving dashboard-crisis-card (bTIdb), crisis-dash-header (bTIdg), crisis-dash-list (bTIdo), and hotline resource groups (988, textline, samhsa) with IR copy",
+        "AC-2: ContinueOnboardingBanner.vue renders bTIpm with icon (bTIps), title/subtitle text (bTIpy/bTIqE), and continue button (bTIqK) visible when onboarding incomplete per AUTH-05 signals; button routes to /onboarding",
+        "AC-3: ServicesFloatingPanel.vue renders page-level bTJEO with RG - PathEnrollment (bTJEQ) listing pathenrollment1 search results; panel uses fixed/floating positioning from Bubble FG semantics without altering SHELL header/sidebar"
+      ],
+      "ir_refs": ["bTHDT", "bTIdW"],
+      "ui_refs": [
+        "bTIfU",
+        "bTIdW",
+        "bTIdb",
+        "bTIdg",
+        "bTIdh",
+        "bTIdi",
+        "bTIdm",
+        "bTIdn",
+        "bTIdo",
+        "bTIds",
+        "bTIdy",
+        "bTIdz",
+        "bTIpm",
+        "bTIps",
+        "bTIpy",
+        "bTIqE",
+        "bTIqK",
+        "bTJEO",
+        "bTJEQ",
+        "style_ref:bTIpm",
+        "style_ref:bTJEQ"
+      ],
+      "layout_notes": "Crisis card sits in dashboard-grid right column via bTIfU CE. Continue-onboarding banner is sibling to dashboard-content under dashboard-main (ai_RNbBHXRD), shown conditionally above grid. FG-services (bTJEO) is page-root FloatingGroup with z-index above content — not inside dashboard-main subtree.",
+      "depends_on": [
+        "DASH-01-dashboard-content-scaffold",
+        "AUTH-05-onboarding-health-load-signals",
+        "DS-01-design-tokens-and-bubble-styles",
+        "ENUM-01-navigation-and-onboarding-labels",
+        "ENUM-03-path-coaching-and-state-enums"
+      ],
+      "target_files": [
+        "frontend/src/features/dashboard/CrisisSupportCard.vue",
+        "frontend/src/features/dashboard/ContinueOnboardingBanner.vue",
+        "frontend/src/features/dashboard/ServicesFloatingPanel.vue"
+      ]
+    }
+  ]
+}

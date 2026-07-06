@@ -1,0 +1,42 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-AUTH",
+  "assessed_at": "2026-07-06T13:55:00.000Z",
+  "ok": true,
+  "readiness_pct": 88,
+  "coverage_confidence_pct": 86,
+  "scores": {
+    "completeness": 4,
+    "grounding": 5,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Expand AUTH-01 ui_refs during implement to cover major hero/repeating-group cells from bTGbC____root.json (379 entities).",
+    "Land ENUM items before AUTH-03+ implement waves per depends_on chain."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "AUTH-01-index-login-entry lists only 3 ui_refs for a 379-entity index slice; implement may miss nested hero/repeating-group regions.",
+      "alternative": "Add ui_refs for top-level groups ai_RNbBHWoN–ai_RNbBHWor from ir/slices/bTGbC____root.json or split AUTH-01 into hero vs footer regions.",
+      "evidence": ["ir/slices/bTGbC____root.json", "cursor-impl-cycle/output/decompose/MOD-DRSAM-AUTH.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "ac-quality",
+      "priority": "low",
+      "finding": "AUTH-04 and AUTH-05 share bTGNI ir_ref without distinct workflow slice refs; implementers may conflate profile vs health step boundaries.",
+      "alternative": "Add ir_refs to bTGNJ__elements__bTGNP__elements____remaining_children.json vs bTGNJ__elements____remaining_children.json on respective items.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-AUTH.json", "ir/slices/bTGNJ__elements____remaining_children.json"]
+    }
+  ],
+  "criteria_audit": [
+    { "id": "ir_roots_covered", "status": "pass", "evidence": ["AAL", "bTGNI", "bTGYf"], "gap": null },
+    { "id": "depends_on_resolved", "status": "pass", "evidence": ["cursor-impl-cycle/state/item-registry.json"], "gap": null },
+    { "id": "item_granularity", "status": "pass", "evidence": ["ir/slices/bTGNJ____root.json"], "gap": null }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Impl cycle state",
+  "type": "object",
+  "required": ["active", "phase", "gate_stage"],
+  "properties": {
+    "active": { "type": "boolean" },
+    "phase": { "type": "string", "enum": ["scope", "decompose", "implement", "complete"] },
+    "gate_stage": { "type": "string", "enum": ["write", "review", "triage"] },
+    "current_module_id": { "type": ["string", "null"] },
+    "current_item_id": { "type": ["string", "null"] },
+    "modules": { "type": "array" },
+    "iteration": { "type": "number" },
+    "target_iteration": { "type": "number" },
+    "started_at": { "type": ["string", "null"] },
+    "last_checked_at": { "type": ["string", "null"] }
+  }
+}

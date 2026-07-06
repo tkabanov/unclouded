@@ -1,0 +1,50 @@
+{
+  "module_id": "MOD-DRSAM-CRISIS",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "CRISIS-01-crisis-support-reusable",
+      "title": "RE - crisis support reusable",
+      "scope": "frontend — migrate RE - crisis support (bTIdW/bTIda): card shell with coaching disclaimer and three hotline resource rows (988, Crisis Text Line, SAMHSA); export shared CrisisSupportCard.vue for dashboard (bTIfU), paths enrollment (bTIwu), and settings consumers; presentation-only with tel/sms deep links; no adapter and no writes under project/",
+      "acceptance_criteria": [
+        "AC-1: CrisisSupportCard.vue root renders with data-bubble-id=\"bTIdW\"; card container bTIdb preserves column layout, 12px border-radius, 1px var(--color_primary_default) border, 20px padding, and var(--color_surface_default) bgcolor from IR",
+        "AC-2: Header row bTIdg shows heart icon bTIdi on primary circle bTIdh, title bTIdm (\"Crisis Resources\"), and disclaimer bTIdn using Text_caption_ with IR copy; hotline list bTIdo is a wrapping row of three resource groups with 8px row gaps and fit_width fluid semantics",
+        "AC-3: Hotline groups bTIds (988), bTIeA (Crisis Text Line), and bTIeL (SAMHSA) preserve icon+title+subtitle hierarchy with IR static text (bTIdy/bTIdz, bTIeG/bTIeK, bTIeR/bTIeS) and phosphor icons bTIdt/bTIeE/bTIeM; rows expose tel:988, sms:741741?body=HOME, and tel:18006624357 anchors without altering visible copy"
+      ],
+      "ir_refs": ["bTIdW"],
+      "ui_refs": [
+        "bTIdW",
+        "bTIdb",
+        "bTIdg",
+        "bTIdh",
+        "bTIdi",
+        "bTIdm",
+        "bTIdn",
+        "bTIdo",
+        "bTIds",
+        "bTIdt",
+        "bTIdu",
+        "bTIdy",
+        "bTIdz",
+        "bTIeA",
+        "bTIeE",
+        "bTIeF",
+        "bTIeG",
+        "bTIeK",
+        "bTIeL",
+        "bTIeM",
+        "bTIeQ",
+        "bTIeR",
+        "bTIeS",
+        "Text_caption_"
+      ],
+      "layout_notes": "Tiny reusable (~22 entities): vertical card stack — header row (icon circle + title/disclaimer column) above horizontal/wrapping hotline row. Each hotline group is icon column + title/subtitle text stack. Exported from frontend/src/components/crisis for CustomElement mounts bTIfU (dashboard), bTIwu (paths FG-services), bTIfw (bTGNJ), and bTIfa (sidebar def); DASH-07 and MOD-DRSAM-SETTINGS import this shared component rather than duplicating markup.",
+      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "target_files": [
+        "frontend/src/components/crisis/CrisisSupportCard.vue",
+        "frontend/src/components/crisis/CrisisHotlineRow.vue",
+        "frontend/src/components/crisis/index.ts"
+      ]
+    }
+  ]
+}

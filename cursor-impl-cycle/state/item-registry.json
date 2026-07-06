@@ -1,0 +1,200 @@
+{
+  "generated_at": "2026-07-06T16:20:36.260Z",
+  "modules": {
+    "MOD-DRSAM-API": {
+      "decomposed": true,
+      "item_ids": [
+        "API-01-pillar-score-engine",
+        "API-02-user-classification",
+        "API-03-pressure-profile",
+        "API-04-behavioral-fingerprint",
+        "API-05-ai-coaching-mode-assignment",
+        "API-06-ai-confidence-level-trigger"
+      ]
+    },
+    "MOD-DRSAM-AUTH": {
+      "decomposed": true,
+      "item_ids": [
+        "AUTH-01-index-login-entry",
+        "AUTH-02-reset-password",
+        "AUTH-03-onboarding-wizard-shell",
+        "AUTH-04-onboarding-profile-questions",
+        "AUTH-05-onboarding-health-load-signals"
+      ]
+    },
+    "MOD-DRSAM-CHAT": {
+      "decomposed": true,
+      "item_ids": [
+        "CHAT-01-chat-content-layout",
+        "CHAT-02-conversation-thread-sidebar",
+        "CHAT-03-chat-reusable-panel-mount",
+        "CHAT-04-delete-conversation-popup",
+        "CHAT-05-chat-messaging-and-create-flow",
+        "CHAT-06-chat-welcome-empty-state"
+      ]
+    },
+    "MOD-DRSAM-CRISIS": {
+      "decomposed": true,
+      "item_ids": [
+        "CRISIS-01-crisis-support-reusable"
+      ]
+    },
+    "MOD-DRSAM-DASHBOARD": {
+      "decomposed": true,
+      "item_ids": [
+        "DASH-01-dashboard-content-scaffold",
+        "DASH-02-greeting-coaching-quick-actions",
+        "DASH-03-micro-commitments-widget",
+        "DASH-04-daily-checkin-card",
+        "DASH-05-insights-and-path-cards",
+        "DASH-06-chat-and-journal-previews",
+        "DASH-07-crisis-onboarding-services-overlays"
+      ]
+    },
+    "MOD-DRSAM-DESIGN-SYSTEM": {
+      "decomposed": true,
+      "item_ids": [
+        "DS-01-design-tokens-and-bubble-styles",
+        "DS-02-progress-bar-reusable",
+        "DS-03-score-bar-reusable",
+        "DS-04-session-completion-form-reusable",
+        "DS-05-chat-header-and-messages",
+        "DS-06-chat-composer-and-shell"
+      ]
+    },
+    "MOD-DRSAM-ENUMS": {
+      "decomposed": true,
+      "item_ids": [
+        "ENUM-01-navigation-and-onboarding-labels",
+        "ENUM-02-onboarding-question-enums",
+        "ENUM-03-path-coaching-and-state-enums",
+        "ENUM-04-tier-and-subscription-labels"
+      ]
+    },
+    "MOD-DRSAM-JOURNAL": {
+      "decomposed": true,
+      "item_ids": [
+        "JOURNAL-01-journal-header-and-tab-bar",
+        "JOURNAL-02-journal-entries-list",
+        "JOURNAL-03-new-entry-popup",
+        "JOURNAL-04-entry-detail-and-ai-reflection",
+        "JOURNAL-05-milestones-and-relapse-list",
+        "JOURNAL-06-milestone-add-edit-popups",
+        "JOURNAL-07-relapse-log-edit-popups"
+      ]
+    },
+    "MOD-DRSAM-PATHS": {
+      "decomposed": true,
+      "item_ids": [
+        "PATHS-01-paths-tab-state-and-header",
+        "PATHS-02-paths-grid-filters-and-cards",
+        "PATHS-03-path-detail-enrollment-popup",
+        "PATHS-04-paths-resources-panel",
+        "PATHS-05-resource-detail-popup",
+        "PATHS-06-enrollment-floating-services-bar",
+        "PATHS-07-session-completion-route-integration"
+      ]
+    },
+    "MOD-DRSAM-SETTINGS": {
+      "decomposed": true,
+      "item_ids": [
+        "SET-01-settings-tab-router-and-header",
+        "SET-02-profile-tab-and-save",
+        "SET-03-coaching-tab-and-save",
+        "SET-04-privacy-tab-and-delete-flow",
+        "SET-05-security-tab-and-password-flow",
+        "SET-06-notifications-tab-and-save",
+        "SET-07-subscription-tab-and-billing",
+        "SET-08-workplace-tab-and-link-flow",
+        "SET-09-admin-paths-and-resources",
+        "SET-10-admin-plans-workplaces-analytics"
+      ]
+    },
+    "MOD-DRSAM-SHELL": {
+      "decomposed": true,
+      "item_ids": [
+        "SHELL-01-offline-banner",
+        "SHELL-02-sidebar-navigation",
+        "SHELL-03-header-bar-and-profile-menu",
+        "SHELL-04-header-login-signup-popups",
+        "SHELL-05-app-shell-layout",
+        "SHELL-06-dashboard-page-shell",
+        "SHELL-07-journal-page-shell",
+        "SHELL-08-paths-page-shell",
+        "SHELL-09-settings-page-shell",
+        "SHELL-10-chat-page-shell"
+      ]
+    }
+  },
+  "items": {
+    "API-01-pillar-score-engine": "MOD-DRSAM-API",
+    "API-02-user-classification": "MOD-DRSAM-API",
+    "API-03-pressure-profile": "MOD-DRSAM-API",
+    "API-04-behavioral-fingerprint": "MOD-DRSAM-API",
+    "API-05-ai-coaching-mode-assignment": "MOD-DRSAM-API",
+    "API-06-ai-confidence-level-trigger": "MOD-DRSAM-API",
+    "AUTH-01-index-login-entry": "MOD-DRSAM-AUTH",
+    "AUTH-02-reset-password": "MOD-DRSAM-AUTH",
+    "AUTH-03-onboarding-wizard-shell": "MOD-DRSAM-AUTH",
+    "AUTH-04-onboarding-profile-questions": "MOD-DRSAM-AUTH",
+    "AUTH-05-onboarding-health-load-signals": "MOD-DRSAM-AUTH",
+    "CHAT-01-chat-content-layout": "MOD-DRSAM-CHAT",
+    "CHAT-02-conversation-thread-sidebar": "MOD-DRSAM-CHAT",
+    "CHAT-03-chat-reusable-panel-mount": "MOD-DRSAM-CHAT",
+    "CHAT-04-delete-conversation-popup": "MOD-DRSAM-CHAT",
+    "CHAT-05-chat-messaging-and-create-flow": "MOD-DRSAM-CHAT",
+    "CHAT-06-chat-welcome-empty-state": "MOD-DRSAM-CHAT",
+    "CRISIS-01-crisis-support-reusable": "MOD-DRSAM-CRISIS",
+    "DASH-01-dashboard-content-scaffold": "MOD-DRSAM-DASHBOARD",
+    "DASH-02-greeting-coaching-quick-actions": "MOD-DRSAM-DASHBOARD",
+    "DASH-03-micro-commitments-widget": "MOD-DRSAM-DASHBOARD",
+    "DASH-04-daily-checkin-card": "MOD-DRSAM-DASHBOARD",
+    "DASH-05-insights-and-path-cards": "MOD-DRSAM-DASHBOARD",
+    "DASH-06-chat-and-journal-previews": "MOD-DRSAM-DASHBOARD",
+    "DASH-07-crisis-onboarding-services-overlays": "MOD-DRSAM-DASHBOARD",
+    "DS-01-design-tokens-and-bubble-styles": "MOD-DRSAM-DESIGN-SYSTEM",
+    "DS-02-progress-bar-reusable": "MOD-DRSAM-DESIGN-SYSTEM",
+    "DS-03-score-bar-reusable": "MOD-DRSAM-DESIGN-SYSTEM",
+    "DS-04-session-completion-form-reusable": "MOD-DRSAM-DESIGN-SYSTEM",
+    "DS-05-chat-header-and-messages": "MOD-DRSAM-DESIGN-SYSTEM",
+    "DS-06-chat-composer-and-shell": "MOD-DRSAM-DESIGN-SYSTEM",
+    "ENUM-01-navigation-and-onboarding-labels": "MOD-DRSAM-ENUMS",
+    "ENUM-02-onboarding-question-enums": "MOD-DRSAM-ENUMS",
+    "ENUM-03-path-coaching-and-state-enums": "MOD-DRSAM-ENUMS",
+    "ENUM-04-tier-and-subscription-labels": "MOD-DRSAM-ENUMS",
+    "JOURNAL-01-journal-header-and-tab-bar": "MOD-DRSAM-JOURNAL",
+    "JOURNAL-02-journal-entries-list": "MOD-DRSAM-JOURNAL",
+    "JOURNAL-03-new-entry-popup": "MOD-DRSAM-JOURNAL",
+    "JOURNAL-04-entry-detail-and-ai-reflection": "MOD-DRSAM-JOURNAL",
+    "JOURNAL-05-milestones-and-relapse-list": "MOD-DRSAM-JOURNAL",
+    "JOURNAL-06-milestone-add-edit-popups": "MOD-DRSAM-JOURNAL",
+    "JOURNAL-07-relapse-log-edit-popups": "MOD-DRSAM-JOURNAL",
+    "PATHS-01-paths-tab-state-and-header": "MOD-DRSAM-PATHS",
+    "PATHS-02-paths-grid-filters-and-cards": "MOD-DRSAM-PATHS",
+    "PATHS-03-path-detail-enrollment-popup": "MOD-DRSAM-PATHS",
+    "PATHS-04-paths-resources-panel": "MOD-DRSAM-PATHS",
+    "PATHS-05-resource-detail-popup": "MOD-DRSAM-PATHS",
+    "PATHS-06-enrollment-floating-services-bar": "MOD-DRSAM-PATHS",
+    "PATHS-07-session-completion-route-integration": "MOD-DRSAM-PATHS",
+    "SET-01-settings-tab-router-and-header": "MOD-DRSAM-SETTINGS",
+    "SET-02-profile-tab-and-save": "MOD-DRSAM-SETTINGS",
+    "SET-03-coaching-tab-and-save": "MOD-DRSAM-SETTINGS",
+    "SET-04-privacy-tab-and-delete-flow": "MOD-DRSAM-SETTINGS",
+    "SET-05-security-tab-and-password-flow": "MOD-DRSAM-SETTINGS",
+    "SET-06-notifications-tab-and-save": "MOD-DRSAM-SETTINGS",
+    "SET-07-subscription-tab-and-billing": "MOD-DRSAM-SETTINGS",
+    "SET-08-workplace-tab-and-link-flow": "MOD-DRSAM-SETTINGS",
+    "SET-09-admin-paths-and-resources": "MOD-DRSAM-SETTINGS",
+    "SET-10-admin-plans-workplaces-analytics": "MOD-DRSAM-SETTINGS",
+    "SHELL-01-offline-banner": "MOD-DRSAM-SHELL",
+    "SHELL-02-sidebar-navigation": "MOD-DRSAM-SHELL",
+    "SHELL-03-header-bar-and-profile-menu": "MOD-DRSAM-SHELL",
+    "SHELL-04-header-login-signup-popups": "MOD-DRSAM-SHELL",
+    "SHELL-05-app-shell-layout": "MOD-DRSAM-SHELL",
+    "SHELL-06-dashboard-page-shell": "MOD-DRSAM-SHELL",
+    "SHELL-07-journal-page-shell": "MOD-DRSAM-SHELL",
+    "SHELL-08-paths-page-shell": "MOD-DRSAM-SHELL",
+    "SHELL-09-settings-page-shell": "MOD-DRSAM-SHELL",
+    "SHELL-10-chat-page-shell": "MOD-DRSAM-SHELL"
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-06T16:02:00.000Z",
+  "ok": true,
+  "readiness_pct": 87,
+  "coverage_confidence_pct": 83,
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Expand SET-09 and SET-10 ui_refs during implement using ir/slices/bTHDl__elements____remaining_children.json under ai_RNbBHYZR/ai_RNbBHYZp/ai_RNbBHYaP/ai_RNbBHYah/ai_RNbBHYay — include admin-paths-grid (ai_RNbBHYZX), admin-resources-grid (ai_RNbBHYZv), RG card templates, and edit/delete button ids.",
+    "Add AC or scope clause for admin edit-btn workflows (admin-path-edit-btn ai_RNbBHYZh, admin-resource-edit-btn, admin-plan-edit-btn, admin-workplace-edit-btn) — Bubble has no separate edit popups; document reuse of add popups in edit mode or inline edit parity.",
+    "Resolve crisis sidebar wiring: either add bTIfa CustomElement mount to SHELL-02 ACs or change SET-01 AC-3 to depend only on CRISIS-01 without claiming SHELL-02 satisfies bTIfa host.",
+    "Clarify SettingsPage.vue ownership: SHELL-09 lands route/shell slot; SET-01 populates content — avoid duplicate AC on same file without boundary notes.",
+    "Land SHELL-09, DS-01, ENUM-01, and CRISIS-01 before SET-01 implement wave."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SET-09-admin-paths-and-resources lists 16 ui_refs for ~75 admin entities but omits admin-resources-grid (ai_RNbBHYZv), admin-add-resource-btn (ai_RNbBHYZs), admin-paths-grid (ai_RNbBHYZX), and card-internal edit/delete nodes (ai_RNbBHYZh, ai_RNbBHYZj, ai_RNbBHYZX–ai_RNbBHYZz) despite AC-2 requiring grid card templates with edit/delete actions.",
+      "alternative": "Expand ui_refs to include both grids, both add buttons, and at least one full path/resource card template subtree from ir/slices/bTHDl__elements____remaining_children.json, or cite pointer /pages/bTHDl/elements/ai_RNbBHYdt/.../ai_RNbBHYZR in layout_notes.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json",
+        "ir/slices/bTHDl__elements____remaining_children.json",
+        "ir/resolver.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SET-10-admin-plans-workplaces-analytics has 13 anchor ui_refs for three sub-tab panels plus analytics stat cards (~75 entities per layout_notes) without admin-plans-grid, admin-workplaces-grid, or stat card ids (admin-stat-total-users ai_RNbBHYbA through admin-stat-enrolled ai_RNbBHYbO).",
+      "alternative": "Add ui_refs for RG roots and stat card groups under ai_RNbBHYay, or document full subtree path from ir/resolver.json display_name lookups during implement.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json",
+        "ir/slices/bTHDl__elements____remaining_children.json",
+        "ir/resolver.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "behavior",
+      "priority": "high",
+      "finding": "SET-09 AC-2 and SET-10 AC-2 require edit/delete card actions matching IR, but item scopes and target_files only list add-path/add-resource/add-plan/add-workplace popups — no AC covers edit-btn workflow parity or delete confirmation for admin CRUD rows.",
+      "alternative": "Add AC-4 per admin item specifying edit opens prefilled add popup or inline edit per Bubble workflow cluster, and delete triggers confirm-then-delete via Supabase client; reference workflow ids from ir/slices/bTHDl__workflows____part_A.json.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json",
+        "ir/resolver.json",
+        "ir/slices/bTHDl__workflows____part_A.json"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "SET-01-settings-tab-router-and-header AC-3 states crisis card remains mounted via SHELL-02 bTIfa host, but bTIfa (CustomElement under ai_RNbBKLUe sidebar def) is not in SHELL-02-sidebar-navigation ui_refs or ACs — only CRISIS-01 is in depends_on.",
+      "alternative": "Add SHELL-02 to SET-01 depends_on and extend SHELL-02 to mount CrisisSupportCard at bTIfa, or revise SET-01 AC-3 to reference CRISIS-01 export consumed by sidebar without naming SHELL-02 as satisfied host.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-5",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SET-07-subscription-tab-and-billing ui_refs omit RepeatingGroup plan cell siblings (ai_RNbBHYYo–ai_RNbBHYYu, ai_RNbBHYYz, ai_RNbBHYZA) and style_ref on subscription-plans-grid while layout_notes cite ~42 entities and AC-2 requires tier badges from ENUM-04.",
+      "alternative": "Expand ui_refs to all plan card roots under ai_RNbBHYYm or add layout_notes pointer to RG cell template ai_RNbBHYYn siblings in ir/slices/bTHDl__elements____remaining_children.json.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json",
+        "ir/slices/bTHDl__elements____remaining_children.json"
+      ]
+    },
+    {
+      "id": "C-6",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Ten items state frontend migration but only SET-04 AC-3 and admin items explicitly forbid project/ writes; most tabs lack one-line out-of-scope for project/supabase and unnecessary provider-adapter per implementation-constraints.",
+      "alternative": "Append consistent out-of-scope clause per item: no project/ mutations; Supabase client from frontend; adapter only if server secret required (privacy export edge case).",
+      "evidence": [
+        "cursor-impl-cycle/prompts/implementation-constraints.md",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json"
+      ]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "bTHDh → all 10 SET items ir_refs[]",
+        "settings_tab_os + custom_state in SET-01"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "SHELL-09, DS-01, ENUM-01/03/04, CRISIS-01 in item-registry.json",
+        "SET-01..10 same-module chain"
+      ],
+      "gap": null
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "10 items for estimated_size large",
+        "~562 entities in bTHDl____root.json",
+        "8 user tabs + admin split 9/10"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "partial",
+      "evidence": [
+        "Shell chrome ai_RNbBKLUp/q excluded to SHELL-09",
+        "SET-01 owns tab router not panel internals"
+      ],
+      "gap": "SettingsPage.vue shared with SHELL-09; project/ out-of-scope not per-item"
+    },
+    {
+      "id": "ac_quality",
+      "status": "partial",
+      "evidence": [
+        "data-bubble-id on roots",
+        "workflow ids bTIhq/bTIhv/bTIiN cited",
+        "Supabase read-only contracts"
+      ],
+      "gap": "Admin edit/delete workflows not testable from ACs"
+    },
+    {
+      "id": "ui_refs",
+      "status": "partial",
+      "evidence": [
+        "User tabs SET-02..08 have proportional depth",
+        "SET-01 tab bar complete"
+      ],
+      "gap": "SET-09/10 admin and SET-07 subscription use anchor-only ui_refs vs entity counts"
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "Non-overlapping tab boundaries",
+        "Admin split paths/resources vs plans/workplaces/analytics"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "pass",
+      "evidence": [
+        "ir_refs bTHDh + data types user/subscriptionplan/workplace",
+        "layout_notes cite entity counts",
+        "ENUM slug keys bTIiw–bTIjJ match settings_tab_os"
+      ],
+      "gap": null
+    }
+  ]
+}

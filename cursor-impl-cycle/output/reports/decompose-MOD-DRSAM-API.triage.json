@@ -1,0 +1,50 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-API",
+  "assessed_at": "2026-07-06T16:22:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-API.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "API-02-user-classification",
+      "rationale": "bTHzg requires four score inputs and orientation_score_number exists on user, but module-map ir_roots include no calculate_user_orientation API event—only bTHxW engine plus bTHxu/bTHyM/bTHyU. Gap is AC sourcing for orientation_score in API-02, not a missing item split. Add API-02 AC documenting orientation_score derivation from oq1_option_customer_orientation_answer_os or extend API-01 with calculateUserOrientation at implement prep."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "API-01-pillar-score-engine",
+      "rationale": "DASH-07-crisis-onboarding-services-overlays is dashboard crisis/services UI with no IR or data coupling to pillar score aggregation. Spurious depends_on is scheduling graph polish—remove at implement prep; pipeline entry remains AUTH-05 completeOnboarding per API-01 AC-3."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "API-06-ai-confidence-level-trigger",
+      "rationale": "bTIFU DatabaseTriggerEvent fires on modules_completed_count_number change per API-06 scope and AC-2; logically independent of API-05 ai_coaching_mode assignment. Drop API-05 from depends_on; keep PATHS-07-session-completion-route-integration and ENUM-03 only."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "ir_refs correctly list entity id bTICV; ir/inventory.json confirms pointer /api/bTICa. Scope prose uses Bubble pointer name while ir_refs use entity id—inventory convention used elsewhere; implementers trace via ir_refs and criteria_audit.grounding passed."
+    },
+    {
+      "critique_id": "C-5",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "API-01-pillar-score-engine",
+      "rationale": "API-01 AC-3 already documents onboardingProfilePipeline.runPillarScoreCalculators callable from AUTH-05 completeOnboarding.ts mirroring bTGNJ ScheduleAPIEvent chain. AUTH-05 decompose lacks reciprocal depends_on but consumer contract is documented on API side; add explicit API-01 AC-4 or AUTH implement kickoff note at implement wave."
+    }
+  ],
+  "summary": "Review ok (90% readiness, 0 blockers). 0 fix_now, 4 defer, 1 accept. Advance decompose for final module MOD-DRSAM-API and complete all 11 modules: clarify orientation_score sourcing in API-02 at implement prep, remove spurious API-01→DASH-07 and API-06→API-05 depends_on, add AUTH↔API pipeline AC at implement kickoff."
+}

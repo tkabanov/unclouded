@@ -1,0 +1,12 @@
+{
+  "slice_id": "bTGwN/__root",
+  "slice_kind": "root",
+  "entity_id": "bTGwM",
+  "pointer": "/pages/bTGwN",
+  "entities": [
+    "bTGwM",
+    "bTIuk"
+  ],
+  "tokens_estimate": 212,
+  "slice_seq": 1
+}

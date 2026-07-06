@@ -1,0 +1,1211 @@
+{
+  "active": false,
+  "phase": "implement",
+  "gate_stage": "write",
+  "current_module_id": "MOD-DRSAM-AUTH",
+  "current_item_id": null,
+  "modules": [
+    {
+      "id": "MOD-DRSAM-AUTH",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "AUTH-01-index-login-entry",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [],
+          "target_files": [
+            "frontend/src/pages/IndexPage.vue",
+            "frontend/src/router/index.ts",
+            "frontend/src/features/auth/routes.ts"
+          ]
+        },
+        {
+          "id": "AUTH-02-reset-password",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [],
+          "target_files": [
+            "frontend/src/pages/ResetPasswordPage.vue",
+            "frontend/src/features/auth/resetPasswordApi.ts"
+          ]
+        },
+        {
+          "id": "AUTH-03-onboarding-wizard-shell",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/pages/OnboardingPage.vue",
+            "frontend/src/features/onboarding/onboardingStore.ts",
+            "frontend/src/features/onboarding/stepRegistry.ts"
+          ]
+        },
+        {
+          "id": "AUTH-04-onboarding-profile-questions",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "AUTH-03-onboarding-wizard-shell",
+            "ENUM-02-onboarding-question-enums"
+          ],
+          "target_files": [
+            "frontend/src/features/onboarding/steps/ProfileQuestionsStep.vue",
+            "frontend/src/features/onboarding/steps/RolePillarStep.vue"
+          ]
+        },
+        {
+          "id": "AUTH-05-onboarding-health-load-signals",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "AUTH-03-onboarding-wizard-shell",
+            "ENUM-02-onboarding-question-enums"
+          ],
+          "target_files": [
+            "frontend/src/features/onboarding/steps/HealthSignalsStep.vue",
+            "frontend/src/features/onboarding/steps/LoadSignalsStep.vue",
+            "frontend/src/features/onboarding/completeOnboarding.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    },
+    {
+      "id": "MOD-DRSAM-SHELL",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "SHELL-01-offline-banner",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [],
+          "target_files": [
+            "frontend/src/components/shell/OfflineBanner.vue",
+            "frontend/src/composables/useOnlineStatus.ts"
+          ]
+        },
+        {
+          "id": "SHELL-02-sidebar-navigation",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/components/shell/Sidebar.vue",
+            "frontend/src/components/shell/SidebarNavLink.vue"
+          ]
+        },
+        {
+          "id": "SHELL-03-header-bar-and-profile-menu",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "ENUM-01-navigation-and-onboarding-labels",
+            "AUTH-01-index-login-entry"
+          ],
+          "target_files": [
+            "frontend/src/components/shell/Header.vue",
+            "frontend/src/components/shell/HeaderProfileDropdown.vue"
+          ]
+        },
+        {
+          "id": "SHELL-04-header-login-signup-popups",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-03-header-bar-and-profile-menu",
+            "AUTH-01-index-login-entry",
+            "AUTH-02-reset-password"
+          ],
+          "target_files": [
+            "frontend/src/components/shell/LoginPopup.vue",
+            "frontend/src/components/shell/SignupPopup.vue"
+          ]
+        },
+        {
+          "id": "SHELL-05-app-shell-layout",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-01-offline-banner",
+            "SHELL-02-sidebar-navigation",
+            "SHELL-03-header-bar-and-profile-menu",
+            "AUTH-05-onboarding-health-load-signals"
+          ],
+          "target_files": [
+            "frontend/src/layouts/AppShellLayout.vue",
+            "frontend/src/router/guards/requireAuth.ts",
+            "frontend/src/router/authenticatedRoutes.ts"
+          ]
+        },
+        {
+          "id": "SHELL-06-dashboard-page-shell",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-05-app-shell-layout",
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/pages/DashboardPage.vue",
+            "frontend/src/features/dashboard/routes.ts"
+          ]
+        },
+        {
+          "id": "SHELL-07-journal-page-shell",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-05-app-shell-layout",
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/pages/JournalPage.vue",
+            "frontend/src/features/journal/routes.ts"
+          ]
+        },
+        {
+          "id": "SHELL-08-paths-page-shell",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-05-app-shell-layout",
+            "ENUM-01-navigation-and-onboarding-labels",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/pages/PathsPage.vue",
+            "frontend/src/features/paths/routes.ts"
+          ]
+        },
+        {
+          "id": "SHELL-09-settings-page-shell",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-05-app-shell-layout",
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/pages/SettingsPage.vue",
+            "frontend/src/features/settings/routes.ts",
+            "frontend/src/features/settings/settingsTabStub.ts"
+          ]
+        },
+        {
+          "id": "SHELL-10-chat-page-shell",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-05-app-shell-layout",
+            "ENUM-01-navigation-and-onboarding-labels",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/pages/ChatPage.vue",
+            "frontend/src/features/chat/routes.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    },
+    {
+      "id": "MOD-DRSAM-ENUMS",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "ENUM-01-navigation-and-onboarding-labels",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [],
+          "target_files": [
+            "frontend/src/domain/enums/onboardingSteps.ts",
+            "frontend/src/domain/enums/pathPageTabs.ts",
+            "frontend/src/domain/enums/settingsTabs.ts",
+            "frontend/src/domain/enums/index.ts"
+          ]
+        },
+        {
+          "id": "ENUM-02-onboarding-question-enums",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/domain/enums/onboardingQuestions.ts",
+            "frontend/src/domain/enums/customerProfile.ts"
+          ]
+        },
+        {
+          "id": "ENUM-03-path-coaching-and-state-enums",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/domain/enums/pathEnrollment.ts",
+            "frontend/src/domain/enums/coachingMode.ts",
+            "frontend/src/domain/enums/wellnessState.ts"
+          ]
+        },
+        {
+          "id": "ENUM-04-tier-and-subscription-labels",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [],
+          "target_files": [
+            "frontend/src/domain/enums/tier.ts",
+            "frontend/src/domain/enums/subscription.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    },
+    {
+      "id": "MOD-DRSAM-DESIGN-SYSTEM",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "DS-01-design-tokens-and-bubble-styles",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [],
+          "target_files": [
+            "frontend/src/styles/tokens.css",
+            "frontend/src/styles/bubble-styles.css",
+            "frontend/src/styles/index.ts"
+          ]
+        },
+        {
+          "id": "DS-02-progress-bar-reusable",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/components/design-system/ProgressBar.vue",
+            "frontend/src/components/design-system/index.ts"
+          ]
+        },
+        {
+          "id": "DS-03-score-bar-reusable",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/components/design-system/ScoreBar.vue",
+            "frontend/src/components/design-system/index.ts"
+          ]
+        },
+        {
+          "id": "DS-04-session-completion-form-reusable",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DS-01-design-tokens-and-bubble-styles",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/components/design-system/SessionCompletionForm.vue",
+            "frontend/src/components/design-system/SessionQuestionCell.vue",
+            "frontend/src/components/design-system/index.ts"
+          ]
+        },
+        {
+          "id": "DS-05-chat-header-and-messages",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/components/chat/ChatHeader.vue",
+            "frontend/src/components/chat/ChatMessagesList.vue",
+            "frontend/src/components/chat/ChatMessageCell.vue",
+            "frontend/src/components/chat/index.ts"
+          ]
+        },
+        {
+          "id": "DS-06-chat-composer-and-shell",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DS-01-design-tokens-and-bubble-styles",
+            "DS-05-chat-header-and-messages"
+          ],
+          "target_files": [
+            "frontend/src/components/chat/ChatComposer.vue",
+            "frontend/src/components/chat/ChatFloatingDisclaimer.vue",
+            "frontend/src/components/chat/ChatReusable.vue",
+            "frontend/src/components/chat/index.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    },
+    {
+      "id": "MOD-DRSAM-DASHBOARD",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "DASH-01-dashboard-content-scaffold",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-06-dashboard-page-shell",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/dashboard/DashboardMain.vue",
+            "frontend/src/pages/DashboardPage.vue",
+            "frontend/src/features/dashboard/useDashboardUser.ts"
+          ]
+        },
+        {
+          "id": "DASH-02-greeting-coaching-quick-actions",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DASH-01-dashboard-content-scaffold",
+            "ENUM-01-navigation-and-onboarding-labels",
+            "ENUM-03-path-coaching-and-state-enums",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/dashboard/DashboardGreetingCard.vue",
+            "frontend/src/features/dashboard/DashboardQuickActions.vue",
+            "frontend/src/features/dashboard/coachingModeApi.ts"
+          ]
+        },
+        {
+          "id": "DASH-03-micro-commitments-widget",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DASH-01-dashboard-content-scaffold",
+            "ENUM-03-path-coaching-and-state-enums",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/dashboard/DashboardMicroCommitments.vue",
+            "frontend/src/features/dashboard/microCommitmentsApi.ts"
+          ]
+        },
+        {
+          "id": "DASH-04-daily-checkin-card",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DASH-01-dashboard-content-scaffold",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/dashboard/DashboardCheckinCard.vue",
+            "frontend/src/features/dashboard/checkinApi.ts"
+          ]
+        },
+        {
+          "id": "DASH-05-insights-and-path-cards",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DASH-01-dashboard-content-scaffold",
+            "DASH-04-daily-checkin-card",
+            "DS-01-design-tokens-and-bubble-styles",
+            "DS-02-progress-bar-reusable",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/features/dashboard/DashboardInsightsCard.vue",
+            "frontend/src/features/dashboard/DashboardCurrentPathCard.vue",
+            "frontend/src/features/dashboard/pathEnrollmentApi.ts"
+          ]
+        },
+        {
+          "id": "DASH-06-chat-and-journal-previews",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DASH-01-dashboard-content-scaffold",
+            "DS-01-design-tokens-and-bubble-styles",
+            "DS-05-chat-header-and-messages",
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/features/dashboard/DashboardChatPreviewCard.vue",
+            "frontend/src/features/dashboard/DashboardJournalPreviewCard.vue",
+            "frontend/src/features/dashboard/chatPreviewApi.ts",
+            "frontend/src/features/dashboard/journalPreviewApi.ts"
+          ]
+        },
+        {
+          "id": "DASH-07-crisis-onboarding-services-overlays",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DASH-01-dashboard-content-scaffold",
+            "AUTH-05-onboarding-health-load-signals",
+            "DS-01-design-tokens-and-bubble-styles",
+            "ENUM-01-navigation-and-onboarding-labels",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/features/dashboard/CrisisSupportCard.vue",
+            "frontend/src/features/dashboard/ContinueOnboardingBanner.vue",
+            "frontend/src/features/dashboard/ServicesFloatingPanel.vue"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 2
+    },
+    {
+      "id": "MOD-DRSAM-JOURNAL",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "JOURNAL-01-journal-header-and-tab-bar",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-07-journal-page-shell",
+            "DS-01-design-tokens-and-bubble-styles",
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/features/journal/JournalPageContent.vue",
+            "frontend/src/features/journal/JournalTabBar.vue",
+            "frontend/src/features/journal/journalTabStore.ts"
+          ]
+        },
+        {
+          "id": "JOURNAL-02-journal-entries-list",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "JOURNAL-01-journal-header-and-tab-bar",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/journal/JournalEntriesTab.vue",
+            "frontend/src/features/journal/JournalEntryCard.vue",
+            "frontend/src/features/journal/journalEntriesApi.ts"
+          ]
+        },
+        {
+          "id": "JOURNAL-03-new-entry-popup",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "JOURNAL-02-journal-entries-list",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/journal/NewEntryPopup.vue",
+            "frontend/src/features/journal/journalEntriesApi.ts"
+          ]
+        },
+        {
+          "id": "JOURNAL-04-entry-detail-and-ai-reflection",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "JOURNAL-02-journal-entries-list",
+            "DS-01-design-tokens-and-bubble-styles",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/features/journal/EntryDetailPopup.vue",
+            "frontend/src/features/journal/journalReflectionApi.ts",
+            "frontend/src/features/journal/journalEntriesApi.ts"
+          ]
+        },
+        {
+          "id": "JOURNAL-05-milestones-and-relapse-list",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "JOURNAL-01-journal-header-and-tab-bar",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/journal/MilestonesTab.vue",
+            "frontend/src/features/journal/MilestoneCard.vue",
+            "frontend/src/features/journal/RelapseEventCard.vue",
+            "frontend/src/features/journal/milestonesApi.ts",
+            "frontend/src/features/journal/relapseEventsApi.ts"
+          ]
+        },
+        {
+          "id": "JOURNAL-06-milestone-add-edit-popups",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "JOURNAL-05-milestones-and-relapse-list",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/journal/AddMilestonePopup.vue",
+            "frontend/src/features/journal/EditMilestonePopup.vue",
+            "frontend/src/features/journal/milestonesApi.ts"
+          ]
+        },
+        {
+          "id": "JOURNAL-07-relapse-log-edit-popups",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "JOURNAL-05-milestones-and-relapse-list",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/journal/LogRelapsePopup.vue",
+            "frontend/src/features/journal/EditRelapsePopup.vue",
+            "frontend/src/features/journal/relapseEventsApi.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    },
+    {
+      "id": "MOD-DRSAM-PATHS",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "PATHS-01-paths-tab-state-and-header",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-08-paths-page-shell",
+            "DS-01-design-tokens-and-bubble-styles",
+            "ENUM-01-navigation-and-onboarding-labels"
+          ],
+          "target_files": [
+            "frontend/src/features/paths/PathsPageContent.vue",
+            "frontend/src/features/paths/pathsTabStore.ts",
+            "frontend/src/features/paths/components/PathsPageHeader.vue",
+            "frontend/src/features/paths/components/PathsTabBar.vue"
+          ]
+        },
+        {
+          "id": "PATHS-02-paths-grid-filters-and-cards",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "PATHS-01-paths-tab-state-and-header",
+            "DS-02-progress-bar-reusable",
+            "ENUM-03-path-coaching-and-state-enums",
+            "ENUM-04-tier-and-subscription-labels"
+          ],
+          "target_files": [
+            "frontend/src/features/paths/components/PathsGridPanel.vue",
+            "frontend/src/features/paths/components/PathCard.vue",
+            "frontend/src/features/paths/components/PathsFilterRow.vue"
+          ]
+        },
+        {
+          "id": "PATHS-03-path-detail-enrollment-popup",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "PATHS-02-paths-grid-filters-and-cards",
+            "DS-02-progress-bar-reusable",
+            "ENUM-03-path-coaching-and-state-enums",
+            "ENUM-04-tier-and-subscription-labels"
+          ],
+          "target_files": [
+            "frontend/src/features/paths/components/PathDetailPopup.vue",
+            "frontend/src/features/paths/pathsEnrollmentApi.ts"
+          ]
+        },
+        {
+          "id": "PATHS-04-paths-resources-panel",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "PATHS-01-paths-tab-state-and-header",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/paths/components/PathsResourcesPanel.vue",
+            "frontend/src/features/paths/components/ResourceCard.vue",
+            "frontend/src/features/paths/pathsResourcesApi.ts"
+          ]
+        },
+        {
+          "id": "PATHS-05-resource-detail-popup",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "PATHS-04-paths-resources-panel"
+          ],
+          "target_files": [
+            "frontend/src/features/paths/components/ResourceDetailPopup.vue"
+          ]
+        },
+        {
+          "id": "PATHS-06-enrollment-floating-services-bar",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "PATHS-01-paths-tab-state-and-header",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/features/paths/components/EnrollmentFloatingBar.vue",
+            "frontend/src/features/paths/pathsEnrollmentStore.ts",
+            "frontend/src/features/paths/pathsEnrollmentApi.ts"
+          ]
+        },
+        {
+          "id": "PATHS-07-session-completion-route-integration",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "PATHS-01-paths-tab-state-and-header",
+            "PATHS-06-enrollment-floating-services-bar",
+            "DS-04-session-completion-form-reusable",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/features/paths/components/SessionCompletionRoute.vue",
+            "frontend/src/features/paths/pathsSessionApi.ts",
+            "frontend/src/features/paths/useSessionCompletionRoute.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 2
+    },
+    {
+      "id": "MOD-DRSAM-CHAT",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "CHAT-01-chat-content-layout",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-10-chat-page-shell",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/chat/ChatPageContent.vue",
+            "frontend/src/pages/ChatPage.vue"
+          ]
+        },
+        {
+          "id": "CHAT-02-conversation-thread-sidebar",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "CHAT-01-chat-content-layout",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/chat/ConversationSidebar.vue",
+            "frontend/src/features/chat/ConversationThreadCell.vue",
+            "frontend/src/features/chat/chatConversationsApi.ts",
+            "frontend/src/features/chat/chatRouteStore.ts",
+            "frontend/src/features/chat/useEmptyConversationBootstrap.ts"
+          ]
+        },
+        {
+          "id": "CHAT-03-chat-reusable-panel-mount",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "CHAT-01-chat-content-layout",
+            "CHAT-02-conversation-thread-sidebar",
+            "CHAT-06-chat-welcome-empty-state",
+            "DS-05-chat-header-and-messages",
+            "DS-06-chat-composer-and-shell"
+          ],
+          "target_files": [
+            "frontend/src/features/chat/ChatPanelMount.vue",
+            "frontend/src/features/chat/useChatConversationParam.ts"
+          ]
+        },
+        {
+          "id": "CHAT-04-delete-conversation-popup",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "CHAT-02-conversation-thread-sidebar",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/chat/DeleteConversationPopup.vue",
+            "frontend/src/features/chat/chatConversationsApi.ts"
+          ]
+        },
+        {
+          "id": "CHAT-05-chat-messaging-and-create-flow",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "CHAT-03-chat-reusable-panel-mount",
+            "CHAT-04-delete-conversation-popup",
+            "DS-06-chat-composer-and-shell"
+          ],
+          "target_files": [
+            "frontend/src/features/chat/chatMessagesApi.ts",
+            "frontend/src/features/chat/chatAiReplyStub.ts",
+            "frontend/src/features/chat/useNewConversation.ts",
+            "frontend/src/features/chat/useCoachingModeUpdate.ts"
+          ]
+        },
+        {
+          "id": "CHAT-06-chat-welcome-empty-state",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "CHAT-01-chat-content-layout",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/chat/ChatWelcomePanel.vue",
+            "frontend/src/features/chat/ChatSuggestionCard.vue"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 1
+    },
+    {
+      "id": "MOD-DRSAM-CRISIS",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "CRISIS-01-crisis-support-reusable",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/components/crisis/CrisisSupportCard.vue",
+            "frontend/src/components/crisis/CrisisHotlineRow.vue",
+            "frontend/src/components/crisis/index.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    },
+    {
+      "id": "MOD-DRSAM-SETTINGS",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "SET-01-settings-tab-router-and-header",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SHELL-09-settings-page-shell",
+            "DS-01-design-tokens-and-bubble-styles",
+            "ENUM-01-navigation-and-onboarding-labels",
+            "CRISIS-01-crisis-support-reusable"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsMain.vue",
+            "frontend/src/features/settings/SettingsTabBar.vue",
+            "frontend/src/features/settings/settingsTabStore.ts",
+            "frontend/src/pages/SettingsPage.vue"
+          ]
+        },
+        {
+          "id": "SET-02-profile-tab-and-save",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsProfileTab.vue",
+            "frontend/src/features/settings/profileApi.ts"
+          ]
+        },
+        {
+          "id": "SET-03-coaching-tab-and-save",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "ENUM-03-path-coaching-and-state-enums",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsCoachingTab.vue",
+            "frontend/src/features/settings/coachingPreferencesApi.ts"
+          ]
+        },
+        {
+          "id": "SET-04-privacy-tab-and-delete-flow",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsPrivacyTab.vue",
+            "frontend/src/features/settings/DeleteConfirmPopup.vue",
+            "frontend/src/features/settings/privacyApi.ts"
+          ]
+        },
+        {
+          "id": "SET-05-security-tab-and-password-flow",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsSecurityTab.vue",
+            "frontend/src/features/settings/securityApi.ts"
+          ]
+        },
+        {
+          "id": "SET-06-notifications-tab-and-save",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsNotificationsTab.vue",
+            "frontend/src/features/settings/notificationsApi.ts"
+          ]
+        },
+        {
+          "id": "SET-07-subscription-tab-and-billing",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "ENUM-04-tier-and-subscription-labels",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsSubscriptionTab.vue",
+            "frontend/src/features/settings/SubscriptionPlanCard.vue",
+            "frontend/src/features/settings/subscriptionApi.ts"
+          ]
+        },
+        {
+          "id": "SET-08-workplace-tab-and-link-flow",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/SettingsWorkplaceTab.vue",
+            "frontend/src/features/settings/workplaceApi.ts"
+          ]
+        },
+        {
+          "id": "SET-09-admin-paths-and-resources",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-01-settings-tab-router-and-header",
+            "ENUM-03-path-coaching-and-state-enums",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/admin/SettingsAdminShell.vue",
+            "frontend/src/features/settings/admin/AdminPathsTab.vue",
+            "frontend/src/features/settings/admin/AdminResourcesTab.vue",
+            "frontend/src/features/settings/admin/AddPathPopup.vue",
+            "frontend/src/features/settings/admin/AddResourcePopup.vue",
+            "frontend/src/features/settings/admin/adminPathsApi.ts",
+            "frontend/src/features/settings/admin/adminResourcesApi.ts"
+          ]
+        },
+        {
+          "id": "SET-10-admin-plans-workplaces-analytics",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "SET-09-admin-paths-and-resources",
+            "ENUM-04-tier-and-subscription-labels",
+            "DS-01-design-tokens-and-bubble-styles"
+          ],
+          "target_files": [
+            "frontend/src/features/settings/admin/AdminPlansTab.vue",
+            "frontend/src/features/settings/admin/AdminWorkplacesTab.vue",
+            "frontend/src/features/settings/admin/AdminAnalyticsTab.vue",
+            "frontend/src/features/settings/admin/AddPlanPopup.vue",
+            "frontend/src/features/settings/admin/AddWorkplacePopup.vue",
+            "frontend/src/features/settings/admin/adminPlansApi.ts",
+            "frontend/src/features/settings/admin/adminWorkplacesApi.ts",
+            "frontend/src/features/settings/admin/adminAnalyticsApi.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    },
+    {
+      "id": "MOD-DRSAM-API",
+      "decompose_passes": true,
+      "items": [
+        {
+          "id": "API-01-pillar-score-engine",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "AUTH-04-onboarding-profile-questions",
+            "AUTH-05-onboarding-health-load-signals",
+            "ENUM-02-onboarding-question-enums",
+            "DASH-07-crisis-onboarding-services-overlays"
+          ],
+          "target_files": [
+            "frontend/src/api/userProfile/aggregatePillarScore.ts",
+            "frontend/src/api/userProfile/calculateUserStability.ts",
+            "frontend/src/api/userProfile/calculateUserAlignment.ts",
+            "frontend/src/api/userProfile/calculateUserPerformance.ts",
+            "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+          ]
+        },
+        {
+          "id": "API-02-user-classification",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "API-01-pillar-score-engine",
+            "ENUM-03-path-coaching-and-state-enums"
+          ],
+          "target_files": [
+            "frontend/src/api/userProfile/classifyUser.ts",
+            "frontend/src/api/userProfile/calculateUserClassification.ts",
+            "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+          ]
+        },
+        {
+          "id": "API-03-pressure-profile",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "AUTH-05-onboarding-health-load-signals",
+            "ENUM-02-onboarding-question-enums",
+            "API-02-user-classification"
+          ],
+          "target_files": [
+            "frontend/src/api/userProfile/buildPressureProfile.ts",
+            "frontend/src/api/userProfile/calculateUserPressureProfile.ts",
+            "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+          ]
+        },
+        {
+          "id": "API-04-behavioral-fingerprint",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "API-03-pressure-profile",
+            "ENUM-02-onboarding-question-enums"
+          ],
+          "target_files": [
+            "frontend/src/api/userProfile/buildBehavioralFingerprint.ts",
+            "frontend/src/api/userProfile/calculateUserBehavioralFingerprint.ts",
+            "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+          ]
+        },
+        {
+          "id": "API-05-ai-coaching-mode-assignment",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "API-04-behavioral-fingerprint",
+            "ENUM-03-path-coaching-and-state-enums",
+            "DASH-02-greeting-coaching-quick-actions"
+          ],
+          "target_files": [
+            "frontend/src/api/userProfile/assignAiCoachingModes.ts",
+            "frontend/src/api/userProfile/calculateUserAiCoachingMode.ts",
+            "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+          ]
+        },
+        {
+          "id": "API-06-ai-confidence-level-trigger",
+          "implement_passes": false,
+          "implement_gate": "write",
+          "implement_iteration": 0,
+          "coverage_pct": 0,
+          "depends_on": [
+            "PATHS-07-session-completion-route-integration",
+            "ENUM-03-path-coaching-and-state-enums",
+            "API-05-ai-coaching-mode-assignment"
+          ],
+          "target_files": [
+            "frontend/src/api/userProfile/resolveAiConfidenceLevel.ts",
+            "frontend/src/api/userProfile/userProfileHooks.ts",
+            "frontend/src/features/paths/pathsSessionApi.ts"
+          ]
+        }
+      ],
+      "decompose_gate": "triage",
+      "decompose_iteration": 0
+    }
+  ],
+  "iteration": 25,
+  "target_iteration": 0,
+  "started_at": null,
+  "last_checked_at": "2026-07-06T16:21:04.955Z"
+}

@@ -1,0 +1,141 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-06T14:11:00.000Z",
+  "ok": true,
+  "readiness_pct": 88,
+  "coverage_confidence_pct": 84,
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "During implement, generate bubble-styles.css from all 71 keys in ir/slices/styles.json — do not rely on DS-01 ir_refs sample alone.",
+    "Land DS-01 before DS-02 through DS-06; complete ENUM-03 before DS-04 per depends_on chain.",
+    "Export all design-system and chat primitives through frontend/src/components/design-system/index.ts and frontend/src/components/chat/index.ts for downstream modules."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "grounding",
+      "priority": "medium",
+      "finding": "DS-01-design-tokens-and-bubble-styles ir_refs lists 21 representative style keys while scope and AC-2 commit to all 71 entries in ir/slices/styles.json; ~50 styles (Group_hero_, Button_icon_, Popup_dialog_, Group_sidebar_, pricing/badge variants, etc.) are absent from ir_refs, weakening traceability even though ACs cover the full catalog.",
+      "alternative": "Add ir_refs for every styles.json key or reference the slice path ir/slices/styles.json explicitly on DS-01; optionally split token extraction (DS-01a) from full style-class migration (DS-01b) if implement waves need smaller chunks.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DESIGN-SYSTEM.json",
+        "ir/slices/styles.json",
+        "cursor-impl-cycle/state/module-map.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "DS-05-chat-header-and-messages and DS-06-chat-composer-and-shell together cover bTIRW (~236 inventory pointers under element_definitions/bTIRa) but list only ~20 combined ui_refs; ACs name header texts (bTIRh, bTIRi), badge icon/caption (bTIRo, bTIRs), and four mode buttons (bTITI, bTITM, bTITN, bTITO) that are omitted from ui_refs arrays.",
+      "alternative": "Expand ui_refs on DS-05/DS-06 to include every element id cited in ACs and top-level regions from ir/inventory.json under bTIRW, or add a layout_notes cross-reference to element_definitions/bTIRa subtree anchors.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DESIGN-SYSTEM.json",
+        "ir/inventory.json",
+        "cursor-impl-cycle/prompts/ui-fidelity-rubric.md"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "DS-04-session-completion-form-reusable AC-2 and AC-3 reference reflection labels bTIzX/bTIzY and plugin stub nodes bTJBC/bTJBI but ui_refs omits them, creating a gap between acceptance criteria and ui_refs depth for the ~132-entity bTIym subtree.",
+      "alternative": "Add bTIzX, bTIzY, bTJBC, and bTJBI to DS-04 ui_refs to align with AC parity markers.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DESIGN-SYSTEM.json",
+        "ir/inventory.json"
+      ]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "bTIuS → DS-02-progress-bar-reusable",
+        "bTIHr → DS-03-score-bar-reusable",
+        "bTIyi → DS-04-session-completion-form-reusable",
+        "bTIRW → DS-05-chat-header-and-messages + DS-06-chat-composer-and-shell",
+        "ir/slices/styles.json (71 styles) → DS-01-design-tokens-and-bubble-styles"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "DS-01 through DS-06 same-module ids resolve within decompose artifact",
+        "ENUM-03-path-coaching-and-state-enums in cursor-impl-cycle/state/item-registry.json",
+        "MOD-DRSAM-ENUMS decomposed per item-registry modules"
+      ],
+      "gap": null
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "6 items for estimated_size medium with 4 ir_roots plus global styles slice",
+        "bTIRW split into header/messages vs composer/shell is proportional to ~236-entity subtree",
+        "bTIuS tiny reusable (4 direct children) correctly isolated in DS-02"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "pass",
+      "evidence": [
+        "All items scope frontend-only work under frontend/src/",
+        "Explicit no provider-adapter and no project/ writes on DS-01, DS-02, DS-04, DS-05, DS-06",
+        "DS-04 states presentation-only stub with no Supabase mutations"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ac_quality",
+      "status": "pass",
+      "evidence": [
+        "UI items include data-bubble-id markers and style_ref references",
+        "3 ACs per item; proportional to entity bulk (no Storybook padding on DS-02/DS-03 tiny reusables)",
+        "DS-01 AC-2 covers full 71-style catalog despite partial ir_refs"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ui_refs",
+      "status": "partial",
+      "evidence": [
+        "DS-02 and DS-03 ui_refs match tiny reusable subtrees",
+        "DS-01 ui_refs are representative samples for global styles (acceptable with layout_notes)",
+        "DS-04 through DS-06 ui_refs under-list AC-cited element ids on larger reusables"
+      ],
+      "gap": "Chat and session-form items need deeper ui_refs per ui-fidelity rubric"
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "DS-05 and DS-06 partition bTIRW by region without overlapping target component boundaries",
+        "Distinct ir_root ownership except intentional bTIRW partition",
+        "No duplicate target_files except shared index.ts barrel exports"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "partial",
+      "evidence": [
+        "Reusable ir_refs map to element_definition ids in ir/inventory.json",
+        "Style migration grounded in ir/slices/styles.json and drsam-99657.bubble source_path references in ACs",
+        "Module ir_slices bTHDU____root.json and bTHDl____root.json provide page context; design reusables are element_definitions not page roots"
+      ],
+      "gap": "DS-01 ir_refs sample omits majority of styles.json keys"
+    }
+  ]
+}

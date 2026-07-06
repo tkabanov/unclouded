@@ -1,0 +1,155 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-CRISIS",
+  "assessed_at": "2026-07-06T15:53:00.000Z",
+  "ok": true,
+  "readiness_pct": 91,
+  "coverage_confidence_pct": 90,
+  "scores": {
+    "completeness": 4,
+    "grounding": 5,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Amend DASH-07 before implement: remove frontend/src/features/dashboard/CrisisSupportCard.vue from target_files, add depends_on CRISIS-01-crisis-support-reusable, and narrow AC-1 to bTIfU CustomElement mount importing @/components/crisis.",
+    "When MOD-DRSAM-SETTINGS decomposes, import CrisisSupportCard from frontend/src/components/crisis/index.ts at bTIfa sidebar CE host — do not duplicate markup.",
+    "Add a PATHS consumer item (or extend PATHS-07) with depends_on CRISIS-01 to mount bTIwu on paths enrollment per layout_notes deferral in PATHS-02.",
+    "Register CrisisSupportCard in the Bubble CustomElement map for hosts bTIfU, bTIwu, bTIfa, bTIfw during implement."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "integration",
+      "priority": "blocker_candidate",
+      "finding": "DASH-07-crisis-onboarding-services-overlays lists frontend/src/features/dashboard/CrisisSupportCard.vue in target_files and AC-1 re-specifies full bTIdW interior parity, while CRISIS-01 canonical export is frontend/src/components/crisis/CrisisSupportCard.vue; DASH-07 lacks depends_on CRISIS-01-crisis-support-reusable and DASH module priority 5 precedes CRISIS priority 9.",
+      "alternative": "Patch DASH-07 decompose: drop CrisisSupportCard.vue from target_files, add depends_on CRISIS-01-crisis-support-reusable, rewrite AC-1 as mount-only (import CrisisSupportCard at bTIfU with data-bubble-id on host CE).",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CRISIS.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json",
+        "cursor-impl-cycle/state/module-map.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "CRISIS-01 layout_notes names CustomElement mount hosts bTIfU, bTIwu, bTIfa, and bTIfw but ACs only cover reusable interior bTIdW; no AC requires frontend/src/components/crisis/index.ts barrel export or documents consumer import contract for downstream modules.",
+      "alternative": "Add AC-4: index.ts exports CrisisSupportCard and CrisisHotlineRow; document canonical import path @/components/crisis for DASH-07, SETTINGS, PATHS, and AUTH onboarding consumers.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CRISIS.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "PATHS-02 defers crisis reusable bTIwu (bTIdW) to MOD-DRSAM-CRISIS but no PATHS item depends_on CRISIS-01 or mounts bTIwu at /pages/bTHDg enrollment slot — paths enrollment may ship without crisis card unless a consumer item is added.",
+      "alternative": "Add PATHS-08 or extend PATHS-07 with depends_on CRISIS-01-crisis-support-reusable and mount AC for bTIwu CustomElement host under bTJDf enrollment content.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CRISIS.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Disclaimer bTIdn uses style_ref:bTIdn targeting Text_caption_ per ir/inventory.json; ui_refs includes Text_caption_ style key but omits style_ref:bTIdn anchor id cited in AC-2.",
+      "alternative": "Add style_ref:bTIdn to ui_refs alongside Text_caption_ for explicit style_ref traceability per ui-fidelity rubric.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CRISIS.json",
+        "ir/inventory.json",
+        "ir/slices/styles.json"
+      ]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "bTIdW → CRISIS-01-crisis-support-reusable ir_refs",
+        "element_definition pointer /element_definitions/bTIda in ir/inventory.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "DS-01-design-tokens-and-bubble-styles in cursor-impl-cycle/state/item-registry.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "1 item for estimated_size small with single ir_root bTIdW",
+        "~22 entity subtree correctly isolated as one focused reusable item",
+        "CrisisHotlineRow.vue sub-split proportional to three hotline groups"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "pass",
+      "evidence": [
+        "Explicit frontend-only, presentation-only, no adapter, no project/ writes",
+        "Consumer mount points named in layout_notes with out-of-scope mount wiring deferred to DASH/SETTINGS/PATHS"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ac_quality",
+      "status": "pass",
+      "evidence": [
+        "3 ACs proportional to tiny reusable — no Storybook padding",
+        "data-bubble-id on root, element ids in AC text, tel/sms deep links specified",
+        "IR static copy and phosphor icons named per hotline group"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ui_refs",
+      "status": "pass",
+      "evidence": [
+        "24 ui_refs cover bTIdW subtree entities bTIdb through bTIeS plus Text_caption_ style",
+        "Depth matches ~22-entity reusable scope per ui-fidelity rubric"
+      ],
+      "gap": null
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "Single item in MOD-DRSAM-CRISIS.json with no intra-module overlap"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "pass",
+      "evidence": [
+        "ir_refs bTIdW maps to element_definitions/bTIda in ir/inventory.json",
+        "Style Text_caption_ in ir/slices/styles.json",
+        "Module ir_slices bTHDl____root.json provide settings page context for bTIfa host"
+      ],
+      "gap": null
+    },
+    {
+      "id": "cross_module_reuse",
+      "status": "partial",
+      "evidence": [
+        "CRISIS-01 correctly exports shared component at frontend/src/components/crisis/",
+        "DASH-07 still claims duplicate target_files path and full interior AC",
+        "MOD-DRSAM-SETTINGS not yet decomposed; module-map decompose_depends_on includes MOD-DRSAM-CRISIS"
+      ],
+      "gap": "DASH-07 decompose must be amended before implement wave to avoid duplicate CrisisSupportCard.vue"
+    }
+  ]
+}

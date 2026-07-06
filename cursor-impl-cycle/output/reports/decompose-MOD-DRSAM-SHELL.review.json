@@ -1,0 +1,68 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-06T14:11:00.000Z",
+  "ok": true,
+  "readiness_pct": 88,
+  "coverage_confidence_pct": 84,
+  "scores": { "completeness": 4, "grounding": 5, "actionability": 4 },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Expand SHELL-03 and SHELL-04 ui_refs during implement using /element_definitions/ai_RNbBKLUd subtree from ir/inventory.json (~752 refs) — anchor ids alone risk missing logged-out nav and popup field groups.",
+    "Clarify SHELL-05 auth guard AC: add onboarding-complete redirect to /onboarding or document why AUTH-05-onboarding-health-load-signals is required beyond session check.",
+    "Land ENUM-01 before SHELL-02+ implement wave; consider dropping ENUM-03 from SHELL-08/SHELL-10 unless tab/mode labels are consumed at shell mount."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SHELL-03-header-bar-and-profile-menu lists 10 ui_refs for header reusable ai_RNbBKLUc whose element_definitions/ai_RNbBKLUd subtree spans ~752 inventory references; implement may miss logged-out marketing nav cells and nested header-action groups.",
+      "alternative": "Add ui_refs for ai_RNbBHWau (logged-out nav), ai_RNbBHWbF/bG (login/signup triggers), and top-level popup sibling groups, or split SHELL-03 into logged-in vs logged-out header regions.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json", "ir/inventory.json", "cursor-impl-cycle/state/module-map.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SHELL-04-header-login-signup-popups ui_refs cover only 7 anchor ids for login-popup ai_RNbBHWbR and signup-popup ai_RNbBHWbk multi-step form hierarchies nested under ai_RNbBKLUd.",
+      "alternative": "Reference ir/slices or inventory pointers for signup-step groups (ai_RNbBHWbs, ai_RNbBHWbd, ai_RNbBHWba) and password-reset link nodes, or cite element_definitions/ai_RNbBKLUd slice path in layout_notes.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json", "ir/inventory.json"]
+    },
+    {
+      "id": "C-3",
+      "area": "ac-quality",
+      "priority": "medium",
+      "finding": "SHELL-05-app-shell-layout depends_on AUTH-05-onboarding-health-load-signals but AC-2 only specifies unauthenticated redirect to /; onboarding-completion guard implied by AUTH-05 AC-3 (route to dashboard) is not testable from shell ACs.",
+      "alternative": "Add AC-4 requiring incomplete-onboarding redirect to onboarding route, or remove AUTH-05 depends_on if shell guard is session-only and defer onboarding routing to AUTH module.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json", "cursor-impl-cycle/output/decompose/MOD-DRSAM-AUTH.json"]
+    },
+    {
+      "id": "C-4",
+      "area": "scope",
+      "priority": "low",
+      "finding": "SHELL-08-paths-page-shell and SHELL-10-chat-page-shell depend_on ENUM-03-path-coaching-and-state-enums but item scopes and ACs do not reference path/coaching option sets at shell level — dependency appears speculative for page-shell-only work.",
+      "alternative": "Remove ENUM-03 from shell page items; let MOD-DRSAM-PATHS and MOD-DRSAM-CHAT declare enum dependencies when tab/mode UI is implemented.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json", "cursor-impl-cycle/state/item-registry.json"]
+    },
+    {
+      "id": "C-5",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Reusable and page-shell item scopes state frontend migration but omit explicit out-of-scope lines for project/ writes and provider-adapter routes per implementation-constraints checklist.",
+      "alternative": "Append one-line out-of-scope clause per item: no project/supabase mutations; adapter only if server secret required (unlikely for shell chrome).",
+      "evidence": ["cursor-impl-cycle/prompts/implementation-constraints.md", "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"]
+    }
+  ],
+  "criteria_audit": [
+    { "id": "ir_roots_covered", "status": "pass", "evidence": ["ai_RNbBKLUc → SHELL-03, SHELL-04, SHELL-05", "ai_RNbBKLUe → SHELL-02, SHELL-05", "bTHvM0 → SHELL-01, SHELL-05", "bTHDT → SHELL-06", "bTHDa → SHELL-07", "bTHDf → SHELL-08", "bTHDh → SHELL-09", "bTHDV → SHELL-10"], "gap": null },
+    { "id": "depends_on_resolved", "status": "pass", "evidence": ["Same-module SHELL-01..05 chain", "ENUM-01, ENUM-03, AUTH-01, AUTH-02, AUTH-05 in cursor-impl-cycle/state/item-registry.json"], "gap": null },
+    { "id": "item_granularity", "status": "pass", "evidence": ["10 items for 8 ir_roots at estimated_size medium", "Header split SHELL-03 chrome vs SHELL-04 popups; page shells defer feature content"], "gap": null },
+    { "id": "scope_boundaries", "status": "partial", "evidence": ["Items exclude feature widgets and tab content via scope deferrals"], "gap": "No explicit project/ or adapter out-of-scope lines" },
+    { "id": "ac_quality", "status": "pass", "evidence": ["ACs reference data-bubble-id, style_ref, routes, signOut"], "gap": "SHELL-05 onboarding guard not in ACs despite AUTH-05 depends_on" },
+    { "id": "ui_refs", "status": "partial", "evidence": ["SHELL-01 adequate; SHELL-02 has 10 refs; page shells anchor content-slot boundaries"], "gap": "SHELL-03/SHELL-04 shallow vs header inventory bulk" },
+    { "id": "no_duplicate_items", "status": "pass", "evidence": ["SHELL-03/04 non-overlapping scope despite shared ir_ref"], "gap": null },
+    { "id": "grounding", "status": "pass", "evidence": ["ir_refs match module-map; layout_notes cite slice entity counts; style refs from styles.json"], "gap": null }
+  ]
+}

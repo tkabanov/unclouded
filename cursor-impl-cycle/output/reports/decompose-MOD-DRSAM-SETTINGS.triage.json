@@ -1,0 +1,58 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-06T17:15:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-SETTINGS.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "SET-09-admin-paths-and-resources",
+      "rationale": "SET-09 anchors admin paths/resources panels with AC-2 requiring grid card templates; shallow ui_refs acceptable at decompose for ~75-entity admin subtree — expand grids, add buttons, and card edit/delete nodes from ir/slices/bTHDl__elements____remaining_children.json at SET-09 implement."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "SET-10-admin-plans-workplaces-analytics",
+      "rationale": "SET-10 anchors three admin sub-tabs and analytics panel; expand ui_refs for admin-plans-grid, admin-workplaces-grid, and stat card ids under ai_RNbBHYay at implement — proportional depth deferred per ui-fidelity rubric for large admin slice."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "SET-09-admin-paths-and-resources",
+      "rationale": "SET-09/10 AC-2 already require edit/delete card actions matching IR; missing explicit edit-mode popup reuse and delete-confirm ACs are implement workflow detail — add AC-4 per admin item at implement referencing ir/slices/bTHDl__workflows____part_A.json, not decompose item split."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "SET-01-settings-tab-router-and-header",
+      "rationale": "SET-01 AC-3 cites SHELL-02 bTIfa crisis host but SHELL-02 omits bTIfa mount; CRISIS-01 is in depends_on. Resolve at implement: extend SHELL-02 sidebar mount or revise SET-01 AC-3 to reference CRISIS-01 export only — cross-module SHELL gap, not SETTINGS decompose rewrite."
+    },
+    {
+      "critique_id": "C-5",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "SET-07-subscription-tab-and-billing",
+      "rationale": "SET-07 layout_notes cite ~42 entities; expand subscription-plans-grid RG cell ui_refs (ai_RNbBHYYo–ai_RNbBHYZA) at implement from bTHDl element slices — anchor ui_refs sufficient at decompose for tab item."
+    },
+    {
+      "critique_id": "C-6",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Missing per-item project/ and adapter out-of-scope lines is documentation polish; SET-04 and admin items already forbid project/ writes. Append consistent one-liners at implement kickoff per implementation-constraints — same pattern as JOURNAL/SHELL triage."
+    }
+  ],
+  "summary": "Review ok (87% readiness, 0 blockers); first triage for 10-item settings decompose. 0 fix_now, 6 defer, 0 accept. Advance decompose: expand SET-09/10/07 ui_refs and admin workflow ACs at implement, resolve SHELL-02 bTIfa crisis mount cross-module, out-of-scope clauses at kickoff."
+}

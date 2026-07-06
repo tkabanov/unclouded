@@ -1,0 +1,12 @@
+{
+  "schema": "b2c.output-root-resolution.v1",
+  "schema_version": 1,
+  "workspace_root": "E:\\",
+  "output_root": "E:\\output\\drsam-99657",
+  "resolution_source": "app",
+  "selectors": {
+    "app_id": "drsam-99657",
+    "explicit_root": null,
+    "legacy_root": false
+  }
+}

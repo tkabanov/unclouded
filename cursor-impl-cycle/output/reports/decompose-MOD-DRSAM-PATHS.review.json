@@ -1,0 +1,168 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-06T16:00:00.000Z",
+  "ok": true,
+  "readiness_pct": 93,
+  "coverage_confidence_pct": 88,
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Add PATHS-06-enrollment-floating-services-bar to PATHS-02 depends_on[] before implement — grid ai_RNbBHYHn GetElement parity requires pathsEnrollmentStore from PATHS-06.",
+    "Add PATHS-08 or extend PATHS-02/07 with depends_on CRISIS-01-crisis-support-reusable and mount AC for bTIwu CustomElement host per layout_notes deferral.",
+    "Extend PATHS-03 ui_refs and AC with footer button bTJCv (style_ref:bTJCv) and wire ChangePage workflow stub if bTJCv triggers navigation.",
+    "Add PATHS-04 AC-4: ai_RNbBHYIu RepeatingGroup lists custom.resource rows via Search parity in pathsResourcesApi.ts (read-only Supabase, no project/ edits).",
+    "Include bTJEI recommended/empty-state text in PATHS-02 ui_refs or layout_notes when grid has zero enrolled paths."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "integration",
+      "priority": "high",
+      "finding": "PATHS-02-paths-grid-filters-and-cards AC-3 and scope require ai_RNbBHYHn GetElement binding to bTItY enrollment RG, but depends_on omits PATHS-06-enrollment-floating-services-bar which owns bTItS/bTItY and pathsEnrollmentStore.",
+      "alternative": "Add PATHS-06 to PATHS-02 depends_on[]; document shared store contract in PATHS-06 layout_notes (grid reads enrollment list, floating bar writes).",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "ir/inventory.json",
+        "ir/slices/bTHDg____root.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "PATHS-02 layout_notes defers crisis reusable bTIwu (bTIdW) to MOD-DRSAM-CRISIS but no PATHS item depends_on CRISIS-01-crisis-support-reusable or mounts bTIwu CustomElement under bTJDf — paths page may ship without crisis card.",
+      "alternative": "Add PATHS-08 with depends_on CRISIS-01 and mount AC for bTIwu host, or extend PATHS-07 with crisis mount after CRISIS-01 lands.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-CRISIS.review.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "PATHS-03-path-detail-enrollment-popup covers footer enroll/unenroll (ai_RNbBHYJw/Jv) and upgrade (bTJHa) but omits fourth footer Button bTJCv at bTJDA with style_ref:bTJCv present in ir/slices/bTHDg____root.json.",
+      "alternative": "Add bTJCv to PATHS-03 ui_refs and AC-4 with IR label, style_ref, and ButtonClicked workflow stub (bTJHg/bTJHi ChangePage parity).",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "ir/slices/bTHDg____root.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "behavior",
+      "priority": "medium",
+      "finding": "PATHS-04-paths-resources-panel lists pathsResourcesApi.ts in target_files and scope mentions resource search RG ai_RNbBHYIu, but ACs only cover card layout — no AC for Search data_binding (kind: search, content_type: custom.resource) on ai_RNbBHYIu.",
+      "alternative": "Add AC-4 requiring pathsResourcesApi fetch/filter custom.resource rows backing ai_RNbBHYIu RG; keep read-only Supabase client pattern, no project/ schema edits.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-5",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "PATHS-02 recommended header ai_RNbBHYHh ui_refs omit sibling Text bTJEI under ai_RNbBHYHE/bTJDr — IR slice includes bTJEI with style_ref:bTJEI for grid section copy.",
+      "alternative": "Add bTJEI to PATHS-02 ui_refs and note empty-grid vs recommended-header visibility in layout_notes.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "ir/slices/bTHDg____root.json"
+      ]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "bTHDf → PATHS-01..07 all items",
+        "bTIyi → DS-04-session-completion-form-reusable + PATHS-07 mount at bTJAB/bTJAG"
+      ],
+      "gap": null
+    },
+    {
+      "id": "paths02_paths01_ac4_fixed",
+      "status": "pass",
+      "evidence": [
+        "PATHS-02 scope limits to bTJDr/ai_RNbBHYHE My Paths tab only",
+        "PATHS-04 owns bTJDs/ai_RNbBHYIK Paths Library panel",
+        "PATHS-01 AC-4 mutual sibling visibility under bTJDf"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "SHELL-08, DS-01..04, ENUM-01..04 all in cursor-impl-cycle/state/item-registry.json",
+        "No invented or unknown depends_on ids"
+      ],
+      "gap": null
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "7 items for estimated_size large module",
+        "~229 entities in ir/slices/bTHDg____root.json",
+        "Journey split: tab shell, grid, popups, resources, floating bar, session route"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "partial",
+      "evidence": [
+        "PATHS-03 and PATHS-07 explicitly forbid project/ migrations",
+        "All items frontend-only with target_files under frontend/src/features/paths/"
+      ],
+      "gap": "PATHS-01/02/04/05/06 do not state no adapter / no project/ out-of-scope line"
+    },
+    {
+      "id": "ac_quality",
+      "status": "pass",
+      "evidence": [
+        "ACs reference data-bubble-id, style refs, and IR element ids",
+        "3–4 ACs per item proportional to subtree scope",
+        "PATHS-02 no longer pads Paths Library search into My Paths item"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ui_refs",
+      "status": "partial",
+      "evidence": [
+        "PATHS-01..05 include substantive ui_refs trees",
+        "PATHS-06 lists only bTItS, bTItY, FG-services"
+      ],
+      "gap": "PATHS-03 missing bTJCv; PATHS-02 missing bTJEI; PATHS-06 cell layout ids deferred to IR slice"
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "Distinct panel/popup boundaries: grid vs resources vs path popup vs resource popup vs session overlay",
+        "No overlapping target_files except shared pathsEnrollmentApi.ts in PATHS-03/06"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "pass",
+      "evidence": [
+        "ir_refs and ui_refs trace to ir/slices/bTHDg____root.json and ir/inventory.json",
+        "Tab state path_page_tab_os_ and custom states referenced from inventory"
+      ],
+      "gap": null
+    }
+  ]
+}

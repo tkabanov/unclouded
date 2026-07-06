@@ -1,0 +1,22 @@
+{
+  "phase": "scope",
+  "target_id": "scope",
+  "assessed_at": "2026-07-06T13:48:30.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/scope-scope.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "action_required": false,
+      "rationale": "Partial API root list is acceptable for scope; expand during decompose of MOD-DRSAM-API."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "accept",
+      "action_required": false,
+      "rationale": "Shell/page overlap is a decompose concern, not a module-map blocker."
+    }
+  ]
+}

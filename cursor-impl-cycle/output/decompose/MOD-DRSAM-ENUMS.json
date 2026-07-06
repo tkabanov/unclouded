@@ -1,0 +1,86 @@
+{
+  "module_id": "MOD-DRSAM-ENUMS",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "ENUM-01-navigation-and-onboarding-labels",
+      "title": "Navigation and onboarding step labels",
+      "scope": "frontend — centralize option-set labels for onboarding_step_os, path_page_tab_os, and settings_tab_os as typed constants and i18n-ready maps in frontend",
+      "acceptance_criteria": [
+        "AC-1: onboarding_step_os (13 values) exported from frontend/src/domain/enums/onboardingSteps.ts matching ir/inventory.json display strings",
+        "AC-2: path_page_tab_os and settings_tab_os labels available for router/tab components with stable slug keys",
+        "AC-3: Enum maps include bubble option-set ids as comments for traceability to IR"
+      ],
+      "ir_refs": ["onboarding_step_os", "path_page_tab_os", "settings_tab_os"],
+      "depends_on": [],
+      "target_files": [
+        "frontend/src/domain/enums/onboardingSteps.ts",
+        "frontend/src/domain/enums/pathPageTabs.ts",
+        "frontend/src/domain/enums/settingsTabs.ts",
+        "frontend/src/domain/enums/index.ts"
+      ]
+    },
+    {
+      "id": "ENUM-02-onboarding-question-enums",
+      "title": "Onboarding question and answer enums",
+      "scope": "frontend — migrate customer pillar, role, state, alignment, performance, stability, and load-signal option sets used during onboarding questionnaires",
+      "acceptance_criteria": [
+        "AC-1: customer_pillar_os, customer_role_os, customer_state_os value/label pairs match IR option_set.value entries",
+        "AC-2: Question/answer pairs for customer_alignment_*, customer_performance_*, customer_stability_*, customers_load_signal_* exported for onboarding step components",
+        "AC-3: No hardcoded onboarding labels in Vue SFCs — components import from domain/enums/onboardingQuestions.ts"
+      ],
+      "ir_refs": [
+        "customer_pillar_os",
+        "customer_role_os",
+        "customer_state_os",
+        "customer_alignment_question_os",
+        "customer_performance_question_os",
+        "customers_load_signal_os"
+      ],
+      "depends_on": ["ENUM-01-navigation-and-onboarding-labels"],
+      "target_files": [
+        "frontend/src/domain/enums/onboardingQuestions.ts",
+        "frontend/src/domain/enums/customerProfile.ts"
+      ]
+    },
+    {
+      "id": "ENUM-03-path-coaching-and-state-enums",
+      "title": "Path, coaching, and wellness state enums",
+      "scope": "frontend — migrate path_enrollment_status, ai_coaching_mode_os, ai_confidence_level_os, state_energy_level_os, and state_nervous_system_os for paths and dashboard features",
+      "acceptance_criteria": [
+        "AC-1: path_enrollment_status (4 values) drives path enrollment badges with IR-accurate labels",
+        "AC-2: ai_coaching_mode_os and ai_confidence_level_os exported for chat/paths UI selectors",
+        "AC-3: state_energy_level_os and state_nervous_system_os available for journal/check-in components"
+      ],
+      "ir_refs": [
+        "path_enrollment_status",
+        "ai_coaching_mode_os",
+        "ai_confidence_level_os",
+        "state_energy_level_os",
+        "state_nervous_system_os"
+      ],
+      "depends_on": ["ENUM-01-navigation-and-onboarding-labels"],
+      "target_files": [
+        "frontend/src/domain/enums/pathEnrollment.ts",
+        "frontend/src/domain/enums/coachingMode.ts",
+        "frontend/src/domain/enums/wellnessState.ts"
+      ]
+    },
+    {
+      "id": "ENUM-04-tier-and-subscription-labels",
+      "title": "Tier and subscription labels",
+      "scope": "frontend — migrate tier_os labels for settings/subscription surfaces and any paywall gating copy tied to option sets",
+      "acceptance_criteria": [
+        "AC-1: tier_os (3 values) exported with display strings from IR for subscription UI",
+        "AC-2: Settings subscription tab can render tier names without reading Bubble option sets at runtime",
+        "AC-3: Enum module documents mapping from tier_os ids to future Supabase subscription_plan rows (read-only reference)"
+      ],
+      "ir_refs": ["tier_os"],
+      "depends_on": [],
+      "target_files": [
+        "frontend/src/domain/enums/tier.ts",
+        "frontend/src/domain/enums/subscription.ts"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-06T17:15:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-PATHS.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-02-paths-grid-filters-and-cards",
+      "rationale": "PATHS-02 AC-3 GetElement binding to bTItY requires pathsEnrollmentStore from PATHS-06; PATHS-07 already depends_on PATHS-06 establishing store ownership. Add PATHS-06 to PATHS-02 depends_on[] and document store contract at implement scheduling — graph polish, not item-boundary rewrite."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-07-session-completion-route-integration",
+      "rationale": "PATHS-02 layout_notes defer bTIwu crisis mount to MOD-DRSAM-CRISIS; CRISIS-01 advanced with consumer gap deferred to PATHS. Extend PATHS-07 or add PATHS-08 with depends_on CRISIS-01 at implement — cross-module wiring, not PATHS decompose rewrite."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-03-path-detail-enrollment-popup",
+      "rationale": "Footer button bTJCv (bTJDA, style_ref:bTJCv) missing from ui_refs/ACs; add bTJCv and ButtonClicked workflow stub at PATHS-03 implement from ir/slices/bTHDg____root.json — not a decompose under-split."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-04-paths-resources-panel",
+      "rationale": "pathsResourcesApi.ts in target_files and scope cite ai_RNbBHYIu Search binding; add AC-4 for custom.resource fetch parity at PATHS-04 implement — behavior AC polish, scope already owns resources panel."
+    },
+    {
+      "critique_id": "C-5",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-02-paths-grid-filters-and-cards",
+      "rationale": "Recommended header sibling Text bTJEI omitted from ui_refs; add bTJEI and empty-grid visibility note at PATHS-02 implement — minor ui_refs expansion, not item-boundary change."
+    }
+  ],
+  "summary": "Review ok (93% readiness, 0 blockers); PATHS-02/PATHS-01 AC-4 conflict resolved. 0 fix_now, 5 defer, 0 accept. Advance decompose: add PATHS-02→PATHS-06 depends_on at implement prep, CRISIS bTIwu consumer on PATHS-07/08, expand PATHS-03/04/02 ui_refs and ACs at implement."
+}

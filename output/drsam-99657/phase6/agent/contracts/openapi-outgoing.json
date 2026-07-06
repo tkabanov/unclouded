@@ -1,0 +1,63 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "M2 Outgoing API Baseline",
+    "version": "0.1.0-m2-baseline"
+  },
+  "tags": [
+    {
+      "name": "api_event",
+      "description": "Incoming API events mapped from inventory entries."
+    },
+    {
+      "name": "external_http_call",
+      "description": "Outgoing HTTP calls mapped from inventory entries."
+    }
+  ],
+  "x-b2c": {
+    "generated_from": "inventory+views",
+    "operation_count": 2
+  },
+  "paths": {
+    "/ops/external_call_0_default_collection_bTIlB": {
+      "post": {
+        "operationId": "outgoing-external-call-0-default-collection-btilb-th15zp",
+        "summary": "Operation for external_call:0_default_collection:bTIlB",
+        "tags": [
+          "external_http_call"
+        ],
+        "responses": {
+          "200": {
+            "description": "Deterministic baseline response"
+          }
+        },
+        "x-b2c": {
+          "source_id": "external_call:0_default_collection:bTIlB",
+          "source_kind": "external_http_call",
+          "source_entity_class": "external_http_call",
+          "source_pointer": "/settings/client_safe/apiconnector2/0_default_collection/calls/bTIlB"
+        }
+      }
+    },
+    "/ops/external_call_0_default_collection_bTIRI": {
+      "post": {
+        "operationId": "outgoing-external-call-0-default-collection-btiri-35uaw6",
+        "summary": "Operation for external_call:0_default_collection:bTIRI",
+        "tags": [
+          "external_http_call"
+        ],
+        "responses": {
+          "200": {
+            "description": "Deterministic baseline response"
+          }
+        },
+        "x-b2c": {
+          "source_id": "external_call:0_default_collection:bTIRI",
+          "source_kind": "external_http_call",
+          "source_entity_class": "external_http_call",
+          "source_pointer": "/settings/client_safe/apiconnector2/0_default_collection/calls/bTIRI"
+        }
+      }
+    }
+  }
+}

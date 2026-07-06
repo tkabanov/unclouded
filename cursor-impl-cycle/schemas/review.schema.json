@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Impl cycle review report",
+  "type": "object",
+  "required": ["phase", "target_id", "assessed_at", "ok"],
+  "properties": {
+    "phase": { "type": "string", "enum": ["scope", "decompose", "implement"] },
+    "target_id": { "type": "string" },
+    "assessed_at": { "type": "string" },
+    "ok": { "type": "boolean" },
+    "readiness_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+    "coverage_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+    "coverage_confidence_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+    "functional_ok": { "type": "boolean" },
+    "functional_audit": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "partial", "fail", "na"] },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "gap": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "properties": {
+        "completeness": { "type": "number", "minimum": 1, "maximum": 5 },
+        "grounding": { "type": "number", "minimum": 1, "maximum": 5 },
+        "actionability": { "type": "number", "minimum": 1, "maximum": 5 }
+      }
+    },
+    "gaps": { "type": "array", "items": { "type": "string" } },
+    "criteria_audit": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "partial", "fail", "na"] },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "gap": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "ui_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["bubble_id", "status"],
+        "properties": {
+          "bubble_id": { "type": "string" },
+          "vue_selector": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "partial", "fail", "na"] },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["finding"],
+            "properties": {
+              "id": { "type": "string" },
+              "area": { "type": "string" },
+              "item": { "type": "string" },
+              "finding": { "type": "string", "minLength": 10 }
+            }
+          }
+        ]
+      }
+    },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "critiques": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "finding", "alternative"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^C-[0-9]+$" },
+          "finding": { "type": "string", "minLength": 10 },
+          "alternative": { "type": "string", "minLength": 10 },
+          "area": { "type": "string" },
+          "priority": { "type": "string", "enum": ["low", "medium", "high", "blocker_candidate"] },
+          "evidence": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

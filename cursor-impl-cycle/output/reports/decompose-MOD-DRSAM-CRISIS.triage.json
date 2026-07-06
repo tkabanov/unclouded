@@ -1,0 +1,41 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-CRISIS",
+  "assessed_at": "2026-07-06T15:55:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-CRISIS.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DASH-07-crisis-onboarding-services-overlays",
+      "rationale": "CRISIS-01 is correctly scoped as canonical reusable at frontend/src/components/crisis/CrisisSupportCard.vue; layout_notes directs DASH-07 to import rather than duplicate. DASH-07 duplicate target_files and full interior AC are a MOD-DRSAM-DASHBOARD amendment (add depends_on CRISIS-01, mount-only AC-1) — not a CRISIS-01 rewrite; fix at DASH implement wave."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "CRISIS-01 target_files already includes index.ts and layout_notes documents @/components/crisis export for bTIfU/bTIwu/bTIfa/bTIfw consumers. Explicit barrel-export AC is documentation polish — add at implement or when SETTINGS decomposes; does not block CRISIS advance."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-07-session-completion-route-integration",
+      "rationale": "PATHS-02 layout_notes explicitly defers bTIwu mount to MOD-DRSAM-CRISIS; CRISIS-01 names bTIwu host per scope_boundaries. Missing PATHS depends_on CRISIS-01 is a MOD-DRSAM-PATHS gap — extend PATHS-07 or add PATHS-08 at PATHS decompose/implement, not CRISIS rewrite."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "ui_refs includes Text_caption_ style entity referenced in AC-2; criteria_audit ui_refs passed. style_ref:bTIdn anchor is redundant traceability — Text_caption_ resolution is sufficient for implement fidelity."
+    }
+  ],
+  "summary": "Review ok (91% readiness, 0 blockers); CRISIS-01 artifact sound. 0 fix_now, 3 defer, 1 accept. Advance decompose: amend DASH-07 at DASH implement (depends_on CRISIS-01, mount-only), add PATHS consumer item for bTIwu, optional index.ts AC at implement."
+}

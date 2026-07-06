@@ -1,0 +1,12 @@
+{
+  "active": false,
+  "phase": "scope",
+  "gate_stage": "write",
+  "current_module_id": null,
+  "current_item_id": null,
+  "modules": [],
+  "iteration": 0,
+  "target_iteration": 0,
+  "started_at": null,
+  "last_checked_at": null
+}

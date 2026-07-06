@@ -1,0 +1,29 @@
+{
+  "name": "b2c-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "b2c": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "node --import tsx --test src/**/*.test.ts",
+    "lint": "echo \"No linter configured yet\"",
+    "ingest": "tsx src/cli.ts ingest",
+    "phase6:materialize": "tsx src/cli.ts phase6:materialize",
+    "phase6:list-emitters": "tsx src/cli.ts phase6:list-emitters",
+    "invalidate": "tsx src/cli.ts invalidate",
+    "accept:m1": "tsx src/cli.ts accept:m1",
+    "accept:m2": "tsx src/cli.ts accept:m2"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

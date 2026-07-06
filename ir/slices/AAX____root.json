@@ -1,0 +1,19 @@
+{
+  "slice_id": "AAX/__root",
+  "slice_kind": "root",
+  "entity_id": "AAU",
+  "pointer": "/pages/AAX",
+  "entities": [
+    "AAU",
+    "bTGky",
+    "bTGlA",
+    "bTGlD",
+    "bTHEC",
+    "bTHEF",
+    "bTHEH",
+    "bTHEI",
+    "length"
+  ],
+  "tokens_estimate": 1489,
+  "slice_seq": 1
+}

@@ -1,0 +1,37 @@
+{
+  "phase": "scope",
+  "target_id": "scope",
+  "assessed_at": "2026-07-06T13:48:00.000Z",
+  "ok": true,
+  "readiness_pct": 88,
+  "coverage_confidence_pct": 85,
+  "scores": {
+    "completeness": 4,
+    "grounding": 5,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Update review-scope prompt paths from cursor-packs/ to cursor-impl-cycle/ for this repo layout.",
+    "Land MOD-DRSAM-DESIGN-SYSTEM before feature pages during decompose."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "scope",
+      "priority": "medium",
+      "finding": "MOD-DRSAM-API lists only 12 of 24 api_event roots; remaining events may be orphaned during implement.",
+      "alternative": "Add remaining api_event ids from ir/inventory.json to MOD-DRSAM-API ir_roots or split into MOD-DRSAM-API-IN and MOD-DRSAM-API-OUT.",
+      "evidence": ["ir/inventory.json", "cursor-impl-cycle/state/module-map.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Shell module references all five authenticated page roots; decompose may duplicate shell work per page.",
+      "alternative": "Keep shell as single module but decompose one shared layout item before page-specific items.",
+      "evidence": ["cursor-impl-cycle/state/module-map.json", "ir/slices/bTHDU____root.json"]
+    }
+  ]
+}

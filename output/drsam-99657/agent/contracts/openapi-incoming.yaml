@@ -1,0 +1,349 @@
+openapi: "3.1.0"
+info:
+  title: "M2 Incoming API Baseline"
+  version: "0.1.0-m2-baseline"
+tags:
+  - name: "api_event"
+    description: "Incoming API events mapped from inventory entries."
+  - name: "external_http_call"
+    description: "Outgoing HTTP calls mapped from inventory entries."
+"x-b2c":
+  generated_from: "inventory+views"
+  operation_count: 24
+paths:
+  "/ops/bTHxu":
+    post:
+      operationId: "incoming-bthxu-1vss70a"
+      summary: "Operation for bTHxu"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTHxu"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTHxw"
+  "/ops/bTHxW":
+    post:
+      operationId: "incoming-bthxw-53c7uc"
+      summary: "Operation for bTHxW"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTHxW"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTHxY"
+  "/ops/bTHyM":
+    post:
+      operationId: "incoming-bthym-1o10633"
+      summary: "Operation for bTHyM"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTHyM"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTHyT"
+  "/ops/bTHyU":
+    post:
+      operationId: "incoming-bthyu-1lt3cjb"
+      summary: "Operation for bTHyU"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTHyU"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTHye"
+  "/ops/bTHzC":
+    post:
+      operationId: "incoming-bthzc-1l9dlna"
+      summary: "Operation for bTHzC"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTHzC"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTHzE"
+  "/ops/bTHzg":
+    post:
+      operationId: "incoming-bthzg-1v8zama"
+      summary: "Operation for bTHzg"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTHzg"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTHzi"
+  "/ops/bTIAw":
+    post:
+      operationId: "incoming-btiaw-114yx1q"
+      summary: "Operation for bTIAw"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIAw"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIBB"
+  "/ops/bTIBO":
+    post:
+      operationId: "incoming-btibo-ugyzwh"
+      summary: "Operation for bTIBO"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIBO"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIBT"
+  "/ops/bTICV":
+    post:
+      operationId: "incoming-bticv-15uluub"
+      summary: "Operation for bTICV"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTICV"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTICa"
+  "/ops/bTIDk":
+    post:
+      operationId: "incoming-btidk-vkow2n"
+      summary: "Operation for bTIDk"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIDk"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIDp"
+  "/ops/bTIEN":
+    post:
+      operationId: "incoming-btien-lv85wd"
+      summary: "Operation for bTIEN"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIEN"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIES"
+  "/ops/bTIFU":
+    post:
+      operationId: "incoming-btifu-roo5d3"
+      summary: "Operation for bTIFU"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIFU"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIFW"
+  "/ops/bTIgm":
+    post:
+      operationId: "incoming-btigm-13zdrdu"
+      summary: "Operation for bTIgm"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIgm"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIgo"
+  "/ops/bTIlT":
+    post:
+      operationId: "incoming-btilt-15wmp52"
+      summary: "Operation for bTIlT"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIlT"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIlY"
+  "/ops/bTIoZ":
+    post:
+      operationId: "incoming-btioz-170hyez"
+      summary: "Operation for bTIoZ"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIoZ"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIoe"
+  "/ops/bTIQS":
+    post:
+      operationId: "incoming-btiqs-tbr6fe"
+      summary: "Operation for bTIQS"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIQS"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIQU"
+  "/ops/bTIsJ":
+    post:
+      operationId: "incoming-btisj-vwj12f"
+      summary: "Operation for bTIsJ"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIsJ"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIsO"
+  "/ops/bTIsU":
+    post:
+      operationId: "incoming-btisu-oetrc6"
+      summary: "Operation for bTIsU"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIsU"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIsW"
+  "/ops/bTIwG":
+    post:
+      operationId: "incoming-btiwg-nuhxyc"
+      summary: "Operation for bTIwG"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIwG"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIwL"
+  "/ops/bTIWG":
+    post:
+      operationId: "incoming-btiwg-15iokck"
+      summary: "Operation for bTIWG"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIWG"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIWI"
+  "/ops/bTIWr":
+    post:
+      operationId: "incoming-btiwr-108w463"
+      summary: "Operation for bTIWr"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIWr"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIWw"
+  "/ops/bTIwW":
+    post:
+      operationId: "incoming-btiww-sabl1w"
+      summary: "Operation for bTIwW"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIwW"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIwY"
+  "/ops/bTJCM":
+    post:
+      operationId: "incoming-btjcm-1yq83bj"
+      summary: "Operation for bTJCM"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTJCM"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTJCR"
+  "/ops/bTJGw":
+    post:
+      operationId: "incoming-btjgw-2hcoa1"
+      summary: "Operation for bTJGw"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTJGw"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTJGy"

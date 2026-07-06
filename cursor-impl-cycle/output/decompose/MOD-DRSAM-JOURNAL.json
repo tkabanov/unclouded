@@ -1,0 +1,163 @@
+{
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "JOURNAL-01-journal-header-and-tab-bar",
+      "title": "Journal page header and tab bar",
+      "scope": "frontend — migrate journal-main content chrome inside SHELL-07 slot: page title/subtitle (ai_RNbBHXif), journal vs milestones tab buttons (ai_RNbBHXij), and tab-panel visibility toggling; exclude header/sidebar CustomElements owned by SHELL",
+      "acceptance_criteria": [
+        "AC-1: Journal content slot renders ai_RNbBHXie journal-content-area with data-bubble-id on ai_RNbBHXif header and ai_RNbBHXij tab bar preserving IR group hierarchy",
+        "AC-2: journal-tab-btn and milestones-tab-btn toggle visibility between ai_RNbBHXim journal-tab-content and ai_RNbBHXjO milestones-tab-content matching Bubble tab behavior",
+        "AC-3: Header and tab typography/style_ref tokens resolve through ir/slices/styles.json without redesigning layout"
+      ],
+      "ir_refs": ["bTHDa"],
+      "ui_refs": ["ai_RNbBHXid", "ai_RNbBHXie", "ai_RNbBHXif", "ai_RNbBHXig", "ai_RNbBHXih", "ai_RNbBHXii", "ai_RNbBHXij", "ai_RNbBHXik", "ai_RNbBHXil"],
+      "layout_notes": "Mount inside SHELL-07 content boundary at ai_RNbBHXid; do not re-implement ai_RNbBKLUl sidebar or ai_RNbBKLUm header (~9 journal-main-root entities plus tab chrome).",
+      "depends_on": [
+        "SHELL-07-journal-page-shell",
+        "DS-01-design-tokens-and-bubble-styles",
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
+      "target_files": [
+        "frontend/src/features/journal/JournalPageContent.vue",
+        "frontend/src/features/journal/JournalTabBar.vue",
+        "frontend/src/features/journal/journalTabStore.ts"
+      ]
+    },
+    {
+      "id": "JOURNAL-02-journal-entries-list",
+      "title": "Journal entries list and cards",
+      "scope": "frontend — migrate journal tab actions row, journal-entries-grid RepeatingGroup, entry card cell template, and read-only list fetch for JournalEntry rows; mood_tag_text badges on cards",
+      "acceptance_criteria": [
+        "AC-1: ai_RNbBHXim journal-tab-content renders ai_RNbBHXin actions row and ai_RNbBHXiu journal-entries-grid with data-bubble-id on ai_RNbBHXiv journal-entry-card-template",
+        "AC-2: Grid lists current user's journal entries from uds_journalentry (title_text, mood_tag_text, content preview) via Supabase client — no project/ schema edits",
+        "AC-3: new-entry-btn (ai_RNbBHXir) and journal-view-entry-btn (ai_RNbBHXjN) emit open-popup events wired in later items; entry count label reflects list length"
+      ],
+      "ir_refs": ["bTHDa"],
+      "ui_refs": ["ai_RNbBHXim", "ai_RNbBHXin", "ai_RNbBHXio", "ai_RNbBHXir", "ai_RNbBHXiu", "ai_RNbBHXiv", "ai_RNbBHXiw", "ai_RNbBHXiy", "ai_RNbBHXjH", "ai_RNbBHXjN"],
+      "layout_notes": "RepeatingGroup card preserves nested badge row (ai_RNbBHXix) and reflection indicator group; fit_width fluid layout per ui-fidelity rubric.",
+      "depends_on": [
+        "JOURNAL-01-journal-header-and-tab-bar",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/journal/JournalEntriesTab.vue",
+        "frontend/src/features/journal/JournalEntryCard.vue",
+        "frontend/src/features/journal/journalEntriesApi.ts"
+      ]
+    },
+    {
+      "id": "JOURNAL-03-new-entry-popup",
+      "title": "New journal entry popup and create flow",
+      "scope": "frontend — migrate new-entry-popup (ai_RNbBHXkK) form fields (title, mood tag, content) and Bubble create-JournalEntry workflows triggered by new-entry-save-btn",
+      "acceptance_criteria": [
+        "AC-1: Popup ai_RNbBHXkK renders header ai_RNbBHXkM and form ai_RNbBHXkS with data-bubble-id on inputs ai_RNbBHXkV, ai_RNbBHXkY, ai_RNbBHXkb preserving IR hierarchy",
+        "AC-2: new-entry-save-btn inserts uds_journalentry row (title_text, mood_tag_text, content_text, user_user) then closes popup and refreshes JOURNAL-02 grid",
+        "AC-3: new-entry-cancel-btn and new-entry-close-btn dismiss without persisting; static labels match IR text expressions"
+      ],
+      "ir_refs": ["bTHDa"],
+      "ui_refs": ["ai_RNbBHXkK", "ai_RNbBHXkM", "ai_RNbBHXkS", "ai_RNbBHXkV", "ai_RNbBHXkY", "ai_RNbBHXkb", "ai_RNbBHXke"],
+      "layout_notes": "Page-level Popup mounted from JournalPage; z-index above journal-main; ~19 popup entities plus create workflows bTIYE/bTIYG cluster.",
+      "depends_on": [
+        "JOURNAL-02-journal-entries-list",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/journal/NewEntryPopup.vue",
+        "frontend/src/features/journal/journalEntriesApi.ts"
+      ]
+    },
+    {
+      "id": "JOURNAL-04-entry-detail-and-ai-reflection",
+      "title": "Entry detail popup with edit, delete, and AI reflection",
+      "scope": "frontend — migrate entry-detail-popup (ai_RNbBHXkh): editable fields, delete confirmation section, ai-reflection-section with generate-reflection-btn, and update/delete JournalEntry workflows",
+      "acceptance_criteria": [
+        "AC-1: Popup ai_RNbBHXkh opens bound to selected JournalEntry with data-bubble-id on ai_RNbBHXkt form, ai_RNbBHXlD ai-reflection-section, and ai_RNbBHXla delete-confirm-section",
+        "AC-2: entry-save-changes-btn updates uds_journalentry fields; entry-delete-confirm-btn removes row; entry-detail-close-btn cancels edits",
+        "AC-3: generate-reflection-btn calls existing Supabase edge/RPC surface for ai_reflection_text (read project/ for contract only) and renders ai_RNbBHXlP ai-reflection-text"
+      ],
+      "ir_refs": ["bTHDa"],
+      "ui_refs": ["ai_RNbBHXkh", "ai_RNbBHXkj", "ai_RNbBHXkt", "ai_RNbBHXkw", "ai_RNbBHXkz", "ai_RNbBHXlC", "ai_RNbBHXlD", "ai_RNbBHXlL", "ai_RNbBHXlP", "ai_RNbBHXlX", "ai_RNbBHXle"],
+      "layout_notes": "Largest popup subtree (~55 entities); preserve badge group ai_RNbBHXkl and stacked form/reflection/actions vertical groups.",
+      "depends_on": [
+        "JOURNAL-02-journal-entries-list",
+        "DS-01-design-tokens-and-bubble-styles",
+        "ENUM-03-path-coaching-and-state-enums"
+      ],
+      "target_files": [
+        "frontend/src/features/journal/EntryDetailPopup.vue",
+        "frontend/src/features/journal/journalReflectionApi.ts",
+        "frontend/src/features/journal/journalEntriesApi.ts"
+      ]
+    },
+    {
+      "id": "JOURNAL-05-milestones-and-relapse-list",
+      "title": "Milestones tab list and relapse events section",
+      "scope": "frontend — migrate milestones-tab-content: milestones-actions-row, milestones-grid RepeatingGroup with milestone-card-template, relapse-events-section header, and relapse-events-grid listing",
+      "acceptance_criteria": [
+        "AC-1: ai_RNbBHXjO milestones-tab-content renders ai_RNbBHXja milestones-grid and ai_RNbBHXjp relapse-events-section with data-bubble-id on card templates ai_RNbBHXjb and ai_RNbBHXjz",
+        "AC-2: Grids load uds_milestone and uds_relapseevent for current user via Supabase client; milestone-card-title/date and relapse-event-date fields bind to row data",
+        "AC-3: add-milestone-btn, log-relapse-btn, milestone-card and relapse-card action buttons emit open-popup events for JOURNAL-06/07 items"
+      ],
+      "ir_refs": ["bTHDa"],
+      "ui_refs": ["ai_RNbBHXjO", "ai_RNbBHXjP", "ai_RNbBHXja", "ai_RNbBHXjb", "ai_RNbBHXjp", "ai_RNbBHXjq", "ai_RNbBHXjy", "ai_RNbBHXjz", "ai_RNbBHXjX", "ai_RNbBHXjU"],
+      "layout_notes": "Milestones tab (~38 entities) includes private relapse subsection below divider ai_RNbBHXjr; preserve milestones-count-label and relapse-private-badge copy.",
+      "depends_on": [
+        "JOURNAL-01-journal-header-and-tab-bar",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/journal/MilestonesTab.vue",
+        "frontend/src/features/journal/MilestoneCard.vue",
+        "frontend/src/features/journal/RelapseEventCard.vue",
+        "frontend/src/features/journal/milestonesApi.ts",
+        "frontend/src/features/journal/relapseEventsApi.ts"
+      ]
+    },
+    {
+      "id": "JOURNAL-06-milestone-add-edit-popups",
+      "title": "Add and edit milestone popups",
+      "scope": "frontend — migrate add-milestone-popup (ai_RNbBHXlf) and edit-milestone-popup (ai_RNbBHXmC) forms with create/update/delete Milestone workflows",
+      "acceptance_criteria": [
+        "AC-1: Popups ai_RNbBHXlf and ai_RNbBHXmC render title/description/date fields with data-bubble-id on DateInput ai_RNbBHXlw and ai_RNbBHXmS preserving form group hierarchy",
+        "AC-2: add-milestone-save-btn creates uds_milestone row; edit-milestone-save-btn updates; edit-milestone-delete-btn removes row and refreshes JOURNAL-05 grid",
+        "AC-3: Cancel/close buttons on both popups dismiss without mutation; achieved_at_date maps to achieved_at_date column"
+      ],
+      "ir_refs": ["bTHDa"],
+      "ui_refs": ["ai_RNbBHXlf", "ai_RNbBHXln", "ai_RNbBHXlq", "ai_RNbBHXlt", "ai_RNbBHXlw", "ai_RNbBHXlz", "ai_RNbBHXmC", "ai_RNbBHXmJ", "ai_RNbBHXmM", "ai_RNbBHXmP", "ai_RNbBHXmS", "ai_RNbBHXmU"],
+      "layout_notes": "Two page-level popups (~38 entities combined); edit popup includes delete-left / save-right action row ai_RNbBHXmT.",
+      "depends_on": [
+        "JOURNAL-05-milestones-and-relapse-list",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/journal/AddMilestonePopup.vue",
+        "frontend/src/features/journal/EditMilestonePopup.vue",
+        "frontend/src/features/journal/milestonesApi.ts"
+      ]
+    },
+    {
+      "id": "JOURNAL-07-relapse-log-edit-popups",
+      "title": "Log and edit relapse event popups",
+      "scope": "frontend — migrate log-relapse-popup (ai_RNbBHXma) and edit-relapse-popup (ai_RNbBHXnA) forms with create/update/delete RelapseEvent workflows and disclaimer copy",
+      "acceptance_criteria": [
+        "AC-1: Popups ai_RNbBHXma and ai_RNbBHXnA render date and notes fields with data-bubble-id on DateInput ai_RNbBHXml/ai_RNbBHXnL and MultiLineInput ai_RNbBHXmp/ai_RNbBHXnO",
+        "AC-2: log-relapse-save-btn creates uds_relapseevent row; edit-relapse-save-btn updates; edit-relapse-delete-btn removes row and refreshes JOURNAL-05 relapse grid",
+        "AC-3: log-relapse-disclaimer group ai_RNbBHXmq preserves IR icon/text layout; popups marked private in list section remain user-scoped via RLS"
+      ],
+      "ir_refs": ["bTHDa"],
+      "ui_refs": ["ai_RNbBHXma", "ai_RNbBHXmi", "ai_RNbBHXml", "ai_RNbBHXmp", "ai_RNbBHXmq", "ai_RNbBHXmx", "ai_RNbBHXnA", "ai_RNbBHXnI", "ai_RNbBHXnL", "ai_RNbBHXnO", "ai_RNbBHXnQ"],
+      "layout_notes": "Two popups (~38 entities combined) tied to relapse-events-section; disclaimer row uses icon+text pair ai_RNbBHXmr/ai_RNbBHXms.",
+      "depends_on": [
+        "JOURNAL-05-milestones-and-relapse-list",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/journal/LogRelapsePopup.vue",
+        "frontend/src/features/journal/EditRelapsePopup.vue",
+        "frontend/src/features/journal/relapseEventsApi.ts"
+      ]
+    }
+  ]
+}

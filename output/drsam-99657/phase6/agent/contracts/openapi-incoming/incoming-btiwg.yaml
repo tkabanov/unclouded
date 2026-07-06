@@ -1,0 +1,41 @@
+openapi: "3.1.0"
+info:
+  title: "M2 Incoming API Namespace: incoming-btiwg"
+  version: "0.1.0-m2-baseline"
+tags:
+  - name: "api_event"
+    description: "Incoming API events mapped from inventory entries."
+  - name: "external_http_call"
+    description: "Outgoing HTTP calls mapped from inventory entries."
+"x-b2c":
+  generated_from: "inventory+views"
+  operation_count: 2
+paths:
+  "/ops/bTIwG":
+    post:
+      operationId: "incoming-btiwg-nuhxyc"
+      summary: "Operation for bTIwG"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIwG"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIwL"
+  "/ops/bTIWG":
+    post:
+      operationId: "incoming-btiwg-15iokck"
+      summary: "Operation for bTIWG"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIWG"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIWI"

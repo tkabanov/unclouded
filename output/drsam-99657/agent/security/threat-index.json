@@ -1,0 +1,110 @@
+{
+  "actors": [
+    {
+      "actor_id": "actor:privacy_role:chatconversation:chat_owner_",
+      "privacy_role_refs": [
+        "privacy_role:chatconversation:chat_owner_"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:chatconversation:everyone",
+      "privacy_role_refs": [
+        "privacy_role:chatconversation:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:chatmessage:everyone",
+      "privacy_role_refs": [
+        "privacy_role:chatmessage:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:chatmessage:message_owner_",
+      "privacy_role_refs": [
+        "privacy_role:chatmessage:message_owner_"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:dailycheckin:everyone",
+      "privacy_role_refs": [
+        "privacy_role:dailycheckin:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:dailycheckin:owner_",
+      "privacy_role_refs": [
+        "privacy_role:dailycheckin:owner_"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:journalentry:everyone",
+      "privacy_role_refs": [
+        "privacy_role:journalentry:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:journalentry:owner_",
+      "privacy_role_refs": [
+        "privacy_role:journalentry:owner_"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:path:everyone",
+      "privacy_role_refs": [
+        "privacy_role:path:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:path:qwe_",
+      "privacy_role_refs": [
+        "privacy_role:path:qwe_"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:pathquestion:everyone",
+      "privacy_role_refs": [
+        "privacy_role:pathquestion:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:pathquestion:qwe_",
+      "privacy_role_refs": [
+        "privacy_role:pathquestion:qwe_"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:pathsession:everyone",
+      "privacy_role_refs": [
+        "privacy_role:pathsession:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:pathsession:qwe_",
+      "privacy_role_refs": [
+        "privacy_role:pathsession:qwe_"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:user:everyone",
+      "privacy_role_refs": [
+        "privacy_role:user:everyone"
+      ]
+    },
+    {
+      "actor_id": "actor:privacy_role:user:users_own_data",
+      "privacy_role_refs": [
+        "privacy_role:user:users_own_data"
+      ]
+    }
+  ],
+  "data_flows": [
+    {
+      "flow_id": "flow:external_call:0_default_collection:bTIlB",
+      "source_id": "external_call:0_default_collection:bTIlB"
+    },
+    {
+      "flow_id": "flow:external_call:0_default_collection:bTIRI",
+      "source_id": "external_call:0_default_collection:bTIRI"
+    }
+  ]
+}

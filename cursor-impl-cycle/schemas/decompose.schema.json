@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Module decompose",
+  "type": "object",
+  "required": ["module_id", "decomposed", "items"],
+  "properties": {
+    "module_id": { "type": "string", "pattern": "^MOD-[A-Z0-9-]+$" },
+    "decomposed": { "type": "boolean" },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "scope", "acceptance_criteria"],
+        "properties": {
+          "id": { "type": "string", "minLength": 3 },
+          "title": { "type": "string", "minLength": 3 },
+          "scope": { "type": "string", "minLength": 20 },
+          "acceptance_criteria": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 5 }
+          },
+          "ir_refs": { "type": "array", "items": { "type": "string" } },
+          "ui_refs": { "type": "array", "items": { "type": "string" } },
+          "layout_notes": { "type": "string", "minLength": 10 },
+          "depends_on": { "type": "array", "items": { "type": "string" } },
+          "target_files": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

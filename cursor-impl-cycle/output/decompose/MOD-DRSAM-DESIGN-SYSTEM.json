@@ -1,0 +1,190 @@
+{
+  "module_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "DS-01-design-tokens-and-bubble-styles",
+      "title": "Design tokens and Bubble style utilities",
+      "scope": "frontend — migrate ir/slices/styles.json (71 Bubble styles) into CSS custom properties and reusable utility classes under frontend/src/styles; resolve var(--color_*)/var(--font_*) references from Bubble presentation; no provider-adapter routes and no writes under project/",
+      "acceptance_criteria": [
+        "AC-1: frontend/src/styles/tokens.css exports CSS variables for all distinct --color_* and --font_* tokens referenced in styles.json (e.g. color_primary_default, color_surface_default, color_aiRNbAaxgr_default, font_default)",
+        "AC-2: frontend/src/styles/bubble-styles.css defines classes for each styles.json entry (Button_primary_, Text_body_, Group_card_, etc.) matching display name, typography, padding, border-radius, and hover states from IR",
+        "AC-3: frontend/src/styles/index.ts re-exports tokens and bubble-styles for feature modules; components resolve presentation.style_ref through these classes instead of hard-coded colors"
+      ],
+      "ir_refs": [
+        "Link_nav_",
+        "Text_body_",
+        "Text_link_",
+        "Button_tab_",
+        "Group_card_",
+        "Group_chip_",
+        "Button_primary_",
+        "Button_secondary_",
+        "Button_ghost_",
+        "Text_heading_1_",
+        "Text_heading_2_",
+        "Text_label_",
+        "Text_caption_",
+        "Text_body_muted_",
+        "Input_default_",
+        "MultiLineInput_default_",
+        "Checkbox_default_",
+        "Dropdown_default_",
+        "Group_transparent_",
+        "Group_badge_accent_",
+        "RepeatingGroup_list_"
+      ],
+      "ui_refs": [
+        "Link_nav_",
+        "Text_body_",
+        "Button_primary_",
+        "Group_card_",
+        "Group_transparent_",
+        "Group_badge_accent_"
+      ],
+      "layout_notes": "Styles are global primitives, not page regions. Map Bubble fit_width/fit_height semantics to fluid CSS where styles.json properties use width:0 or fit flags; preserve hover/state blocks from styles.json states objects.",
+      "depends_on": [],
+      "target_files": [
+        "frontend/src/styles/tokens.css",
+        "frontend/src/styles/bubble-styles.css",
+        "frontend/src/styles/index.ts"
+      ]
+    },
+    {
+      "id": "DS-02-progress-bar-reusable",
+      "title": "RE - progress bar reusable",
+      "scope": "frontend — migrate RE - progress bar (bTIuS) HTML/CSS bar driven by numeric prop; visual-only reusable consumed by dashboard and paths pages; no adapter and no project/ writes",
+      "acceptance_criteria": [
+        "AC-1: ProgressBar.vue root renders with data-bubble-id=\"bTIuS\" and accepts a 0–100 numeric value prop matching Bubble param type number",
+        "AC-2: Inner track (bTIua) and HTML fill region (bTIuZ) preserve row layout, 8px min-height track, border-radius 4, and primary fill color from IR presentation (var(--color_primary_default))",
+        "AC-3: Fill width scales proportionally to the value prop; bar uses DS-01 token/class references rather than inline hex colors"
+      ],
+      "ir_refs": ["bTIuS"],
+      "ui_refs": ["bTIuS", "bTIuZ", "bTIua"],
+      "layout_notes": "Tiny reusable (2 child elements): HTML element renders inline progress fill; parent Group bTIua is fit_height row track. Width is dynamic via HTML/CSS expression in Bubble — implement as percentage width on fill element.",
+      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "target_files": [
+        "frontend/src/components/design-system/ProgressBar.vue",
+        "frontend/src/components/design-system/index.ts"
+      ]
+    },
+    {
+      "id": "DS-03-score-bar-reusable",
+      "title": "RE - score bar reusable",
+      "scope": "frontend — migrate RE - score bar (bTIHr) five-segment Likert/score indicator with numeric selection prop; shared across journal and check-in surfaces; frontend-only",
+      "acceptance_criteria": [
+        "AC-1: ScoreBar.vue root renders with data-bubble-id=\"bTIHr\" and accepts a numeric score prop (1–5) plus optional segment labels via slots or props",
+        "AC-2: Five segment groups (bTIHw, bTIIC, bTIII, bTIIO, bTIIU) each contain a Shape child; selected segment uses var(--color_primary_default) fill, unselected segments use var(--color_aiRNbAaxgr_default) per IR",
+        "AC-3: HTML label region (bTIJL) preserves static copy and formatting from drsam-99657.bubble element_definitions/bTIHs; segment row uses flex row with 4px radius and 8px min-height track"
+      ],
+      "ir_refs": ["bTIHr"],
+      "ui_refs": ["bTIHr", "bTIHw", "bTIIC", "bTIII", "bTIIO", "bTIIU", "bTIJL"],
+      "layout_notes": "Row of five equal segments inside muted track groups; each segment is a Group wrapping a Shape. Selection state toggles Shape bgcolor between primary and muted gray tokens. HTML element bTIJL sits below or beside bar for axis labels.",
+      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "target_files": [
+        "frontend/src/components/design-system/ScoreBar.vue",
+        "frontend/src/components/design-system/index.ts"
+      ]
+    },
+    {
+      "id": "DS-04-session-completion-form-reusable",
+      "title": "RE - session completion form reusable",
+      "scope": "frontend — migrate RE - session completion form (bTIyi) bound to custom.pathsession parent data: session header, path-question repeating group with multiline answers, reflection checkbox group, and submit button; presentation-only stub for path workflows (no Supabase mutations in this item)",
+      "acceptance_criteria": [
+        "AC-1: SessionCompletionForm.vue root renders with data-bubble-id=\"bTIyi\" and accepts a pathsession-shaped prop; header group bTIyn shows session title (bTIxC, style Text_heading_2_) and subtitle (bTIxG, style Text_body_muted_) from parent data bindings",
+        "AC-2: RepeatingGroup bTIzA lists path questions (custom.pathquestion search binding) with cell group bTIzF: question label bTIzG (Text_label_) and MultiLineInput bTIzK (MultiLineInput_default_); reflection group bTIzS includes labels bTIzX/bTIzY and Checkbox bTIzc (Checkbox_default_)",
+        "AC-3: Submit Button bTIzk uses Button_primary_ styling and static label text from IR; plugin placeholder nodes bTJBC/bTJBI render as inert stubs preserving data-bubble-id markers for parity"
+      ],
+      "ir_refs": ["bTIyi"],
+      "ui_refs": [
+        "bTIyi",
+        "bTIyn",
+        "bTIxC",
+        "bTIxG",
+        "bTIzA",
+        "bTIzF",
+        "bTIzG",
+        "bTIzK",
+        "bTIzS",
+        "bTIzc",
+        "bTIzk"
+      ],
+      "layout_notes": "Vertical stack: hero header card (Group_card_), repeating question cards with label above multiline input, reflection row with checkbox, full-width primary submit. RepeatingGroup uses list layout from RepeatingGroup_list_ style ref on container.",
+      "depends_on": [
+        "DS-01-design-tokens-and-bubble-styles",
+        "ENUM-03-path-coaching-and-state-enums"
+      ],
+      "target_files": [
+        "frontend/src/components/design-system/SessionCompletionForm.vue",
+        "frontend/src/components/design-system/SessionQuestionCell.vue",
+        "frontend/src/components/design-system/index.ts"
+      ]
+    },
+    {
+      "id": "DS-05-chat-header-and-messages",
+      "title": "RE - chat header and messages panel",
+      "scope": "frontend — migrate upper RE - chat (bTIRW) regions: panel header with coaching disclaimer badge (bTIRb) and scrollable messages repeating group (bTISK); accepts chatconversation prop; frontend-only, no adapter",
+      "acceptance_criteria": [
+        "AC-1: ChatHeader.vue renders data-bubble-id=\"bTIRb\" with title texts bTIRh/bTIRi (Text_body_) and right badge group bTIRm containing accent badge bTIRn (Group_badge_accent_) with icon bTIRo and caption bTIRs",
+        "AC-2: ChatMessagesList.vue renders data-bubble-id=\"bTISK\" with RepeatingGroup bTISM listing messages; user cells bTISQ show bubble text bTISS; assistant cells bTIUI nest icon groups bTIUK/bTIUP with texts bTIUQ/bTIUU preserving left/right alignment from IR",
+        "AC-3: Message list region uses Group_transparent_ container layout and scroll overflow; all typography and badge colors resolve through DS-01 style classes"
+      ],
+      "ir_refs": ["bTIRW"],
+      "ui_refs": [
+        "bTIRW",
+        "bTIRb",
+        "bTIRg",
+        "bTIRm",
+        "bTIRn",
+        "bTISK",
+        "bTISM",
+        "bTISQ",
+        "bTISS",
+        "bTIUI",
+        "bTIUQ",
+        "bTIUU"
+      ],
+      "layout_notes": "Header is horizontal flex (title left, badge right). Messages area is vertical RepeatingGroup with alternating user (right-aligned bubble) and assistant (left-aligned with avatar icon column) cell templates. Preserve fit_width fluid semantics on message groups.",
+      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "target_files": [
+        "frontend/src/components/chat/ChatHeader.vue",
+        "frontend/src/components/chat/ChatMessagesList.vue",
+        "frontend/src/components/chat/ChatMessageCell.vue",
+        "frontend/src/components/chat/index.ts"
+      ]
+    },
+    {
+      "id": "DS-06-chat-composer-and-shell",
+      "title": "RE - chat composer, disclaimer, and shell",
+      "scope": "frontend — migrate lower RE - chat (bTIRW) composer toolbar (bTITC), floating coaching disclaimer (bTIUh), and compose ChatReusable.vue shell exporting the full bTIRW reusable; frontend-only",
+      "acceptance_criteria": [
+        "AC-1: ChatComposer.vue renders data-bubble-id=\"bTITC\" with mode buttons bTITI/bTITM/bTITN/bTITO, input group bTITS containing caption bTITU (Text_caption_) and Input bTITY (Input_default_), and send Button bTITZ (Button_primary_)",
+        "AC-2: ChatFloatingDisclaimer.vue renders data-bubble-id=\"bTIUh\" FloatingGroup with HTML content region bTIne; positions as overlay/footer per IR z-index and collapse_when_hidden behavior",
+        "AC-3: ChatReusable.vue root renders data-bubble-id=\"bTIRW\", accepts chatconversation prop, and composes ChatHeader, ChatMessagesList, ChatComposer, and ChatFloatingDisclaimer preserving vertical panel hierarchy from element_definitions/bTIRa"
+      ],
+      "ir_refs": ["bTIRW"],
+      "ui_refs": [
+        "bTIRW",
+        "bTITC",
+        "bTITH",
+        "bTITS",
+        "bTITU",
+        "bTITY",
+        "bTITZ",
+        "bTIUh",
+        "bTIne"
+      ],
+      "layout_notes": "Composer sits fixed at panel bottom: row of mode icon buttons above input row (caption + text input + send). FloatingGroup disclaimer anchors above composer with HTML block. Shell stacks header, flex-grow messages, composer, optional floating disclaimer.",
+      "depends_on": [
+        "DS-01-design-tokens-and-bubble-styles",
+        "DS-05-chat-header-and-messages"
+      ],
+      "target_files": [
+        "frontend/src/components/chat/ChatComposer.vue",
+        "frontend/src/components/chat/ChatFloatingDisclaimer.vue",
+        "frontend/src/components/chat/ChatReusable.vue",
+        "frontend/src/components/chat/index.ts"
+      ]
+    }
+  ]
+}

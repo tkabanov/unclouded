@@ -1,0 +1,27 @@
+{
+  "wave": true,
+  "phase": "implement",
+  "max_parallel": 4,
+  "generated_at": "2026-07-06T16:21:04.955Z",
+  "dispatches": [
+    {
+      "role": "implement",
+      "target_id": "AUTH-01-index-login-entry",
+      "gate": "write",
+      "reason": null,
+      "brief_path": "cursor-impl-cycle\\state\\briefs\\implement-implement-AUTH-01-index-login-entry.json",
+      "template": "cursor-impl-cycle\\prompts\\write-implement.md",
+      "outputs": [
+        "cursor-impl-cycle\\output\\coverage/AUTH-01-index-login-entry.json"
+      ],
+      "subagent_type": "generalPurpose",
+      "model": null,
+      "readonly": false,
+      "target_files": [
+        "frontend/src/pages/IndexPage.vue",
+        "frontend/src/router/index.ts",
+        "frontend/src/features/auth/routes.ts"
+      ]
+    }
+  ]
+}

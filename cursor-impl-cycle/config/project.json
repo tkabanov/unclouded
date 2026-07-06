@@ -1,0 +1,38 @@
+{
+  "project_name": "unclouded",
+  "ir_dir": "ir",
+  "bubble_source": "drsam-99657.bubble",
+  "styles_slice": "ir/slices/styles.json",
+  "frontend_app_dir": "frontend",
+  "adapter_dir": "provider-adapter",
+  "supabase_context_dir": "project/supabase",
+  "coverage_threshold_pct": 90,
+  "stale_hours": 4,
+  "max_iterations_total": 800,
+  "review": {
+    "min_readiness_pct": 85,
+    "min_coverage_confidence_pct": 80,
+    "min_avg_score": 3.5,
+    "max_iterations_per_target": 8,
+    "max_iterations_per_item": 12,
+    "critique_triage_enabled": true
+  },
+  "run_build_gate": false,
+  "auto_start_implement": false,
+  "forbidden_write_paths": ["project/"],
+  "parallel": {
+    "enabled": true,
+    "decompose": { "max": 4 },
+    "implement": {
+      "write_strategy": "serial",
+      "max": 4,
+      "review_triage_max": 4
+    }
+  },
+  "subagents": {
+    "write": { "subagent_type": "generalPurpose", "model": "auto", "readonly": false },
+    "review": { "subagent_type": "generalPurpose", "model": "auto", "readonly": true },
+    "triage": { "subagent_type": "generalPurpose", "model": "auto", "readonly": true },
+    "implement": { "subagent_type": "generalPurpose", "model": "auto", "readonly": false }
+  }
+}

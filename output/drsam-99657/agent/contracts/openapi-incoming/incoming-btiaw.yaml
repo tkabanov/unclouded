@@ -1,0 +1,27 @@
+openapi: "3.1.0"
+info:
+  title: "M2 Incoming API Namespace: incoming-btiaw"
+  version: "0.1.0-m2-baseline"
+tags:
+  - name: "api_event"
+    description: "Incoming API events mapped from inventory entries."
+  - name: "external_http_call"
+    description: "Outgoing HTTP calls mapped from inventory entries."
+"x-b2c":
+  generated_from: "inventory+views"
+  operation_count: 1
+paths:
+  "/ops/bTIAw":
+    post:
+      operationId: "incoming-btiaw-114yx1q"
+      summary: "Operation for bTIAw"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIAw"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIBB"

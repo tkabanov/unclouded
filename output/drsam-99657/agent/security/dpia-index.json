@@ -1,0 +1,46 @@
+{
+  "pii_categories": [
+    {
+      "field_id": "contact_email_text",
+      "category": "contact.email"
+    },
+    {
+      "field_id": "first_name_text",
+      "category": "profile.name"
+    },
+    {
+      "field_id": "last_name_text",
+      "category": "profile.name"
+    },
+    {
+      "field_id": "name_text",
+      "category": "profile.name"
+    },
+    {
+      "field_id": "name_text",
+      "category": "profile.name"
+    },
+    {
+      "field_id": "name_text",
+      "category": "profile.name"
+    },
+    {
+      "field_id": "name_text",
+      "category": "profile.name"
+    },
+    {
+      "field_id": "support_seeking_capacity_option_support_seeking_capacity",
+      "category": "location.address"
+    }
+  ],
+  "data_flows": [
+    {
+      "flow_id": "flow:external_call:0_default_collection:bTIlB",
+      "source_id": "external_call:0_default_collection:bTIlB"
+    },
+    {
+      "flow_id": "flow:external_call:0_default_collection:bTIRI",
+      "source_id": "external_call:0_default_collection:bTIRI"
+    }
+  ]
+}

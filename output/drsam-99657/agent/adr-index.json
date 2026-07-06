@@ -1,0 +1,27 @@
+[
+  {
+    "adr_id": "adr-api-contract-surface",
+    "entity_id": "entity_class:api_event",
+    "status": "pending-m7"
+  },
+  {
+    "adr_id": "adr-external-http-integrations",
+    "entity_id": "entity_class:external_http_call",
+    "status": "pending-m7"
+  },
+  {
+    "adr_id": "adr-privacy-role-enforcement",
+    "entity_id": "entity_class:privacy_role",
+    "status": "pending-m7"
+  },
+  {
+    "adr_id": "adr-secret-reference-strategy",
+    "entity_id": "entity_class:secret_ref",
+    "status": "pending-m7"
+  },
+  {
+    "adr_id": "adr-user-data-schema-shape",
+    "entity_id": "entity_class:user_type",
+    "status": "pending-m7"
+  }
+]

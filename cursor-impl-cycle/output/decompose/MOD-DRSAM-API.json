@@ -1,0 +1,133 @@
+{
+  "module_id": "MOD-DRSAM-API",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "API-01-pillar-score-engine",
+      "title": "Pillar score aggregator and user score calculators",
+      "scope": "frontend — port Bubble custom event bTHxW (q1–q5 score aggregator) and API events calculate_user_stability (bTHxu), calculate_user_alignment (bTHyM), calculate_user_performance (bTHyU); each reads onboarding answer fields on user, computes score via shared engine, updates stability_score_number / alignment_score_number / performance_score_number via Supabase client; no project/ migrations or adapter passthrough",
+      "acceptance_criteria": [
+        "AC-1: aggregatePillarScore.ts exports computePillarScore(q1..q5) mirroring bTHxW return value bTHxo (weighted sum parity with Bubble action chain)",
+        "AC-2: calculateUserStability/Alignment/Performance functions accept user id, map onboarding answer columns to q1–q5 inputs per IR wf_name parity, invoke aggregatePillarScore, then patch user row with the corresponding *_score_number field",
+        "AC-3: onboardingProfilePipeline.ts exposes runPillarScoreCalculators(userId) callable from AUTH-05 completeOnboarding mirroring ScheduleAPIEvent chain on bTGNJ workflows bTHVC/bTHja/bTHgY (read project/supabase for user column names only)"
+      ],
+      "ir_refs": ["bTHxW", "bTHxu", "bTHyM", "bTHyU"],
+      "depends_on": [
+        "AUTH-04-onboarding-profile-questions",
+        "AUTH-05-onboarding-health-load-signals",
+        "ENUM-02-onboarding-question-enums",
+        "DASH-07-crisis-onboarding-services-overlays"
+      ],
+      "target_files": [
+        "frontend/src/api/userProfile/aggregatePillarScore.ts",
+        "frontend/src/api/userProfile/calculateUserStability.ts",
+        "frontend/src/api/userProfile/calculateUserAlignment.ts",
+        "frontend/src/api/userProfile/calculateUserPerformance.ts",
+        "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+      ]
+    },
+    {
+      "id": "API-02-user-classification",
+      "title": "User classification from pillar scores",
+      "scope": "frontend — port custom event bTHzg (performance/stability/alignment/orientation score inputs → classification_os) and API event calculate_user_classification (bTHzC); updates user.classification_option_classification_os via Supabase client after pillar scores exist; no project/ edits",
+      "acceptance_criteria": [
+        "AC-1: classifyUser.ts exports resolveClassification({ performance_score, stability_score, alignment_score, orientation_score }) returning classification_os value matching bTHzg TerminateWorkflow branch conditions",
+        "AC-2: calculateUserClassification(userId) loads user score fields, calls resolveClassification, patches classification_option_classification_os mirroring bTHzC ChangeThing action bTIAc",
+        "AC-3: onboardingProfilePipeline invokes calculateUserClassification after API-01 pillar calculators, matching ScheduleAPIEvent on bTGNJ workflow bTHlG"
+      ],
+      "ir_refs": ["bTHzg", "bTHzC"],
+      "depends_on": [
+        "API-01-pillar-score-engine",
+        "ENUM-03-path-coaching-and-state-enums"
+      ],
+      "target_files": [
+        "frontend/src/api/userProfile/classifyUser.ts",
+        "frontend/src/api/userProfile/calculateUserClassification.ts",
+        "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+      ]
+    },
+    {
+      "id": "API-03-pressure-profile",
+      "title": "Pressure profile from load signals",
+      "scope": "frontend — port custom event bTIAw (load_signal_list + state_nervous_system → pressure_profile_string) and API event calculate_user_pressure_profile (bTIBO); updates user.pressure_profile_text via Supabase client using ENUM-02 load-signal labels; no adapter unless server secret required",
+      "acceptance_criteria": [
+        "AC-1: buildPressureProfile.ts exports resolvePressureProfile(load_signal_list, state_nervous_system) returning text matching bTIBB return value bTIBG branch logic from bTIAw conditions",
+        "AC-2: calculateUserPressureProfile(userId) reads user load-signal and nervous-system fields captured in AUTH-05, computes profile string, patches pressure_profile_text mirroring bTIBO ChangeThing action bTICJ",
+        "AC-3: onboardingProfilePipeline invokes calculateUserPressureProfile after classification step, matching ScheduleAPIEvent on bTGNJ workflow bTHqE"
+      ],
+      "ir_refs": ["bTIAw", "bTIBO"],
+      "depends_on": [
+        "AUTH-05-onboarding-health-load-signals",
+        "ENUM-02-onboarding-question-enums",
+        "API-02-user-classification"
+      ],
+      "target_files": [
+        "frontend/src/api/userProfile/buildPressureProfile.ts",
+        "frontend/src/api/userProfile/calculateUserPressureProfile.ts",
+        "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+      ]
+    },
+    {
+      "id": "API-04-behavioral-fingerprint",
+      "title": "Behavioral fingerprint from pressure patterns",
+      "scope": "frontend — port custom event bTICa (pressure_response + non_followthrough_reason → behavioral_fingerprint text) and API event calculate_user_behavioral_fingerprint (bTIDk); updates user.behavioral_fingerprint_text via Supabase client; no project/ schema changes",
+      "acceptance_criteria": [
+        "AC-1: buildBehavioralFingerprint.ts exports resolveBehavioralFingerprint(pressure_response, non_followthrough_reason) returning text matching bTICa return value bTICg from IR condition branches",
+        "AC-2: calculateUserBehavioralFingerprint(userId) reads user pressure-response option fields, computes fingerprint string, patches behavioral_fingerprint_text mirroring bTIDk ChangeThing action bTIDv",
+        "AC-3: onboardingProfilePipeline invokes calculateUserBehavioralFingerprint after pressure profile step, matching ScheduleAPIEvent on bTGNJ workflow bTHrk"
+      ],
+      "ir_refs": ["bTICV", "bTIDk"],
+      "depends_on": [
+        "API-03-pressure-profile",
+        "ENUM-02-onboarding-question-enums"
+      ],
+      "target_files": [
+        "frontend/src/api/userProfile/buildBehavioralFingerprint.ts",
+        "frontend/src/api/userProfile/calculateUserBehavioralFingerprint.ts",
+        "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+      ]
+    },
+    {
+      "id": "API-05-ai-coaching-mode-assignment",
+      "title": "AI coaching mode assignment from profile",
+      "scope": "frontend — port API event calculate_user_ai_coaching_mode (bTIEN): conditional ChangeThing chain sets user.ai_coaching_mode_list_list_option_ai_coaching_mode_os from classification/pressure/fingerprint signals; Supabase client patch only; read project/supabase for column type contract",
+      "acceptance_criteria": [
+        "AC-1: assignAiCoachingModes.ts exports resolveAiCoachingModes(user) returning ordered ai_coaching_mode_os list matching bTIES action branches (stabilizer/rebuilder/simplifier/strategist/protector) and bTIFD add-list fallback",
+        "AC-2: calculateUserAiCoachingMode(userId) loads computed profile fields, resolves mode list, patches ai_coaching_mode_list on user row mirroring bTIEN seven ChangeThing actions",
+        "AC-3: onboardingProfilePipeline final step invokes calculateUserAiCoachingMode matching ScheduleAPIEvent on bTGNJ workflow bTHuG; DASH-02 coaching badge reads patched list without re-running calculator"
+      ],
+      "ir_refs": ["bTIEN"],
+      "depends_on": [
+        "API-04-behavioral-fingerprint",
+        "ENUM-03-path-coaching-and-state-enums",
+        "DASH-02-greeting-coaching-quick-actions"
+      ],
+      "target_files": [
+        "frontend/src/api/userProfile/assignAiCoachingModes.ts",
+        "frontend/src/api/userProfile/calculateUserAiCoachingMode.ts",
+        "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
+      ]
+    },
+    {
+      "id": "API-06-ai-confidence-level-trigger",
+      "title": "AI confidence level on modules completed change",
+      "scope": "frontend — port DatabaseTriggerEvent bTIFU (ai_confidence_level on user): when modules_completed_count_number changes, recompute ai_confidence_level_option_ai_confidence_level_os from path-enrollment progress ranges; hook after PATHS session completion updates user row; read project/supabase for existing trigger/RPC names — no project/ writes",
+      "acceptance_criteria": [
+        "AC-1: resolveAiConfidenceLevel.ts exports computeAiConfidenceLevel(modules_completed_count_number) returning ai_confidence_level_os value matching bTIFW ChangeThing action bTIFa range_contains_point logic",
+        "AC-2: userProfileHooks.ts registers post-update handler (or explicit call from pathsSessionApi) that runs when modules_completed_count_number changes and patches ai_confidence_level when OldDataItem vs CurrentDataItem condition (modules count not equal) mirrors bTIFW trigger condition",
+        "AC-3: No new provider-adapter route — if project/supabase exposes an edge function for this trigger, frontend invokes it with user JWT + apikey; otherwise client-side patch after PATHS-07 session completion is acceptable workaround documented in module scope"
+      ],
+      "ir_refs": ["bTIFU"],
+      "depends_on": [
+        "PATHS-07-session-completion-route-integration",
+        "ENUM-03-path-coaching-and-state-enums",
+        "API-05-ai-coaching-mode-assignment"
+      ],
+      "target_files": [
+        "frontend/src/api/userProfile/resolveAiConfidenceLevel.ts",
+        "frontend/src/api/userProfile/userProfileHooks.ts",
+        "frontend/src/features/paths/pathsSessionApi.ts"
+      ]
+    }
+  ]
+}

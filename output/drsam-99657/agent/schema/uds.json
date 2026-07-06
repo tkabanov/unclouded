@@ -1,0 +1,1826 @@
+{
+  "version": 1,
+  "generated_from": "inventory+views",
+  "type_count": 20,
+  "types": [
+    {
+      "id": "uds:chat",
+      "user_type_ref": "chat",
+      "source_pointer": "/user_types/chat",
+      "source_entity_class": "user_type",
+      "display": "Chat",
+      "fields": []
+    },
+    {
+      "id": "uds:chatconversation",
+      "user_type_ref": "chatconversation",
+      "source_pointer": "/user_types/chatconversation",
+      "source_entity_class": "user_type",
+      "display": "ChatConversation",
+      "fields": [
+        {
+          "id": "title_text",
+          "pointer": "/user_types/chatconversation/fields/title_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "title_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/chatconversation/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:chatmessage",
+      "user_type_ref": "chatmessage",
+      "source_pointer": "/user_types/chatmessage",
+      "source_entity_class": "user_type",
+      "display": "ChatMessage",
+      "fields": [
+        {
+          "id": "content_text",
+          "pointer": "/user_types/chatmessage/fields/content_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "content_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "conversation_custom_chatconversation",
+          "pointer": "/user_types/chatmessage/fields/conversation_custom_chatconversation",
+          "source_entity_class": "user_type.field",
+          "field_id": "conversation_custom_chatconversation",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "is_from_user_boolean",
+          "pointer": "/user_types/chatmessage/fields/is_from_user_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "is_from_user_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "responce_received_boolean",
+          "pointer": "/user_types/chatmessage/fields/responce_received_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "responce_received_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sender_text",
+          "pointer": "/user_types/chatmessage/fields/sender_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "sender_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/chatmessage/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:checkintag",
+      "user_type_ref": "checkintag",
+      "source_pointer": "/user_types/checkintag",
+      "source_entity_class": "user_type",
+      "display": "CheckInTag",
+      "fields": [
+        {
+          "id": "check_in_custom_dailycheckin",
+          "pointer": "/user_types/checkintag/fields/check_in_custom_dailycheckin",
+          "source_entity_class": "user_type.field",
+          "field_id": "check_in_custom_dailycheckin",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "tag_text",
+          "pointer": "/user_types/checkintag/fields/tag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "tag_text",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:dailycheckin",
+      "user_type_ref": "dailycheckin",
+      "source_pointer": "/user_types/dailycheckin",
+      "source_entity_class": "user_type",
+      "display": "DailyCheckIn",
+      "fields": [
+        {
+          "id": "date_date",
+          "pointer": "/user_types/dailycheckin/fields/date_date",
+          "source_entity_class": "user_type.field",
+          "field_id": "date_date",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "energy_stress_level_number",
+          "pointer": "/user_types/dailycheckin/fields/energy_stress_level_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "energy_stress_level_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "mood_number",
+          "pointer": "/user_types/dailycheckin/fields/mood_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "mood_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "reflection_text",
+          "pointer": "/user_types/dailycheckin/fields/reflection_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "reflection_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/dailycheckin/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:guidedpath",
+      "user_type_ref": "guidedpath",
+      "source_pointer": "/user_types/guidedpath",
+      "source_entity_class": "user_type",
+      "display": "GuidedPath",
+      "fields": [
+        {
+          "id": "description_text",
+          "pointer": "/user_types/guidedpath/fields/description_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "description_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "primary_mode_tag_text",
+          "pointer": "/user_types/guidedpath/fields/primary_mode_tag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "primary_mode_tag_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sensitivity_flag_text",
+          "pointer": "/user_types/guidedpath/fields/sensitivity_flag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "sensitivity_flag_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "steps_text",
+          "pointer": "/user_types/guidedpath/fields/steps_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "steps_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sub_mode_tag_text",
+          "pointer": "/user_types/guidedpath/fields/sub_mode_tag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "sub_mode_tag_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "tier_requirement_text",
+          "pointer": "/user_types/guidedpath/fields/tier_requirement_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "tier_requirement_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "title_text",
+          "pointer": "/user_types/guidedpath/fields/title_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "title_text",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:journalentry",
+      "user_type_ref": "journalentry",
+      "source_pointer": "/user_types/journalentry",
+      "source_entity_class": "user_type",
+      "display": "JournalEntry",
+      "fields": [
+        {
+          "id": "ai_reflection_text",
+          "pointer": "/user_types/journalentry/fields/ai_reflection_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "ai_reflection_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "content_text",
+          "pointer": "/user_types/journalentry/fields/content_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "content_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "mood_tag_text",
+          "pointer": "/user_types/journalentry/fields/mood_tag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "mood_tag_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "title_text",
+          "pointer": "/user_types/journalentry/fields/title_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "title_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/journalentry/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:milestone",
+      "user_type_ref": "milestone",
+      "source_pointer": "/user_types/milestone",
+      "source_entity_class": "user_type",
+      "display": "Milestone",
+      "fields": [
+        {
+          "id": "achieved_at_date",
+          "pointer": "/user_types/milestone/fields/achieved_at_date",
+          "source_entity_class": "user_type.field",
+          "field_id": "achieved_at_date",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "description_text",
+          "pointer": "/user_types/milestone/fields/description_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "description_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "title_text",
+          "pointer": "/user_types/milestone/fields/title_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "title_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/milestone/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:module",
+      "user_type_ref": "module",
+      "source_pointer": "/user_types/module",
+      "source_entity_class": "user_type",
+      "display": "Module",
+      "fields": [
+        {
+          "id": "attachment_signal_option_attachment_signal_os",
+          "pointer": "/user_types/module/fields/attachment_signal_option_attachment_signal_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "attachment_signal_option_attachment_signal_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "belonging_level_option_belonging_level",
+          "pointer": "/user_types/module/fields/belonging_level_option_belonging_level",
+          "source_entity_class": "user_type.field",
+          "field_id": "belonging_level_option_belonging_level",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "body_relationship_option_body_relationship",
+          "pointer": "/user_types/module/fields/body_relationship_option_body_relationship",
+          "source_entity_class": "user_type.field",
+          "field_id": "body_relationship_option_body_relationship",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "chronic_pain_flag_boolean",
+          "pointer": "/user_types/module/fields/chronic_pain_flag_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "chronic_pain_flag_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "conflict_pattern_option_conflict_pattern_os",
+          "pointer": "/user_types/module/fields/conflict_pattern_option_conflict_pattern_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "conflict_pattern_option_conflict_pattern_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "financial_agency_level_option_financial_agency_level",
+          "pointer": "/user_types/module/fields/financial_agency_level_option_financial_agency_level",
+          "source_entity_class": "user_type.field",
+          "field_id": "financial_agency_level_option_financial_agency_level",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "financial_anxiety_level_option_financial_anxiety_level",
+          "pointer": "/user_types/module/fields/financial_anxiety_level_option_financial_anxiety_level",
+          "source_entity_class": "user_type.field",
+          "field_id": "financial_anxiety_level_option_financial_anxiety_level",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "financial_stability_signal_option_financial_stability_signal",
+          "pointer": "/user_types/module/fields/financial_stability_signal_option_financial_stability_signal",
+          "source_entity_class": "user_type.field",
+          "field_id": "financial_stability_signal_option_financial_stability_signal",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "grief_load_level_option_grief_load_level",
+          "pointer": "/user_types/module/fields/grief_load_level_option_grief_load_level",
+          "source_entity_class": "user_type.field",
+          "field_id": "grief_load_level_option_grief_load_level",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "hormonal_context_flag_boolean",
+          "pointer": "/user_types/module/fields/hormonal_context_flag_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "hormonal_context_flag_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "hormonal_context_type_option_hormonal_context_type",
+          "pointer": "/user_types/module/fields/hormonal_context_type_option_hormonal_context_type",
+          "source_entity_class": "user_type.field",
+          "field_id": "hormonal_context_type_option_hormonal_context_type",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "identity_narrative_type_option_identity_narrative_type_os",
+          "pointer": "/user_types/module/fields/identity_narrative_type_option_identity_narrative_type_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "identity_narrative_type_option_identity_narrative_type_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "identity_pressure_origin_option_identity_pressure_origin_os",
+          "pointer": "/user_types/module/fields/identity_pressure_origin_option_identity_pressure_origin_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "identity_pressure_origin_option_identity_pressure_origin_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "identity_role_fusion_score_number",
+          "pointer": "/user_types/module/fields/identity_role_fusion_score_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "identity_role_fusion_score_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "identity_self_worth_source_option_identity_self_worth_source_os",
+          "pointer": "/user_types/module/fields/identity_self_worth_source_option_identity_self_worth_source_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "identity_self_worth_source_option_identity_self_worth_source_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "insight_flags_list_text",
+          "pointer": "/user_types/module/fields/insight_flags_list_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "insight_flags_list_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "intimacy_safety_level_option_intimacy_safety_level",
+          "pointer": "/user_types/module/fields/intimacy_safety_level_option_intimacy_safety_level",
+          "source_entity_class": "user_type.field",
+          "field_id": "intimacy_safety_level_option_intimacy_safety_level",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "last_checkin_date_date",
+          "pointer": "/user_types/module/fields/last_checkin_date_date",
+          "source_entity_class": "user_type.field",
+          "field_id": "last_checkin_date_date",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "micro_commitment_active_text",
+          "pointer": "/user_types/module/fields/micro_commitment_active_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "micro_commitment_active_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "micro_commitment_due_date",
+          "pointer": "/user_types/module/fields/micro_commitment_due_date",
+          "source_entity_class": "user_type.field",
+          "field_id": "micro_commitment_due_date",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "organization_id_text",
+          "pointer": "/user_types/module/fields/organization_id_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "organization_id_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "perception_gap_flag_option_perception_gap_flag",
+          "pointer": "/user_types/module/fields/perception_gap_flag_option_perception_gap_flag",
+          "source_entity_class": "user_type.field",
+          "field_id": "perception_gap_flag_option_perception_gap_flag",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pressure_reach_option_pressure_reach",
+          "pointer": "/user_types/module/fields/pressure_reach_option_pressure_reach",
+          "source_entity_class": "user_type.field",
+          "field_id": "pressure_reach_option_pressure_reach",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "prior_support_type_option_prior_support_type",
+          "pointer": "/user_types/module/fields/prior_support_type_option_prior_support_type",
+          "source_entity_class": "user_type.field",
+          "field_id": "prior_support_type_option_prior_support_type",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "purpose_clarity_option_purpose_clarity",
+          "pointer": "/user_types/module/fields/purpose_clarity_option_purpose_clarity",
+          "source_entity_class": "user_type.field",
+          "field_id": "purpose_clarity_option_purpose_clarity",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "session_count_number",
+          "pointer": "/user_types/module/fields/session_count_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "session_count_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "significant_events_12mo_list_text",
+          "pointer": "/user_types/module/fields/significant_events_12mo_list_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "significant_events_12mo_list_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sleep_quality_signal_option_sleep_quality_signal",
+          "pointer": "/user_types/module/fields/sleep_quality_signal_option_sleep_quality_signal",
+          "source_entity_class": "user_type.field",
+          "field_id": "sleep_quality_signal_option_sleep_quality_signal",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "spiritual_framework_present_boolean",
+          "pointer": "/user_types/module/fields/spiritual_framework_present_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "spiritual_framework_present_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "spiritual_framework_present_option_spiritual_framework_type",
+          "pointer": "/user_types/module/fields/spiritual_framework_present_option_spiritual_framework_type",
+          "source_entity_class": "user_type.field",
+          "field_id": "spiritual_framework_present_option_spiritual_framework_type",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "streak_days_number",
+          "pointer": "/user_types/module/fields/streak_days_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "streak_days_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "substance_pattern_signal_option_substance_pattern_signal",
+          "pointer": "/user_types/module/fields/substance_pattern_signal_option_substance_pattern_signal",
+          "source_entity_class": "user_type.field",
+          "field_id": "substance_pattern_signal_option_substance_pattern_signal",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "support_seeking_capacity_option_support_seeking_capacity",
+          "pointer": "/user_types/module/fields/support_seeking_capacity_option_support_seeking_capacity",
+          "source_entity_class": "user_type.field",
+          "field_id": "support_seeking_capacity_option_support_seeking_capacity",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "trauma_activation_level_option_trauma_activation_level",
+          "pointer": "/user_types/module/fields/trauma_activation_level_option_trauma_activation_level",
+          "source_entity_class": "user_type.field",
+          "field_id": "trauma_activation_level_option_trauma_activation_level",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/module/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:path",
+      "user_type_ref": "path",
+      "source_pointer": "/user_types/path",
+      "source_entity_class": "user_type",
+      "display": "Path",
+      "fields": [
+        {
+          "id": "ai_coaching_mode_option_ai_coaching_mode_os",
+          "pointer": "/user_types/path/fields/ai_coaching_mode_option_ai_coaching_mode_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "ai_coaching_mode_option_ai_coaching_mode_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "classification_list_list_option_classification_os",
+          "pointer": "/user_types/path/fields/classification_list_list_option_classification_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "classification_list_list_option_classification_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "description_text",
+          "pointer": "/user_types/path/fields/description_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "description_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "name_text",
+          "pointer": "/user_types/path/fields/name_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "name_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pillar_option_customer_pillar_os",
+          "pointer": "/user_types/path/fields/pillar_option_customer_pillar_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "pillar_option_customer_pillar_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sessions_count_number",
+          "pointer": "/user_types/path/fields/sessions_count_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "sessions_count_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sub_mode_text",
+          "pointer": "/user_types/path/fields/sub_mode_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "sub_mode_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "tier_option_tier_os",
+          "pointer": "/user_types/path/fields/tier_option_tier_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "tier_option_tier_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "trigger_signals_text",
+          "pointer": "/user_types/path/fields/trigger_signals_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "trigger_signals_text",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:pathenrollment",
+      "user_type_ref": "pathenrollment",
+      "source_pointer": "/user_types/pathenrollment",
+      "source_entity_class": "user_type",
+      "display": "PathEnrollment",
+      "fields": [
+        {
+          "id": "completion_percentage_number",
+          "pointer": "/user_types/pathenrollment/fields/completion_percentage_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "completion_percentage_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "guided_path_custom_guidedpath",
+          "pointer": "/user_types/pathenrollment/fields/guided_path_custom_guidedpath",
+          "source_entity_class": "user_type.field",
+          "field_id": "guided_path_custom_guidedpath",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "last_step_completed_text",
+          "pointer": "/user_types/pathenrollment/fields/last_step_completed_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "last_step_completed_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/pathenrollment/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:pathenrollment1",
+      "user_type_ref": "pathenrollment1",
+      "source_pointer": "/user_types/pathenrollment1",
+      "source_entity_class": "user_type",
+      "display": "PathEnrollment",
+      "fields": [
+        {
+          "id": "completed_micro_commitment_session_list_list_custom_pathsession",
+          "pointer": "/user_types/pathenrollment1/fields/completed_micro_commitment_session_list_list_custom_pathsession",
+          "source_entity_class": "user_type.field",
+          "field_id": "completed_micro_commitment_session_list_list_custom_pathsession",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "completed_sessions_count_number",
+          "pointer": "/user_types/pathenrollment1/fields/completed_sessions_count_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "completed_sessions_count_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "current_session_custom_pathsession",
+          "pointer": "/user_types/pathenrollment1/fields/current_session_custom_pathsession",
+          "source_entity_class": "user_type.field",
+          "field_id": "current_session_custom_pathsession",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "focused_m_commitment_custom_pathsession",
+          "pointer": "/user_types/pathenrollment1/fields/focused_m_commitment_custom_pathsession",
+          "source_entity_class": "user_type.field",
+          "field_id": "focused_m_commitment_custom_pathsession",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "is_m_commitment_in_focus_boolean",
+          "pointer": "/user_types/pathenrollment1/fields/is_m_commitment_in_focus_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "is_m_commitment_in_focus_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "path_custom_path",
+          "pointer": "/user_types/pathenrollment1/fields/path_custom_path",
+          "source_entity_class": "user_type.field",
+          "field_id": "path_custom_path",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "status_option_path_enrollment_status",
+          "pointer": "/user_types/pathenrollment1/fields/status_option_path_enrollment_status",
+          "source_entity_class": "user_type.field",
+          "field_id": "status_option_path_enrollment_status",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/pathenrollment1/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:pathquestion",
+      "user_type_ref": "pathquestion",
+      "source_pointer": "/user_types/pathquestion",
+      "source_entity_class": "user_type",
+      "display": "PathQuestion",
+      "fields": [
+        {
+          "id": "index_number",
+          "pointer": "/user_types/pathquestion/fields/index_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "index_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "q_text_text",
+          "pointer": "/user_types/pathquestion/fields/q_text_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "q_text_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "session_custom_pathsession",
+          "pointer": "/user_types/pathquestion/fields/session_custom_pathsession",
+          "source_entity_class": "user_type.field",
+          "field_id": "session_custom_pathsession",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:pathsession",
+      "user_type_ref": "pathsession",
+      "source_pointer": "/user_types/pathsession",
+      "source_entity_class": "user_type",
+      "display": "PathSession",
+      "fields": [
+        {
+          "id": "coaching_text_text",
+          "pointer": "/user_types/pathsession/fields/coaching_text_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "coaching_text_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "estimated_minutes_number",
+          "pointer": "/user_types/pathsession/fields/estimated_minutes_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "estimated_minutes_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "index_number",
+          "pointer": "/user_types/pathsession/fields/index_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "index_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "micro_commitment_text",
+          "pointer": "/user_types/pathsession/fields/micro_commitment_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "micro_commitment_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "path_custom_path",
+          "pointer": "/user_types/pathsession/fields/path_custom_path",
+          "source_entity_class": "user_type.field",
+          "field_id": "path_custom_path",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "title_text",
+          "pointer": "/user_types/pathsession/fields/title_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "title_text",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:pathuseranswer",
+      "user_type_ref": "pathuseranswer",
+      "source_pointer": "/user_types/pathuseranswer",
+      "source_entity_class": "user_type",
+      "display": "PathUserAnswer",
+      "fields": [
+        {
+          "id": "a_text_text",
+          "pointer": "/user_types/pathuseranswer/fields/a_text_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "a_text_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "path_custom_path",
+          "pointer": "/user_types/pathuseranswer/fields/path_custom_path",
+          "source_entity_class": "user_type.field",
+          "field_id": "path_custom_path",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "question_custom_pathquestion",
+          "pointer": "/user_types/pathuseranswer/fields/question_custom_pathquestion",
+          "source_entity_class": "user_type.field",
+          "field_id": "question_custom_pathquestion",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/pathuseranswer/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:relapseevent",
+      "user_type_ref": "relapseevent",
+      "source_pointer": "/user_types/relapseevent",
+      "source_entity_class": "user_type",
+      "display": "RelapseEvent",
+      "fields": [
+        {
+          "id": "event_date_date",
+          "pointer": "/user_types/relapseevent/fields/event_date_date",
+          "source_entity_class": "user_type.field",
+          "field_id": "event_date_date",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "notes_text",
+          "pointer": "/user_types/relapseevent/fields/notes_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "notes_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "user_user",
+          "pointer": "/user_types/relapseevent/fields/user_user",
+          "source_entity_class": "user_type.field",
+          "field_id": "user_user",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:resource",
+      "user_type_ref": "resource",
+      "source_pointer": "/user_types/resource",
+      "source_entity_class": "user_type",
+      "display": "Resource",
+      "fields": [
+        {
+          "id": "content_text",
+          "pointer": "/user_types/resource/fields/content_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "content_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "external_link_text",
+          "pointer": "/user_types/resource/fields/external_link_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "external_link_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "is_crisis_resource_boolean",
+          "pointer": "/user_types/resource/fields/is_crisis_resource_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "is_crisis_resource_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "is_free_boolean",
+          "pointer": "/user_types/resource/fields/is_free_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "is_free_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "primary_mode_tag_text",
+          "pointer": "/user_types/resource/fields/primary_mode_tag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "primary_mode_tag_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sensitivity_flag_text",
+          "pointer": "/user_types/resource/fields/sensitivity_flag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "sensitivity_flag_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sub_mode_tag_text",
+          "pointer": "/user_types/resource/fields/sub_mode_tag_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "sub_mode_tag_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "title_text",
+          "pointer": "/user_types/resource/fields/title_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "title_text",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:subscriptionplan",
+      "user_type_ref": "subscriptionplan",
+      "source_pointer": "/user_types/subscriptionplan",
+      "source_entity_class": "user_type",
+      "display": "SubscriptionPlan",
+      "fields": [
+        {
+          "id": "description_text",
+          "pointer": "/user_types/subscriptionplan/fields/description_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "description_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "features_text",
+          "pointer": "/user_types/subscriptionplan/fields/features_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "features_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "name_text",
+          "pointer": "/user_types/subscriptionplan/fields/name_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "name_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "price_number",
+          "pointer": "/user_types/subscriptionplan/fields/price_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "price_number",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:user",
+      "user_type_ref": "user",
+      "source_pointer": "/user_types/user",
+      "source_entity_class": "user_type",
+      "display": "User",
+      "fields": [
+        {
+          "id": "ai_coaching_mode_list_list_option_ai_coaching_mode_os",
+          "pointer": "/user_types/user/fields/ai_coaching_mode_list_list_option_ai_coaching_mode_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "ai_coaching_mode_list_list_option_ai_coaching_mode_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "ai_confidence_level_option_ai_confidence_level_os",
+          "pointer": "/user_types/user/fields/ai_confidence_level_option_ai_confidence_level_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "ai_confidence_level_option_ai_confidence_level_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "alignment_score_number",
+          "pointer": "/user_types/user/fields/alignment_score_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "alignment_score_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq1_number",
+          "pointer": "/user_types/user/fields/aq1_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq1_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq1_option_customer_alignment_answer_os",
+          "pointer": "/user_types/user/fields/aq1_option_customer_alignment_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq1_option_customer_alignment_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq2_number",
+          "pointer": "/user_types/user/fields/aq2_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq2_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq2_option_customer_alignment_answer_os",
+          "pointer": "/user_types/user/fields/aq2_option_customer_alignment_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq2_option_customer_alignment_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq3_number",
+          "pointer": "/user_types/user/fields/aq3_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq3_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq3_option_customer_alignment_answer_os",
+          "pointer": "/user_types/user/fields/aq3_option_customer_alignment_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq3_option_customer_alignment_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq4_number",
+          "pointer": "/user_types/user/fields/aq4_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq4_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq4_option_customer_alignment_answer_os",
+          "pointer": "/user_types/user/fields/aq4_option_customer_alignment_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq4_option_customer_alignment_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq5_number",
+          "pointer": "/user_types/user/fields/aq5_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq5_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "aq5_option_customer_alignment_answer_os",
+          "pointer": "/user_types/user/fields/aq5_option_customer_alignment_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "aq5_option_customer_alignment_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "assessment_date_date",
+          "pointer": "/user_types/user/fields/assessment_date_date",
+          "source_entity_class": "user_type.field",
+          "field_id": "assessment_date_date",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "behavioral_fingerprint_text",
+          "pointer": "/user_types/user/fields/behavioral_fingerprint_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "behavioral_fingerprint_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "check_in_frequency_text",
+          "pointer": "/user_types/user/fields/check_in_frequency_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "check_in_frequency_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "chronic_pain_flag_boolean",
+          "pointer": "/user_types/user/fields/chronic_pain_flag_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "chronic_pain_flag_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "classification_option_classification_os",
+          "pointer": "/user_types/user/fields/classification_option_classification_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "classification_option_classification_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "classification_type_text",
+          "pointer": "/user_types/user/fields/classification_type_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "classification_type_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "customer_pillar_option_customer_pillar_os",
+          "pointer": "/user_types/user/fields/customer_pillar_option_customer_pillar_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "customer_pillar_option_customer_pillar_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "customer_role_option_customer_role_os",
+          "pointer": "/user_types/user/fields/customer_role_option_customer_role_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "customer_role_option_customer_role_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "daily_check_in_streak_number",
+          "pointer": "/user_types/user/fields/daily_check_in_streak_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "daily_check_in_streak_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "first_name_text",
+          "pointer": "/user_types/user/fields/first_name_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "first_name_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "goals_text",
+          "pointer": "/user_types/user/fields/goals_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "goals_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "grief_mode_active_boolean",
+          "pointer": "/user_types/user/fields/grief_mode_active_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "grief_mode_active_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "health_flag3_boolean",
+          "pointer": "/user_types/user/fields/health_flag3_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "health_flag3_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "health_flag4_boolean",
+          "pointer": "/user_types/user/fields/health_flag4_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "health_flag4_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "health_flag5_boolean",
+          "pointer": "/user_types/user/fields/health_flag5_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "health_flag5_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "health_flag6_boolean",
+          "pointer": "/user_types/user/fields/health_flag6_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "health_flag6_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "health_none_boolean",
+          "pointer": "/user_types/user/fields/health_none_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "health_none_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "hormonal_context_flag_boolean",
+          "pointer": "/user_types/user/fields/hormonal_context_flag_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "hormonal_context_flag_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "is_admin_boolean",
+          "pointer": "/user_types/user/fields/is_admin_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "is_admin_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "last_name_text",
+          "pointer": "/user_types/user/fields/last_name_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "last_name_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "load_signal_cognitive_option_customers_load_signal_question_os",
+          "pointer": "/user_types/user/fields/load_signal_cognitive_option_customers_load_signal_question_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "load_signal_cognitive_option_customers_load_signal_question_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "load_signal_environmental_option_customers_load_signal_question_os",
+          "pointer": "/user_types/user/fields/load_signal_environmental_option_customers_load_signal_question_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "load_signal_environmental_option_customers_load_signal_question_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "load_signal_financial_option_customers_load_signal_question_os",
+          "pointer": "/user_types/user/fields/load_signal_financial_option_customers_load_signal_question_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "load_signal_financial_option_customers_load_signal_question_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "load_signal_relational_option_customers_load_signal_question_os",
+          "pointer": "/user_types/user/fields/load_signal_relational_option_customers_load_signal_question_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "load_signal_relational_option_customers_load_signal_question_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "modules_completed_count_number",
+          "pointer": "/user_types/user/fields/modules_completed_count_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "modules_completed_count_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "name_text",
+          "pointer": "/user_types/user/fields/name_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "name_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "notification_frequency_text",
+          "pointer": "/user_types/user/fields/notification_frequency_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "notification_frequency_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "onboarding_complete_boolean",
+          "pointer": "/user_types/user/fields/onboarding_complete_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "onboarding_complete_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "onboarding_completed_boolean",
+          "pointer": "/user_types/user/fields/onboarding_completed_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "onboarding_completed_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "onboarding_step_option_onboarding_step_os",
+          "pointer": "/user_types/user/fields/onboarding_step_option_onboarding_step_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "onboarding_step_option_onboarding_step_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "oq1_option_customer_orientation_answer_os",
+          "pointer": "/user_types/user/fields/oq1_option_customer_orientation_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "oq1_option_customer_orientation_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "orientation_score_number",
+          "pointer": "/user_types/user/fields/orientation_score_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "orientation_score_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "orientation_score1_number",
+          "pointer": "/user_types/user/fields/orientation_score1_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "orientation_score1_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "performance_score_number",
+          "pointer": "/user_types/user/fields/performance_score_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "performance_score_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq1_number",
+          "pointer": "/user_types/user/fields/pq1_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq1_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq1_option_customer_performance_answer_os",
+          "pointer": "/user_types/user/fields/pq1_option_customer_performance_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq1_option_customer_performance_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq2_number",
+          "pointer": "/user_types/user/fields/pq2_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq2_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq2_option_customer_performance_answer_os",
+          "pointer": "/user_types/user/fields/pq2_option_customer_performance_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq2_option_customer_performance_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq3_number",
+          "pointer": "/user_types/user/fields/pq3_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq3_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq3_option_customer_performance_answer_os",
+          "pointer": "/user_types/user/fields/pq3_option_customer_performance_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq3_option_customer_performance_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq4_number",
+          "pointer": "/user_types/user/fields/pq4_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq4_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq4_option_customer_performance_answer_os",
+          "pointer": "/user_types/user/fields/pq4_option_customer_performance_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq4_option_customer_performance_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq5_number",
+          "pointer": "/user_types/user/fields/pq5_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq5_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pq5_option_customer_performance_answer_os",
+          "pointer": "/user_types/user/fields/pq5_option_customer_performance_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "pq5_option_customer_performance_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "preferences_text",
+          "pointer": "/user_types/user/fields/preferences_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "preferences_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pressure_non_followthrough_reason_option_customer_pressure_response_question_os0",
+          "pointer": "/user_types/user/fields/pressure_non_followthrough_reason_option_customer_pressure_response_question_os0",
+          "source_entity_class": "user_type.field",
+          "field_id": "pressure_non_followthrough_reason_option_customer_pressure_response_question_os0",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pressure_profile_text",
+          "pointer": "/user_types/user/fields/pressure_profile_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "pressure_profile_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "pressure_response_pattern_option_customer_pressure_response_question_os0",
+          "pointer": "/user_types/user/fields/pressure_response_pattern_option_customer_pressure_response_question_os0",
+          "source_entity_class": "user_type.field",
+          "field_id": "pressure_response_pattern_option_customer_pressure_response_question_os0",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "primary_mode_text",
+          "pointer": "/user_types/user/fields/primary_mode_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "primary_mode_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "primary_pillar_text",
+          "pointer": "/user_types/user/fields/primary_pillar_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "primary_pillar_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "recovery_mode_active_boolean",
+          "pointer": "/user_types/user/fields/recovery_mode_active_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "recovery_mode_active_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "role_type_text",
+          "pointer": "/user_types/user/fields/role_type_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "role_type_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sobriety_start_date_date",
+          "pointer": "/user_types/user/fields/sobriety_start_date_date",
+          "source_entity_class": "user_type.field",
+          "field_id": "sobriety_start_date_date",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "spiritual_framework_present_boolean",
+          "pointer": "/user_types/user/fields/spiritual_framework_present_boolean",
+          "source_entity_class": "user_type.field",
+          "field_id": "spiritual_framework_present_boolean",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq1_number",
+          "pointer": "/user_types/user/fields/sq1_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq1_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq1_option_customer_stability_answer_os",
+          "pointer": "/user_types/user/fields/sq1_option_customer_stability_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq1_option_customer_stability_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq2_number",
+          "pointer": "/user_types/user/fields/sq2_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq2_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq2_option_customer_stability_answer_os",
+          "pointer": "/user_types/user/fields/sq2_option_customer_stability_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq2_option_customer_stability_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq3_number",
+          "pointer": "/user_types/user/fields/sq3_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq3_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq3_option_customer_stability_answer_os",
+          "pointer": "/user_types/user/fields/sq3_option_customer_stability_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq3_option_customer_stability_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq4_number",
+          "pointer": "/user_types/user/fields/sq4_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq4_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq4_option_customer_stability_answer_os",
+          "pointer": "/user_types/user/fields/sq4_option_customer_stability_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq4_option_customer_stability_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq5_number",
+          "pointer": "/user_types/user/fields/sq5_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq5_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sq5_option_customer_stability_answer_os",
+          "pointer": "/user_types/user/fields/sq5_option_customer_stability_answer_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "sq5_option_customer_stability_answer_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "stability_score_number",
+          "pointer": "/user_types/user/fields/stability_score_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "stability_score_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "state_energy_level_option_customer_state_signal_question_os",
+          "pointer": "/user_types/user/fields/state_energy_level_option_customer_state_signal_question_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "state_energy_level_option_customer_state_signal_question_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "state_nervous_system_option_customer_state_signal_question_os",
+          "pointer": "/user_types/user/fields/state_nervous_system_option_customer_state_signal_question_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "state_nervous_system_option_customer_state_signal_question_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "streak_cancelation_wf_id_text",
+          "pointer": "/user_types/user/fields/streak_cancelation_wf_id_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "streak_cancelation_wf_id_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "streak_days_number",
+          "pointer": "/user_types/user/fields/streak_days_number",
+          "source_entity_class": "user_type.field",
+          "field_id": "streak_days_number",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "sub_mode_text",
+          "pointer": "/user_types/user/fields/sub_mode_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "sub_mode_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "subscription_tier_text",
+          "pointer": "/user_types/user/fields/subscription_tier_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "subscription_tier_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "substance_type_text",
+          "pointer": "/user_types/user/fields/substance_type_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "substance_type_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "tier_option_tier_os",
+          "pointer": "/user_types/user/fields/tier_option_tier_os",
+          "source_entity_class": "user_type.field",
+          "field_id": "tier_option_tier_os",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "timezone_text",
+          "pointer": "/user_types/user/fields/timezone_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "timezone_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "workplace_custom_workplace",
+          "pointer": "/user_types/user/fields/workplace_custom_workplace",
+          "source_entity_class": "user_type.field",
+          "field_id": "workplace_custom_workplace",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    },
+    {
+      "id": "uds:workplace",
+      "user_type_ref": "workplace",
+      "source_pointer": "/user_types/workplace",
+      "source_entity_class": "user_type",
+      "display": "Workplace",
+      "fields": [
+        {
+          "id": "contact_email_text",
+          "pointer": "/user_types/workplace/fields/contact_email_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "contact_email_text",
+          "type": null,
+          "currency_code": null
+        },
+        {
+          "id": "name_text",
+          "pointer": "/user_types/workplace/fields/name_text",
+          "source_entity_class": "user_type.field",
+          "field_id": "name_text",
+          "type": null,
+          "currency_code": null
+        }
+      ]
+    }
+  ]
+}

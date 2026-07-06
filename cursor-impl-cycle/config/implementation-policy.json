@@ -1,0 +1,57 @@
+{
+  "scope_focus": "provider",
+  "description": "UrFuture provider portal only. Candidate/public flows are out of scope unless required as read-only views inside provider screens.",
+  "forbidden_write_paths": [
+    "project/"
+  ],
+  "allowed_write_paths": [
+    "provider-app/",
+    "provider-adapter/",
+    "cursor-packs/cursor-impl-cycle/"
+  ],
+  "read_only_context_paths": [
+    "project/",
+    "project/supabase/",
+    "ir/"
+  ],
+  "frontend_app_dir": "provider-app",
+  "adapter_dir": "provider-adapter",
+  "supabase_context_dir": "project/supabase",
+  "bubble_api_replacement": {
+    "strategy": "prefer_supabase_client",
+    "policy_doc": "cursor-packs/cursor-impl-cycle/docs/ADAPTER-POLICY.md",
+    "adapter_when": [
+      "Server secret required (service role, third-party API key) — not user JWT passthrough",
+      "Inbound webhook or server-triggered side effect during Bubble migration",
+      "Multi-step orchestration intentionally kept off the client (not Promise.all of public Supabase calls)",
+      "Documented temporary migration facade with explicit remove-after note in decompose scope"
+    ],
+    "adapter_forbidden_when": [
+      "Single edge function proxy with user JWT (use provider-app fetch to functions/v1)",
+      "Single Supabase RPC proxy (use supabase.rpc from provider-app)",
+      "Single RLS-backed REST read/write (use supabase.from from provider-app)",
+      "Decompose marks frontend+adapter without naming a allowed adapter_when reason"
+    ],
+    "forbidden": [
+      "Duplicate or fork Supabase schema in adapter",
+      "Modify project/supabase migrations or RLS",
+      "Reimplement business rules that already exist in Supabase edge functions unless explicitly required by AC",
+      "Add passthrough routes when an equivalent direct client call exists in the same module"
+    ]
+  },
+  "provider_ir_anchors": {
+    "pages": [
+      "1760622098050x765884846369063400",
+      "1751783445471x306779390153347000"
+    ],
+    "page_names": ["provider", "provider-signup"]
+  },
+  "ui_fidelity": {
+    "rubric_path": "cursor-packs/cursor-impl-cycle/prompts/ui-fidelity-rubric.md",
+    "bubble_source": "source/app.bubble",
+    "styles_slice": "ir/slices/styles.json",
+    "require_data_bubble_id_markers": true,
+    "preserve_element_hierarchy": true,
+    "design_system_module": "MOD-PROVIDER-DESIGN-SYSTEM"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "ctx_budget": 80000,
+  "header_budget": 24000,
+  "response_budget": 8000,
+  "slice_budget": 48000
+}

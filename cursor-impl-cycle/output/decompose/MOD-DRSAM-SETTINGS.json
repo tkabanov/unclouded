@@ -1,0 +1,406 @@
+{
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "SET-01-settings-tab-router-and-header",
+      "title": "Settings page header, tab bar, and tab router",
+      "scope": "frontend — populate SHELL-09 content slot with settings-main (ai_RNbBHYUr): page header, horizontal settings-tab-bar, settings_tab_os_ custom-state router toggling eight tab panels under G - settings (ai_RNbBHYVF); no tab panel internals",
+      "acceptance_criteria": [
+        "AC-1: SettingsMain.vue mounts inside SettingsPage content slot with data-bubble-id=\"ai_RNbBHYUr\" preserving settings-content-wrapper (ai_RNbBHYUs), settings-page-header (ai_RNbBHYUt), and settings-tab-bar (ai_RNbBHYUw) hierarchy",
+        "AC-2: Eight tab buttons (ai_RNbBHYUx through ai_RNbBHYVE) set settings_tab_os_ state using ENUM-01 slug keys (bTIiw–bTIjJ) and show exactly one G - * panel under ai_RNbBHYVF matching Bubble conditional visibility",
+        "AC-3: Tab bar style_ref on ai_RNbBHYUw resolves through ir/slices/styles.json; sidebar crisis card remains mounted via SHELL-02 bTIfa host and CRISIS-01 — not reimplemented in this item"
+      ],
+      "ir_refs": ["bTHDh", "custom_state:bTHDh:settings_tab_os_", "settings_tab_os"],
+      "ui_refs": [
+        "bTHDh",
+        "ai_RNbBHYUr",
+        "ai_RNbBHYUs",
+        "ai_RNbBHYUt",
+        "ai_RNbBHYUu",
+        "ai_RNbBHYUv",
+        "ai_RNbBHYUw",
+        "ai_RNbBHYUx",
+        "ai_RNbBHYUy",
+        "ai_RNbBHYUz",
+        "ai_RNbBHYVA",
+        "ai_RNbBHYVB",
+        "ai_RNbBHYVC",
+        "ai_RNbBHYVD",
+        "ai_RNbBHYVE",
+        "ai_RNbBHYVF",
+        "style_ref:ai_RNbBHYUw"
+      ],
+      "layout_notes": "Mount inside SHELL-09 boundary; ~669-entity page slice — this item owns chrome + tab state only. Tab bar is horizontal button row with wrap on narrow viewports. CrisisSupportCard on settings route comes from sidebar CustomElement bTIfa (ai_RNbBKLUq instance), not settings-main.",
+      "depends_on": [
+        "SHELL-09-settings-page-shell",
+        "DS-01-design-tokens-and-bubble-styles",
+        "ENUM-01-navigation-and-onboarding-labels",
+        "CRISIS-01-crisis-support-reusable"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsMain.vue",
+        "frontend/src/features/settings/SettingsTabBar.vue",
+        "frontend/src/features/settings/settingsTabStore.ts",
+        "frontend/src/pages/SettingsPage.vue"
+      ]
+    },
+    {
+      "id": "SET-02-profile-tab-and-save",
+      "title": "Profile tab form and save workflow",
+      "scope": "frontend — migrate G - profile (ai_RNbBHYVG): profile-form-card with name/email inputs, recovery section, sobriety date picker, and profile-save-btn workflow updating CurrentUser via Supabase client (read project/ for field names only)",
+      "acceptance_criteria": [
+        "AC-1: SettingsProfileTab.vue renders ai_RNbBHYVG with data-bubble-id on profile-form-card (ai_RNbBHYVH), profile-form (ai_RNbBHYVL), profile-recovery-section (ai_RNbBHYWA), and profile-sobriety-group (ai_RNbBHYWF)",
+        "AC-2: Inp - first name (ai_RNbBHYVO), Inp - email (ai_RNbBHYVR), and DTP - sobriety start date (ai_RNbBHYWH) bind to user fields with IR placeholders and style_ref tokens — no generic form styling",
+        "AC-3: profile-save-btn (ai_RNbBHYWT) triggers workflow bTIhq parity: persist profile changes for current user then refresh bound form state"
+      ],
+      "ir_refs": ["bTHDh", "user"],
+      "ui_refs": [
+        "ai_RNbBHYVG",
+        "ai_RNbBHYVH",
+        "ai_RNbBHYVI",
+        "ai_RNbBHYVJ",
+        "ai_RNbBHYVK",
+        "ai_RNbBHYVL",
+        "ai_RNbBHYVM",
+        "ai_RNbBHYVN",
+        "ai_RNbBHYVO",
+        "ai_RNbBHYVP",
+        "ai_RNbBHYVQ",
+        "ai_RNbBHYVR",
+        "ai_RNbBHYWA",
+        "ai_RNbBHYWB",
+        "ai_RNbBHYWD",
+        "ai_RNbBHYWF",
+        "ai_RNbBHYWG",
+        "ai_RNbBHYWH",
+        "ai_RNbBHYWT"
+      ],
+      "layout_notes": "~40 entities under profile panel; card stack with header, form rows, recovery callout, and footer save aligned to Bubble column layout with fit_width fluid semantics.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsProfileTab.vue",
+        "frontend/src/features/settings/profileApi.ts"
+      ]
+    },
+    {
+      "id": "SET-03-coaching-tab-and-save",
+      "title": "Coaching preferences tab and save workflow",
+      "scope": "frontend — migrate G - coaching (ai_RNbBHYWU): coaching-form-card, DD - coaching mode dropdown (bTIiC/bTIhA), disclaimer banner, and coaching-save-btn updating ai_coaching_mode_os on user via Supabase client",
+      "acceptance_criteria": [
+        "AC-1: SettingsCoachingTab.vue preserves ai_RNbBHYWU tree with data-bubble-id on coaching-form-card (ai_RNbBHYWV), coaching-card-header (ai_RNbBHYWW), and coaching-form (ai_RNbBHYWZ)",
+        "AC-2: Coaching mode dropdown bTIiC renders ai_coaching_mode_os options from ENUM-03 with IR placeholder copy; coaching-disclaimer-banner (ai_RNbBHYWq) shows static disclaimer text nodes",
+        "AC-3: coaching-save-btn (ai_RNbBHYWt) triggers workflow bTIhv parity: update user coaching preference and reflect saved value in dropdown"
+      ],
+      "ir_refs": ["bTHDh", "ai_coaching_mode_os"],
+      "ui_refs": [
+        "ai_RNbBHYWU",
+        "ai_RNbBHYWV",
+        "ai_RNbBHYWW",
+        "ai_RNbBHYWX",
+        "ai_RNbBHYWY",
+        "ai_RNbBHYWZ",
+        "ai_RNbBHYWq",
+        "ai_RNbBHYWr",
+        "ai_RNbBHYWs",
+        "ai_RNbBHYWt",
+        "bTIiC",
+        "bTIhA"
+      ],
+      "layout_notes": "~20 entities; single form card with disclaimer banner above save row — smaller tab suitable for one focused implement iteration.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "ENUM-03-path-coaching-and-state-enums",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsCoachingTab.vue",
+        "frontend/src/features/settings/coachingPreferencesApi.ts"
+      ]
+    },
+    {
+      "id": "SET-04-privacy-tab-and-delete-flow",
+      "title": "Privacy tab, export, and account deletion",
+      "scope": "frontend — migrate G - privacy (ai_RNbBHYWu): privacy-info-card sections (data, AI, employer, actions), privacy-export-btn, privacy-delete-btn, and delete-confirm-popup (ai_RNbBHYXY) with confirm/cancel workflows",
+      "acceptance_criteria": [
+        "AC-1: SettingsPrivacyTab.vue renders ai_RNbBHYWu with data-bubble-id on privacy-info-card (ai_RNbBHYWv), privacy-sections (ai_RNbBHYWz), and nested privacy-data/ai/employer/actions section groups",
+        "AC-2: privacy-export-btn (ai_RNbBHYXS) initiates user data export via existing Supabase edge/RPC surface (read project/ contract only); privacy-delete-btn (ai_RNbBHYXV) opens delete-confirm-popup preserving header/actions hierarchy",
+        "AC-3: delete-confirm-popup (ai_RNbBHYXY) delete-confirm-btn (ai_RNbBHYXf) and delete-cancel-btn (ai_RNbBHYXe) execute bTIiN/bTIiS workflow parity for account deletion request — no project/ schema edits"
+      ],
+      "ir_refs": ["bTHDh"],
+      "ui_refs": [
+        "ai_RNbBHYWu",
+        "ai_RNbBHYWv",
+        "ai_RNbBHYWw",
+        "ai_RNbBHYWx",
+        "ai_RNbBHYWy",
+        "ai_RNbBHYWz",
+        "ai_RNbBHYXA",
+        "ai_RNbBHYXF",
+        "ai_RNbBHYXG",
+        "ai_RNbBHYXK",
+        "ai_RNbBHYXP",
+        "ai_RNbBHYXR",
+        "ai_RNbBHYXS",
+        "ai_RNbBHYXV",
+        "ai_RNbBHYXY",
+        "ai_RNbBHYXa",
+        "ai_RNbBHYXb",
+        "ai_RNbBHYXc",
+        "ai_RNbBHYXd",
+        "ai_RNbBHYXe",
+        "ai_RNbBHYXf"
+      ],
+      "layout_notes": "~38 tab entities plus page-level delete-confirm popup; stacked info sections with icon headers and action row at bottom — popup z-index above settings-main.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsPrivacyTab.vue",
+        "frontend/src/features/settings/DeleteConfirmPopup.vue",
+        "frontend/src/features/settings/privacyApi.ts"
+      ]
+    },
+    {
+      "id": "SET-05-security-tab-and-password-flow",
+      "title": "Security tab and password change workflow",
+      "scope": "frontend — migrate G - security (ai_RNbBHYXg): security-form-card with current/new/confirm password inputs, security-change-pwd-btn, and security-reset-email-btn workflows via Supabase auth client",
+      "acceptance_criteria": [
+        "AC-1: SettingsSecurityTab.vue preserves ai_RNbBHYXg hierarchy with data-bubble-id on security-form-card (ai_RNbBHYXh), security-form (ai_RNbBHYXl), and security-actions-row (ai_RNbBHYXv)",
+        "AC-2: Password inputs (ai_RNbBHYXo, ai_RNbBHYXr, ai_RNbBHYXu) use IR labels and masked input presentation — no placeholder-only fields",
+        "AC-3: security-change-pwd-btn (ai_RNbBHYXw) validates and updates password; security-reset-email-btn (ai_RNbBHYXx) triggers reset-email workflow matching Bubble bTIjK action — frontend auth only, no adapter passthrough"
+      ],
+      "ir_refs": ["bTHDh"],
+      "ui_refs": [
+        "ai_RNbBHYXg",
+        "ai_RNbBHYXh",
+        "ai_RNbBHYXi",
+        "ai_RNbBHYXj",
+        "ai_RNbBHYXk",
+        "ai_RNbBHYXl",
+        "ai_RNbBHYXm",
+        "ai_RNbBHYXn",
+        "ai_RNbBHYXo",
+        "ai_RNbBHYXp",
+        "ai_RNbBHYXq",
+        "ai_RNbBHYXr",
+        "ai_RNbBHYXs",
+        "ai_RNbBHYXt",
+        "ai_RNbBHYXu",
+        "ai_RNbBHYXv",
+        "ai_RNbBHYXw",
+        "ai_RNbBHYXx"
+      ],
+      "layout_notes": "~29 entities; vertical form card with three password field groups and dual action buttons in footer row.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsSecurityTab.vue",
+        "frontend/src/features/settings/securityApi.ts"
+      ]
+    },
+    {
+      "id": "SET-06-notifications-tab-and-save",
+      "title": "Notifications tab and frequency save",
+      "scope": "frontend — migrate G - notifications (ai_RNbBHYXy): notifications-form-card, notifications-freq-select dropdown, and notifications-save-btn persisting notification_frequency_text on user via Supabase client",
+      "acceptance_criteria": [
+        "AC-1: SettingsNotificationsTab.vue renders ai_RNbBHYXy with data-bubble-id on notifications-form-card (ai_RNbBHYXz), notifications-card-header (ai_RNbBHYYA), and notifications-form (ai_RNbBHYYD)",
+        "AC-2: Dropdown notifications-freq-select (ai_RNbBHYYG) binds to notification_frequency option values with IR labels; static title/subtitle text matches Bubble copy",
+        "AC-3: notifications-save-btn (ai_RNbBHYYL) triggers save workflow (bTIjP cluster) updating user notification_frequency_text then shows saved state"
+      ],
+      "ir_refs": ["bTHDh", "notification_frequency_text"],
+      "ui_refs": [
+        "ai_RNbBHYXy",
+        "ai_RNbBHYXz",
+        "ai_RNbBHYYA",
+        "ai_RNbBHYYB",
+        "ai_RNbBHYYC",
+        "ai_RNbBHYYD",
+        "ai_RNbBHYYE",
+        "ai_RNbBHYYF",
+        "ai_RNbBHYYG",
+        "ai_RNbBHYYL"
+      ],
+      "layout_notes": "~16 entities; compact single-card tab — thin AC scope proportional to IR bulk.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsNotificationsTab.vue",
+        "frontend/src/features/settings/notificationsApi.ts"
+      ]
+    },
+    {
+      "id": "SET-07-subscription-tab-and-billing",
+      "title": "Subscription tab, plan grid, and billing actions",
+      "scope": "frontend — migrate G - subscription (ai_RNbBHYYc): current-tier card, RepeatingGroup subscription-plans-grid, plan card cells, subscription-billing-card, and plan-select/billing button workflows reading subscriptionplan rows via Supabase client",
+      "acceptance_criteria": [
+        "AC-1: SettingsSubscriptionTab.vue preserves ai_RNbBHYYc with data-bubble-id on subscription-current-card (ai_RNbBHYYd), subscription-plans-grid (ai_RNbBHYYm), and subscription-billing-card (ai_RNbBHYYw)",
+        "AC-2: Plan RG cells (plan-free-card ai_RNbBHYYn and siblings) display name/price/features from subscriptionplan table; tier badge uses ENUM-04 tier_os labels",
+        "AC-3: plan-free-select-btn (ai_RNbBHYYv) and billing-update-btn (ai_RNbBHYZB) / billing-invoices-btn (ai_RNbBHYZC) wire to existing Supabase subscription/billing surfaces (read project/ for RPC names) — no project/ writes"
+      ],
+      "ir_refs": ["bTHDh", "subscriptionplan", "tier_os"],
+      "ui_refs": [
+        "ai_RNbBHYYc",
+        "ai_RNbBHYYd",
+        "ai_RNbBHYYe",
+        "ai_RNbBHYYf",
+        "ai_RNbBHYYg",
+        "ai_RNbBHYYh",
+        "ai_RNbBHYYi",
+        "ai_RNbBHYYj",
+        "ai_RNbBHYYl",
+        "ai_RNbBHYYm",
+        "ai_RNbBHYYn",
+        "ai_RNbBHYYw",
+        "ai_RNbBHYYx",
+        "ai_RNbBHYYy",
+        "ai_RNbBHYYv",
+        "ai_RNbBHYZB",
+        "ai_RNbBHYZC"
+      ],
+      "layout_notes": "~42 entities; current plan summary card above horizontal/wrapping plan RG grid and billing card footer — RepeatingGroup_list_ style_ref on grid.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "ENUM-04-tier-and-subscription-labels",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsSubscriptionTab.vue",
+        "frontend/src/features/settings/SubscriptionPlanCard.vue",
+        "frontend/src/features/settings/subscriptionApi.ts"
+      ]
+    },
+    {
+      "id": "SET-08-workplace-tab-and-link-flow",
+      "title": "Workplace tab and employer link workflow",
+      "scope": "frontend — migrate G - workplace (ai_RNbBHYYM): workplace-info-card, privacy notice, workplace name/email form, and workplace-link-btn workflow associating user with workplace via Supabase client",
+      "acceptance_criteria": [
+        "AC-1: SettingsWorkplaceTab.vue renders ai_RNbBHYYM with data-bubble-id on workplace-info-card (ai_RNbBHYYN), workplace-form (ai_RNbBHYYU), and workplace-privacy-notice (ai_RNbBHYYR)",
+        "AC-2: workplace-name-input (ai_RNbBHYYX) and workplace-email-input (ai_RNbBHYYa) preserve IR labels; workplace-privacy-text (ai_RNbBHYYT) matches static copy",
+        "AC-3: workplace-link-btn (ai_RNbBHYYb) triggers bTIja workflow parity: validate/create workplace link for current user using workplace table (read project/ schema only)"
+      ],
+      "ir_refs": ["bTHDh", "workplace"],
+      "ui_refs": [
+        "ai_RNbBHYYM",
+        "ai_RNbBHYYN",
+        "ai_RNbBHYYO",
+        "ai_RNbBHYYP",
+        "ai_RNbBHYYQ",
+        "ai_RNbBHYYR",
+        "ai_RNbBHYYS",
+        "ai_RNbBHYYT",
+        "ai_RNbBHYYU",
+        "ai_RNbBHYYV",
+        "ai_RNbBHYYW",
+        "ai_RNbBHYYX",
+        "ai_RNbBHYYY",
+        "ai_RNbBHYYZ",
+        "ai_RNbBHYYa",
+        "ai_RNbBHYYb"
+      ],
+      "layout_notes": "~24 entities; info card with icon header, privacy callout, two-field form, and single primary link button.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/SettingsWorkplaceTab.vue",
+        "frontend/src/features/settings/workplaceApi.ts"
+      ]
+    },
+    {
+      "id": "SET-09-admin-paths-and-resources",
+      "title": "Admin tab shell, paths/resources sub-tabs, and add popups",
+      "scope": "frontend — migrate G - admin (ai_RNbBHYZD) shell: admin-header-card, admin-sub-tab-bar (paths/resources/plans/workplaces/analytics buttons), admin-tab-paths and admin-tab-resources panels with RepeatingGroups, plus add-path-popup (ai_RNbBHYbP) and add-resource-popup (ai_RNbBHYcN) CRUD workflows",
+      "acceptance_criteria": [
+        "AC-1: SettingsAdminShell.vue renders ai_RNbBHYZD with data-bubble-id on admin-header-card (ai_RNbBHYZE), admin-sub-tab-bar (ai_RNbBHYZK), and admin-sub-contents (ai_RNbBHYZQ) preserving nested sub-tab visibility",
+        "AC-2: admin-tab-paths (ai_RNbBHYZR) and admin-tab-resources (ai_RNbBHYZp) show toolbars, grids (admin-paths-grid/admin-resources-grid), and card templates with edit/delete buttons matching IR badges and tag rows",
+        "AC-3: add-path-popup and add-resource-popup open from admin-add-path-btn/admin-add-resource-btn; submit workflows create path/resource rows via Supabase client using ENUM-03 enums for mode/tier/sensitivity dropdowns — no project/ migrations"
+      ],
+      "ir_refs": ["bTHDh"],
+      "ui_refs": [
+        "ai_RNbBHYZD",
+        "ai_RNbBHYZE",
+        "ai_RNbBHYZF",
+        "ai_RNbBHYZH",
+        "ai_RNbBHYZI",
+        "ai_RNbBHYZJ",
+        "ai_RNbBHYZK",
+        "ai_RNbBHYZL",
+        "ai_RNbBHYZM",
+        "ai_RNbBHYZp",
+        "ai_RNbBHYZQ",
+        "ai_RNbBHYZR",
+        "ai_RNbBHYZS",
+        "ai_RNbBHYZU",
+        "ai_RNbBHYbP",
+        "ai_RNbBHYcN"
+      ],
+      "layout_notes": "Admin panel ~153 entities total — this item covers shell plus paths/resources sub-journeys (~half admin IR) and two add popups; sub-tab bar sits below admin header card.",
+      "depends_on": [
+        "SET-01-settings-tab-router-and-header",
+        "ENUM-03-path-coaching-and-state-enums",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/admin/SettingsAdminShell.vue",
+        "frontend/src/features/settings/admin/AdminPathsTab.vue",
+        "frontend/src/features/settings/admin/AdminResourcesTab.vue",
+        "frontend/src/features/settings/admin/AddPathPopup.vue",
+        "frontend/src/features/settings/admin/AddResourcePopup.vue",
+        "frontend/src/features/settings/admin/adminPathsApi.ts",
+        "frontend/src/features/settings/admin/adminResourcesApi.ts"
+      ]
+    },
+    {
+      "id": "SET-10-admin-plans-workplaces-analytics",
+      "title": "Admin plans/workplaces/analytics sub-tabs and add popups",
+      "scope": "frontend — migrate admin-tab-plans (ai_RNbBHYaP), admin-tab-workplaces (ai_RNbBHYah), admin-tab-analytics (ai_RNbBHYay) panels with grids/stats, plus add-plan-popup (ai_RNbBHYdL) and add-workplace-popup (ai_RNbBHYdf) submit workflows",
+      "acceptance_criteria": [
+        "AC-1: AdminPlansTab, AdminWorkplacesTab, and AdminAnalyticsTab render under admin-sub-contents with data-bubble-id on ai_RNbBHYaP, ai_RNbBHYah, and ai_RNbBHYay preserving toolbar + grid/analytics layouts",
+        "AC-2: admin-plans-grid and admin-workplaces-grid list subscriptionplan/workplace rows with edit/delete card actions; analytics grid shows stat cards (admin-stat-total-users, checkins, mode-dist, enrolled) from read-only Supabase aggregates",
+        "AC-3: add-plan-popup and add-workplace-popup forms submit via Supabase client creating subscriptionplan/workplace records; admin tab buttons ai_RNbBHYZN/ai_RNbBHYZO/ai_RNbBHYZP toggle visibility without breaking SET-09 paths/resources state"
+      ],
+      "ir_refs": ["bTHDh", "subscriptionplan", "workplace"],
+      "ui_refs": [
+        "ai_RNbBHYZN",
+        "ai_RNbBHYZO",
+        "ai_RNbBHYZP",
+        "ai_RNbBHYaP",
+        "ai_RNbBHYah",
+        "ai_RNbBHYay",
+        "ai_RNbBHYdf",
+        "ai_RNbBHYdL",
+        "ai_RNbBHYaQ",
+        "ai_RNbBHYai",
+        "ai_RNbBHYaj",
+        "ai_RNbBHYaz",
+        "ai_RNbBHYaA"
+      ],
+      "layout_notes": "Completes admin tab (~remaining half of 153 entities): three sub-tab panels and two add popups; analytics uses read-only stat cards — no adapter unless server secret required.",
+      "depends_on": [
+        "SET-09-admin-paths-and-resources",
+        "ENUM-04-tier-and-subscription-labels",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/settings/admin/AdminPlansTab.vue",
+        "frontend/src/features/settings/admin/AdminWorkplacesTab.vue",
+        "frontend/src/features/settings/admin/AdminAnalyticsTab.vue",
+        "frontend/src/features/settings/admin/AddPlanPopup.vue",
+        "frontend/src/features/settings/admin/AddWorkplacePopup.vue",
+        "frontend/src/features/settings/admin/adminPlansApi.ts",
+        "frontend/src/features/settings/admin/adminWorkplacesApi.ts",
+        "frontend/src/features/settings/admin/adminAnalyticsApi.ts"
+      ]
+    }
+  ]
+}

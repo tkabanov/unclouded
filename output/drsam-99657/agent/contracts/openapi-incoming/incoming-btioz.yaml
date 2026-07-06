@@ -1,0 +1,27 @@
+openapi: "3.1.0"
+info:
+  title: "M2 Incoming API Namespace: incoming-btioz"
+  version: "0.1.0-m2-baseline"
+tags:
+  - name: "api_event"
+    description: "Incoming API events mapped from inventory entries."
+  - name: "external_http_call"
+    description: "Outgoing HTTP calls mapped from inventory entries."
+"x-b2c":
+  generated_from: "inventory+views"
+  operation_count: 1
+paths:
+  "/ops/bTIoZ":
+    post:
+      operationId: "incoming-btioz-170hyez"
+      summary: "Operation for bTIoZ"
+      tags:
+        - "api_event"
+      responses:
+        "200":
+          description: "Deterministic baseline response"
+      "x-b2c":
+        source_id: "bTIoZ"
+        source_kind: "api_event"
+        source_entity_class: "api_event"
+        source_pointer: "/api/bTIoe"

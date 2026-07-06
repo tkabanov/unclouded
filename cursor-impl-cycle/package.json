@@ -1,0 +1,10 @@
+{
+  "name": "cursor-impl-cycle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Module map → decompose → implement cycle with stop-hook reviewer gates",
+  "dependencies": {
+    "ajv": "^8.17.1"
+  }
+}

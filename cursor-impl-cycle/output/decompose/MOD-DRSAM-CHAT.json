@@ -1,0 +1,194 @@
+{
+  "module_id": "MOD-DRSAM-CHAT",
+  "decomposed": true,
+  "items": [
+    {
+      "id": "CHAT-01-chat-content-layout",
+      "title": "Chat page content layout",
+      "scope": "frontend — populate SHELL-10 content slot with chat-main (ai_RNbBHXbD): two-column flex layout hosting conversation sidebar and chat panel regions; no header/sidebar CustomElements; no project/ writes",
+      "acceptance_criteria": [
+        "AC-1: ChatPageContent.vue mounts inside ChatPage content slot with root data-bubble-id ai_RNbBHXbD preserving IR group hierarchy from bTHDZ____root.json",
+        "AC-2: Layout renders left column ai_RNbBHXbE (conversation-sidebar region) and right column bTIUt mount area with responsive stack on narrow viewports per Bubble fit_width semantics",
+        "AC-3: Page title row ai_RNbBHXbF shows chat-page-title ai_RNbBHXbG and new-conversation btn ai_RNbBHXbH with style_ref tokens from DS-01"
+      ],
+      "ir_refs": ["bTHDV"],
+      "ui_refs": ["bTHDV", "ai_RNbBHXbD", "ai_RNbBHXbE", "ai_RNbBHXbF", "ai_RNbBHXbG", "ai_RNbBHXbH"],
+      "layout_notes": "SHELL-10 owns route and shell chrome; this item fills chat-main only. Sidebar and panel are siblings under ai_RNbBHXbD — preserve horizontal split from IR (~87 page entities, most under chat-main subtree).",
+      "depends_on": [
+        "SHELL-10-chat-page-shell",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/chat/ChatPageContent.vue",
+        "frontend/src/pages/ChatPage.vue"
+      ]
+    },
+    {
+      "id": "CHAT-02-conversation-thread-sidebar",
+      "title": "Conversation thread sidebar and selection",
+      "scope": "frontend — migrate conversation-sidebar (ai_RNbBHXbK): RepeatingGroup ai_RNbBHXbL listing current-user chatconversation rows, thread cell template (title ai_RNbBHXbO, preview ai_RNbBHXbP, date ai_RNbBHXbQ), thread-select navigation updating ?conversation= URL param, and bTInQ bootstrap when RG is empty",
+      "acceptance_criteria": [
+        "AC-1: ConversationSidebar.vue renders ai_RNbBHXbK with data-bubble-id on RG ai_RNbBHXbL and cell group ai_RNbBHXbM preserving nested badge/title/preview hierarchy",
+        "AC-2: RG loads chatconversation rows for CurrentUser via Supabase client ordered by modified date — no adapter passthrough",
+        "AC-3: Selecting a thread cell triggers ChangePage parity (bTImJ/bTInA): updates /chat?conversation=<id> while keeping other URL params; active thread highlights per IR conditional state on ai_RNbBHXbM",
+        "AC-4: Thread cell delete controls group ai_RNbBHXbN with trigger buttons ai_RNbBHXbS and ai_RNbBHXbU (parent group ai_RNbBHXbR) open DeleteConversationPopup with bound chatconversation — preserve IR cell action row hierarchy",
+        "AC-5: When RG ai_RNbBHXbL is empty, bTInQ ConditionTrue bootstrap parity runs: bTInY NewThing creates first chatconversation for CurrentUser then bTInW ChangePage navigates to /chat?conversation=<new_id>"
+      ],
+      "ir_refs": ["bTHDV", "chatconversation", "bTInQ", "bTInY", "bTInW"],
+      "ui_refs": [
+        "ai_RNbBHXbK",
+        "ai_RNbBHXbL",
+        "ai_RNbBHXbM",
+        "ai_RNbBHXbN",
+        "ai_RNbBHXbO",
+        "ai_RNbBHXbP",
+        "ai_RNbBHXbQ",
+        "ai_RNbBHXbR",
+        "ai_RNbBHXbS",
+        "ai_RNbBHXbU",
+        "RepeatingGroup_list_"
+      ],
+      "layout_notes": "Vertical scrollable thread list in left column; cell template is row with title stack left and date/meta right. Delete action group ai_RNbBHXbN nests ai_RNbBHXbR with icon btn ai_RNbBHXbS and confirm btn ai_RNbBHXbU. New-chat btn ai_RNbBHXbH in header row triggers create flow wired in CHAT-05.",
+      "depends_on": [
+        "CHAT-01-chat-content-layout",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/chat/ConversationSidebar.vue",
+        "frontend/src/features/chat/ConversationThreadCell.vue",
+        "frontend/src/features/chat/chatConversationsApi.ts",
+        "frontend/src/features/chat/chatRouteStore.ts",
+        "frontend/src/features/chat/useEmptyConversationBootstrap.ts"
+      ]
+    },
+    {
+      "id": "CHAT-03-chat-reusable-panel-mount",
+      "title": "Chat reusable panel mount and conversation binding",
+      "scope": "frontend — mount DS-06 ChatReusable at CustomElement bTIUt in chat panel: bind chatconversation from ?conversation= URL param (GetParamFromUrl parity bTInF/bTInK); wire composer send events to CHAT-05 API layer — does not re-implement bTIRW UI (owned by DS-05/DS-06) and does not own welcome/empty-state (CHAT-06)",
+      "acceptance_criteria": [
+        "AC-1: ChatPanelMount.vue renders data-bubble-id bTIUt wrapping ChatReusable (DS-06) with chatconversation prop resolved from URL param via chatRouteStore",
+        "AC-2: When ?conversation= is present, bTInF GetParamFromUrl parity binds ChatReusable; when param absent, bTIUt/ChatReusable hidden and CHAT-06 welcome panel shown instead",
+        "AC-3: ChatReusable receives live message list from chatMessagesApi; panel preserves IR GetElement visibility conditions on bTIUt — no ai_RNbBHXbU thread-cell button conflated with empty state"
+      ],
+      "ir_refs": ["bTHDV", "bTIRW", "bTInF"],
+      "ui_refs": ["bTIUt", "bTIRW"],
+      "layout_notes": "Right column flex-grow panel; ChatReusable fills available height with internal header/messages/composer stack from DS-06. Mutually exclusive with CHAT-06 welcome panel — only one visible based on ?conversation= param. bTIRW integration only — no duplicate chat UI implementation in this module.",
+      "depends_on": [
+        "CHAT-01-chat-content-layout",
+        "CHAT-02-conversation-thread-sidebar",
+        "CHAT-06-chat-welcome-empty-state",
+        "DS-05-chat-header-and-messages",
+        "DS-06-chat-composer-and-shell"
+      ],
+      "target_files": [
+        "frontend/src/features/chat/ChatPanelMount.vue",
+        "frontend/src/features/chat/useChatConversationParam.ts"
+      ]
+    },
+    {
+      "id": "CHAT-04-delete-conversation-popup",
+      "title": "Delete conversation confirmation popup",
+      "scope": "frontend — migrate chat-delete-popup (ai_RNbBHXct / Popup ai_RNbBHXel): header, warning copy, cancel/confirm buttons, and delete chatconversation workflow; page-level popup bound to selected thread from sidebar",
+      "acceptance_criteria": [
+        "AC-1: DeleteConversationPopup.vue renders data-bubble-id ai_RNbBHXct with popup header ai_RNbBHXcv, title ai_RNbBHXeq, body ai_RNbBHXes, and action row ai_RNbBHXet preserving IR text nodes",
+        "AC-2: delete-confirm-btn removes chatconversation row and associated chatmessage rows via Supabase client; cancel/close dismiss without mutation",
+        "AC-3: Popup opens from thread cell delete controls ai_RNbBHXbS or ai_RNbBHXbU (group ai_RNbBHXbR) with parent chatconversation data binding matching IR Popup custom.chatconversation type"
+      ],
+      "ir_refs": ["bTHDV", "chatconversation"],
+      "ui_refs": [
+        "ai_RNbBHXct",
+        "ai_RNbBHXcv",
+        "ai_RNbBHXem",
+        "ai_RNbBHXeq",
+        "ai_RNbBHXer",
+        "ai_RNbBHXes",
+        "ai_RNbBHXet",
+        "ai_RNbBHXeu",
+        "ai_RNbBHXev",
+        "Group_overlay_",
+        "Button_primary_"
+      ],
+      "layout_notes": "Page-root Popup (~15 entities) centered overlay; confirm destructive action uses primary button styling from DS-01. After delete, navigate to /chat without conversation param per bTIma workflow parity.",
+      "depends_on": [
+        "CHAT-02-conversation-thread-sidebar",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/chat/DeleteConversationPopup.vue",
+        "frontend/src/features/chat/chatConversationsApi.ts"
+      ]
+    },
+    {
+      "id": "CHAT-05-chat-messaging-and-create-flow",
+      "title": "Chat messaging API and new conversation flow",
+      "scope": "frontend — wire send-message from DS-06 ChatComposer to Supabase insert on chatmessage + ScheduleAPIEvent AI reply stub; new-conversation btn creates chatconversation row and navigates with URL param (bTImJ/bTIma workflows); read-only reference to project/ for edge function names — no schema migrations; coaching mode button UI owned by DS-06",
+      "acceptance_criteria": [
+        "AC-1: chatMessagesApi.ts inserts user chatmessage rows bound to active chatconversation; composer send btn bTITZ triggers insert then refreshes DS-05 message list",
+        "AC-2: new-conversation btn ai_RNbBHXbH creates chatconversation for CurrentUser and navigates to /chat?conversation=<new_id> matching bTImJ ChangePage url_parameters parity",
+        "AC-3: AI assistant reply uses frontend stub mirroring ScheduleAPIEvent on chat page workflows (read project/supabase for handler name only); LoggedOut workflow bTIma clears chat store on sign-out"
+      ],
+      "ir_refs": ["bTHDV", "bTIRW", "chatmessage", "chatconversation"],
+      "ui_refs": ["bTITZ", "bTImE", "bTInA", "bTImV", "bTImb"],
+      "layout_notes": "API layer item — no new UI regions. Connects DS-06 composer send events and CHAT-02/03 routing to data layer. Coaching mode buttons bTITI/bTITM/bTITN/bTITO remain DS-06 scope; this item wires their emitted mode-change events to chatconversation context field updates only.",
+      "depends_on": [
+        "CHAT-03-chat-reusable-panel-mount",
+        "CHAT-04-delete-conversation-popup",
+        "DS-06-chat-composer-and-shell"
+      ],
+      "target_files": [
+        "frontend/src/features/chat/chatMessagesApi.ts",
+        "frontend/src/features/chat/chatAiReplyStub.ts",
+        "frontend/src/features/chat/useNewConversation.ts",
+        "frontend/src/features/chat/useCoachingModeUpdate.ts"
+      ]
+    },
+    {
+      "id": "CHAT-06-chat-welcome-empty-state",
+      "title": "Chat welcome and empty-state panel",
+      "scope": "frontend — migrate welcome/empty-state panel ai_RNbBHXcE (IR path ai_RNbBHXdz): hero header, coaching disclaimer copy, and suggestion prompt cards (~26 entities ai_RNbBHXcE–ai_RNbBHXcd); shown in right column when no ?conversation= URL param",
+      "acceptance_criteria": [
+        "AC-1: ChatWelcomePanel.vue renders data-bubble-id ai_RNbBHXcE (element path ai_RNbBHXdz) as right-column panel root preserving nested group hierarchy from bTHDZ____root.json",
+        "AC-2: Header region ai_RNbBHXcF with title stack ai_RNbBHXcG and static copy texts ai_RNbBHXcd preserve IR typography and style_ref tokens from DS-01",
+        "AC-3: Suggestions section ai_RNbBHXcL renders prompt card groups ai_RNbBHXcY with icon/text children; panel visible only when ?conversation= absent — mutually exclusive with bTIUt ChatReusable mount"
+      ],
+      "ir_refs": ["bTHDV"],
+      "ui_refs": [
+        "ai_RNbBHXcE",
+        "ai_RNbBHXcF",
+        "ai_RNbBHXcG",
+        "ai_RNbBHXcH",
+        "ai_RNbBHXcI",
+        "ai_RNbBHXcJ",
+        "ai_RNbBHXcK",
+        "ai_RNbBHXcL",
+        "ai_RNbBHXcM",
+        "ai_RNbBHXcN",
+        "ai_RNbBHXcO",
+        "ai_RNbBHXcP",
+        "ai_RNbBHXcQ",
+        "ai_RNbBHXcR",
+        "ai_RNbBHXcS",
+        "ai_RNbBHXcT",
+        "ai_RNbBHXcU",
+        "ai_RNbBHXcV",
+        "ai_RNbBHXcW",
+        "ai_RNbBHXcX",
+        "ai_RNbBHXcY",
+        "ai_RNbBHXcZ",
+        "ai_RNbBHXca",
+        "ai_RNbBHXcb",
+        "ai_RNbBHXcc",
+        "ai_RNbBHXcd"
+      ],
+      "layout_notes": "Centered welcome panel in right column flex region; header card above vertically stacked suggestion prompt cards. Not the thread-cell delete button ai_RNbBHXbU — that remains in CHAT-02 sidebar cell template. Visibility toggled by chatRouteStore conversation param presence.",
+      "depends_on": [
+        "CHAT-01-chat-content-layout",
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
+      "target_files": [
+        "frontend/src/features/chat/ChatWelcomePanel.vue",
+        "frontend/src/features/chat/ChatSuggestionCard.vue"
+      ]
+    }
+  ]
+}

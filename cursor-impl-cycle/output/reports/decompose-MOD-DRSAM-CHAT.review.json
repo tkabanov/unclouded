@@ -1,0 +1,151 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-CHAT",
+  "assessed_at": "2026-07-06T15:51:00.000Z",
+  "ok": true,
+  "readiness_pct": 91,
+  "coverage_confidence_pct": 87,
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 5 },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Expand CHAT-04 ui_refs during implement using ai_RNbBHXct subtree in ir/slices/bTHDZ____root.json (ai_RNbBHXcw–ai_RNbBHXdE) — anchor ids omit overlay and nested action groups.",
+    "Add CHAT-06 AC for suggestion-card ButtonClicked workflow parity (b94a4040/bTIqq: NewThing + ChangePage with prompt seed) or wire clicks to CHAT-05 useNewConversation with prefilled composer text.",
+    "Correct CHAT-04 scope typo ai_RNbBHXel → ai_RNbBHXct (popup root id in ui_refs)."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "CHAT-04-delete-conversation-popup lists 10 ui_refs for chat-delete-popup (~15 entities in bTHDZ____root.json) but omits overlay and nested groups ai_RNbBHXcw, ai_RNbBHXcx, ai_RNbBHXcy, ai_RNbBHXcz, and ai_RNbBHXdA–ai_RNbBHXdE present in the slice.",
+      "alternative": "Expand ui_refs to include popup overlay ai_RNbBHXcw and confirm/cancel nested groups under ai_RNbBHXdA–ai_RNbBHXdE, or cite ir/slices/bTHDZ____root.json pointer for ai_RNbBHXct subtree in layout_notes.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json", "ir/slices/bTHDZ____root.json", "ir/inventory.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "behavior",
+      "priority": "medium",
+      "finding": "CHAT-06-chat-welcome-empty-state covers ai_RNbBHXcE–ai_RNbBHXcd visual hierarchy but has no AC for suggestion prompt card click workflow (ButtonClicked b94a4040 → bTIqq ChangePage with new conversation) wired from ai_RNbBHXcY card groups.",
+      "alternative": "Add AC-4 requiring ChatSuggestionCard click creates chatconversation (or reuses CHAT-05 useNewConversation) and navigates to /chat?conversation=<id> with optional initial message seed per b94a4040 workflow parity.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json", "ir/slices/bTHDZ____root.json", "ir/inventory.json"]
+    },
+    {
+      "id": "C-3",
+      "area": "grounding",
+      "priority": "low",
+      "finding": "CHAT-04 scope references popup id ai_RNbBHXel but ui_refs and IR slice use ai_RNbBHXct as the Popup root — inconsistent id may confuse implementers tracing inventory.",
+      "alternative": "Replace ai_RNbBHXel with ai_RNbBHXct in CHAT-04 scope string to match ui_refs and ir/resolver.json.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json", "ir/resolver.json"]
+    },
+    {
+      "id": "C-4",
+      "area": "integration",
+      "priority": "low",
+      "finding": "CHAT-03 depends_on CHAT-06 for welcome/panel mutual exclusivity but CHAT-06 has no depends_on back to CHAT-03; implement order is fine yet CHAT-01 layout_notes could note both right-column panels mount as siblings toggled by chatRouteStore.",
+      "alternative": "Add one layout_notes line in CHAT-01 naming ChatWelcomePanel and ChatPanelMount as sibling right-column regions with shared visibility store contract.",
+      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json"]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "bTHDV → CHAT-01..06 all items",
+        "bTIRW → CHAT-03 mount via DS-05/DS-06; CHAT-05 API wiring only — no duplicate bTIRW UI in module"
+      ],
+      "gap": null
+    },
+    {
+      "id": "b1_welcome_panel_fixed",
+      "status": "pass",
+      "evidence": [
+        "CHAT-06-chat-welcome-empty-state owns ai_RNbBHXcE root with 26 ui_refs (ai_RNbBHXcE–ai_RNbBHXcd)",
+        "ai_RNbBHXce child under ai_RNbBHXcL covered by subtree scope",
+        "Prior blocker ai_RNbBHXcE uncovered resolved"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ai_RNbBHXbU_not_misused",
+      "status": "pass",
+      "evidence": [
+        "ai_RNbBHXbU in CHAT-02 thread-cell delete confirm (group ai_RNbBHXbR)",
+        "CHAT-03 AC-3 explicitly disclaims ai_RNbBHXbU conflation with empty state",
+        "CHAT-06 layout_notes distinguishes from thread-cell delete button"
+      ],
+      "gap": null
+    },
+    {
+      "id": "bTIRW_delegation",
+      "status": "pass",
+      "evidence": [
+        "CHAT-03 scope defers bTIRW UI to DS-05/DS-06; ui_refs bTIUt + bTIRW mount only",
+        "DS-05/DS-06 in MOD-DRSAM-DESIGN-SYSTEM decompose own bTIRW reusable"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "SHELL-10, DS-01, DS-05, DS-06, CHAT-01..06 all in cursor-impl-cycle/state/item-registry.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "6 items for estimated_size medium and ~87 entities in bTHDZ____root.json",
+        "Layout / sidebar / panel mount / popup / API / welcome split — no under-decomposition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "pass",
+      "evidence": [
+        "Items state frontend-only; CHAT-01/05 explicitly forbid project/ writes",
+        "CHAT-03 defers welcome to CHAT-06 and chat UI to DS module"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ac_quality",
+      "status": "pass",
+      "evidence": [
+        "ACs reference data-bubble-id, style_ref, Supabase client, URL param routing",
+        "CHAT-02 empty RG bootstrap bTInQ parity; CHAT-05 new-conversation and AI stub"
+      ],
+      "gap": "Suggestion card click workflow not in CHAT-06 ACs"
+    },
+    {
+      "id": "ui_refs",
+      "status": "partial",
+      "evidence": [
+        "CHAT-06 strong depth (26 refs) for welcome panel",
+        "CHAT-02 adequate sidebar cell template refs"
+      ],
+      "gap": "CHAT-04 popup subtree shallow vs slice entity list"
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "CHAT-03 vs CHAT-06 mutually exclusive scopes; CHAT-04 popup separate from CHAT-02 cell delete triggers"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "pass",
+      "evidence": [
+        "ir_refs match bTHDZ slice; layout_notes cite entity counts and slice path",
+        "Workflow ids bTInF, bTInQ, bTImJ grounded in inventory"
+      ],
+      "gap": null
+    }
+  ]
+}

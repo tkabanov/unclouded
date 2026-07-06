@@ -1,0 +1,162 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-API",
+  "assessed_at": "2026-07-06T16:17:00.000Z",
+  "ok": true,
+  "readiness_pct": 90,
+  "coverage_confidence_pct": 86,
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "Clarify orientation_score_number sourcing before implement: extend API-01 with orientation calculator via bTHxW or document AUTH-04 answer→score mapping consumed by API-02.",
+    "Remove DASH-07-crisis-onboarding-services-overlays from API-01 depends_on[] — crisis overlays have no data coupling to pillar calculators.",
+    "Drop API-05-ai-coaching-mode-assignment from API-06 depends_on[]; keep PATHS-07 and ENUM-03 only — bTIFU trigger is paths-progress scoped.",
+    "Add API-01 AC noting completeOnboarding.ts (AUTH-05) must invoke runPillarScoreCalculators before dashboard route per bTGNJ ScheduleAPIEvent chain.",
+    "During implement, read user column names from drsam-99657.bubble / ir/inventory.json only — project/supabase absent in workspace."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "behavior",
+      "priority": "high",
+      "finding": "API-02-user-classification AC-1 requires orientation_score in resolveClassification inputs, but API-01 only ports stability/alignment/performance calculators (bTHxu/bTHyM/bTHyU); no item computes or patches orientation_score_number though bTHzg expects four score parameters.",
+      "alternative": "Extend API-01 with calculateUserOrientation mirroring bTHxW on orientation onboarding answers, or add API-02 AC-0 documenting orientation_score_number is derived from oq1_option_customer_orientation_answer_os at classification time.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json",
+        "ir/inventory.json",
+        "cursor-impl-cycle/state/module-map.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "API-01-pillar-score-engine depends_on DASH-07-crisis-onboarding-services-overlays with no IR or data coupling — DASH-07 is dashboard crisis/services UI, not an upstream input to score aggregation.",
+      "alternative": "Remove DASH-07 from API-01 depends_on[]; pipeline entry remains AUTH-05 completeOnboarding.ts per AC-3.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json",
+        "cursor-impl-cycle/state/item-registry.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "API-06-ai-confidence-level-trigger depends_on API-05-ai-coaching-mode-assignment though bTIFU DatabaseTriggerEvent fires on modules_completed_count_number change — logically independent of ai_coaching_mode assignment in onboarding pipeline.",
+      "alternative": "Replace API-05 dependency with PATHS-07 only (plus ENUM-03); invoke resolveAiConfidenceLevel from pathsSessionApi post session completion without requiring coaching-mode item.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "grounding",
+      "priority": "low",
+      "finding": "API-04-behavioral-fingerprint scope prose references custom event bTICa (Bubble pointer name) while ir_refs correctly use entity id bTICV (pointer /api/bTICa) — implementers may grep wrong id.",
+      "alternative": "Align scope text to bTICV with parenthetical (pointer /api/bTICa) matching inventory convention used elsewhere.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-5",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "API-01 AC-3 wires onboardingProfilePipeline to AUTH-05 completeOnboarding.ts but AUTH-05 decompose has no reciprocal depends_on or AC invoking the pipeline — cross-module contract is one-sided.",
+      "alternative": "Add AUTH-05 recommendation or depends_on API-01-pillar-score-engine, or add explicit API-01 AC-4 requiring completeOnboarding.ts calls runFullProfilePipeline(userId) before ChangePage to dashboard.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-AUTH.json",
+        "ir/inventory.json"
+      ]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "bTHxW,bTHxu,bTHyM,bTHyU → API-01",
+        "bTHzg,bTHzC → API-02",
+        "bTIAw,bTIBO → API-03",
+        "bTICV,bTIDk → API-04",
+        "bTIEN → API-05",
+        "bTIFU → API-06"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "AUTH-04, AUTH-05, ENUM-02, ENUM-03, DASH-02, DASH-07, PATHS-07 in item-registry.json",
+        "API-01..05 same-module chain ids present in artifact"
+      ],
+      "gap": null
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "6 items for estimated_size medium and 12 ir_roots",
+        "Shared bTHxW engine justifies API-01 bundling 4 roots",
+        "Sequential onboarding pipeline mirrors bTGNJ ScheduleAPIEvent chain bTHVC→bTHuG"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "pass",
+      "evidence": [
+        "All items scope frontend Supabase client patches",
+        "Explicit no project/ migrations on every item",
+        "API-06 AC-3 forbids unnecessary adapter passthrough"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ac_quality",
+      "status": "partial",
+      "evidence": [
+        "3 ACs per item with IR action ids (bTIAc, bTICJ, bTIFa, etc.)",
+        "Pipeline ordering references bTGNJ workflow ids"
+      ],
+      "gap": "API-02 orientation_score input source undocumented (see C-1)"
+    },
+    {
+      "id": "ui_refs",
+      "status": "na",
+      "evidence": [
+        "Module is backend API / profile computation — no UI layout items"
+      ],
+      "gap": null
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "Distinct calculator boundaries per custom/API event pair",
+        "Shared onboardingProfilePipeline.ts is orchestration not duplicate scope"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "pass",
+      "evidence": [
+        "ir_refs trace to ir/inventory.json api_event entries",
+        "Module ir_slices: ir/inventory.json, ir/refs.json",
+        "bTICV pointer /api/bTICa confirms scope/id naming"
+      ],
+      "gap": null
+    }
+  ]
+}

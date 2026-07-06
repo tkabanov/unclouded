@@ -1,0 +1,50 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-06T15:49:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-JOURNAL.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "JOURNAL-04-entry-detail-and-ai-reflection",
+      "rationale": "JOURNAL-04 anchors entry-detail-popup and ACs cite delete-confirm (ai_RNbBHXla), reflection btn/text (ai_RNbBHXlL/ai_RNbBHXlP), and delete subtree (ai_RNbBHXlX/ai_RNbBHXle); layout_notes cite ~55-entity subtree. Expand ui_refs for badge group ai_RNbBHXkl, disclaimer ai_RNbBHXlQ, and header row ai_RNbBHXlF from ir/slices/bTHDb____root.json at implement — not a decompose under-split."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "JOURNAL-02-journal-entries-list",
+      "rationale": "JOURNAL-02/05 anchor RepeatingGroup roots and card templates with data-bubble-id ACs; layout_notes name badge/meta/divider groups (ai_RNbBHXix, ai_RNbBHXjc–jk, ai_RNbBHXjr, ai_RNbBHXjs, ai_RNbBHXiq). Pull full RG cell template paths from inventory at implement per ui-fidelity rubric without rewriting item boundaries."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "JOURNAL-03-new-entry-popup",
+      "rationale": "AC-quality gap only: JOURNAL-03 AC-3 covers dismiss-without-persist; layout_notes already cite PopupClosed ResetGroup workflows (bTIYE/bTIYM). Add form-reset-on-close AC or document Vue v-model reset equivalence during JOURNAL-03/JOURNAL-04 implement — not decompose-blocking per ac-quality rules."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "JOURNAL-04-entry-detail-and-ai-reflection",
+      "rationale": "ENUM-03 on JOURNAL-04 is speculative: scope and ACs bind mood_tag_text badges and AI reflection, not path_enrollment_status or state_* enums. Trim depends_on during implement prep unless mood labels require ENUM-03 maps — same pattern as SHELL-08/10 ENUM-03 deferral."
+    },
+    {
+      "critique_id": "C-5",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Missing explicit project/ and adapter out-of-scope lines is documentation polish; all seven items are frontend-only with JOURNAL-02 AC-2 stating no project/ schema edits and journal CRUD via Supabase client. Append one-liners at implement kickoff per implementation-constraints — not a decompose rewrite."
+    }
+  ],
+  "summary": "Review ok (88% readiness); 0 fix_now, 5 defer, 0 accept. Advance decompose: expand JOURNAL-02/04/05 ui_refs at implement, add popup form-reset AC on JOURNAL-03/04, trim speculative ENUM-03 from JOURNAL-04 depends_on, add out-of-scope clauses at implement kickoff."
+}

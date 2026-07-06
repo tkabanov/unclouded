@@ -1,0 +1,35 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-06T14:14:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-DESIGN-SYSTEM.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DS-01-design-tokens-and-bubble-styles",
+      "rationale": "DS-01 AC-2 commits to all 71 styles.json keys; partial ir_refs sample is traceability polish. Generate bubble-styles.css from full slice at implement — not a decompose rewrite."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DS-05-chat-header-and-messages",
+      "rationale": "DS-05/DS-06 partition bTIRW by region with ACs naming header/mode elements; expand ui_refs from ir/inventory.json element_definitions/bTIRa subtree during implement per ui-fidelity rubric."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DS-04-session-completion-form-reusable",
+      "rationale": "AC-cited reflection/plugin nodes (bTIzX, bTIzY, bTJBC, bTJBI) missing from ui_refs; add at DS-04 implement without changing item boundaries."
+    }
+  ],
+  "summary": "Review ok (88% readiness); 0 fix_now, 3 defer, 0 accept. Advance decompose: full styles migration on DS-01 implement, deepen ui_refs on DS-04/DS-05/DS-06 at implement."
+}

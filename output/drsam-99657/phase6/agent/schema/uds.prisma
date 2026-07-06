@@ -1,0 +1,309 @@
+// generated scaffold: deterministic baseline
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+model UdsChat {
+  id String @id @default(cuid())
+  // source_user_type_ref "chat"
+}
+
+model UdsChatconversation {
+  id String @id @default(cuid())
+  title_text String?
+  user_user String?
+  // source_user_type_ref "chatconversation"
+}
+
+model UdsChatmessage {
+  id String @id @default(cuid())
+  content_text String?
+  conversation_custom_chatconversation String?
+  is_from_user_boolean String?
+  responce_received_boolean String?
+  sender_text String?
+  user_user String?
+  // source_user_type_ref "chatmessage"
+}
+
+model UdsCheckintag {
+  id String @id @default(cuid())
+  check_in_custom_dailycheckin String?
+  tag_text String?
+  // source_user_type_ref "checkintag"
+}
+
+model UdsDailycheckin {
+  id String @id @default(cuid())
+  date_date String?
+  energy_stress_level_number String?
+  mood_number String?
+  reflection_text String?
+  user_user String?
+  // source_user_type_ref "dailycheckin"
+}
+
+model UdsGuidedpath {
+  id String @id @default(cuid())
+  description_text String?
+  primary_mode_tag_text String?
+  sensitivity_flag_text String?
+  steps_text String?
+  sub_mode_tag_text String?
+  tier_requirement_text String?
+  title_text String?
+  // source_user_type_ref "guidedpath"
+}
+
+model UdsJournalentry {
+  id String @id @default(cuid())
+  ai_reflection_text String?
+  content_text String?
+  mood_tag_text String?
+  title_text String?
+  user_user String?
+  // source_user_type_ref "journalentry"
+}
+
+model UdsMilestone {
+  id String @id @default(cuid())
+  achieved_at_date String?
+  description_text String?
+  title_text String?
+  user_user String?
+  // source_user_type_ref "milestone"
+}
+
+model UdsModule {
+  id String @id @default(cuid())
+  attachment_signal_option_attachment_signal_os String?
+  belonging_level_option_belonging_level String?
+  body_relationship_option_body_relationship String?
+  chronic_pain_flag_boolean String?
+  conflict_pattern_option_conflict_pattern_os String?
+  financial_agency_level_option_financial_agency_level String?
+  financial_anxiety_level_option_financial_anxiety_level String?
+  financial_stability_signal_option_financial_stability_signal String?
+  grief_load_level_option_grief_load_level String?
+  hormonal_context_flag_boolean String?
+  hormonal_context_type_option_hormonal_context_type String?
+  identity_narrative_type_option_identity_narrative_type_os String?
+  identity_pressure_origin_option_identity_pressure_origin_os String?
+  identity_role_fusion_score_number String?
+  identity_self_worth_source_option_identity_self_worth_source_os String?
+  insight_flags_list_text String?
+  intimacy_safety_level_option_intimacy_safety_level String?
+  last_checkin_date_date String?
+  micro_commitment_active_text String?
+  micro_commitment_due_date String?
+  organization_id_text String?
+  perception_gap_flag_option_perception_gap_flag String?
+  pressure_reach_option_pressure_reach String?
+  prior_support_type_option_prior_support_type String?
+  purpose_clarity_option_purpose_clarity String?
+  session_count_number String?
+  significant_events_12mo_list_text String?
+  sleep_quality_signal_option_sleep_quality_signal String?
+  spiritual_framework_present_boolean String?
+  spiritual_framework_present_option_spiritual_framework_type String?
+  streak_days_number String?
+  substance_pattern_signal_option_substance_pattern_signal String?
+  support_seeking_capacity_option_support_seeking_capacity String?
+  trauma_activation_level_option_trauma_activation_level String?
+  user_user String?
+  // source_user_type_ref "module"
+}
+
+model UdsPath {
+  id String @id @default(cuid())
+  ai_coaching_mode_option_ai_coaching_mode_os String?
+  classification_list_list_option_classification_os String?
+  description_text String?
+  name_text String?
+  pillar_option_customer_pillar_os String?
+  sessions_count_number String?
+  sub_mode_text String?
+  tier_option_tier_os String?
+  trigger_signals_text String?
+  // source_user_type_ref "path"
+}
+
+model UdsPathenrollment {
+  id String @id @default(cuid())
+  completion_percentage_number String?
+  guided_path_custom_guidedpath String?
+  last_step_completed_text String?
+  user_user String?
+  // source_user_type_ref "pathenrollment"
+}
+
+model UdsPathenrollment1 {
+  id String @id @default(cuid())
+  completed_micro_commitment_session_list_list_custom_pathsession String?
+  completed_sessions_count_number String?
+  current_session_custom_pathsession String?
+  focused_m_commitment_custom_pathsession String?
+  is_m_commitment_in_focus_boolean String?
+  path_custom_path String?
+  status_option_path_enrollment_status String?
+  user_user String?
+  // source_user_type_ref "pathenrollment1"
+}
+
+model UdsPathquestion {
+  id String @id @default(cuid())
+  index_number String?
+  q_text_text String?
+  session_custom_pathsession String?
+  // source_user_type_ref "pathquestion"
+}
+
+model UdsPathsession {
+  id String @id @default(cuid())
+  coaching_text_text String?
+  estimated_minutes_number String?
+  index_number String?
+  micro_commitment_text String?
+  path_custom_path String?
+  title_text String?
+  // source_user_type_ref "pathsession"
+}
+
+model UdsPathuseranswer {
+  id String @id @default(cuid())
+  a_text_text String?
+  path_custom_path String?
+  question_custom_pathquestion String?
+  user_user String?
+  // source_user_type_ref "pathuseranswer"
+}
+
+model UdsRelapseevent {
+  id String @id @default(cuid())
+  event_date_date String?
+  notes_text String?
+  user_user String?
+  // source_user_type_ref "relapseevent"
+}
+
+model UdsResource {
+  id String @id @default(cuid())
+  content_text String?
+  external_link_text String?
+  is_crisis_resource_boolean String?
+  is_free_boolean String?
+  primary_mode_tag_text String?
+  sensitivity_flag_text String?
+  sub_mode_tag_text String?
+  title_text String?
+  // source_user_type_ref "resource"
+}
+
+model UdsSubscriptionplan {
+  id String @id @default(cuid())
+  description_text String?
+  features_text String?
+  name_text String?
+  price_number String?
+  // source_user_type_ref "subscriptionplan"
+}
+
+model UdsUser {
+  id String @id @default(cuid())
+  ai_coaching_mode_list_list_option_ai_coaching_mode_os String?
+  ai_confidence_level_option_ai_confidence_level_os String?
+  alignment_score_number String?
+  aq1_number String?
+  aq1_option_customer_alignment_answer_os String?
+  aq2_number String?
+  aq2_option_customer_alignment_answer_os String?
+  aq3_number String?
+  aq3_option_customer_alignment_answer_os String?
+  aq4_number String?
+  aq4_option_customer_alignment_answer_os String?
+  aq5_number String?
+  aq5_option_customer_alignment_answer_os String?
+  assessment_date_date String?
+  behavioral_fingerprint_text String?
+  check_in_frequency_text String?
+  chronic_pain_flag_boolean String?
+  classification_option_classification_os String?
+  classification_type_text String?
+  customer_pillar_option_customer_pillar_os String?
+  customer_role_option_customer_role_os String?
+  daily_check_in_streak_number String?
+  first_name_text String?
+  goals_text String?
+  grief_mode_active_boolean String?
+  health_flag3_boolean String?
+  health_flag4_boolean String?
+  health_flag5_boolean String?
+  health_flag6_boolean String?
+  health_none_boolean String?
+  hormonal_context_flag_boolean String?
+  is_admin_boolean String?
+  last_name_text String?
+  load_signal_cognitive_option_customers_load_signal_question_os String?
+  load_signal_environmental_option_customers_load_signal_question_os String?
+  load_signal_financial_option_customers_load_signal_question_os String?
+  load_signal_relational_option_customers_load_signal_question_os String?
+  modules_completed_count_number String?
+  name_text String?
+  notification_frequency_text String?
+  onboarding_complete_boolean String?
+  onboarding_completed_boolean String?
+  onboarding_step_option_onboarding_step_os String?
+  oq1_option_customer_orientation_answer_os String?
+  orientation_score_number String?
+  orientation_score1_number String?
+  performance_score_number String?
+  pq1_number String?
+  pq1_option_customer_performance_answer_os String?
+  pq2_number String?
+  pq2_option_customer_performance_answer_os String?
+  pq3_number String?
+  pq3_option_customer_performance_answer_os String?
+  pq4_number String?
+  pq4_option_customer_performance_answer_os String?
+  pq5_number String?
+  pq5_option_customer_performance_answer_os String?
+  preferences_text String?
+  pressure_non_followthrough_reason_option_customer_pressure_response_question_os0 String?
+  pressure_profile_text String?
+  pressure_response_pattern_option_customer_pressure_response_question_os0 String?
+  primary_mode_text String?
+  primary_pillar_text String?
+  recovery_mode_active_boolean String?
+  role_type_text String?
+  sobriety_start_date_date String?
+  spiritual_framework_present_boolean String?
+  sq1_number String?
+  sq1_option_customer_stability_answer_os String?
+  sq2_number String?
+  sq2_option_customer_stability_answer_os String?
+  sq3_number String?
+  sq3_option_customer_stability_answer_os String?
+  sq4_number String?
+  sq4_option_customer_stability_answer_os String?
+  sq5_number String?
+  sq5_option_customer_stability_answer_os String?
+  stability_score_number String?
+  state_energy_level_option_customer_state_signal_question_os String?
+  state_nervous_system_option_customer_state_signal_question_os String?
+  streak_cancelation_wf_id_text String?
+  streak_days_number String?
+  sub_mode_text String?
+  subscription_tier_text String?
+  substance_type_text String?
+  tier_option_tier_os String?
+  timezone_text String?
+  workplace_custom_workplace String?
+  // source_user_type_ref "user"
+}
+
+model UdsWorkplace {
+  id String @id @default(cuid())
+  contact_email_text String?
+  name_text String?
+  // source_user_type_ref "workplace"
+}
+

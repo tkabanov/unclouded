@@ -1,0 +1,127 @@
+{
+  "phase": "decompose",
+  "target_id": "MOD-DRSAM-ENUMS",
+  "assessed_at": "2026-07-06T13:58:00.000Z",
+  "ok": true,
+  "readiness_pct": 88,
+  "coverage_confidence_pct": 86,
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "gaps": [],
+  "blockers": [],
+  "recommendations": [
+    "During implement, derive enum value/label maps directly from ir/inventory.json option_set.value entries to prevent label drift.",
+    "Extend ENUM-02 ir_refs with answer-pair and stability sets before implement if AUTH-05 onboarding health/load steps need per-set traceability.",
+    "Export all enum modules through frontend/src/domain/enums/index.ts with stable slug keys for router and tab consumers."
+  ],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "completeness",
+      "priority": "medium",
+      "finding": "ENUM-02 scope and AC-2 promise customer_alignment_*, customer_performance_*, customer_stability_*, and customers_load_signal_* pairs, but ir_refs lists only three question sets plus customers_load_signal_os — omitting customer_stability_question_os, customer_stability_answer_os, answer-pair sets, customer_health_question_os, and customer_orientation_answer_os present in ir/inventory.json.",
+      "alternative": "Add explicit ir_refs for each onboarding question/answer option set used by AUTH-04/AUTH-05, or split ENUM-02 into profile vs health/load-signal items mirroring AUTH item boundaries.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-ENUMS.json",
+        "ir/inventory.json",
+        "cursor-impl-cycle/state/module-map.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Item scopes state frontend migration work but do not explicitly exclude adapter routes or project/supabase writes; low risk for a pure enum module but weak out-of-scope boundaries per checklist.",
+      "alternative": "Add one-line out-of-scope clause per item: no provider-adapter routes, no project/ mutations, read-only Supabase reference only.",
+      "evidence": [
+        "cursor-impl-cycle/prompts/implementation-constraints.md",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-ENUMS.json"
+      ]
+    }
+  ],
+  "criteria_audit": [
+    {
+      "id": "ir_roots_covered",
+      "status": "pass",
+      "evidence": [
+        "onboarding_step_os → ENUM-01",
+        "path_page_tab_os → ENUM-01",
+        "settings_tab_os → ENUM-01",
+        "customer_pillar_os → ENUM-02",
+        "customer_role_os → ENUM-02",
+        "customer_state_os → ENUM-02",
+        "path_enrollment_status → ENUM-03",
+        "ai_coaching_mode_os → ENUM-03",
+        "ai_confidence_level_os → ENUM-03",
+        "state_energy_level_os → ENUM-03",
+        "state_nervous_system_os → ENUM-03",
+        "tier_os → ENUM-04"
+      ],
+      "gap": null
+    },
+    {
+      "id": "depends_on_resolved",
+      "status": "pass",
+      "evidence": [
+        "ENUM-01-navigation-and-onboarding-labels in cursor-impl-cycle/state/item-registry.json",
+        "ENUM-02 and ENUM-03 depend_on ENUM-01 only"
+      ],
+      "gap": null
+    },
+    {
+      "id": "item_granularity",
+      "status": "pass",
+      "evidence": [
+        "4 items for 12 module-map ir_roots at estimated_size medium",
+        "Domain grouping: navigation, onboarding Q&A, path/coaching/state, tier"
+      ],
+      "gap": null
+    },
+    {
+      "id": "scope_boundaries",
+      "status": "partial",
+      "evidence": [
+        "All items scope frontend enum migration with target_files under frontend/src/domain/enums/"
+      ],
+      "gap": "Explicit out-of-scope lines for adapter and project/ not stated"
+    },
+    {
+      "id": "ac_quality",
+      "status": "pass",
+      "evidence": [
+        "ACs reference ir/inventory.json display strings and value counts",
+        "3 ACs per item; proportional to option-set bulk (no UI data-bubble-id padding)"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ui_refs",
+      "status": "na",
+      "evidence": [
+        "Module is domain enum migration; no UI layout items in decompose artifact"
+      ],
+      "gap": null
+    },
+    {
+      "id": "no_duplicate_items",
+      "status": "pass",
+      "evidence": [
+        "Distinct ir_ref partitions across ENUM-01 through ENUM-04",
+        "No overlapping target_files boundaries"
+      ],
+      "gap": null
+    },
+    {
+      "id": "grounding",
+      "status": "pass",
+      "evidence": [
+        "ir_refs map to option_set ids in ir/inventory.json",
+        "Module ir_slices: ir/inventory.json, ir/slices/styles.json"
+      ],
+      "gap": null
+    }
+  ]
+}
