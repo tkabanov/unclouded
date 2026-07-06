@@ -8,24 +8,24 @@ You receive a review (passed or failed gate). Your job: **for each critique**, d
 
 ## Read (implement phase)
 
-1. `cursor-packs/cursor-impl-cycle/prompts/implementation-constraints.md`
-2. `cursor-packs/cursor-impl-cycle/prompts/ui-fidelity-rubric.md`
-3. Review report: `cursor-packs/cursor-impl-cycle/output/reports/{{phase}}-{{target_id}}.review.json`
-4. Implement coverage: `cursor-packs/cursor-impl-cycle/output/coverage/{{target_id}}.json` (if phase is implement)
+1. `cursor-impl-cycle/prompts/implementation-constraints.md`
+2. `cursor-impl-cycle/prompts/ui-fidelity-rubric.md`
+3. Review report: `cursor-impl-cycle/output/reports/{{phase}}-{{target_id}}.review.json`
+4. Implement coverage: `cursor-impl-cycle/output/coverage/{{target_id}}.json` (if phase is implement)
 5. Decompose item for `{{target_id}}` — scope boundaries, `depends_on`, downstream items
 6. Changed source files cited in review `criteria_audit`, `ui_evidence`, critiques
 7. Relevant `ir/slices/*` when disputing a ui-fidelity or hierarchy critique
 
 ## Write ONLY
 
-`cursor-packs/cursor-impl-cycle/output/reports/{{phase}}-{{target_id}}.triage.json`
+`cursor-impl-cycle/output/reports/{{phase}}-{{target_id}}.triage.json`
 
 ```json
 {
   "phase": "{{phase}}",
   "target_id": "{{target_id}}",
   "assessed_at": "<ISO8601>",
-  "review_ref": "cursor-packs/cursor-impl-cycle/output/reports/{{phase}}-{{target_id}}.review.json",
+  "review_ref": "cursor-impl-cycle/output/reports/{{phase}}-{{target_id}}.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
@@ -57,7 +57,7 @@ For **each** review `critiques[]` entry, pick `resolution`:
 
 - Review `criteria_audit` or `ui_evidence` would be `fail`/`partial` if critique is correct
 - Downstream item in decompose lists this item in `depends_on` **and** needs the missing behavior (e.g. composable must be mounted, shared primitive must be correct)
-- Design-system primitive (`MOD-PROVIDER-DESIGN-SYSTEM`) used by ready downstream implement items
+- Design-system primitive (`MOD-DRSAM-DESIGN-SYSTEM`) used by ready downstream implement items
 - `area` is `ui-fidelity` and missing element is a **named ui_ref** (not optional HTML injector host)
 - `priority` is `high` or `blocker_candidate` **and** your IR re-read confirms the finding
 - `area` is `architecture` and critique is **unnecessary adapter passthrough** per `docs/ADAPTER-POLICY.md` — triage as `fix_now` (remove adapter / use direct Supabase) unless scope documents server secret or webhook

@@ -83,7 +83,7 @@
       "id": "C-6",
       "area": "scope",
       "priority": "low",
-      "finding": "Ten items state frontend migration but only SET-04 AC-3 and admin items explicitly forbid project/ writes; most tabs lack one-line out-of-scope for project/supabase and unnecessary provider-adapter per implementation-constraints.",
+      "finding": "Ten items state frontend migration but only SET-04 AC-3 and admin items explicitly forbid project/ writes; most tabs lack one-line out-of-scope for project/supabase and unnecessary adapter per implementation-constraints.",
       "alternative": "Append consistent out-of-scope clause per item: no project/ mutations; Supabase client from frontend; adapter only if server secret required (privacy export edge case).",
       "evidence": [
         "cursor-impl-cycle/prompts/implementation-constraints.md",

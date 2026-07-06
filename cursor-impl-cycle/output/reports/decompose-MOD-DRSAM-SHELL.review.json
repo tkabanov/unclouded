@@ -50,7 +50,7 @@
       "id": "C-5",
       "area": "scope",
       "priority": "low",
-      "finding": "Reusable and page-shell item scopes state frontend migration but omit explicit out-of-scope lines for project/ writes and provider-adapter routes per implementation-constraints checklist.",
+      "finding": "Reusable and page-shell item scopes state frontend migration but omit explicit out-of-scope lines for project/ writes and adapter routes per implementation-constraints checklist.",
       "alternative": "Append one-line out-of-scope clause per item: no project/supabase mutations; adapter only if server secret required (unlikely for shell chrome).",
       "evidence": ["cursor-impl-cycle/prompts/implementation-constraints.md", "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"]
     }

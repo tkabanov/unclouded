@@ -4,32 +4,32 @@
   "target_id": "MOD-DRSAM-SETTINGS",
   "current_module_id": "MOD-DRSAM-SETTINGS",
   "current_item_id": null,
-  "template": "E:\\unclouded\\cursor-impl-cycle\\prompts\\review-decompose.md",
+  "template": "/workspace/cursor-impl-cycle/prompts/review-decompose.md",
   "inputs": {
-    "inventory_path": "ir\\inventory.json",
-    "styles_slice_path": "ir\\slices\\styles.json",
+    "inventory_path": "ir/inventory.json",
+    "styles_slice_path": "ir/slices/styles.json",
     "bubble_source_path": "drsam-99657.bubble",
-    "ui_fidelity_rubric_path": "E:\\unclouded\\cursor-impl-cycle\\prompts\\ui-fidelity-rubric.md",
-    "module_map_path": "cursor-impl-cycle\\state\\module-map.json",
-    "cycle_path": "cursor-impl-cycle\\state\\cycle.json",
+    "ui_fidelity_rubric_path": "cursor-impl-cycle/prompts/ui-fidelity-rubric.md",
+    "module_map_path": "cursor-impl-cycle/state/module-map.json",
+    "cycle_path": "cursor-impl-cycle/state/cycle.json",
     "frontend_app_dir": "frontend",
-    "adapter_dir": "provider-adapter",
+    "adapter_dir": "adapter",
     "supabase_context_dir": "project/supabase",
-    "implementation_policy_path": "E:\\unclouded\\cursor-impl-cycle\\config\\implementation-policy.json",
-    "provider_scope_seed_path": "E:\\unclouded\\cursor-impl-cycle\\config\\provider-scope-seed.json",
-    "scope_focus": "provider",
+    "implementation_policy_path": "cursor-impl-cycle/config/implementation-policy.json",
+    "scope_seed_path": "cursor-impl-cycle/config/drsam-scope-seed.json",
+    "scope_focus": "authenticated_spa",
     "forbidden_write_paths": [
       "project/"
     ],
     "allowed_write_paths": [
-      "provider-app/",
-      "provider-adapter/",
+      "frontend/",
+      "adapter/",
       "cursor-impl-cycle/"
     ],
     "coverage_threshold_pct": 90
   },
   "outputs": [
-    "cursor-impl-cycle\\output\\reports\\decompose-MOD-DRSAM-SETTINGS.review.json"
+    "cursor-impl-cycle/output/reports/decompose-MOD-DRSAM-SETTINGS.review.json"
   ],
   "subagent_type": "generalPurpose",
   "model": null,

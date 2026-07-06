@@ -25,8 +25,21 @@ function critiqueTriageEnabled(project) {
   return project.review?.critique_triage_enabled !== false;
 }
 
+function loadImplementationPolicy(paths) {
+  if (!fs.existsSync(paths.implementationPolicyPath)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(paths.implementationPolicyPath, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
 /** Inputs block is identical for every target; factor it out. */
 function commonInputs(paths, project) {
+  const policy = loadImplementationPolicy(paths);
+  const frontendDir = project.frontend_app_dir ?? policy.frontend_app_dir ?? "frontend";
+  const adapterDir = project.adapter_dir ?? policy.adapter_dir ?? "adapter";
+  const packRel = packRelPath(paths.packRoot, paths.workspaceRoot);
   return {
     inventory_path: rel(paths.workspaceRoot, paths.inventoryPath),
     styles_slice_path: rel(paths.workspaceRoot, paths.stylesSlicePath),
@@ -34,18 +47,14 @@ function commonInputs(paths, project) {
     ui_fidelity_rubric_path: rel(paths.workspaceRoot, paths.uiFidelityRubricPath),
     module_map_path: rel(paths.workspaceRoot, paths.moduleMapPath),
     cycle_path: rel(paths.workspaceRoot, paths.cyclePath),
-    frontend_app_dir: project.frontend_app_dir ?? "provider-app",
-    adapter_dir: project.adapter_dir ?? "provider-adapter",
-    supabase_context_dir: project.supabase_context_dir ?? "project/supabase",
+    frontend_app_dir: frontendDir,
+    adapter_dir: adapterDir,
+    supabase_context_dir: project.supabase_context_dir ?? policy.supabase_context_dir ?? "project/supabase",
     implementation_policy_path: rel(paths.workspaceRoot, paths.implementationPolicyPath),
-    provider_scope_seed_path: rel(paths.workspaceRoot, paths.providerScopeSeedPath),
-    scope_focus: "provider",
-    forbidden_write_paths: ["project/"],
-    allowed_write_paths: [
-      "provider-app/",
-      "provider-adapter/",
-      `${packRelPath(paths.packRoot, paths.workspaceRoot)}/`,
-    ],
+    scope_seed_path: rel(paths.workspaceRoot, paths.scopeSeedPath),
+    scope_focus: policy.scope_focus ?? "authenticated_spa",
+    forbidden_write_paths: policy.forbidden_write_paths ?? ["project/"],
+    allowed_write_paths: policy.allowed_write_paths ?? [`${frontendDir}/`, `${adapterDir}/`, `${packRel}/`],
     coverage_threshold_pct: project.coverage_threshold_pct,
   };
 }

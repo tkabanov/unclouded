@@ -37,7 +37,7 @@ Example:
   "priority": "high",
   "finding": "RepeatingGroup bUsfP cell template missing bUsfb icon region from IR slice.",
   "alternative": "Add bUsfb span with IR icon URL or mapped phosphor icon in SidebarMenuItem.vue.",
-  "evidence": ["ir/slices/reusable-bUsdz.json", "provider-app/src/components/shell/sidebar/SidebarMenuItem.vue"]
+  "evidence": ["ir/slices/reusable-bUsdz.json", "frontend/src/components/shell/sidebar/SidebarMenuItem.vue"]
 }
 ```
 

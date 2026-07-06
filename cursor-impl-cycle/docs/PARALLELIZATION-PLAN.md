@@ -20,8 +20,8 @@
 ### Ключевые наблюдения
 
 - **Decompose независим по модулям.** Каждый `write-decompose` читает только свою запись из `module-map.json`, свои `ir/slices/*`, `styles.json` и read-only Supabase. Межмодульных зависимостей нет. → **embarrassingly parallel**.
-- **Implement имеет настоящий DAG.** В выводах decompose у элементов уже есть `depends_on[]` с межмодульными рёбрами (например, `JOBS-01` → `SHELL-04`, `ENUM-01-provider-page-path-route-registry`). Item ids must match `state/item-registry.json`; module-level deps use `MOD-*`. → параллелим по слоям DAG.
-- **Implement пишет в общий `provider-app/`.** Параллельные писатели в одном рабочем дереве = гонки на диске. → нужна изоляция (git worktree) или дизъюнктные файлы.
+- **Implement имеет настоящий DAG.** В выводах decompose у элементов уже есть `depends_on[]` с межмодульными рёбрами (например, `DASH-01` → `SHELL-06`, `ENUM-01-navigation-and-onboarding-labels`). Item ids must match `state/item-registry.json`; module-level deps use `MOD-*`. → параллелим по слоям DAG.
+- **Implement пишет в общий `frontend/`.** Параллельные писатели в одном рабочем дереве = гонки на диске. → нужна изоляция (git worktree) или дизъюнктные файлы.
 
 ---
 
@@ -107,7 +107,7 @@ triage: нет triage-файла → needs-triage
 
 Готовность элемента = все `depends_on` имеют `implement_passes` (DAG уже закодирован в decompose). Внутри готового слоя элементы идут волнами.
 
-Запись в общий `provider-app/` — главный источник риска (гонки на диске, конфликты). Поэтому **запись** распараллеливается поэтапно через три стратегии (`implement.write_strategy`):
+Запись в общий `frontend/` — главный источник риска (гонки на диске, конфликты). Поэтому **запись** распараллеливается поэтапно через три стратегии (`implement.write_strategy`):
 
 - **C — `serial` (стартовая, выбрана).** В одной волне максимум **1 writer** (пишет в основное дерево, без worktree/merge), а **review/triage многих элементов идут параллельно** (read-only, раздельные отчёты, до `review_triage_max`). Review+triage — это ~2/3 ходов на элемент, поэтому ускорение ощутимое при нулевом риске слияния.
 - **B — `disjoint-files` (следующий шаг).** В decompose добавляется `target_files[]`; планировщик ставит в одну волну только элементы с **непересекающимися** файлами → параллельная запись в одно дерево **без merge** (конфликтов физически нет).
@@ -243,7 +243,7 @@ triage: нет triage-файла → needs-triage
 
 **Этап 2 — implement стратегия B (`disjoint-files`) — ГОТОВО:** `target_files[]` добавлен в схему decompose и промпт; планировщик (`selectDisjointWriters`) группирует элементы с непересекающимися файлами в одну волну (без merge); элементы без объявленных `target_files` считаются «неизвестным следом» и ставятся в одиночку.
 
-**Этап 3 — implement стратегия A (`worktree`) — ГОТОВО (логика):** при `write_strategy=worktree` планировщик берёт до `implement.max` писателей; followup даёт инструкцию по worktree + последовательному merge + фикс-субагенту на конфликт. Реальный merge на буилдящемся `provider-app/` валидируется на первом прогоне.
+**Этап 3 — implement стратегия A (`worktree`) — ГОТОВО (логика):** при `write_strategy=worktree` планировщик берёт до `implement.max` писателей; followup даёт инструкцию по worktree + последовательному merge + фикс-субагенту на конфликт. Реальный merge на буилдящемся `frontend/` валидируется на первом прогоне.
 
 ### Статус реализации
 

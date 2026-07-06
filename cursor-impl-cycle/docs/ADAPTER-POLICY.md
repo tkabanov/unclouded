@@ -1,7 +1,7 @@
-# Adapter policy (provider-adapter)
+# Adapter policy (`adapter/`)
 
-Canonical rules for when `provider-adapter/` is allowed during cursor-impl-cycle.  
-**Default: frontend-only** — call Supabase from `provider-app/` with the user session.
+Canonical rules for when `adapter/` is allowed during cursor-impl-cycle.  
+**Default: frontend-only** — call Supabase from `frontend/` with the user session.
 
 ## Use adapter only when at least one is true
 
@@ -12,37 +12,22 @@ Canonical rules for when `provider-adapter/` is allowed during cursor-impl-cycle
 
 ## Do not use adapter for
 
-- Single edge function proxy (`invite-to-apply`, `application-details`, `publish-job`, `close-job`, …) with **user JWT** — call `${VITE_SUPABASE_URL}/functions/v1/...` from `provider-app/` (see `jobMutationsApi.ts`, `viewJobApplicantActionsApi.ts`).
-- Single RPC proxy (`get_urrecruiter_candidate_profile`, `get_job_score_details_for_company`, …) — use `supabase.rpc()` from the client.
+- Single edge function proxy with **user JWT** — call `${VITE_SUPABASE_URL}/functions/v1/...` from `frontend/`.
+- Single RPC proxy — use `supabase.rpc()` from the client.
 - Single REST table read/write allowed by RLS — use `supabase.from(...)`.
 - Passthrough that only forwards `Authorization: Bearer <user>` and `apikey: anon` — adds latency and ops cost with no security benefit.
 
 ## Review / implement gates
 
-**Implementer:** Do not add `provider-adapter/` routes or `VITE_PROVIDER_ADAPTER_URL` dependencies unless decompose scope documents one of the allowed reasons above.
+**Implementer:** Do not add `adapter/` routes or `VITE_ADAPTER_URL` dependencies unless decompose scope documents one of the allowed reasons above.
 
 **Reviewer:** File `blockers[]` when:
 
 - New or changed adapter route is only a passthrough to one Supabase edge function, RPC, or RLS-backed REST call.
-- `files_changed` includes `provider-adapter/` but the same module already calls Supabase directly for equivalent operations (e.g. `jobMutationsApi.ts` vs `jobs/applicants.mjs`).
+- `files_changed` includes `adapter/` but the same module already calls Supabase directly for equivalent operations.
 - Decompose says `frontend+adapter` but no AC requires server-side orchestration or secrets.
 
 Use `critiques[]` with `area: "architecture"`, `priority: "blocker_candidate"` when uncertain; triage confirms fix_now vs defer.
-
-## Current adapter inventory (audit 2026-06)
-
-| Route | Verdict | Notes |
-|-------|---------|--------|
-| `GET /provider/dashboard-feed` | **Keep (optional)** | Only real multi-fetch orchestration; could move to frontend composable later. |
-| `GET /provider/sidebar-context` | **Remove / avoid new** | Passthrough `unread-counts` — use direct edge call. |
-| `GET /candidates/:id/profile` | **Remove / avoid new** | RPC passthrough — use `supabase.rpc()`. |
-| `GET /candidates/:id/job-score` | **Remove / avoid new** | RPC passthrough. |
-| `GET /auth/signup/check-company` | **Remove / avoid new** | Public edge fn; frontend already has fallback. |
-| `GET /auth/fg-services/*` | **Remove / avoid new** | Same + log-only analytics. |
-| `POST /upload/storage` | **Remove / avoid new** | Worse than direct `functions/v1/file` upload. |
-| `jobs/applicants/*` | **Deprecated** | Removed from server; use `viewJobApplicantActionsApi.ts`. |
-
-Legacy routes may remain until refactored; **do not add new routes in the same category.**
 
 ## Decompose scope labels
 

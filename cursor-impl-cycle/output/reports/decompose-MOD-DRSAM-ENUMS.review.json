@@ -35,7 +35,7 @@
       "area": "scope",
       "priority": "low",
       "finding": "Item scopes state frontend migration work but do not explicitly exclude adapter routes or project/supabase writes; low risk for a pure enum module but weak out-of-scope boundaries per checklist.",
-      "alternative": "Add one-line out-of-scope clause per item: no provider-adapter routes, no project/ mutations, read-only Supabase reference only.",
+      "alternative": "Add one-line out-of-scope clause per item: no adapter routes, no project/ mutations, read-only Supabase reference only.",
       "evidence": [
         "cursor-impl-cycle/prompts/implementation-constraints.md",
         "cursor-impl-cycle/output/decompose/MOD-DRSAM-ENUMS.json"

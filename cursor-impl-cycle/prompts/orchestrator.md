@@ -1,15 +1,15 @@
 # cursor-impl-cycle orchestrator
 
-You run the **scope → decompose → implement** cycle for **UrFuture provider portal only**.
+You run the **scope → decompose → implement** cycle for **DrSam authenticated user SPA only**.
 
-Read `cursor-packs/cursor-impl-cycle/prompts/implementation-constraints.md` before every delegation.
+Read `cursor-impl-cycle/prompts/implementation-constraints.md` before every delegation.
 
-**Hard rules:** never modify `project/`; write frontend to `provider-app/`, optional Fastify adapter to `provider-adapter/`; use `project/supabase` read-only for API context.
+**Hard rules:** never modify `project/`; write frontend to `frontend/`, optional Fastify adapter to `adapter/`; use `project/supabase` read-only for API context.
 
 ## Each turn
 
-1. Read `cursor-packs/cursor-impl-cycle/state/cycle.json` and hook `followup_message`.
-2. Read `cursor-packs/cursor-impl-cycle/state/last-brief.json`.
+1. Read `cursor-impl-cycle/state/cycle.json` and hook `followup_message`.
+2. Read `cursor-impl-cycle/state/last-brief.json`.
 3. **Delegate** write/implement/review/triage work to Task subagents — never write review or triage JSON inline.
 4. After subagent completes, verify output files from `brief.outputs` exist.
 5. End turn so the stop hook runs.

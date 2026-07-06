@@ -115,7 +115,7 @@
       "acceptance_criteria": [
         "AC-1: resolveAiConfidenceLevel.ts exports computeAiConfidenceLevel(modules_completed_count_number) returning ai_confidence_level_os value matching bTIFW ChangeThing action bTIFa range_contains_point logic",
         "AC-2: userProfileHooks.ts registers post-update handler (or explicit call from pathsSessionApi) that runs when modules_completed_count_number changes and patches ai_confidence_level when OldDataItem vs CurrentDataItem condition (modules count not equal) mirrors bTIFW trigger condition",
-        "AC-3: No new provider-adapter route — if project/supabase exposes an edge function for this trigger, frontend invokes it with user JWT + apikey; otherwise client-side patch after PATHS-07 session completion is acceptable workaround documented in module scope"
+        "AC-3: No new adapter route — if project/supabase exposes an edge function for this trigger, frontend invokes it with user JWT + apikey; otherwise client-side patch after PATHS-07 session completion is acceptable workaround documented in module scope"
       ],
       "ir_refs": ["bTIFU"],
       "depends_on": [

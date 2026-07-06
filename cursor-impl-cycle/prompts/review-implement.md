@@ -1,10 +1,10 @@
-# Review implement — independent IR audit (provider)
+# Review implement — independent IR audit (DrSam)
 
 **Role:** Reviewer (generalPurpose, **readonly: true**)  
 **Phase:** `implement`  
 **Target item:** `{{target_id}}`
 
-Write **only**: `cursor-packs/cursor-impl-cycle/output/reports/implement-{{target_id}}.review.json`
+Write **only**: `cursor-impl-cycle/output/reports/implement-{{target_id}}.review.json`
 
 ```json
 {
@@ -26,16 +26,16 @@ Write **only**: `cursor-packs/cursor-impl-cycle/output/reports/implement-{{targe
 
 ## Mandatory read order (re-gather context — do not trust implement coverage alone)
 
-1. `cursor-packs/cursor-impl-cycle/prompts/implementation-constraints.md`
-2. `cursor-packs/cursor-impl-cycle/prompts/ui-fidelity-rubric.md`
-3. `cursor-packs/cursor-impl-cycle/prompts/functional-review-rubric.md`
-4. `cursor-packs/cursor-impl-cycle/state/wave-2-manifest.json` — if `{{target_id}}` is in `reopen[]`, verify every `reviewer_checks[]` entry
-5. Decompose item in `output/decompose/MOD-PROVIDER-*.json` for `{{target_id}}` — copy `acceptance_criteria[]`, `functional_verification[]`, `ir_refs[]`, `ui_refs[]`, `layout_notes`, `scope`
+1. `cursor-impl-cycle/prompts/implementation-constraints.md`
+2. `cursor-impl-cycle/prompts/ui-fidelity-rubric.md`
+3. `cursor-impl-cycle/prompts/functional-review-rubric.md`
+4. `cursor-impl-cycle/state/wave-2-manifest.json` — if `{{target_id}}` is in `reopen[]`, verify every `reviewer_checks[]` entry
+5. Decompose item in `output/decompose/MOD-DRSAM-*.json` for `{{target_id}}` — copy `acceptance_criteria[]`, `functional_verification[]`, `ir_refs[]`, `ui_refs[]`, `layout_notes`, `scope`
 6. Implementer's `output/coverage/{{target_id}}.json` — **suspect until verified**; treat as a claim, not proof
 7. **Every** `ir_refs[]` / `ui_refs[]` entity:
    - `ir/slices/reusable-*.json`, `ir/slices/ui-page-*.json`, or `ir/inventory.json` lookup
    - `ir/slices/styles.json` for each in-scope `style_ref`
-   - `source/app.bubble` via `source_path` when presentation is missing or workflows matter
+   - `drsam-99657.bubble` via `source_path` when presentation is missing or workflows matter
 8. **All** changed files listed in coverage `files_changed` and brief `target_files` — read the actual Vue/TS/CSS/adapter code
 
 You are re-doing the implementer's IR homework. Skimming coverage JSON or decompose AC titles is not a review.
@@ -50,7 +50,7 @@ Fill `criteria_audit[]` — one row per decompose AC:
 {
   "id": "AC-1",
   "status": "pass",
-  "evidence": ["provider-app/src/..."],
+  "evidence": ["frontend/src/..."],
   "gap": null
 }
 ```
@@ -95,12 +95,12 @@ Use `layout_notes` from decompose as binding context.
 - Any `criteria_audit` row `fail` on an in-scope AC
 - `files_changed` or evidence under forbidden `project/`
 - Supabase schema/RLS writes instead of read-only + adapter
-- Work outside provider scope
+- Work outside DrSam scope
 - Missing required `data-bubble-id` on in-scope roots
 - IR hierarchy clearly wrong for in-scope ui_refs (not a minor polish delta)
-- **Unnecessary adapter** (see `cursor-packs/cursor-impl-cycle/docs/ADAPTER-POLICY.md`):
-  - New/changed `provider-adapter/` route that only proxies one Supabase edge function, RPC, or RLS REST call with user JWT
-  - `provider-app` requires `VITE_PROVIDER_ADAPTER_URL` for an operation that could use direct Supabase like `jobMutationsApi.ts`
+- **Unnecessary adapter** (see `cursor-impl-cycle/docs/ADAPTER-POLICY.md`):
+  - New/changed `adapter/` route that only proxies one Supabase edge function, RPC, or RLS REST call with user JWT
+  - `frontend` requires `VITE_ADAPTER_URL` for an operation that could use direct Supabase client calls
   - Same item/module mixes direct Supabase client calls with redundant adapter passthrough for the same backend surface
 
 When filing adapter blockers, cite the equivalent direct-client path the implementer should use instead.

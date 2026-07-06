@@ -45,23 +45,17 @@ export function resolvePaths(workspaceRoot, project, packRoot = PACK_ROOT) {
       workspaceRoot,
       project.bubble_source ?? "source/app.bubble",
     ),
-    uiFidelityRubricPath: path.join(
-      workspaceRoot,
-      project.ui_fidelity_rubric_path ??
-        packDefault(workspaceRoot, packRoot, "prompts/ui-fidelity-rubric.md"),
-    ),
-    implementationPolicyPath: path.join(
-      workspaceRoot,
-      project.implementation_policy_path ??
-        packDefault(workspaceRoot, packRoot, "config/implementation-policy.json"),
-    ),
-    providerScopeSeedPath: path.join(
-      workspaceRoot,
-      project.provider_scope_seed_path ??
-        packDefault(workspaceRoot, packRoot, "config/provider-scope-seed.json"),
-    ),
-    frontendAppDir: path.join(workspaceRoot, project.frontend_app_dir ?? "provider-app"),
-    adapterDir: path.join(workspaceRoot, project.adapter_dir ?? "provider-adapter"),
+    uiFidelityRubricPath: project.ui_fidelity_rubric_path
+      ? path.join(workspaceRoot, project.ui_fidelity_rubric_path)
+      : packDefault(workspaceRoot, packRoot, "prompts/ui-fidelity-rubric.md"),
+    implementationPolicyPath: project.implementation_policy_path
+      ? path.join(workspaceRoot, project.implementation_policy_path)
+      : packDefault(workspaceRoot, packRoot, "config/implementation-policy.json"),
+    scopeSeedPath: project.scope_seed_path
+      ? path.join(workspaceRoot, project.scope_seed_path)
+      : packDefault(workspaceRoot, packRoot, "config/drsam-scope-seed.json"),
+    frontendAppDir: path.join(workspaceRoot, project.frontend_app_dir ?? "frontend"),
+    adapterDir: path.join(workspaceRoot, project.adapter_dir ?? "adapter"),
     supabaseContextDir: path.join(
       workspaceRoot,
       project.supabase_context_dir ?? "project/supabase",

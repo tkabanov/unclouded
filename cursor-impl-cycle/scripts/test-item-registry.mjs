@@ -16,7 +16,7 @@ const moduleMap = JSON.parse(fs.readFileSync(paths.moduleMapPath, "utf8"));
 const moduleIds = moduleMap.modules.map((m) => m.id);
 const registry = buildItemRegistry(paths);
 
-const shellPath = path.join(paths.decomposeDir, "MOD-PROVIDER-SHELL.json");
+const shellPath = path.join(paths.decomposeDir, "MOD-DRSAM-SHELL.json");
 const shell = JSON.parse(fs.readFileSync(shellPath, "utf8"));
 const shellErrors = validateDependsOn(shell, registry, moduleIds);
 check(shellErrors.length === 0, `SHELL decompose should validate: ${shellErrors.join("; ")}`);
@@ -25,7 +25,7 @@ const bad = validateDependsOn(
   {
     module_id: "MOD-TEST",
     decomposed: true,
-    items: [{ id: "X1", depends_on: ["ENUMS-01-enum-provider-page-path"] }],
+    items: [{ id: "X1", depends_on: ["ENUMS-01-navigation-labels"] }],
   },
   registry,
   moduleIds,
@@ -39,7 +39,7 @@ const cycle = {
   phase: "implement",
   modules: [
     {
-      id: "MOD-PROVIDER-DESIGN-SYSTEM",
+      id: "MOD-DRSAM-DESIGN-SYSTEM",
       decompose_passes: true,
       items: [
         { id: "DS-01", implement_passes: true, implement_gate: "triage" },
@@ -47,7 +47,7 @@ const cycle = {
       ],
     },
     {
-      id: "MOD-PROVIDER-SHELL",
+      id: "MOD-DRSAM-SHELL",
       decompose_passes: true,
       items: [
         {
@@ -60,7 +60,7 @@ const cycle = {
           id: "SHELL-05-home-dashboard-shell-and-header",
           implement_passes: false,
           implement_gate: "write",
-          depends_on: ["SHELL-02-enum-view-router-and-feature-slots", "MOD-PROVIDER-DESIGN-SYSTEM"],
+          depends_on: ["SHELL-02-enum-view-router-and-feature-slots", "MOD-DRSAM-DESIGN-SYSTEM"],
         },
       ],
     },
@@ -71,7 +71,7 @@ const plan = await planWave({ cycle, paths, project });
 const ready = plan.kind === "wave" ? plan.dispatches.map((d) => d.target_id) : [];
 check(
   ready.includes("SHELL-05-home-dashboard-shell-and-header"),
-  "module-level MOD-PROVIDER-DESIGN-SYSTEM dep should unblock SHELL-05",
+  "module-level MOD-DRSAM-DESIGN-SYSTEM dep should unblock SHELL-05",
 );
 
 if (errors.length) {

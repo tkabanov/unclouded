@@ -92,7 +92,7 @@
       "status": "pass",
       "evidence": [
         "All items scope frontend-only work under frontend/src/",
-        "Explicit no provider-adapter and no project/ writes on DS-01, DS-02, DS-04, DS-05, DS-06",
+        "Explicit no adapter and no project/ writes on DS-01, DS-02, DS-04, DS-05, DS-06",
         "DS-04 states presentation-only stub with no Supabase mutations"
       ],
       "gap": null

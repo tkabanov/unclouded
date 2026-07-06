@@ -5,7 +5,7 @@
     {
       "id": "DS-01-design-tokens-and-bubble-styles",
       "title": "Design tokens and Bubble style utilities",
-      "scope": "frontend — migrate ir/slices/styles.json (71 Bubble styles) into CSS custom properties and reusable utility classes under frontend/src/styles; resolve var(--color_*)/var(--font_*) references from Bubble presentation; no provider-adapter routes and no writes under project/",
+      "scope": "frontend — migrate ir/slices/styles.json (71 Bubble styles) into CSS custom properties and reusable utility classes under frontend/src/styles; resolve var(--color_*)/var(--font_*) references from Bubble presentation; no adapter routes and no writes under project/",
       "acceptance_criteria": [
         "AC-1: frontend/src/styles/tokens.css exports CSS variables for all distinct --color_* and --font_* tokens referenced in styles.json (e.g. color_primary_default, color_surface_default, color_aiRNbAaxgr_default, font_default)",
         "AC-2: frontend/src/styles/bubble-styles.css defines classes for each styles.json entry (Button_primary_, Text_body_, Group_card_, etc.) matching display name, typography, padding, border-radius, and hover states from IR",
