@@ -1,0 +1,187 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-01-journal-header-and-tab-bar",
+  "assessed_at": "2026-07-07T20:40:12.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx — data-bubble-id ai_RNbBHXie journal-content-area root",
+        "frontend/src/components/journal/JournalPageContent.tsx — header ai_RNbBHXif with nested ai_RNbBHXig title group, ai_RNbBHXih title, ai_RNbBHXii subtitle",
+        "frontend/src/components/journal/JournalTabBar.tsx — sibling tab bar ai_RNbBHXij with ai_RNbBHXik and ai_RNbBHXil buttons",
+        "frontend/src/pages/Journal.tsx — JournalPageContent mounted inside SHELL-07 ai_RNbBHXid boundary",
+        "ir/inventory.json — parent_id chain ai_RNbBHXid → ai_RNbBHXie → (ai_RNbBHXif | ai_RNbBHXij | ai_RNbBHXim | ai_RNbBHXjO) matches React DOM"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalTabStore.ts — activeTab journal | milestones with selectJournal / selectMilestones",
+        "frontend/src/components/journal/JournalTabBar.tsx — toggles Button_tab_active_ / Button_tab_ per active tab",
+        "frontend/src/components/journal/JournalPageContent.tsx — ai_RNbBHXim and ai_RNbBHXjO tabpanels use hidden + className hidden based on isJournalActive / isMilestonesActive",
+        "frontend/src/components/journal/JournalTabBar.tsx — role=tablist/tab with aria-selected and aria-controls wiring"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx — bubbleStyle(Text_heading_1_) and bubbleStyle(Text_body_muted_) on title/subtitle",
+        "frontend/src/components/journal/JournalTabBar.tsx — bubbleStyle(Group_tab_bar_), bubbleStyle(Button_tab_), bubbleStyle(Button_tab_active_)",
+        "ir/slices/styles.json — style_ref targets Text_heading_1_, Text_body_muted_, Group_tab_bar_, Button_tab_, Button_tab_active_",
+        "frontend/src/styles/bubble-styles.css — DS-01 CSS classes map IR font_size, font_weight, bgcolor, padding"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Journal and Milestones tab buttons toggle visible tabpanel (ai_RNbBHXim vs ai_RNbBHXjO)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx",
+        "frontend/src/components/journal/JournalTabBar.tsx",
+        "frontend/src/lib/journal/journalTabStore.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Journal chrome mounts inside SHELL-07 ai_RNbBHXid content boundary; page dialogs remain outside",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — ai_RNbBHXid wrapper contains JournalPageContent; Dialog/AlertDialog are siblings outside journal-main"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Default tab is Journal with working brownfield entries content in journal-tab-content",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalTabStore.ts — defaultTab journal",
+        "frontend/src/pages/Journal.tsx — journalTab prop renders prototype entries list inside ai_RNbBHXim"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXid",
+      "selector": "[data-bubble-id='ai_RNbBHXid']",
+      "status": "pass",
+      "notes": "SHELL-07 boundary preserved on Journal.tsx wrapper; JOURNAL-01 nests chrome inside without re-owning shell markers"
+    },
+    {
+      "bubble_id": "ai_RNbBHXie",
+      "selector": "[data-bubble-id='ai_RNbBHXie']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXif",
+      "selector": "[data-bubble-id='ai_RNbBHXif']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXig",
+      "selector": "[data-bubble-id='ai_RNbBHXig']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXih",
+      "selector": "[data-bubble-id='ai_RNbBHXih']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXii",
+      "selector": "[data-bubble-id='ai_RNbBHXii']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXij",
+      "selector": "[data-bubble-id='ai_RNbBHXij']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXik",
+      "selector": "[data-bubble-id='ai_RNbBHXik']",
+      "status": "pass",
+      "notes": "IR default style_ref Button_tab_active_; implementation swaps active/inactive styles correctly on toggle"
+    },
+    {
+      "bubble_id": "ai_RNbBHXil",
+      "selector": "[data-bubble-id='ai_RNbBHXil']",
+      "status": "pass",
+      "notes": "IR default style_ref Button_tab_; inactive when journal tab selected"
+    },
+    {
+      "bubble_id": "ai_RNbBHXim",
+      "selector": "[data-bubble-id='ai_RNbBHXim']",
+      "status": "pass",
+      "notes": "Panel marker present; inner JOURNAL-02 entities (actions row, grid) not yet migrated — expected downstream"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjO",
+      "selector": "[data-bubble-id='ai_RNbBHXjO']",
+      "status": "pass",
+      "notes": "Panel visibility toggles; placeholder copy until JOURNAL-05"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "ai_RNbBHXjO milestones-tab-content renders placeholder prose instead of IR milestones subtree; acceptable for JOURNAL-01 tab-visibility scope but not a distinct implemented layout with data.",
+      "alternative": "Land JOURNAL-05 MilestonesTab as milestonesTab prop or document explicit deferral in coverage when milestones panel is toggled.",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json — JOURNAL-05-milestones-and-relapse-list"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Brownfield journal entries UI inside ai_RNbBHXim lacks JOURNAL-02 bubble ids (ai_RNbBHXin actions row, ai_RNbBHXiu grid, ai_RNbBHXiv card template) and uses shadcn/Tailwind styling instead of IR style_refs.",
+      "alternative": "JOURNAL-02 should replace the prototype toolbar/card block passed as journalTab with migrated components while preserving tab chrome from JOURNAL-01.",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx",
+        "ir/inventory.json — ai_RNbBHXin parent_id ai_RNbBHXim"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "architecture",
+      "priority": "low",
+      "finding": "journalTabStore.ts exports useJournalTabStore local hook state, not a shared store; naming may mislead future items expecting cross-component tab persistence.",
+      "alternative": "Rename to useJournalTabs or lift tab state to Journal.tsx context if popups need to respect active tab.",
+      "evidence": [
+        "frontend/src/lib/journal/journalTabStore.ts"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "JournalTabBar adds responsive Tailwind overrides (max-w-md, flex-1, border-0) atop Group_tab_bar_ / Button_tab_* classes; minor layout delta from IR fixed tab bar.",
+      "alternative": "Reconcile fit_width fluid semantics from IR presentation when responsive pass is scheduled.",
+      "evidence": [
+        "frontend/src/components/journal/JournalTabBar.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 5,
+    "actionability": 4
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-05-app-shell-layout",
+  "assessed_at": "2026-07-07T20:12:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "frontend/src/components/shell/OfflineBanner.tsx",
+        "frontend/src/components/shell/Header.tsx",
+        "frontend/src/components/AppSidebar.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/lib/router/requireAuth.ts",
+        "frontend/src/components/ProtectedRoute.tsx",
+        "frontend/src/App.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Unauthenticated session on requiresAuth routes redirects to /",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/ProtectedRoute.tsx",
+        "frontend/src/lib/router/requireAuth.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Authenticated routes centralized with requiresAuth router meta",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "App shell composes OfflineBanner, Header, Sidebar on authenticated SPA pages via DashboardLayout",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/pages/Journal.tsx",
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/pages/Settings.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHvM0",
+      "selector": "[data-bubble-id='bTHvM0']",
+      "status": "pass",
+      "notes": "Composition mount wrapper in DashboardLayout; OfflineBanner child tree uses bTHvT0 root per SHELL-01"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUc",
+      "selector": "[data-bubble-id='ai_RNbBKLUc']",
+      "status": "pass",
+      "notes": "Header reusable root marker on shell/Header.tsx"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUe",
+      "selector": "[data-bubble-id='ai_RNbBKLUe']",
+      "status": "pass",
+      "notes": "Sidebar reusable root marker on AppSidebar.tsx Sidebar root"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "layout",
+      "finding": "Decompose layout_notes bind a full-width header above the sidebar+main row; React shell nests Header inside the main column to the right of the sidebar.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json",
+        "ir/inventory.json (bTHDT children: ai_RNbBKLUh, ai_RNbBKLUi, ai_RNbBHXRD siblings)",
+        "frontend/src/components/DashboardLayout.tsx"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Bubble bTHDU/bTHDb place header and sidebar as page-root siblings (CustomElement instances alongside dashboard-main/journal-main groups). DashboardLayout nests Header inside the right-hand column, so the header does not span full viewport width as layout_notes describe.",
+      "alternative": "Restructure DashboardLayout to: offline banner → full-width Header row → flex row (sidebar | scrollable main only), matching IR sibling order and layout_notes.",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "ir/inventory.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "routing",
+      "priority": "low",
+      "finding": "authenticatedRoutes.tsx exports toAuthenticatedRouteObjects() with handle.requiresAuth meta, but App.tsx manually maps authenticatedRouteDefs and duplicates handle metadata instead of consuming the helper.",
+      "alternative": "Use toAuthenticatedRouteObjects() inside App.tsx (or remove the unused export) to keep a single source of truth for route objects.",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "brownfield",
+      "priority": "low",
+      "finding": "Onboarding and Reassessment are requiresAuth routes but intentionally omit DashboardLayout (wizard shells). Acceptable for scope, but worth documenting so downstream shell items do not assume every authenticated route uses the app shell.",
+      "alternative": "Add a brief comment in authenticatedRoutes.tsx grouping shell vs wizard routes.",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/pages/Onboarding.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "preflight_verified": {
+    "present": true,
+    "reuse_decision": "extend",
+    "existing_files_confirmed": true,
+    "notes": "Coverage preflight block present; prototype files extended in place under frontend/ — no parallel Vue/provider-app paths."
+  }
+}

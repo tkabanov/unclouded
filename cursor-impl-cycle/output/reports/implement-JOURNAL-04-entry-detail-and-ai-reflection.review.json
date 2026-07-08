@@ -1,0 +1,205 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-04-entry-detail-and-ai-reflection",
+  "assessed_at": "2026-07-08T08:58:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EntryDetailPopup.tsx",
+        "frontend/src/pages/Journal.tsx",
+        "frontend/src/lib/journal/routes.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts",
+        "frontend/src/components/journal/EntryDetailPopup.tsx",
+        "frontend/src/pages/Journal.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalReflectionApi.ts",
+        "frontend/src/lib/journal/journalEntriesApi.ts",
+        "frontend/src/components/journal/EntryDetailPopup.tsx",
+        "frontend/supabase/functions/chat/index.ts"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "journal-view-entry-btn opens EntryDetailPopup bound to the selected JournalEntry row",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx",
+        "frontend/src/components/journal/JournalEntriesTab.tsx",
+        "frontend/src/components/journal/EntryDetailPopup.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Save Changes persists entry edits via updateJournalEntry and refreshes the entries grid",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EntryDetailPopup.tsx",
+        "frontend/src/lib/journal/journalEntriesApi.ts",
+        "frontend/src/pages/Journal.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Delete confirmation removes the entry; close/cancel dismiss without mutation",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EntryDetailPopup.tsx",
+        "frontend/src/lib/journal/journalEntriesApi.ts"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Generate Reflection calls chat edge function, persists ai_reflection_text, and renders reflection body",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalReflectionApi.ts",
+        "frontend/src/lib/journal/journalEntriesApi.ts",
+        "frontend/src/components/journal/EntryDetailPopup.tsx",
+        "frontend/src/components/journal/JournalEntryCard.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXkh",
+      "selector": "[data-bubble-id='ai_RNbBHXkh']",
+      "status": "pass",
+      "notes": "DialogContent root with Popup_dialog_ style_ref"
+    },
+    {
+      "bubble_id": "ai_RNbBHXkj",
+      "selector": "[data-bubble-id='ai_RNbBHXkj']",
+      "status": "pass",
+      "notes": "Header group with title row and close btn"
+    },
+    {
+      "bubble_id": "ai_RNbBHXkt",
+      "selector": "[data-bubble-id='ai_RNbBHXkt']",
+      "status": "pass",
+      "notes": "Editable title/mood/content form stack"
+    },
+    {
+      "bubble_id": "ai_RNbBHXkw",
+      "selector": "[data-bubble-id='ai_RNbBHXkw']",
+      "status": "pass",
+      "notes": "Title Input_default_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXkz",
+      "selector": "[data-bubble-id='ai_RNbBHXkz']",
+      "status": "pass",
+      "notes": "Mood tag Input_default_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlC",
+      "selector": "[data-bubble-id='ai_RNbBHXlC']",
+      "status": "pass",
+      "notes": "Reflection MultiLineInput_default_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlD",
+      "selector": "[data-bubble-id='ai_RNbBHXlD']",
+      "status": "pass",
+      "notes": "AI reflection section with header row and generate btn"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlL",
+      "selector": "[data-bubble-id='ai_RNbBHXlL']",
+      "status": "pass",
+      "notes": "Generate Reflection secondary button"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlP",
+      "selector": "[data-bubble-id='ai_RNbBHXlP']",
+      "status": "pass",
+      "notes": "Renders persisted or placeholder reflection text"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlX",
+      "selector": "[data-bubble-id='ai_RNbBHXlX']",
+      "status": "pass",
+      "notes": "Save Changes primary CTA"
+    },
+    {
+      "bubble_id": "ai_RNbBHXle",
+      "selector": "[data-bubble-id='ai_RNbBHXle']",
+      "status": "pass",
+      "notes": "Delete confirm destructive CTA in delete-confirm-section"
+    },
+    {
+      "bubble_id": "ai_RNbBHXla",
+      "selector": "[data-bubble-id='ai_RNbBHXla']",
+      "status": "pass",
+      "notes": "Delete confirm section toggled from Delete Entry btn"
+    },
+    {
+      "bubble_id": "ai_RNbBHXkr",
+      "selector": "[data-bubble-id='ai_RNbBHXkr']",
+      "status": "pass",
+      "notes": "Icon close dismisses without persist (AC-2)"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "data-persistence",
+      "priority": "medium",
+      "finding": "saveJournalEntryReflection falls back to profiles.onboarding_data when uds_journalentry is unavailable; it does not attempt a journal_entries.ai_reflection_text column update on the prototype table path, so reflection persistence depends on onboarding_data sidecar even when journal_entries rows exist.",
+      "alternative": "Mirror updateJournalEntry layering: try journal_entries update with ai_reflection_text before onboarding_data fallback, and extend fetchJournalEntries select when that column exists.",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts",
+        "frontend/src/lib/journal/journalReflectionApi.ts"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Entry detail popup implements expanded subtree (~30 data-bubble-id markers) beyond decompose ui_refs, but delete-confirm copy ('Are you sure you want to delete this entry?') was not verified against IR static text for ai_RNbBHXlb; layout uses shadcn Dialog stacking rather than Bubble z-index groups.",
+      "alternative": "Cross-check ai_RNbBHXlb presentation.text in ir/slices/bTHDb____root.json and align confirm copy; document Dialog vs Bubble overlay equivalence if intentional.",
+      "evidence": [
+        "frontend/src/components/journal/EntryDetailPopup.tsx",
+        "ir/slices/bTHDb____root.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional-edge-case",
+      "priority": "low",
+      "finding": "Deleting via uds_journalentry path does not prune orphaned journal_entry_reflections keys in onboarding_data when reflections were previously stored in the sidecar fallback.",
+      "alternative": "On successful uds delete, also remove matching entry id from JOURNAL_REFLECTIONS_ONBOARDING_KEY when present.",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

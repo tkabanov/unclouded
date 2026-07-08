@@ -27,5 +27,81 @@
 2026-07-06T16:19:18.850Z WAVE decompose x1: triage:MOD-DRSAM-API
 2026-07-06T16:20:36.232Z PAUSE decompose complete (auto_start_implement: false)
 2026-07-06T16:21:04.955Z WAVE implement x1: implement:AUTH-01-index-login-entry
-2026-07-06T19:18:58.240Z ACTIVATE implement manually (active=true, first=AUTH-01-index-login-entry)
-2026-07-06T19:25:35.562Z WAVE implement x1: implement:AUTH-01-index-login-entry
+2026-07-07T14:31:35.938Z WAVE implement x1: implement:AUTH-01-index-login-entry
+2026-07-07T14:36:35.763Z WAVE implement x2: implement:AUTH-02-reset-password, review:AUTH-01-index-login-entry
+2026-07-07T14:40:21.935Z WAVE implement x3: implement:SHELL-01-offline-banner, triage:AUTH-01-index-login-entry, review:AUTH-02-reset-password
+2026-07-07T14:46:09.911Z WAVE implement x2: implement:AUTH-02-reset-password, review:SHELL-01-offline-banner
+2026-07-07T14:50:07.993Z WAVE implement x2: implement:SHELL-01-offline-banner, review:AUTH-02-reset-password
+2026-07-07T14:54:44.600Z WAVE implement x3: implement:ENUM-01-navigation-and-onboarding-labels, triage:AUTH-02-reset-password, review:SHELL-01-offline-banner
+2026-07-07T14:58:51.380Z WAVE implement x3: implement:ENUM-04-tier-and-subscription-labels, triage:SHELL-01-offline-banner, review:ENUM-01-navigation-and-onboarding-labels
+2026-07-07T15:01:47.091Z WAVE implement x3: implement:DS-01-design-tokens-and-bubble-styles, triage:ENUM-01-navigation-and-onboarding-labels, review:ENUM-04-tier-and-subscription-labels
+2026-07-07T15:05:12.747Z WAVE implement x3: implement:ENUM-02-onboarding-question-enums, triage:ENUM-04-tier-and-subscription-labels, review:DS-01-design-tokens-and-bubble-styles
+2026-07-07T15:10:34.038Z WAVE implement x3: implement:AUTH-03-onboarding-wizard-shell, review:ENUM-02-onboarding-question-enums, triage:DS-01-design-tokens-and-bubble-styles
+2026-07-07T15:14:40.012Z WAVE implement x3: implement:SHELL-02-sidebar-navigation, review:AUTH-03-onboarding-wizard-shell, triage:ENUM-02-onboarding-question-enums
+2026-07-07T15:19:51.876Z WAVE implement x4: implement:SHELL-03-header-bar-and-profile-menu, triage:AUTH-03-onboarding-wizard-shell, review:SHELL-02-sidebar-navigation, review:DS-01-design-tokens-and-bubble-styles
+2026-07-07T15:24:20.526Z WAVE implement x4: implement:ENUM-03-path-coaching-and-state-enums, triage:SHELL-02-sidebar-navigation, review:SHELL-03-header-bar-and-profile-menu, review:ENUM-02-onboarding-question-enums
+2026-07-07T15:27:41.640Z WAVE implement x4: implement:ENUM-02-onboarding-question-enums, triage:SHELL-03-header-bar-and-profile-menu, review:ENUM-03-path-coaching-and-state-enums, review:DS-01-design-tokens-and-bubble-styles
+2026-07-07T15:30:16.786Z WAVE implement x4: implement:DS-01-design-tokens-and-bubble-styles, triage:SHELL-03-header-bar-and-profile-menu, review:ENUM-02-onboarding-question-enums, triage:ENUM-03-path-coaching-and-state-enums
+2026-07-07T15:33:14.646Z WAVE implement x3: implement:SHELL-04-header-login-signup-popups, triage:ENUM-02-onboarding-question-enums, review:DS-01-design-tokens-and-bubble-styles
+2026-07-07T15:38:49.705Z WAVE implement x2: review:SHELL-04-header-login-signup-popups, triage:DS-01-design-tokens-and-bubble-styles
+2026-07-07T15:42:42.055Z WAVE implement x2: implement:AUTH-04-onboarding-profile-questions, triage:SHELL-04-header-login-signup-popups
+2026-07-07T15:48:36.345Z WAVE implement x3: implement:AUTH-05-onboarding-health-load-signals, review:AUTH-04-onboarding-profile-questions, review:DS-01-design-tokens-and-bubble-styles
+2026-07-07T15:52:37.217Z WAVE implement x3: implement:DS-01-design-tokens-and-bubble-styles, triage:AUTH-04-onboarding-profile-questions, review:AUTH-05-onboarding-health-load-signals
+2026-07-07T15:54:59.925Z WAVE implement x3: implement:AUTH-04-onboarding-profile-questions, triage:AUTH-05-onboarding-health-load-signals, review:DS-01-design-tokens-and-bubble-styles
+2026-07-07T20:07:59.267Z WAVE implement x3: implement:SHELL-05-app-shell-layout, review:AUTH-04-onboarding-profile-questions, triage:DS-01-design-tokens-and-bubble-styles
+2026-07-07T20:09:44.158Z WAVE implement x3: implement:DS-02-progress-bar-reusable, triage:AUTH-04-onboarding-profile-questions, review:SHELL-05-app-shell-layout
+2026-07-07T20:11:27.910Z WAVE implement x3: implement:DS-03-score-bar-reusable, triage:SHELL-05-app-shell-layout, review:DS-02-progress-bar-reusable
+2026-07-07T20:13:50.248Z WAVE implement x3: implement:SHELL-06-dashboard-page-shell, triage:DS-02-progress-bar-reusable, review:DS-03-score-bar-reusable
+2026-07-07T20:16:38.320Z WAVE implement x3: implement:SHELL-07-journal-page-shell, review:SHELL-06-dashboard-page-shell, triage:DS-03-score-bar-reusable
+2026-07-07T20:18:21.247Z WAVE implement x3: implement:SHELL-08-paths-page-shell, triage:SHELL-06-dashboard-page-shell, review:SHELL-07-journal-page-shell
+2026-07-07T20:20:13.945Z WAVE implement x4: implement:SHELL-09-settings-page-shell, triage:SHELL-07-journal-page-shell, review:SHELL-08-paths-page-shell, review:DS-03-score-bar-reusable
+2026-07-07T20:22:24.156Z WAVE implement x3: implement:SHELL-10-chat-page-shell, triage:SHELL-08-paths-page-shell, review:SHELL-09-settings-page-shell
+2026-07-07T20:23:37.474Z WAVE implement x4: implement:DS-04-session-completion-form-reusable, triage:SHELL-09-settings-page-shell, review:SHELL-10-chat-page-shell, review:DS-03-score-bar-reusable
+2026-07-07T20:25:37.604Z WAVE implement x3: implement:DS-03-score-bar-reusable, triage:SHELL-10-chat-page-shell, review:DS-04-session-completion-form-reusable
+2026-07-07T20:27:47.091Z WAVE implement x3: implement:DS-05-chat-header-and-messages, review:DS-03-score-bar-reusable, triage:DS-04-session-completion-form-reusable
+2026-07-07T20:29:58.213Z WAVE implement x3: implement:DASH-01-dashboard-content-scaffold, triage:DS-03-score-bar-reusable, review:DS-05-chat-header-and-messages
+2026-07-07T20:32:33.140Z WAVE implement x3: implement:JOURNAL-01-journal-header-and-tab-bar, triage:DS-05-chat-header-and-messages, review:DASH-01-dashboard-content-scaffold
+2026-07-07T20:35:57.435Z WAVE implement x3: implement:DS-06-chat-composer-and-shell, triage:DASH-01-dashboard-content-scaffold, review:JOURNAL-01-journal-header-and-tab-bar
+2026-07-07T20:38:56.872Z WAVE implement x3: implement:DASH-02-greeting-coaching-quick-actions, review:DS-06-chat-composer-and-shell, triage:JOURNAL-01-journal-header-and-tab-bar
+2026-07-07T20:41:45.427Z WAVE implement x3: implement:DASH-03-micro-commitments-widget, triage:DS-06-chat-composer-and-shell, review:DASH-02-greeting-coaching-quick-actions
+2026-07-07T20:45:01.619Z WAVE implement x3: implement:DASH-04-daily-checkin-card, triage:DASH-02-greeting-coaching-quick-actions, review:DASH-03-micro-commitments-widget
+2026-07-07T20:50:56.129Z WAVE implement x3: implement:DASH-06-chat-and-journal-previews, triage:DASH-03-micro-commitments-widget, review:DASH-04-daily-checkin-card
+2026-07-07T21:30:10.303Z WAVE implement x3: implement:DASH-03-micro-commitments-widget, triage:DASH-04-daily-checkin-card, review:DASH-06-chat-and-journal-previews
+2026-07-07T21:40:02.436Z WAVE implement x3: implement:DASH-05-insights-and-path-cards, review:DASH-03-micro-commitments-widget, triage:DASH-06-chat-and-journal-previews
+2026-07-08T04:55:41.420Z WAVE implement x3: implement:DASH-05-insights-and-path-cards, review:DASH-03-micro-commitments-widget, triage:DASH-06-chat-and-journal-previews
+2026-07-08T04:58:44.622Z WAVE implement x3: implement:DASH-07-crisis-onboarding-services-overlays, triage:DASH-03-micro-commitments-widget, review:DASH-05-insights-and-path-cards
+2026-07-08T06:09:32.338Z WAVE implement x3: implement:JOURNAL-02-journal-entries-list, triage:DASH-05-insights-and-path-cards, review:DASH-07-crisis-onboarding-services-overlays
+2026-07-08T06:13:29.569Z WAVE implement x3: implement:JOURNAL-05-milestones-and-relapse-list, triage:DASH-07-crisis-onboarding-services-overlays, review:JOURNAL-02-journal-entries-list
+2026-07-08T06:18:08.234Z WAVE implement x3: implement:PATHS-01-paths-tab-state-and-header, triage:JOURNAL-02-journal-entries-list, review:JOURNAL-05-milestones-and-relapse-list
+2026-07-08T06:22:13.668Z WAVE implement x3: implement:JOURNAL-02-journal-entries-list, triage:JOURNAL-05-milestones-and-relapse-list, review:PATHS-01-paths-tab-state-and-header
+2026-07-08T06:26:57.826Z WAVE implement x3: implement:JOURNAL-06-milestone-add-edit-popups, review:JOURNAL-02-journal-entries-list, triage:PATHS-01-paths-tab-state-and-header
+2026-07-08T06:34:39.268Z WAVE implement x3: implement:JOURNAL-07-relapse-log-edit-popups, triage:JOURNAL-02-journal-entries-list, review:JOURNAL-06-milestone-add-edit-popups
+2026-07-08T06:40:20.640Z WAVE implement x4: implement:JOURNAL-03-new-entry-popup, triage:JOURNAL-06-milestone-add-edit-popups, review:JOURNAL-07-relapse-log-edit-popups, review:PATHS-01-paths-tab-state-and-header
+2026-07-08T06:49:40.362Z WAVE implement x3: implement:JOURNAL-04-entry-detail-and-ai-reflection, review:JOURNAL-03-new-entry-popup, triage:JOURNAL-07-relapse-log-edit-popups
+2026-07-08T06:56:58.264Z WAVE implement x4: implement:CHAT-01-chat-content-layout, triage:JOURNAL-03-new-entry-popup, review:JOURNAL-04-entry-detail-and-ai-reflection, review:PATHS-01-paths-tab-state-and-header
+2026-07-08T07:00:29.287Z WAVE implement x3: implement:PATHS-01-paths-tab-state-and-header, triage:JOURNAL-04-entry-detail-and-ai-reflection, review:CHAT-01-chat-content-layout
+2026-07-08T07:04:17.108Z WAVE implement x3: implement:CRISIS-01-crisis-support-reusable, review:PATHS-01-paths-tab-state-and-header, triage:CHAT-01-chat-content-layout
+2026-07-08T07:08:08.203Z WAVE implement x3: implement:CHAT-02-conversation-thread-sidebar, triage:PATHS-01-paths-tab-state-and-header, review:CRISIS-01-crisis-support-reusable
+2026-07-08T07:13:18.110Z WAVE implement x3: implement:PATHS-02-paths-grid-filters-and-cards, review:CHAT-02-conversation-thread-sidebar, triage:CRISIS-01-crisis-support-reusable
+2026-07-08T07:18:27.128Z WAVE implement x2: implement:PATHS-04-paths-resources-panel, review:PATHS-02-paths-grid-filters-and-cards
+2026-07-08T07:23:37.761Z WAVE implement x3: implement:PATHS-02-paths-grid-filters-and-cards, review:PATHS-04-paths-resources-panel, review:CHAT-02-conversation-thread-sidebar
+2026-07-08T07:28:55.417Z WAVE implement x2: implement:PATHS-04-paths-resources-panel, review:PATHS-02-paths-grid-filters-and-cards
+2026-07-08T07:47:01.716Z WAVE implement x4: implement:PATHS-06-enrollment-floating-services-bar, triage:PATHS-02-paths-grid-filters-and-cards, review:PATHS-04-paths-resources-panel, review:CHAT-02-conversation-thread-sidebar
+2026-07-08T07:51:36.356Z WAVE implement x3: implement:PATHS-03-path-detail-enrollment-popup, triage:PATHS-04-paths-resources-panel, review:PATHS-06-enrollment-floating-services-bar
+2026-07-08T07:56:24.544Z WAVE implement x4: implement:PATHS-05-resource-detail-popup, review:PATHS-03-path-detail-enrollment-popup, triage:PATHS-06-enrollment-floating-services-bar, review:CHAT-02-conversation-thread-sidebar
+2026-07-08T08:02:39.262Z WAVE implement x3: implement:PATHS-07-session-completion-route-integration, triage:PATHS-03-path-detail-enrollment-popup, review:PATHS-05-resource-detail-popup
+2026-07-08T08:06:07.257Z WAVE implement x3: implement:PATHS-05-resource-detail-popup, review:PATHS-07-session-completion-route-integration, review:CHAT-02-conversation-thread-sidebar
+2026-07-08T08:10:17.553Z WAVE implement x3: implement:CHAT-02-conversation-thread-sidebar, review:PATHS-05-resource-detail-popup, triage:PATHS-07-session-completion-route-integration
+2026-07-08T08:14:27.990Z WAVE implement x3: implement:CHAT-06-chat-welcome-empty-state, triage:PATHS-05-resource-detail-popup, review:CHAT-02-conversation-thread-sidebar
+2026-07-08T08:26:31.254Z WAVE implement x3: implement:SET-01-settings-tab-router-and-header, triage:CHAT-02-conversation-thread-sidebar, review:CHAT-06-chat-welcome-empty-state
+2026-07-08T08:32:53.622Z WAVE implement x2: implement:CHAT-04-delete-conversation-popup, review:SET-01-settings-tab-router-and-header
+2026-07-08T08:36:27.654Z WAVE implement x4: implement:API-01-pillar-score-engine, review:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, triage:SET-01-settings-tab-router-and-header
+2026-07-08T08:41:35.834Z WAVE implement x3: implement:CHAT-06-chat-welcome-empty-state, triage:CHAT-04-delete-conversation-popup, review:API-01-pillar-score-engine
+2026-07-08T08:44:33.411Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine
+2026-07-08T08:46:31.237Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine
+2026-07-08T08:48:45.083Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine
+2026-07-08T08:51:19.141Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine
+2026-07-08T08:53:55.093Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine
+2026-07-08T08:55:45.575Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine
+2026-07-08T08:58:04.238Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine
+2026-07-08T09:01:39.291Z WAVE implement x4: triage:CHAT-04-delete-conversation-popup, review:CHAT-06-chat-welcome-empty-state, review:SET-01-settings-tab-router-and-header, review:API-01-pillar-score-engine

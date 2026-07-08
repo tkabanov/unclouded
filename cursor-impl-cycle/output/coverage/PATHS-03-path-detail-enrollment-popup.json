@@ -1,0 +1,85 @@
+{
+  "item_id": "PATHS-03-path-detail-enrollment-popup",
+  "module_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-08T09:55:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/pages/PathDetail.tsx",
+      "frontend/src/components/paths/PathCard.tsx",
+      "frontend/src/components/paths/PathsGridPanel.tsx",
+      "frontend/src/components/paths/ResourceDetailPopup.tsx",
+      "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+      "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+      "frontend/src/lib/paths/routes.ts",
+      "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+      "frontend/src/lib/paths.ts",
+      "frontend/src/components/design-system/ProgressBar.tsx"
+    ],
+    "gaps": [],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/pages/PathDetail.tsx": "frontend/src/pages/PathDetail.tsx",
+      "frontend/src/components/paths/PathDetailPopup.vue": "frontend/src/components/paths/PathDetailPopup.tsx",
+      "frontend/src/lib/paths/pathsEnrollmentApi.ts": "frontend/src/lib/paths/pathsEnrollmentApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — viewingEnrollment/pathDetailPopupOpen state; PathsGridPanel onViewDetails opens popup instead of navigate fallback",
+        "frontend/src/components/paths/PathDetailPopup.tsx — root ai_RNbBHYJO Dialog with overlay ai_RNbBHYMU; header ai_RNbBHYJQ with title ai_RNbBHYJZ, badges ai_RNbBHYJS, close ai_RNbBHYJa bound to enrollment row from grid"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathDetailPopup.tsx — body ai_RNbBHYJc with Steps label ai_RNbBHYJh and session list text ai_RNbBHYJi from getPathBySlug",
+        "frontend/src/components/paths/PathDetailPopup.tsx — disclaimer banner ai_RNbBHYJk (Group_alert_banner_) with icon ai_RNbBHYJl and IR copy ai_RNbBHYJm",
+        "frontend/src/components/paths/PathDetailPopup.tsx — progress group ai_RNbBHYJn with DS-02 wrapper bTItq, bar instance bTIuq + ProgressBar, pct ai_RNbBHYJs, last-step ai_RNbBHYJt"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts — enrollInPath/unenrollFromPath mutate pathenrollment1 with profiles.onboarding_data.path_enrollment1 fallback (milestonesApi pattern)",
+        "frontend/src/components/paths/PathDetailPopup.tsx — footer ai_RNbBHYJu wires enroll ai_RNbBHYJw and unenroll ai_RNbBHYJv; refresh pathsEnrollmentStore on success",
+        "frontend/src/components/paths/PathDetailPopup.tsx — Upgrade Plan bTJHa visible when path tier priority exceeds user tier stub (ENUM-04 TIER_ORDER + subscribed/onboarding tier_option_tier_os)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYJO", "selector": "[data-bubble-id='ai_RNbBHYJO']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYMU", "selector": "[data-bubble-id='ai_RNbBHYMU']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJQ", "selector": "[data-bubble-id='ai_RNbBHYJQ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJS", "selector": "[data-bubble-id='ai_RNbBHYJS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJZ", "selector": "[data-bubble-id='ai_RNbBHYJZ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJa", "selector": "[data-bubble-id='ai_RNbBHYJa']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJc", "selector": "[data-bubble-id='ai_RNbBHYJc']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJh", "selector": "[data-bubble-id='ai_RNbBHYJh']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJi", "selector": "[data-bubble-id='ai_RNbBHYJi']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJk", "selector": "[data-bubble-id='ai_RNbBHYJk']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJn", "selector": "[data-bubble-id='ai_RNbBHYJn']", "status": "pass" },
+    { "bubble_id": "bTItq", "selector": "[data-bubble-id='bTItq']", "status": "pass" },
+    { "bubble_id": "bTIuq", "selector": "[data-bubble-id='bTIuq']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJs", "selector": "[data-bubble-id='ai_RNbBHYJs']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJt", "selector": "[data-bubble-id='ai_RNbBHYJt']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJu", "selector": "[data-bubble-id='ai_RNbBHYJu']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJw", "selector": "[data-bubble-id='ai_RNbBHYJw']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJv", "selector": "[data-bubble-id='ai_RNbBHYJv']", "status": "pass" },
+    { "bubble_id": "bTJHa", "selector": "[data-bubble-id='bTJHa']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYIJ", "selector": "[data-bubble-id='ai_RNbBHYIJ']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/paths/PathDetailPopup.tsx",
+    "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+    "frontend/src/lib/paths/routes.ts",
+    "frontend/src/pages/Paths.tsx",
+    "cursor-impl-cycle/output/coverage/PATHS-03-path-detail-enrollment-popup.json"
+  ]
+}

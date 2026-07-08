@@ -2,49 +2,48 @@
 
 Read `cursor-impl-cycle/config/implementation-policy.json` and follow it in every scope/decompose/implement turn.
 
-## Scope: DrSam authenticated SPA
+## Scope: DrSam authenticated SPA (brownfield)
 
-- Implement **DrSam authenticated user SPA** (`drsam-99657`): auth/onboarding entry, shared shell and design system, then dashboard, journal, paths, chat, and settings.
-- **Out of scope:** public-only surfaces (`404`, stub pages) unless an acceptance criterion explicitly requires them.
-- Use `config/drsam-scope-seed.json` as module hints; refine against IR.
+- Implement **DrSam authenticated user SPA** — onboarding, dashboard, chat, journal, paths, settings, crisis support.
+- **Brownfield:** a React + Vite prototype already exists in `frontend/`. Extend it in place; do not create a parallel Vue app or `provider-app/` tree.
+- Read `cursor-impl-cycle/config/prototype-inventory.json` before implement work.
+- Use `state/module-map.json` and IR slices as source of truth for Bubble parity.
 
 ## Backend: read-only `project/`
 
-- `project/` is the **canonical Supabase backend** (migrations, RLS, edge functions).
+- `project/` is the **canonical Supabase backend** (migrations, RLS, edge functions) when present.
+- `frontend/supabase/` holds the prototype's migrations and edge functions — read for client integration context.
 - **FORBIDDEN:** any write/edit/create/delete under `project/` including `project/supabase/**`.
-- **Allowed:** read `project/supabase` for schema, types, RPC names, RLS behavior, and existing API contracts.
+- **Allowed:** read schema, types, RPC names, RLS behavior, and existing API contracts.
 
 ## Where to write code
 
 | Area | Path | Purpose |
 |------|------|---------|
-| Frontend | `frontend/` | Vue SPA for DrSam UI |
-| Thin adapter | `adapter/` | Fastify proxy/orchestration replacing Bubble API-connector workflows when direct Supabase client is insufficient |
+| Frontend | `frontend/` | React + Vite + TypeScript SPA (existing prototype) |
 | Cycle artifacts | `cursor-impl-cycle/` | module-map, decompose, coverage, reports |
 
-## Adapter rules (Fastify)
+Routes live in `frontend/src/App.tsx`. Auth guard: `frontend/src/components/ProtectedRoute.tsx`.
 
-Read `cursor-impl-cycle/docs/ADAPTER-POLICY.md`.
+## Supabase client rules
 
-Use `adapter/` **only when necessary**:
+**Default:** call Supabase from `frontend/` via `@/integrations/supabase/client.ts`:
 
-1. **First choice:** call Supabase from `frontend/` via `supabase-js`, `supabase.rpc()`, or `fetch` to edge functions with user JWT + `apikey`.
-2. **Adapter when:** server secret required, inbound webhook, or multi-step orchestration intentionally kept off the client (not a single edge/RPC/REST passthrough).
-3. **Adapter must not:** duplicate schema, add migrations, fork business rules in Supabase, or proxy one user-JWT call that RLS already allows on the client.
-
-**Forbidden:** new adapter routes that only forward `Authorization: Bearer <user>` to a single Supabase edge function, RPC, or table — implement in `frontend/` instead.
+- `supabase.from()`, `supabase.rpc()`, or `fetch` to `${VITE_SUPABASE_URL}/functions/v1/<name>` with user JWT
+- Do **not** duplicate schema, add migrations under `project/`, or fork business rules in client code
 
 ## Decompose implications
 
-- Items should state whether work is **frontend-only**, **adapter-only**, or **both**.
-- Do not decompose items that require changing `project/supabase`; if blocked, document as dependency gap in `scope` and use adapter/read-only workaround in AC.
+- Items should state whether work is **frontend-only** or needs edge function changes in `frontend/supabase/`.
+- Do not decompose items that require changing `project/supabase`; document dependency gaps in `scope`.
+- `target_files[]` use `.tsx` / `.ts` under `frontend/src/` — see `config/path-conventions.json`.
 
 ## UI fidelity (layout and styles)
 
 Read `cursor-impl-cycle/prompts/ui-fidelity-rubric.md` in decompose and implement phases.
 
 - IR elements carry `presentation` (layout, colors, fonts, `style_ref`); styles live in `ir/slices/styles.json`
-- Preserve Bubble element hierarchy, regions, and visual design — do not redesign feature screens
+- Preserve Bubble element hierarchy, regions, and visual design — do not redesign screens
 - Use `drsam-99657.bubble` via entity `source_path` when IR presentation is incomplete
 - Mark migrated roots with `data-bubble-id="<element_id>"` when AC requires visual parity
 - Land `MOD-DRSAM-DESIGN-SYSTEM` (shared styles/primitives) before feature screens when possible
@@ -54,7 +53,8 @@ Read `cursor-impl-cycle/prompts/ui-fidelity-rubric.md` in decompose and implemen
 Reject (`blockers[]`) if:
 
 - Any changed path is under `project/`
-- Coverage claims Supabase migration/RLS changes
-- Item implements flows outside DrSam authenticated SPA scope
+- Coverage claims Supabase migration/RLS changes under `project/`
+- Implementer recreated a parallel app instead of extending `frontend/`
 - UI diverges from IR element tree or ignores in-scope `style_ref` / presentation metadata
-- **Unnecessary adapter:** new/changed `adapter/` route is only a user-JWT passthrough to one Supabase edge function, RPC, or RLS-backed REST call (see `docs/ADAPTER-POLICY.md`)
+- Brownfield implement missing `preflight` block in coverage report
+- `preflight.reuse_decision: skip` but ACs are not actually satisfied

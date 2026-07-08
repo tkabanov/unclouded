@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "ENUM-04-tier-and-subscription-labels",
+  "assessed_at": "2026-07-07T15:15:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-ENUM-04-tier-and-subscription-labels.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "ENUM-04 scope is to export tier_os slug/label maps and Supabase correlation docs in frontend/src/lib/enums/tier.ts and subscription.ts — not to rewire existing consumer pages. All three ACs pass (criteria_audit pass, coverage 100%): AC-2 requires rendering tier names without Bubble option-set runtime reads, which Settings.tsx already satisfies via static copy; it does not mandate @/lib/enums imports in this item. target_files exclude Settings.tsx, Subscription.tsx, and plans.ts. Downstream SET-07-subscription-tab-and-billing (depends_on ENUM-04) owns subscription-tab consumer wiring and AC-2 tier-badge adoption; PATHS items similarly consume ENUM-04 labels when those screens implement. Consumer refactor to getTierSubscriptionLabel / TIER_SUBSCRIPTION_LABELS is valid follow-up polish, not a gate blocker."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "AC-3 requires forward traceability (tier_os slug → Bubble id → future subscription_plan rows), satisfied by TIER_BUBBLE_IDS and the subscription.ts mapping table. An exported BUBBLE_ID_TO_TIER reverse lookup is optional adapter-layer convenience not named in ENUM-04 acceptance criteria; criteria_audit AC-3 passes. No current downstream depends_on gate requires reverse maps — PATHS tier filtering and SET-07 plan cards work from slug-keyed exports. Add TIER_BY_BUBBLE_ID when an adapter or API payload actually carries Bubble option value ids."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Finding is intentional and already addressed: ir/resolver.json display_name pro__edc578 is the Bubble db_value slug convention (same pattern as settings_tab_os), while TIER_LABELS holds slug keys and TIER_SUBSCRIPTION_LABELS supplies title-case subscription UI strings. subscription.ts module header explicitly documents slug → Bubble id → subscription_plan.name_text correlation and distinguishes prototype PlanId alignment. No AC requires resolver display_name literals in TIER_LABELS; grounding is correct per ENUM module conventions."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, all ACs pass. Deferred: C-1 consumer adoption of @/lib/enums in Settings/Subscription/plans.ts (SET-07-subscription-tab-and-billing and PATHS consumer items); C-2 optional Bubble id → slug reverse map (add when adapter payloads need it). Accepted: C-3 pro vs pro__edc578 naming split — documented slug vs subscription-label convention."
+}

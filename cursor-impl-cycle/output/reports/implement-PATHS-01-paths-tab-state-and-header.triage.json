@@ -1,0 +1,34 @@
+{
+  "phase": "implement",
+  "target_id": "PATHS-01-paths-tab-state-and-header",
+  "assessed_at": "2026-07-08T07:08:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-01-paths-tab-state-and-header.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "AC-2 names tab button ai_RNbBHYHD (not the RG cell wrapper ai_RNbBHYKi) as the required interactive marker; PathsTabBar places data-bubble-id on each button per Bubble repeating-group template semantics where cell and button share the template id. Review ui_evidence passes ai_RNbBHYKi with note that RG-cell collapse is functionally equivalent; no criteria_audit or functional_audit failure. Adding a separate ai_RNbBHYKi wrapper is optional automated-parity polish, not a PATHS-01 AC or downstream depends_on requirement."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-07-session-completion-route-integration",
+      "rationale": "AC-3 requires bTJDf hide/show gating when bTJAB is visible — satisfied structurally via useSessionCompletionVisible hook and conditional render in Paths.tsx; coverage and criteria_audit AC-3 explicitly document stub-until-PATHS-07 as pass evidence. End-to-end overlay behavior, URL session param matching, and integration tests are owned by PATHS-07 scope/AC-1–AC-2; PATHS-02/04/06 depends_on gates on PATHS-01 need tab shell and gating wire only, not live overlay state."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "PATHS-02-paths-grid-filters-and-cards",
+      "rationale": "PATHS-01 scope is tab state, header, and bTJDf sibling-panel visibility — not enrollment grid migration. AC-4 requires ai_RNbBHYHE/bTJDr panel shell visibility on my_paths_ tab, which passes with brownfield PathsGuidedGrid placeholder inside the correct panel boundary. PATHS-02 explicitly owns ai_RNbBHYHn grid RG, tier filter, and path cards inside bTJDr; depends_on PATHS-01 is satisfiable with current tab chrome. Retaining prototype ALL_PATHS grid until PATHS-02 is intentional brownfield disposition per SHELL-08 and review alternative."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — post-rewrite review ok=true, coverage 100%, B-1 resolved, 0 blockers, all ACs and functional checks pass. C-1 accepted: RG cell wrapper collapse matches AC-2 ai_RNbBHYHD requirement and review ui_evidence pass. C-2 deferred to PATHS-07-session-completion-route-integration for live bTJAB overlay and integration tests. C-3 deferred to PATHS-02-paths-grid-filters-and-cards for IR enrollment grid inside bTJDr."
+}

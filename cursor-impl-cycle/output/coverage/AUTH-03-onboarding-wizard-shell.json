@@ -1,0 +1,92 @@
+{
+  "item_id": "AUTH-03-onboarding-wizard-shell",
+  "module_id": "MOD-DRSAM-AUTH",
+  "assessed_at": "2026-07-07T15:20:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/lib/userProfile.tsx",
+      "frontend/src/App.tsx",
+      "frontend/src/lib/enums/onboardingSteps.ts",
+      "frontend/src/components/OnboardingWelcome.tsx",
+      "frontend/src/components/OnboardingName.tsx",
+      "frontend/src/components/OnboardingRole.tsx",
+      "frontend/src/components/OnboardingPillar.tsx",
+      "frontend/src/components/OnboardingStability.tsx",
+      "frontend/src/components/OnboardingPerformance.tsx",
+      "frontend/src/components/OnboardingAlignment.tsx",
+      "frontend/src/components/OnboardingOrientation.tsx",
+      "frontend/src/components/OnboardingLoadSignals.tsx",
+      "frontend/src/components/OnboardingStateSignals.tsx",
+      "frontend/src/components/OnboardingBehavioral.tsx",
+      "frontend/src/components/OnboardingHealthFlags.tsx",
+      "frontend/src/components/OnboardingResults.tsx"
+    ],
+    "gaps": [
+      "AC-1: Onboarding.tsx lacked data-bubble-id on bTGNI/bTGNP shell and bTHEL/bTHEQ wizard chrome",
+      "AC-2: step state used numeric index (0–12) instead of onboarding_step_os slugs",
+      "AC-3: no explicit next_step/previous_step transition helpers matching Bubble workflows bTHIT/bTHIw"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/OnboardingPage.vue": "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/features/onboarding/onboardingStore.ts": "frontend/src/lib/onboardingWizard.ts",
+      "frontend/src/features/onboarding/stepRegistry.ts": "frontend/src/lib/onboardingWizard.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingWizardShell.tsx — data-bubble-id on bTGNI (page), bTGNP (wrapper), bTIgV (crisis), bTHEL (user chrome), bTHEQ/bTHER (step progress)",
+        "frontend/src/pages/Onboarding.tsx — per-step content wrapped with Bubble group ids from ONBOARDING_STEP_BUBBLE_GROUPS"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/onboardingWizard.ts — advanceStep/retreatStep over ONBOARDING_STEP_ORDER (13 onboarding_step_os values)",
+        "frontend/src/pages/Onboarding.tsx — useState<OnboardingStepSlug> with exhaustive switch routing all 13 steps; shell back button via canGoBack/retreatStep"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/onboardingWizard.ts — ONBOARDING_WORKFLOW_EVENTS maps bTHIT (next_step ChangeThing) and bTHIw (previous_step ChangeThing)",
+        "frontend/src/pages/Onboarding.tsx — goNext/goBack mirror custom-event workflows; step panel data-workflow-next/back attributes; per-step onNext handlers chain ChangeThing-equivalent local state then trigger next_step"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGNI",
+      "selector": "[data-bubble-id='bTGNI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTGNP",
+      "selector": "[data-bubble-id='bTGNP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHEL",
+      "selector": "[data-bubble-id='bTHEL']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHEQ",
+      "selector": "[data-bubble-id='bTHEQ']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/onboardingWizard.ts",
+    "frontend/src/components/OnboardingWizardShell.tsx",
+    "frontend/src/pages/Onboarding.tsx",
+    "cursor-impl-cycle/output/coverage/AUTH-03-onboarding-wizard-shell.json"
+  ]
+}

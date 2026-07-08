@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-01-offline-banner",
+  "assessed_at": "2026-07-07T17:00:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-SHELL-01-offline-banner.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "AC-3 explicitly requires catalogued Group_section_, Text_caption_, and Icon_muted_ tokens from ir/slices/styles.json — not raw Bubble rgba(82,82,82) inverse bar colors. criteria_audit AC-3 and all ui_evidence entries pass with named style_refs applied. Light-surface bar vs dark Bubble bar is intentional scope compliance; reviewer confirms AC-3 mandates catalog tokens. A future catalogued inverse/surface style (if pixel parity is desired) is design-system polish, not a SHELL-01 blocker."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Icon glyph parity (Lucide CloudOff vs Bubble phosphor cloud-slash on bTHEi) is optional visual polish. SHELL-01 ACs and ui_refs cover element tree, visibility workflow, and Icon_muted_ style_ref — not phosphor icon library matching. ui_evidence bTHEi passes; SHELL-02+ depends_on does not gate on icon set choice. Swap to phosphor-compatible icon only if strict glyph parity becomes an explicit later requirement."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "useOnlineStatus.ts and DashboardLayout.tsx are documented in coverage preflight.existing_files_found and AC-2 criteria evidence; integration behavior is fully evidenced and passes review. files_changed omission is coverage-artifact housekeeping for audit traceability only — it does not reduce coverage_pct, fail any criteria_audit, or block downstream shell items whose depends_on on SHELL-01 is satisfiable via the mounted OfflineBanner composable."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, all ACs and functional checks pass. Accepted: C-1 palette divergence intentional per AC-3 catalog tokens. Deferred: C-2 icon glyph parity (optional polish); C-3 coverage files_changed completeness for audit traceability."
+}

@@ -1,0 +1,94 @@
+{
+  "item_id": "CHAT-02-conversation-thread-sidebar",
+  "module_id": "MOD-DRSAM-CHAT",
+  "assessed_at": "2026-07-08T08:15:00.000Z",
+  "rewrite_pass": true,
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Chat.tsx",
+      "frontend/src/components/chat/ChatPageContent.tsx",
+      "frontend/src/components/chat/ConversationSidebar.tsx",
+      "frontend/src/components/chat/ConversationThreadCell.tsx",
+      "frontend/src/lib/chat/routes.ts",
+      "frontend/src/lib/chat/chatConversationsApi.ts",
+      "frontend/src/lib/chat/chatRouteStore.ts",
+      "frontend/src/hooks/useEmptyConversationBootstrap.ts"
+    ],
+    "gaps": [],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/chat/ConversationSidebar.vue": "frontend/src/components/chat/ConversationSidebar.tsx",
+      "frontend/src/components/chat/ConversationThreadCell.vue": "frontend/src/components/chat/ConversationThreadCell.tsx",
+      "frontend/src/lib/chat/chatConversationsApi.ts": "frontend/src/lib/chat/chatConversationsApi.ts",
+      "frontend/src/lib/chat/chatRouteStore.ts": "frontend/src/lib/chat/chatRouteStore.ts",
+      "frontend/src/hooks/useEmptyConversationBootstrap.ts": "frontend/src/hooks/useEmptyConversationBootstrap.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ConversationSidebar.tsx — root data-bubble-id ai_RNbBHXbK with RG ai_RNbBHXbL",
+        "frontend/src/components/chat/ConversationThreadCell.tsx — bM→bN only; bN siblings bO (text group) + bR (actions); bO children bP (select button) + bQ (date)"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatConversationsApi.ts — fetchConversations queries chatconversation for current user ordered by modified_date"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatRouteStore.ts — useChatConversationParam reads/writes ?conversation= preserving other params",
+        "frontend/src/components/chat/ConversationThreadCell.tsx — isActive highlights ai_RNbBHXbM when conversation.id matches URL param",
+        "frontend/src/components/chat/ConversationThreadCell.tsx — bP select button calls onSelect"
+      ]
+    },
+    {
+      "id": "AC-4",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ConversationThreadCell.tsx — bR actions group with bS Pencil rename and bU Trash2 delete; bU calls onDeleteRequest",
+        "frontend/src/pages/Chat.tsx — deleteTarget state set by handleDeleteRequest for CHAT-04 DeleteConversationPopup host"
+      ]
+    },
+    {
+      "id": "AC-5",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useEmptyConversationBootstrap.ts — empty RG bootstrap creates first chatconversation and navigates to ?conversation=<id>",
+        "frontend/src/components/chat/ConversationSidebar.tsx — invokes bootstrap hook after fetchConversations"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXbK", "selector": "[data-bubble-id='ai_RNbBHXbK']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbL", "selector": "[data-bubble-id='ai_RNbBHXbL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbM", "selector": "[data-bubble-id='ai_RNbBHXbM']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbN", "selector": "[data-bubble-id='ai_RNbBHXbN']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbO", "selector": "[data-bubble-id='ai_RNbBHXbO']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbP", "selector": "[data-bubble-id='ai_RNbBHXbP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbQ", "selector": "[data-bubble-id='ai_RNbBHXbQ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbR", "selector": "[data-bubble-id='ai_RNbBHXbR']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbS", "selector": "[data-bubble-id='ai_RNbBHXbS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXbU", "selector": "[data-bubble-id='ai_RNbBHXbU']", "status": "pass" }
+  ],
+  "blockers_fixed": [
+    "B-1: Restored IR cell hierarchy bM→bN→(bO+bR); bO contains bP button + bQ date text",
+    "B-2: Added deleteTarget state in Chat.tsx; handleDeleteRequest sets selected conversation",
+    "B-3: bS uses Pencil + onRenameRequest; bU uses Trash2 + onDeleteRequest"
+  ],
+  "files_changed": [
+    "frontend/src/lib/chat/routes.ts",
+    "frontend/src/components/chat/ConversationThreadCell.tsx",
+    "frontend/src/components/chat/ConversationSidebar.tsx",
+    "frontend/src/pages/Chat.tsx",
+    "cursor-impl-cycle/output/coverage/CHAT-02-conversation-thread-sidebar.json"
+  ]
+}

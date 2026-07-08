@@ -1,0 +1,146 @@
+{
+  "item_id": "DS-05-chat-header-and-messages",
+  "module_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-07T20:35:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/styles/tokens.css",
+      "frontend/src/styles/bubble-styles.css",
+      "frontend/src/styles/index.ts",
+      "frontend/src/components/ChatWindow.tsx",
+      "frontend/src/pages/Chat.tsx",
+      "frontend/src/lib/chat/routes.ts"
+    ],
+    "gaps": [
+      "No frontend/src/components/chat/ directory; ChatWindow uses ai-elements instead of IR-faithful reusable chat header/messages components"
+    ],
+    "reuse_decision": "new",
+    "mapped_target_files": {
+      "frontend/src/components/chat/ChatHeader.vue": "frontend/src/components/chat/ChatHeader.tsx",
+      "frontend/src/components/chat/ChatMessagesList.vue": "frontend/src/components/chat/ChatMessagesList.tsx",
+      "frontend/src/components/chat/ChatMessageCell.vue": "frontend/src/components/chat/ChatMessageCell.tsx",
+      "frontend/src/components/chat/index.ts": "frontend/src/components/chat/index.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "frontend/src/components/chat/types.ts"
+      ],
+      "notes": "Root data-bubble-id=\"bTIRb\"; title bTIRh and mode badge bTIRi use Text_body_; right group bTIRm with accent badge bTIRn (Group_badge_accent_), info icon bTIRo (Icon_default_), caption bTIRs (Text_small_); ChatConversation prop with IR default copy"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatMessagesList.tsx",
+        "frontend/src/components/chat/ChatMessageCell.tsx"
+      ],
+      "notes": "ChatMessagesList data-bubble-id=\"bTISK\" with RepeatingGroup bTISM; user cells bTISQ/bTISS right-aligned; assistant cells bTIUI with avatar bTIUK/bTIUO and bubble bTIUP containing bTIUQ/bTIUU left-aligned"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatMessagesList.tsx",
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "frontend/src/components/chat/ChatMessageCell.tsx"
+      ],
+      "notes": "Messages area uses Group_transparent_ with overflow-y-auto; typography and badge colors resolve through bubbleStyle() from DS-01 (Text_body_, Text_disclaimer_, Group_badge_accent_, RepeatingGroup_list_)"
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIRb",
+      "selector": "[data-bubble-id='bTIRb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRh",
+      "selector": "[data-bubble-id='bTIRh']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRi",
+      "selector": "[data-bubble-id='bTIRi']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRm",
+      "selector": "[data-bubble-id='bTIRm']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRn",
+      "selector": "[data-bubble-id='bTIRn']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRo",
+      "selector": "[data-bubble-id='bTIRo']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRs",
+      "selector": "[data-bubble-id='bTIRs']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTISK",
+      "selector": "[data-bubble-id='bTISK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTISM",
+      "selector": "[data-bubble-id='bTISM']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTISQ",
+      "selector": "[data-bubble-id='bTISQ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTISS",
+      "selector": "[data-bubble-id='bTISS']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUI",
+      "selector": "[data-bubble-id='bTIUI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUK",
+      "selector": "[data-bubble-id='bTIUK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUP",
+      "selector": "[data-bubble-id='bTIUP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUQ",
+      "selector": "[data-bubble-id='bTIUQ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUU",
+      "selector": "[data-bubble-id='bTIUU']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/chat/types.ts",
+    "frontend/src/components/chat/ChatHeader.tsx",
+    "frontend/src/components/chat/ChatMessageCell.tsx",
+    "frontend/src/components/chat/ChatMessagesList.tsx",
+    "frontend/src/components/chat/index.ts",
+    "cursor-impl-cycle/output/coverage/DS-05-chat-header-and-messages.json"
+  ]
+}

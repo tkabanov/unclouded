@@ -1,42 +1,34 @@
 {
-  "scope_focus": "authenticated_spa",
-  "description": "DrSam authenticated user SPA (drsam-99657): auth/onboarding entry, shared shell and design system, then dashboard, journal, paths, chat, and settings. Public-only surfaces excluded.",
-  "forbidden_write_paths": [
-    "project/"
-  ],
-  "allowed_write_paths": [
-    "frontend/",
-    "adapter/",
-    "cursor-impl-cycle/"
-  ],
-  "read_only_context_paths": [
-    "project/",
-    "project/supabase/",
-    "ir/"
-  ],
+  "scope_focus": "drsam_authenticated_spa",
+  "development_mode": "brownfield",
+  "description": "DrSam authenticated user SPA. Extend the existing React + Vite prototype in frontend/ — do not recreate from scratch or introduce a parallel Vue app.",
   "frontend_app_dir": "frontend",
-  "adapter_dir": "adapter",
-  "supabase_context_dir": "project/supabase",
+  "frontend_stack": "react-vite-tsx",
+  "adapter_dir": null,
+  "supabase_context_dir": "frontend/supabase",
+  "prototype_dir": "frontend",
+  "prototype_inventory_path": "cursor-impl-cycle/config/prototype-inventory.json",
+  "forbidden_write_paths": ["project/"],
+  "allowed_write_paths": ["frontend/", "cursor-impl-cycle/"],
+  "read_only_context_paths": ["project/", "ir/", "frontend/supabase/"],
   "bubble_api_replacement": {
     "strategy": "prefer_supabase_client",
     "policy_doc": "cursor-impl-cycle/docs/ADAPTER-POLICY.md",
     "adapter_when": [
       "Server secret required (service role, third-party API key) — not user JWT passthrough",
       "Inbound webhook or server-triggered side effect during Bubble migration",
-      "Multi-step orchestration intentionally kept off the client (not Promise.all of public Supabase calls)",
-      "Documented temporary migration facade with explicit remove-after note in decompose scope"
+      "Multi-step orchestration intentionally kept off the client"
     ],
     "adapter_forbidden_when": [
       "Single edge function proxy with user JWT (use frontend fetch to functions/v1)",
       "Single Supabase RPC proxy (use supabase.rpc from frontend)",
-      "Single RLS-backed REST read/write (use supabase.from from frontend)",
-      "Decompose marks frontend+adapter without naming an allowed adapter_when reason"
+      "Single RLS-backed REST read/write (use supabase.from from frontend)"
     ],
     "forbidden": [
-      "Duplicate or fork Supabase schema in adapter",
+      "Duplicate or fork Supabase schema in client code",
       "Modify project/supabase migrations or RLS",
       "Reimplement business rules that already exist in Supabase edge functions unless explicitly required by AC",
-      "Add passthrough routes when an equivalent direct client call exists in the same module"
+      "Create a parallel Vue SPA or provider-app/ tree"
     ]
   },
   "app_ir_anchors": {

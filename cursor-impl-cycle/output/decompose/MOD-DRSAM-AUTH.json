@@ -11,14 +11,20 @@
         "AC-2: Login and signup CTAs navigate to onboarding or post-auth dashboard per Bubble workflow parity",
         "AC-3: Index page applies style_ref tokens from ir/slices/styles.json for hero, buttons, and typography"
       ],
-      "ir_refs": ["bTGYf"],
-      "ui_refs": ["bTGYf", "ai_RNbBHWoL", "ai_RNbBHWoM"],
+      "ir_refs": [
+        "bTGYf"
+      ],
+      "ui_refs": [
+        "bTGYf",
+        "ai_RNbBHWoL",
+        "ai_RNbBHWoM"
+      ],
       "layout_notes": "Preserve index hero group hierarchy from bTGbC____root slice; do not redesign marketing layout.",
       "depends_on": [],
       "target_files": [
-        "frontend/src/pages/IndexPage.vue",
-        "frontend/src/router/index.ts",
-        "frontend/src/features/auth/routes.ts"
+        "frontend/src/pages/Index.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/components/AuthDialog.tsx"
       ]
     },
     {
@@ -30,13 +36,17 @@
         "AC-2: Submit triggers Supabase/auth reset equivalent to Bubble SignUp/reset workflow on page AAL",
         "AC-3: Form fields carry data-bubble-id attributes for IR text inputs and buttons"
       ],
-      "ir_refs": ["AAL"],
-      "ui_refs": ["AAL"],
+      "ir_refs": [
+        "AAL"
+      ],
+      "ui_refs": [
+        "AAL"
+      ],
       "layout_notes": "Small page (~16 entities); single-column form layout from AAW____root.",
       "depends_on": [],
       "target_files": [
-        "frontend/src/pages/ResetPasswordPage.vue",
-        "frontend/src/features/auth/resetPasswordApi.ts"
+        "frontend/src/pages/ResetPassword.tsx",
+        "frontend/src/hooks/useAuth.tsx"
       ]
     },
     {
@@ -48,14 +58,22 @@
         "AC-2: Step index/state maps to onboarding_step_os values (13 steps) with next/back consistent with Bubble custom states on bTGNI",
         "AC-3: Step transitions fire the same logical branches as ir/slices/bTGNJ__workflows____part_A.json triggers"
       ],
-      "ir_refs": ["bTGNI", "onboarding_step_os"],
-      "ui_refs": ["bTGNI", "bTHEL", "bTHEQ"],
+      "ir_refs": [
+        "bTGNI",
+        "onboarding_step_os"
+      ],
+      "ui_refs": [
+        "bTGNI",
+        "bTHEL",
+        "bTHEQ"
+      ],
       "layout_notes": "Wizard chrome and step router are distinct from question panels nested under bTGNP subtree.",
-      "depends_on": ["ENUM-01-navigation-and-onboarding-labels"],
+      "depends_on": [
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
       "target_files": [
-        "frontend/src/pages/OnboardingPage.vue",
-        "frontend/src/features/onboarding/onboardingStore.ts",
-        "frontend/src/features/onboarding/stepRegistry.ts"
+        "frontend/src/pages/Onboarding.tsx",
+        "frontend/src/lib/userProfile.tsx"
       ]
     },
     {
@@ -67,13 +85,24 @@
         "AC-2: Question panels in bTGNJ__elements__bTGNP__elements____remaining_children.json preserve group hierarchy and style_ref",
         "AC-3: Answers persist to onboarding store and advance wizard step when validation passes"
       ],
-      "ir_refs": ["bTGNI", "customer_pillar_os", "customer_role_os"],
-      "ui_refs": ["bTGNP", "0b12b49e-bf93-427d-a689-13dc2158ba29"],
+      "ir_refs": [
+        "bTGNI",
+        "customer_pillar_os",
+        "customer_role_os"
+      ],
+      "ui_refs": [
+        "bTGNP",
+        "0b12b49e-bf93-427d-a689-13dc2158ba29"
+      ],
       "layout_notes": "Focus on bTGNP nested groups; reuse shared form primitives when MOD-DRSAM-DESIGN-SYSTEM lands.",
-      "depends_on": ["AUTH-03-onboarding-wizard-shell", "ENUM-02-onboarding-question-enums"],
+      "depends_on": [
+        "AUTH-03-onboarding-wizard-shell",
+        "ENUM-02-onboarding-question-enums"
+      ],
       "target_files": [
-        "frontend/src/features/onboarding/steps/ProfileQuestionsStep.vue",
-        "frontend/src/features/onboarding/steps/RolePillarStep.vue"
+        "frontend/src/pages/Onboarding.tsx",
+        "frontend/src/components/OnboardingPillar.tsx",
+        "frontend/src/components/OnboardingRole.tsx"
       ]
     },
     {
@@ -85,14 +114,23 @@
         "AC-2: Custom states health_grief_mode_active_, health_recovery_mode_active_, load_signal_* map to frontend state flags",
         "AC-3: Completing final onboarding step routes to dashboard (bTHDT) when all required signals captured"
       ],
-      "ir_refs": ["bTGNI"],
-      "ui_refs": ["bTGNI", "bTHNF", "bTHNi"],
+      "ir_refs": [
+        "bTGNI"
+      ],
+      "ui_refs": [
+        "bTGNI",
+        "bTHNF",
+        "bTHNi"
+      ],
       "layout_notes": "Health/load sections are dense; preserve repeating-group cell templates from IR slices.",
-      "depends_on": ["AUTH-03-onboarding-wizard-shell", "ENUM-02-onboarding-question-enums"],
+      "depends_on": [
+        "AUTH-03-onboarding-wizard-shell",
+        "ENUM-02-onboarding-question-enums"
+      ],
       "target_files": [
-        "frontend/src/features/onboarding/steps/HealthSignalsStep.vue",
-        "frontend/src/features/onboarding/steps/LoadSignalsStep.vue",
-        "frontend/src/features/onboarding/completeOnboarding.ts"
+        "frontend/src/pages/Onboarding.tsx",
+        "frontend/src/components/OnboardingHealthFlags.tsx",
+        "frontend/src/components/OnboardingLoadSignals.tsx"
       ]
     }
   ]

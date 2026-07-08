@@ -1,0 +1,69 @@
+{
+  "item_id": "DASH-03-micro-commitments-widget",
+  "module_id": "MOD-DRSAM-DASHBOARD",
+  "assessed_at": "2026-07-07T21:40:00.000Z",
+  "coverage_pct": 100,
+  "rewrite_pass": true,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/dashboard/DashboardMain.tsx",
+      "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+      "frontend/src/components/dashboard/DashboardQuickActions.tsx",
+      "frontend/src/components/dashboard/DashboardMicroCommitments.tsx",
+      "frontend/src/hooks/useDashboardUser.ts",
+      "frontend/src/lib/dashboard/microCommitmentsApi.ts",
+      "frontend/src/lib/paths.ts",
+      "frontend/src/lib/enums/pathEnrollment.ts"
+    ],
+    "gaps": [
+      "AC-3: pathenrollment1 and pathsession Supabase tables are not in frontend/supabase migrations; API attempts best-effort query then falls back to profiles.onboarding_data.path_enrollment1 with Bubble field keys (focused_m_commitment_custom_pathsession, completed_micro_commitment_session_list_list_custom_pathsession)",
+      "AC-3: Widget collapses when focused session list is empty (Bubble bTJFv state parity); no automatic seed until PATHS enrollment writes onboarding_data"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/dashboard/DashboardMicroCommitments.vue": "frontend/src/components/dashboard/DashboardMicroCommitments.tsx",
+      "frontend/src/lib/dashboard/microCommitmentsApi.ts": "frontend/src/lib/dashboard/microCommitmentsApi.ts"
+    },
+    "c2_resolution": "Removed invented chip chrome (rounded-lg, border-border, bg-card/60, px-3 py-2) from bTJGS cells; cells now use only bubbleStyle(Group_transparent_) plus minimal flex alignment (flex-row, gap-2, min-w-0, items-center, flex-wrap). bTJGH retains bubbleStyle(RepeatingGroup_list_) with flex flex-wrap gap-2."
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardMicroCommitments.tsx — root bTJFv with Group_transparent_ nests bTJGH RepeatingGroup_list_ chip list",
+        "frontend/src/pages/Dashboard.tsx — DashboardMicroCommitments sibling below greeting card and quick actions inside DashboardGreetingRow"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardMicroCommitments.tsx — cells bTJGS/bTJGY show path name, session index, micro_commitment_text with Group_transparent_ (no invented border/bg/padding) and Text_body_; bTJGe Mark as Completed button and CheckCircle2 completed indicator",
+        "frontend/src/components/dashboard/DashboardMicroCommitments.tsx — bTJGB heading Your current micro-commitments with Text_heading_3_",
+        "C-2 resolved: bTJGS cells no longer carry rounded-lg border border-border bg-card/60 px-3 py-2 beyond Group_transparent_ IR (background none, border 0)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/microCommitmentsApi.ts — fetchMicroCommitments queries pathenrollment1 via Supabase client (focused_m_commitment_custom_pathsession under active enrollment) with onboarding_data fallback; markMicroCommitmentCompleted mirrors bTJGk ChangeThing workflow",
+        "frontend/src/components/dashboard/DashboardMicroCommitments.tsx — loads via fetchMicroCommitments(user.id, profile.onboardingData); row hidden when list count is zero"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "bTJFv", "selector": "[data-bubble-id='bTJFv']", "status": "pass" },
+    { "bubble_id": "bTJGB", "selector": "[data-bubble-id='bTJGB']", "status": "pass" },
+    { "bubble_id": "bTJGH", "selector": "[data-bubble-id='bTJGH']", "status": "pass" },
+    { "bubble_id": "bTJGS", "selector": "[data-bubble-id='bTJGS']", "status": "pass" },
+    { "bubble_id": "bTJGY", "selector": "[data-bubble-id='bTJGY']", "status": "pass" },
+    { "bubble_id": "bTJGe", "selector": "[data-bubble-id='bTJGe']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/dashboard/DashboardMicroCommitments.tsx",
+    "cursor-impl-cycle/output/coverage/DASH-03-micro-commitments-widget.json"
+  ]
+}

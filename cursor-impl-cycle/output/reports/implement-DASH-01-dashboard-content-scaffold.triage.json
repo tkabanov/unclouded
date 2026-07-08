@@ -1,0 +1,34 @@
+{
+  "phase": "implement",
+  "target_id": "DASH-01-dashboard-content-scaffold",
+  "assessed_at": "2026-07-07T20:42:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-DASH-01-dashboard-content-scaffold.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DASH-02-greeting-coaching-quick-actions",
+      "rationale": "Dashboard.tsx brownfield slot builders still call useUserProfile at page level, while useDashboardUser + DashboardUserProvider wrap the rendered subtree inside DashboardMain. AC-3 passes: composable maps current_user display fields and provider exposes them to widget slots. Slot children rendered inside DashboardUserProvider can consume useDashboardUserContext regardless of where JSX is authored; DASH-02+ widget extractions (DashboardGreetingCard, quick actions) will adopt the composable as they replace inline page markup. No downstream depends_on gate is blocked — provider is mounted and functional before DASH-02 implement."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DASH-07-crisis-onboarding-services-overlays",
+      "rationale": "IR re-read confirms bTIpm (continue-onboarding / subscription banner group) is a direct child of ai_RNbBHXRD, sibling to ai_RNbBHXRE; brownfield beforeGrid CTAs currently nest inside dashboard-content. bTIpm is not a DASH-01 named ui_ref (scope lists ai_RNbBHXRD through ai_RNbBHXRX only). DASH-07 decompose AC-2 and layout_notes explicitly assign bTIpm as a sibling banner region above the grid; DASH-03 covers micro-commitment subscription rows in the same banner group. Scaffold retention inside ai_RNbBHXRE is acceptable brownfield for DASH-01; hierarchy correction belongs to DASH-03+/DASH-07 without blocking slot anchors or grid structure."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Decompose scope states 'no widget internals'; DASH-01 AC-2 requires fluid grid with named slot bubble ids, not populated journal/crisis content. ui_evidence passes for ai_RNbBHXSx and bTIfU with empty placeholder slots; review alternative confirms no DASH-01 action. Journal and crisis widget content is explicitly assigned to DASH-06-chat-and-journal-previews and DASH-07-crisis-onboarding-services-overlays, both depending on this scaffold."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and ui_evidence pass. Deferred: C-1 page-level useUserProfile → useDashboardUserContext migration at DASH-02+ widget extraction; C-2 bTIpm sibling banner hierarchy at DASH-03+/DASH-07. Accepted: C-3 empty journal/crisis slots per scaffold scope; DASH-06/DASH-07 mount content into existing bubble anchors."
+}

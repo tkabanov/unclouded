@@ -11,13 +11,19 @@
         "AC-2: Banner visibility toggles from frontend online/offline state matching Bubble show/hide semantics on bTHEi",
         "AC-3: Typography and bgcolor use style_ref tokens from ir/slices/styles.json (Group_section_ / surface tokens) — no placeholder colors"
       ],
-      "ir_refs": ["bTHvM0"],
-      "ui_refs": ["bTHvM0", "bTHEc", "bTHEi"],
+      "ir_refs": [
+        "bTHvM0"
+      ],
+      "ui_refs": [
+        "bTHvM0",
+        "bTHEc",
+        "bTHEi"
+      ],
       "layout_notes": "Tiny reusable (~3 entities); fixed top or inline banner — preserve fit_width fluid layout from IR, not literal 0px widths.",
       "depends_on": [],
       "target_files": [
-        "frontend/src/components/shell/OfflineBanner.vue",
-        "frontend/src/composables/useOnlineStatus.ts"
+        "frontend/src/components/shell/OfflineBanner.tsx",
+        "frontend/src/hooks/useOnlineStatus.ts"
       ]
     },
     {
@@ -29,7 +35,9 @@
         "AC-2: Nav links ai_RNbBHWkZ/kc/kf/ki/kl route to /dashboard, /chat, /journal, /paths, /settings with labels from ENUM-01 maps",
         "AC-3: sidebar-mode-indicator group (ai_RNbBHWkV) renders mode label/value text nodes ai_RNbBHWkW/ai_RNbBHWkX with IR copy"
       ],
-      "ir_refs": ["ai_RNbBKLUe"],
+      "ir_refs": [
+        "ai_RNbBKLUe"
+      ],
       "ui_refs": [
         "ai_RNbBKLUe",
         "ai_RNbBHWkU",
@@ -43,10 +51,12 @@
         "Group_sidebar_"
       ],
       "layout_notes": "Vertical nav column with right border from Group_sidebar_; active link state mirrors Bubble conditional styles on nav links.",
-      "depends_on": ["ENUM-01-navigation-and-onboarding-labels"],
+      "depends_on": [
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
       "target_files": [
-        "frontend/src/components/shell/Sidebar.vue",
-        "frontend/src/components/shell/SidebarNavLink.vue"
+        "frontend/src/components/AppSidebar.tsx",
+        "frontend/src/components/NavLink.tsx"
       ]
     },
     {
@@ -58,7 +68,9 @@
         "AC-2: Logged-in nav links ai_RNbBHWbA/bB/bC/bD mirror Bubble routes to dashboard, chat, journal, and paths",
         "AC-3: Profile dropdown group ai_RNbBHWbJ and GroupFocus ai_RNbBHWfD open on avatar click with settings link ai_RNbBHWbL and logout control ai_RNbBHWbO wired to Supabase signOut"
       ],
-      "ir_refs": ["ai_RNbBKLUc"],
+      "ir_refs": [
+        "ai_RNbBKLUc"
+      ],
       "ui_refs": [
         "ai_RNbBKLUc",
         "ai_RNbBHWao",
@@ -72,10 +84,13 @@
         "ai_RNbBHWbI"
       ],
       "layout_notes": "Header is horizontal flex: brand left, nav center/right, actions far right. Logged-out groups (ai_RNbBHWau) hidden when authenticated; dropdown stacks above content with Bubble z-index.",
-      "depends_on": ["ENUM-01-navigation-and-onboarding-labels", "AUTH-01-index-login-entry"],
+      "depends_on": [
+        "ENUM-01-navigation-and-onboarding-labels",
+        "AUTH-01-index-login-entry"
+      ],
       "target_files": [
-        "frontend/src/components/shell/Header.vue",
-        "frontend/src/components/shell/HeaderProfileDropdown.vue"
+        "frontend/src/components/DashboardLayout.tsx",
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx"
       ]
     },
     {
@@ -87,7 +102,9 @@
         "AC-2: Signup popup ai_RNbBHWbk preserves multi-step signup-step groups and close button ai_RNbBHWbq with IR labels",
         "AC-3: header-login-btn ai_RNbBHWbF and header-signup-btn ai_RNbBHWbG open respective popups; successful auth closes popup and routes per AUTH module parity"
       ],
-      "ir_refs": ["ai_RNbBKLUc"],
+      "ir_refs": [
+        "ai_RNbBKLUc"
+      ],
       "ui_refs": [
         "ai_RNbBHWbk",
         "ai_RNbBHWbR",
@@ -98,10 +115,14 @@
         "Group_overlay_"
       ],
       "layout_notes": "Modal popups centered overlay using Group_overlay_ style; signup multi-step sections swap visibility — do not flatten into a single form.",
-      "depends_on": ["SHELL-03-header-bar-and-profile-menu", "AUTH-01-index-login-entry", "AUTH-02-reset-password"],
+      "depends_on": [
+        "SHELL-03-header-bar-and-profile-menu",
+        "AUTH-01-index-login-entry",
+        "AUTH-02-reset-password"
+      ],
       "target_files": [
-        "frontend/src/components/shell/LoginPopup.vue",
-        "frontend/src/components/shell/SignupPopup.vue"
+        "frontend/src/components/AuthDialog.tsx",
+        "frontend/src/components/shell/SignupPopup.tsx"
       ]
     },
     {
@@ -113,8 +134,16 @@
         "AC-2: Router meta requiresAuth wraps authenticated routes; unauthenticated access redirects to / per Bubble logged-out behavior",
         "AC-3: Layout preserves sidebar + main content column structure seen on bTHDU/bTHDb page slices — main region flex-grows with fluid width"
       ],
-      "ir_refs": ["ai_RNbBKLUc", "ai_RNbBKLUe", "bTHvM0"],
-      "ui_refs": ["ai_RNbBKLUc", "ai_RNbBKLUe", "bTHvM0"],
+      "ir_refs": [
+        "ai_RNbBKLUc",
+        "ai_RNbBKLUe",
+        "bTHvM0"
+      ],
+      "ui_refs": [
+        "ai_RNbBKLUc",
+        "ai_RNbBKLUe",
+        "bTHvM0"
+      ],
       "layout_notes": "Classic app shell: optional offline banner top, header full width, sidebar fixed left (~Group_sidebar_ width), scrollable main content right.",
       "depends_on": [
         "SHELL-01-offline-banner",
@@ -123,9 +152,9 @@
         "AUTH-05-onboarding-health-load-signals"
       ],
       "target_files": [
-        "frontend/src/layouts/AppShellLayout.vue",
-        "frontend/src/router/guards/requireAuth.ts",
-        "frontend/src/router/authenticatedRoutes.ts"
+        "frontend/src/App.tsx",
+        "frontend/src/components/DashboardLayout.tsx",
+        "frontend/src/components/ProtectedRoute.tsx"
       ]
     },
     {
@@ -137,13 +166,23 @@
         "AC-2: Header and sidebar CustomElement instances carry data-bubble-id ai_RNbBKLUh and ai_RNbBKLUi matching bTHDU____root.json placement",
         "AC-3: Content slot aligns to ai_RNbBHXRD dashboard-main group boundary; placeholder documents MOD-DRSAM-DASHBOARD ownership"
       ],
-      "ir_refs": ["bTHDT"],
-      "ui_refs": ["bTHDT", "ai_RNbBKLUh", "ai_RNbBKLUi", "ai_RNbBHXRD"],
+      "ir_refs": [
+        "bTHDT"
+      ],
+      "ui_refs": [
+        "bTHDT",
+        "ai_RNbBKLUh",
+        "ai_RNbBKLUi",
+        "ai_RNbBHXRD"
+      ],
       "layout_notes": "Dashboard slice has 205 entities — this item only lands shell chrome; dashboard-main subtree deferred to dashboard module.",
-      "depends_on": ["SHELL-05-app-shell-layout", "ENUM-01-navigation-and-onboarding-labels"],
+      "depends_on": [
+        "SHELL-05-app-shell-layout",
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
       "target_files": [
-        "frontend/src/pages/DashboardPage.vue",
-        "frontend/src/features/dashboard/routes.ts"
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/App.tsx"
       ]
     },
     {
@@ -155,13 +194,23 @@
         "AC-2: Shell instances data-bubble-id ai_RNbBKLUl and ai_RNbBKLUm preserve bTHDb____root.json CustomElement order",
         "AC-3: Content slot boundary at ai_RNbBHXid journal-main; journal popups (entry-detail, new-entry, etc.) not implemented in this item"
       ],
-      "ir_refs": ["bTHDa"],
-      "ui_refs": ["bTHDa", "ai_RNbBKLUl", "ai_RNbBKLUm", "ai_RNbBHXid"],
+      "ir_refs": [
+        "bTHDa"
+      ],
+      "ui_refs": [
+        "bTHDa",
+        "ai_RNbBKLUl",
+        "ai_RNbBKLUm",
+        "ai_RNbBHXid"
+      ],
       "layout_notes": "Journal page hosts multiple popups at page level — shell item mounts only fixed chrome; popups remain for MOD-DRSAM-JOURNAL.",
-      "depends_on": ["SHELL-05-app-shell-layout", "ENUM-01-navigation-and-onboarding-labels"],
+      "depends_on": [
+        "SHELL-05-app-shell-layout",
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
       "target_files": [
-        "frontend/src/pages/JournalPage.vue",
-        "frontend/src/features/journal/routes.ts"
+        "frontend/src/pages/Journal.tsx",
+        "frontend/src/App.tsx"
       ]
     },
     {
@@ -173,13 +222,24 @@
         "AC-2: Shell instances data-bubble-id ai_RNbBKLUn and ai_RNbBKLUo match bTHDg____root.json hierarchy",
         "AC-3: Content slot aligns to ai_RNbBHYGq main group; path_page_tab_os_ tab UI deferred to MOD-DRSAM-PATHS"
       ],
-      "ir_refs": ["bTHDf"],
-      "ui_refs": ["bTHDf", "ai_RNbBKLUn", "ai_RNbBKLUo", "ai_RNbBHYGq"],
+      "ir_refs": [
+        "bTHDf"
+      ],
+      "ui_refs": [
+        "bTHDf",
+        "ai_RNbBKLUn",
+        "ai_RNbBKLUo",
+        "ai_RNbBHYGq"
+      ],
       "layout_notes": "Paths slice (228 entities) — shell only. FloatingGroup FG-services remains outside shell scope.",
-      "depends_on": ["SHELL-05-app-shell-layout", "ENUM-01-navigation-and-onboarding-labels", "ENUM-03-path-coaching-and-state-enums"],
+      "depends_on": [
+        "SHELL-05-app-shell-layout",
+        "ENUM-01-navigation-and-onboarding-labels",
+        "ENUM-03-path-coaching-and-state-enums"
+      ],
       "target_files": [
-        "frontend/src/pages/PathsPage.vue",
-        "frontend/src/features/paths/routes.ts"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/App.tsx"
       ]
     },
     {
@@ -191,14 +251,24 @@
         "AC-2: Shell instances data-bubble-id ai_RNbBKLUp and ai_RNbBKLUq preserve bTHDl____root.json CustomElement placement",
         "AC-3: Content slot boundary at ai_RNbBHYUr settings-main; settings_tab_os_ tab router stub exported for MOD-DRSAM-SETTINGS"
       ],
-      "ir_refs": ["bTHDh"],
-      "ui_refs": ["bTHDh", "ai_RNbBKLUp", "ai_RNbBKLUq", "ai_RNbBHYUr"],
+      "ir_refs": [
+        "bTHDh"
+      ],
+      "ui_refs": [
+        "bTHDh",
+        "ai_RNbBKLUp",
+        "ai_RNbBKLUq",
+        "ai_RNbBHYUr"
+      ],
       "layout_notes": "Largest page slice (669 entities) — shell item avoids settings tab content and add/delete popups nested under bTHDl.",
-      "depends_on": ["SHELL-05-app-shell-layout", "ENUM-01-navigation-and-onboarding-labels"],
+      "depends_on": [
+        "SHELL-05-app-shell-layout",
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
       "target_files": [
-        "frontend/src/pages/SettingsPage.vue",
-        "frontend/src/features/settings/routes.ts",
-        "frontend/src/features/settings/settingsTabStub.ts"
+        "frontend/src/pages/Settings.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/lib/settings/settingsTabStub.ts"
       ]
     },
     {
@@ -210,13 +280,24 @@
         "AC-2: Shell instances data-bubble-id ai_RNbBKLUj and ai_RNbBKLUk match bTHDZ____root.json order",
         "AC-3: Content slot boundary at ai_RNbBHXbD chat-main; chat-delete-popup and thread UI deferred to MOD-DRSAM-CHAT"
       ],
-      "ir_refs": ["bTHDV"],
-      "ui_refs": ["bTHDV", "ai_RNbBKLUj", "ai_RNbBKLUk", "ai_RNbBHXbD"],
+      "ir_refs": [
+        "bTHDV"
+      ],
+      "ui_refs": [
+        "bTHDV",
+        "ai_RNbBKLUj",
+        "ai_RNbBKLUk",
+        "ai_RNbBHXbD"
+      ],
       "layout_notes": "Smallest authenticated page slice (87 entities) — shell mounts chrome only; chat panel subtree owned by chat module.",
-      "depends_on": ["SHELL-05-app-shell-layout", "ENUM-01-navigation-and-onboarding-labels", "ENUM-03-path-coaching-and-state-enums"],
+      "depends_on": [
+        "SHELL-05-app-shell-layout",
+        "ENUM-01-navigation-and-onboarding-labels",
+        "ENUM-03-path-coaching-and-state-enums"
+      ],
       "target_files": [
-        "frontend/src/pages/ChatPage.vue",
-        "frontend/src/features/chat/routes.ts"
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/App.tsx"
       ]
     }
   ]

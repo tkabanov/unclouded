@@ -1,0 +1,191 @@
+{
+  "phase": "implement",
+  "target_id": "DS-04-session-completion-form-reusable",
+  "assessed_at": "2026-07-07T20:35:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/components/design-system/index.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/components/design-system/SessionQuestionCell.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "drsam-99657.bubble (/element_definitions/bTIym)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Presentation-only reusable accepts pathsession-shaped prop and renders bound header, question list, reflection checkbox, and submit without placeholder copy",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/components/design-system/SessionQuestionCell.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Controlled callbacks (onAnswerChange, onReflectionChange, onSubmit) wire interactive fields; read-only when callbacks omitted",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/components/design-system/SessionQuestionCell.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIyi",
+      "selector": "[data-bubble-id='bTIyi']",
+      "status": "pass",
+      "notes": "Root form uses Group_card_ via bubbleStyle; vertical column stack matches IR child order (bTJBC→bTIyn→bTIzA→bTIzS→bTIzk)"
+    },
+    {
+      "bubble_id": "bTIyn",
+      "selector": "[data-bubble-id='bTIyn']",
+      "status": "pass",
+      "notes": "Header group binds title_text and coaching_text_text from session prop"
+    },
+    {
+      "bubble_id": "bTIxC",
+      "selector": "[data-bubble-id='bTIxC']",
+      "status": "pass",
+      "notes": "Marker matches decompose AC; canonical IR element id is bTIys with style_ref Text_heading_2_ — style applied correctly"
+    },
+    {
+      "bubble_id": "bTIxG",
+      "selector": "[data-bubble-id='bTIxG']",
+      "status": "pass",
+      "notes": "Marker matches decompose AC; canonical IR element id is bTIyt with style_ref Text_body_muted_ — style applied correctly"
+    },
+    {
+      "bubble_id": "bTIzA",
+      "selector": "[data-bubble-id='bTIzA']",
+      "status": "pass",
+      "notes": "RepeatingGroup_list_ on container; maps session.questions; bTJBI plugin stub nested inside per IR parent_id"
+    },
+    {
+      "bubble_id": "bTIzF",
+      "selector": "[data-bubble-id='bTIzF']",
+      "status": "pass",
+      "notes": "SessionQuestionCell cell group per pathquestion row"
+    },
+    {
+      "bubble_id": "bTIzG",
+      "selector": "[data-bubble-id='bTIzG']",
+      "status": "pass",
+      "notes": "Text_label_ on q_text_text binding"
+    },
+    {
+      "bubble_id": "bTIzK",
+      "selector": "[data-bubble-id='bTIzK']",
+      "status": "pass",
+      "notes": "MultiLineInput_default_; IR placeholder 'Your answer…' preserved"
+    },
+    {
+      "bubble_id": "bTIzS",
+      "selector": "[data-bubble-id='bTIzS']",
+      "status": "pass",
+      "notes": "Reflection group; child order bTIzY(1)→bTIzX(4)→bTIzc(5) matches Bubble order properties"
+    },
+    {
+      "bubble_id": "bTIzX",
+      "selector": "[data-bubble-id='bTIzX']",
+      "status": "pass",
+      "notes": "micro_commitment_text bound; Text_inter_13__400__white_copy_ per style_ref:bTIzX"
+    },
+    {
+      "bubble_id": "bTIzY",
+      "selector": "[data-bubble-id='bTIzY']",
+      "status": "pass",
+      "notes": "Static copy 'Micro-commitment'; Text_label_ per style_ref:bTIzY"
+    },
+    {
+      "bubble_id": "bTIzc",
+      "selector": "[data-bubble-id='bTIzc']",
+      "status": "pass",
+      "notes": "Checkbox_default_; label 'Set as focus' from IR checkbox label expression"
+    },
+    {
+      "bubble_id": "bTIzk",
+      "selector": "[data-bubble-id='bTIzk']",
+      "status": "pass",
+      "notes": "Button_primary_; static IR label 'Submit answers'"
+    },
+    {
+      "bubble_id": "bTJBC",
+      "selector": "[data-bubble-id='bTJBC']",
+      "status": "pass",
+      "notes": "Inert hidden stub for Maestro plugin (order 2 at root)"
+    },
+    {
+      "bubble_id": "bTJBI",
+      "selector": "[data-bubble-id='bTJBI']",
+      "status": "pass",
+      "notes": "Inert hidden stub inside RepeatingGroup bTIzA"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Title and subtitle nodes use data-bubble-id bTIxC/bTIxG (Bubble JSON keys) while ir/inventory.json canonical element ids are bTIys/bTIyt; automated parity selectors keyed on canonical ids would miss these nodes.",
+      "alternative": "Align markers to canonical IR ids (bTIys, bTIyt) or document the key→id alias in path-conventions for design-system reusables.",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "ir/inventory.json (bTIys, bTIyt)"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Checkbox label 'Set as focus' is rendered as a sibling htmlFor label rather than on the Checkbox component's label prop as in Bubble (bTIyC.properties.label).",
+      "alternative": "Pass label to the shadcn Checkbox wrapper or add data-bubble-id on the label span if downstream parity tooling expects label co-located with the checkbox element.",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "drsam-99657.bubble (/element_definitions/bTIym/elements/bTIzd/elements/bTIyC)"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Textarea min-h-[96px] is a hard-coded Tailwind value not sourced from IR presentation or MultiLineInput_default_ style properties.",
+      "alternative": "Derive min-height from styles.json Input_multiline_/MultiLineInput_default_ or remove if fluid fit_height is sufficient.",
+      "evidence": [
+        "frontend/src/components/design-system/SessionQuestionCell.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

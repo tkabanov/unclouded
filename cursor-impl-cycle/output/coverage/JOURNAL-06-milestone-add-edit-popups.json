@@ -1,0 +1,80 @@
+{
+  "item_id": "JOURNAL-06-milestone-add-edit-popups",
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-08T08:30:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/lib/journal/milestonesApi.ts",
+      "frontend/src/lib/journal/routes.ts",
+      "frontend/src/components/journal/MilestonesTab.tsx",
+      "frontend/src/components/journal/MilestoneCard.tsx"
+    ],
+    "gaps": [
+      "AC-1: AddMilestonePopup.tsx and EditMilestonePopup.tsx did not exist — only stub handlers in Journal.tsx",
+      "AC-2: milestonesApi.ts had fetchMilestones only — no create/update/delete mutations",
+      "AC-3: Popup cancel/close and achieved_at_date field wiring missing"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/journal/AddMilestonePopup.vue": "frontend/src/components/journal/AddMilestonePopup.tsx",
+      "frontend/src/components/journal/EditMilestonePopup.vue": "frontend/src/components/journal/EditMilestonePopup.tsx",
+      "frontend/src/lib/journal/milestonesApi.ts": "frontend/src/lib/journal/milestonesApi.ts"
+    },
+    "data_fallback": "createMilestone/updateMilestone/deleteMilestone try uds_milestone first; on 42P01/PGRST205 fall back to profiles.onboarding_data.milestones (same pattern as fetchMilestones)"
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/AddMilestonePopup.tsx — ai_RNbBHXlf popup with form ai_RNbBHXln, title ai_RNbBHXlq, description ai_RNbBHXlt, DateInput ai_RNbBHXlw",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — ai_RNbBHXmC popup with form ai_RNbBHXmJ, title ai_RNbBHXmM, description ai_RNbBHXmP, DateInput ai_RNbBHXmS",
+        "frontend/src/lib/journal/routes.ts — bubble id constants for all in-scope popup elements"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/milestonesApi.ts — createMilestone inserts uds_milestone (title_text, description_text, achieved_at_date, user_user)",
+        "frontend/src/lib/journal/milestonesApi.ts — updateMilestone and deleteMilestone with onboarding_data fallback",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — ai_RNbBHXmU delete button removes row",
+        "frontend/src/pages/Journal.tsx — handleMilestonesChanged refreshes profile and reloads JOURNAL-05 milestones grid"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/AddMilestonePopup.tsx — ai_RNbBHXly cancel, ai_RNbBHXll close dismiss without API calls",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — ai_RNbBHXmY cancel, ai_RNbBHXmH close dismiss without mutation",
+        "frontend/src/components/journal/AddMilestonePopup.tsx and EditMilestonePopup.tsx — achieved_at_date maps to achieved_at_date column via type=date inputs",
+        "frontend/src/components/journal/MilestoneCard.tsx — delete icon routes through onEditMilestone (edit popup hosts delete per IR)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXlf", "selector": "[data-bubble-id='ai_RNbBHXlf']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXln", "selector": "[data-bubble-id='ai_RNbBHXln']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlq", "selector": "[data-bubble-id='ai_RNbBHXlq']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlt", "selector": "[data-bubble-id='ai_RNbBHXlt']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlw", "selector": "[data-bubble-id='ai_RNbBHXlw']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlz", "selector": "[data-bubble-id='ai_RNbBHXlz']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmC", "selector": "[data-bubble-id='ai_RNbBHXmC']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmJ", "selector": "[data-bubble-id='ai_RNbBHXmJ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmM", "selector": "[data-bubble-id='ai_RNbBHXmM']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmP", "selector": "[data-bubble-id='ai_RNbBHXmP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmS", "selector": "[data-bubble-id='ai_RNbBHXmS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmU", "selector": "[data-bubble-id='ai_RNbBHXmU']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/lib/journal/routes.ts",
+    "frontend/src/lib/journal/milestonesApi.ts",
+    "frontend/src/components/journal/AddMilestonePopup.tsx",
+    "frontend/src/components/journal/EditMilestonePopup.tsx",
+    "frontend/src/pages/Journal.tsx",
+    "cursor-impl-cycle/output/coverage/JOURNAL-06-milestone-add-edit-popups.json"
+  ]
+}

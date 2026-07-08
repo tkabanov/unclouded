@@ -11,10 +11,10 @@
       "items": [
         {
           "id": "AUTH-01-index-login-entry",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 92,
           "depends_on": [],
           "target_files": [
             "frontend/src/pages/IndexPage.vue",
@@ -24,10 +24,10 @@
         },
         {
           "id": "AUTH-02-reset-password",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [],
           "target_files": [
             "frontend/src/pages/ResetPasswordPage.vue",
@@ -36,10 +36,10 @@
         },
         {
           "id": "AUTH-03-onboarding-wizard-shell",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "ENUM-01-navigation-and-onboarding-labels"
           ],
@@ -51,10 +51,10 @@
         },
         {
           "id": "AUTH-04-onboarding-profile-questions",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [
             "AUTH-03-onboarding-wizard-shell",
             "ENUM-02-onboarding-question-enums"
@@ -66,10 +66,10 @@
         },
         {
           "id": "AUTH-05-onboarding-health-load-signals",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "AUTH-03-onboarding-wizard-shell",
             "ENUM-02-onboarding-question-enums"
@@ -90,10 +90,10 @@
       "items": [
         {
           "id": "SHELL-01-offline-banner",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [],
           "target_files": [
             "frontend/src/components/shell/OfflineBanner.vue",
@@ -102,10 +102,10 @@
         },
         {
           "id": "SHELL-02-sidebar-navigation",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "ENUM-01-navigation-and-onboarding-labels"
           ],
@@ -116,10 +116,10 @@
         },
         {
           "id": "SHELL-03-header-bar-and-profile-menu",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "ENUM-01-navigation-and-onboarding-labels",
             "AUTH-01-index-login-entry"
@@ -131,10 +131,10 @@
         },
         {
           "id": "SHELL-04-header-login-signup-popups",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-03-header-bar-and-profile-menu",
             "AUTH-01-index-login-entry",
@@ -147,10 +147,10 @@
         },
         {
           "id": "SHELL-05-app-shell-layout",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-01-offline-banner",
             "SHELL-02-sidebar-navigation",
@@ -165,10 +165,10 @@
         },
         {
           "id": "SHELL-06-dashboard-page-shell",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-05-app-shell-layout",
             "ENUM-01-navigation-and-onboarding-labels"
@@ -180,10 +180,10 @@
         },
         {
           "id": "SHELL-07-journal-page-shell",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-05-app-shell-layout",
             "ENUM-01-navigation-and-onboarding-labels"
@@ -195,10 +195,10 @@
         },
         {
           "id": "SHELL-08-paths-page-shell",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-05-app-shell-layout",
             "ENUM-01-navigation-and-onboarding-labels",
@@ -211,10 +211,10 @@
         },
         {
           "id": "SHELL-09-settings-page-shell",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-05-app-shell-layout",
             "ENUM-01-navigation-and-onboarding-labels"
@@ -227,10 +227,10 @@
         },
         {
           "id": "SHELL-10-chat-page-shell",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-05-app-shell-layout",
             "ENUM-01-navigation-and-onboarding-labels",
@@ -251,10 +251,10 @@
       "items": [
         {
           "id": "ENUM-01-navigation-and-onboarding-labels",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [],
           "target_files": [
             "frontend/src/domain/enums/onboardingSteps.ts",
@@ -265,10 +265,10 @@
         },
         {
           "id": "ENUM-02-onboarding-question-enums",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 2,
+          "coverage_pct": 100,
           "depends_on": [
             "ENUM-01-navigation-and-onboarding-labels"
           ],
@@ -279,10 +279,10 @@
         },
         {
           "id": "ENUM-03-path-coaching-and-state-enums",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "ENUM-01-navigation-and-onboarding-labels"
           ],
@@ -294,10 +294,10 @@
         },
         {
           "id": "ENUM-04-tier-and-subscription-labels",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [],
           "target_files": [
             "frontend/src/domain/enums/tier.ts",
@@ -314,10 +314,10 @@
       "items": [
         {
           "id": "DS-01-design-tokens-and-bubble-styles",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 5,
+          "coverage_pct": 100,
           "depends_on": [],
           "target_files": [
             "frontend/src/styles/tokens.css",
@@ -327,10 +327,10 @@
         },
         {
           "id": "DS-02-progress-bar-reusable",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DS-01-design-tokens-and-bubble-styles"
           ],
@@ -341,10 +341,10 @@
         },
         {
           "id": "DS-03-score-bar-reusable",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 3,
+          "coverage_pct": 100,
           "depends_on": [
             "DS-01-design-tokens-and-bubble-styles"
           ],
@@ -355,10 +355,10 @@
         },
         {
           "id": "DS-04-session-completion-form-reusable",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DS-01-design-tokens-and-bubble-styles",
             "ENUM-03-path-coaching-and-state-enums"
@@ -371,10 +371,10 @@
         },
         {
           "id": "DS-05-chat-header-and-messages",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DS-01-design-tokens-and-bubble-styles"
           ],
@@ -387,10 +387,10 @@
         },
         {
           "id": "DS-06-chat-composer-and-shell",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DS-01-design-tokens-and-bubble-styles",
             "DS-05-chat-header-and-messages"
@@ -412,10 +412,10 @@
       "items": [
         {
           "id": "DASH-01-dashboard-content-scaffold",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-06-dashboard-page-shell",
             "DS-01-design-tokens-and-bubble-styles"
@@ -428,10 +428,10 @@
         },
         {
           "id": "DASH-02-greeting-coaching-quick-actions",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
             "ENUM-01-navigation-and-onboarding-labels",
@@ -446,10 +446,10 @@
         },
         {
           "id": "DASH-03-micro-commitments-widget",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
             "ENUM-03-path-coaching-and-state-enums",
@@ -462,10 +462,10 @@
         },
         {
           "id": "DASH-04-daily-checkin-card",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
             "DS-01-design-tokens-and-bubble-styles"
@@ -477,10 +477,10 @@
         },
         {
           "id": "DASH-05-insights-and-path-cards",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
             "DASH-04-daily-checkin-card",
@@ -496,10 +496,10 @@
         },
         {
           "id": "DASH-06-chat-and-journal-previews",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
             "DS-01-design-tokens-and-bubble-styles",
@@ -515,10 +515,10 @@
         },
         {
           "id": "DASH-07-crisis-onboarding-services-overlays",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
             "AUTH-05-onboarding-health-load-signals",
@@ -542,10 +542,10 @@
       "items": [
         {
           "id": "JOURNAL-01-journal-header-and-tab-bar",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-07-journal-page-shell",
             "DS-01-design-tokens-and-bubble-styles",
@@ -559,10 +559,10 @@
         },
         {
           "id": "JOURNAL-02-journal-entries-list",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [
             "JOURNAL-01-journal-header-and-tab-bar",
             "DS-01-design-tokens-and-bubble-styles"
@@ -575,10 +575,10 @@
         },
         {
           "id": "JOURNAL-03-new-entry-popup",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "JOURNAL-02-journal-entries-list",
             "DS-01-design-tokens-and-bubble-styles"
@@ -590,10 +590,10 @@
         },
         {
           "id": "JOURNAL-04-entry-detail-and-ai-reflection",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "JOURNAL-02-journal-entries-list",
             "DS-01-design-tokens-and-bubble-styles",
@@ -607,10 +607,10 @@
         },
         {
           "id": "JOURNAL-05-milestones-and-relapse-list",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "JOURNAL-01-journal-header-and-tab-bar",
             "DS-01-design-tokens-and-bubble-styles"
@@ -625,10 +625,10 @@
         },
         {
           "id": "JOURNAL-06-milestone-add-edit-popups",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "JOURNAL-05-milestones-and-relapse-list",
             "DS-01-design-tokens-and-bubble-styles"
@@ -641,10 +641,10 @@
         },
         {
           "id": "JOURNAL-07-relapse-log-edit-popups",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "JOURNAL-05-milestones-and-relapse-list",
             "DS-01-design-tokens-and-bubble-styles"
@@ -665,10 +665,10 @@
       "items": [
         {
           "id": "PATHS-01-paths-tab-state-and-header",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 3,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-08-paths-page-shell",
             "DS-01-design-tokens-and-bubble-styles",
@@ -683,10 +683,10 @@
         },
         {
           "id": "PATHS-02-paths-grid-filters-and-cards",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-01-paths-tab-state-and-header",
             "DS-02-progress-bar-reusable",
@@ -701,10 +701,10 @@
         },
         {
           "id": "PATHS-03-path-detail-enrollment-popup",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-02-paths-grid-filters-and-cards",
             "DS-02-progress-bar-reusable",
@@ -718,10 +718,10 @@
         },
         {
           "id": "PATHS-04-paths-resources-panel",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-01-paths-tab-state-and-header",
             "DS-01-design-tokens-and-bubble-styles"
@@ -734,10 +734,10 @@
         },
         {
           "id": "PATHS-05-resource-detail-popup",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-04-paths-resources-panel"
           ],
@@ -747,10 +747,10 @@
         },
         {
           "id": "PATHS-06-enrollment-floating-services-bar",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-01-paths-tab-state-and-header",
             "ENUM-03-path-coaching-and-state-enums"
@@ -763,10 +763,10 @@
         },
         {
           "id": "PATHS-07-session-completion-route-integration",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-01-paths-tab-state-and-header",
             "PATHS-06-enrollment-floating-services-bar",
@@ -789,10 +789,10 @@
       "items": [
         {
           "id": "CHAT-01-chat-content-layout",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-10-chat-page-shell",
             "DS-01-design-tokens-and-bubble-styles"
@@ -804,10 +804,10 @@
         },
         {
           "id": "CHAT-02-conversation-thread-sidebar",
-          "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_passes": true,
+          "implement_gate": "triage",
+          "implement_iteration": 5,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-01-chat-content-layout",
             "DS-01-design-tokens-and-bubble-styles"
@@ -841,9 +841,9 @@
         {
           "id": "CHAT-04-delete-conversation-popup",
           "implement_passes": false,
-          "implement_gate": "write",
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-02-conversation-thread-sidebar",
             "DS-01-design-tokens-and-bubble-styles"
@@ -874,8 +874,8 @@
         {
           "id": "CHAT-06-chat-welcome-empty-state",
           "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
+          "implement_gate": "review",
+          "implement_iteration": 2,
           "coverage_pct": 0,
           "depends_on": [
             "CHAT-01-chat-content-layout",
@@ -896,10 +896,10 @@
       "items": [
         {
           "id": "CRISIS-01-crisis-support-reusable",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "DS-01-design-tokens-and-bubble-styles"
           ],
@@ -920,9 +920,9 @@
         {
           "id": "SET-01-settings-tab-router-and-header",
           "implement_passes": false,
-          "implement_gate": "write",
-          "implement_iteration": 0,
-          "coverage_pct": 0,
+          "implement_gate": "review",
+          "implement_iteration": 1,
+          "coverage_pct": 100,
           "depends_on": [
             "SHELL-09-settings-page-shell",
             "DS-01-design-tokens-and-bubble-styles",
@@ -1099,7 +1099,7 @@
         {
           "id": "API-01-pillar-score-engine",
           "implement_passes": false,
-          "implement_gate": "write",
+          "implement_gate": "review",
           "implement_iteration": 0,
           "coverage_pct": 0,
           "depends_on": [
@@ -1204,8 +1204,8 @@
       "decompose_iteration": 0
     }
   ],
-  "iteration": 26,
+  "iteration": 103,
   "target_iteration": 0,
-  "started_at": "2026-07-06T19:18:28.138Z",
-  "last_checked_at": "2026-07-06T19:25:35.562Z"
+  "started_at": "2026-07-07T14:31:00.000Z",
+  "last_checked_at": "2026-07-08T09:01:39.291Z"
 }

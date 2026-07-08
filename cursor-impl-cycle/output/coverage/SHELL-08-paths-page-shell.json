@@ -1,0 +1,84 @@
+{
+  "item_id": "SHELL-08-paths-page-shell",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T20:20:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/components/shell/Header.tsx",
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/lib/router/authenticatedRoutes.tsx",
+      "frontend/src/lib/paths/index.ts",
+      "frontend/src/App.tsx"
+    ],
+    "gaps": [
+      "AC-1: Paths page lacked page root data-bubble-id bTHDf on shell wrapper",
+      "AC-2: Header and sidebar used reusable root ids (ai_RNbBKLUc/ai_RNbBKLUe) instead of paths page instances ai_RNbBKLUn/ai_RNbBKLUo",
+      "AC-3: Main content not bounded by ai_RNbBHYGq paths-main; no MOD-DRSAM-PATHS ownership marker"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/PathsPage.vue": "frontend/src/pages/Paths.tsx",
+      "frontend/src/features/paths/routes.ts": "frontend/src/lib/paths/routes.ts",
+      "frontend/src/App.tsx": "frontend/src/lib/router/authenticatedRoutes.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — passes pageBubbleId bTHDf to DashboardLayout via pathsShellProps",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDf on shell root when pageBubbleId provided",
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /paths route registered with requiresAuth meta via ProtectedRoute parent in App.tsx"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — passes headerBubbleId ai_RNbBKLUn and sidebarBubbleId ai_RNbBKLUo",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — accepts bubbleId override (defaults ai_RNbBKLUc for other pages)",
+        "frontend/src/components/AppSidebar.tsx — accepts bubbleId override (defaults ai_RNbBKLUe for other pages)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — prototype path cards wrapped in data-bubble-id ai_RNbBHYGq with data-module-owner MOD-DRSAM-PATHS; path_page_tab_os_ tab UI deferred to MOD-DRSAM-PATHS",
+        "frontend/src/lib/paths/routes.ts — exports PATHS_MAIN_BUBBLE_ID and PATHS_MODULE_ID documenting paths-main ownership"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDf",
+      "selector": "[data-bubble-id='bTHDf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUn",
+      "selector": "[data-bubble-id='ai_RNbBKLUn']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUo",
+      "selector": "[data-bubble-id='ai_RNbBKLUo']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYGq",
+      "selector": "[data-bubble-id='ai_RNbBHYGq']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/paths/routes.ts",
+    "frontend/src/pages/Paths.tsx",
+    "cursor-impl-cycle/output/coverage/SHELL-08-paths-page-shell.json"
+  ]
+}

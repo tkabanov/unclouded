@@ -1,0 +1,103 @@
+{
+  "item_id": "SHELL-04-header-login-signup-popups",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T15:40:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/AuthDialog.tsx",
+      "frontend/src/pages/Index.tsx",
+      "frontend/src/components/shell/Header.tsx",
+      "frontend/src/hooks/useAuth.tsx",
+      "frontend/src/styles/bubble-styles.css",
+      "frontend/src/styles/index.ts"
+    ],
+    "gaps": [
+      "AC-1: AuthDialog used index popup bubble ids (ai_RNbBHWuX) instead of header login-popup ai_RNbBHWbR; missing email/password input bubble ids ai_RNbBHWbc/bf",
+      "AC-2: no SignupPopup component; signup shared single-step AuthDialog without multi-step groups or ai_RNbBHWbq close",
+      "AC-3: Index CTAs opened unified AuthDialog mode toggle instead of separate login/signup popups"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/shell/LoginPopup.tsx": "frontend/src/components/AuthDialog.tsx",
+      "frontend/src/components/shell/SignupPopup.tsx": "frontend/src/components/shell/SignupPopup.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AuthDialog.tsx — login popup root data-bubble-id ai_RNbBHWbR with header ai_RNbBHWbT, form groups ai_RNbBHWba/bd, inputs ai_RNbBHWbc/bf, Popup_dialog_ + Group_overlay_ styles"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/SignupPopup.tsx — signup popup root ai_RNbBHWbk, step container ai_RNbBHWbs with 3-step visibility swap (credentials, coaching mode, goals/preferences), close ai_RNbBHWbq with IR label groups and Text_label_ styles"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — header-login-btn ai_RNbBHWbF opens AuthDialog; header-signup-btn ai_RNbBHWbG opens SignupPopup",
+        "frontend/src/pages/Index.tsx — handleAuthSuccess closes popups and redirects to /onboarding or /dashboard per profile.onboardingCompleted (AUTH parity)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHWbR",
+      "selector": "[data-bubble-id='ai_RNbBHWbR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbc",
+      "selector": "[data-bubble-id='ai_RNbBHWbc']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbf",
+      "selector": "[data-bubble-id='ai_RNbBHWbf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbk",
+      "selector": "[data-bubble-id='ai_RNbBHWbk']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbs",
+      "selector": "[data-bubble-id='ai_RNbBHWbs']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbq",
+      "selector": "[data-bubble-id='ai_RNbBHWbq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbF",
+      "selector": "[data-bubble-id='ai_RNbBHWbF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbG",
+      "selector": "[data-bubble-id='ai_RNbBHWbG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_overlay_",
+      "selector": "[data-style-ref='Group_overlay_']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/AuthDialog.tsx",
+    "frontend/src/components/shell/SignupPopup.tsx",
+    "frontend/src/pages/Index.tsx",
+    "cursor-impl-cycle/output/coverage/SHELL-04-header-login-signup-popups.json"
+  ]
+}

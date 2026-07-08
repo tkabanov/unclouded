@@ -11,7 +11,11 @@
         "AC-2: Eight tab buttons (ai_RNbBHYUx through ai_RNbBHYVE) set settings_tab_os_ state using ENUM-01 slug keys (bTIiw–bTIjJ) and show exactly one G - * panel under ai_RNbBHYVF matching Bubble conditional visibility",
         "AC-3: Tab bar style_ref on ai_RNbBHYUw resolves through ir/slices/styles.json; sidebar crisis card remains mounted via SHELL-02 bTIfa host and CRISIS-01 — not reimplemented in this item"
       ],
-      "ir_refs": ["bTHDh", "custom_state:bTHDh:settings_tab_os_", "settings_tab_os"],
+      "ir_refs": [
+        "bTHDh",
+        "custom_state:bTHDh:settings_tab_os_",
+        "settings_tab_os"
+      ],
       "ui_refs": [
         "bTHDh",
         "ai_RNbBHYUr",
@@ -39,10 +43,9 @@
         "CRISIS-01-crisis-support-reusable"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsMain.vue",
-        "frontend/src/features/settings/SettingsTabBar.vue",
-        "frontend/src/features/settings/settingsTabStore.ts",
-        "frontend/src/pages/SettingsPage.vue"
+        "frontend/src/pages/Settings.tsx",
+        "frontend/src/components/settings/SettingsTabBar.tsx",
+        "frontend/src/lib/settings/settingsTabStore.ts"
       ]
     },
     {
@@ -54,7 +57,10 @@
         "AC-2: Inp - first name (ai_RNbBHYVO), Inp - email (ai_RNbBHYVR), and DTP - sobriety start date (ai_RNbBHYWH) bind to user fields with IR placeholders and style_ref tokens — no generic form styling",
         "AC-3: profile-save-btn (ai_RNbBHYWT) triggers workflow bTIhq parity: persist profile changes for current user then refresh bound form state"
       ],
-      "ir_refs": ["bTHDh", "user"],
+      "ir_refs": [
+        "bTHDh",
+        "user"
+      ],
       "ui_refs": [
         "ai_RNbBHYVG",
         "ai_RNbBHYVH",
@@ -82,8 +88,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsProfileTab.vue",
-        "frontend/src/features/settings/profileApi.ts"
+        "frontend/src/components/settings/SettingsProfileTab.tsx",
+        "frontend/src/lib/settings/profileApi.ts"
       ]
     },
     {
@@ -95,7 +101,10 @@
         "AC-2: Coaching mode dropdown bTIiC renders ai_coaching_mode_os options from ENUM-03 with IR placeholder copy; coaching-disclaimer-banner (ai_RNbBHYWq) shows static disclaimer text nodes",
         "AC-3: coaching-save-btn (ai_RNbBHYWt) triggers workflow bTIhv parity: update user coaching preference and reflect saved value in dropdown"
       ],
-      "ir_refs": ["bTHDh", "ai_coaching_mode_os"],
+      "ir_refs": [
+        "bTHDh",
+        "ai_coaching_mode_os"
+      ],
       "ui_refs": [
         "ai_RNbBHYWU",
         "ai_RNbBHYWV",
@@ -117,8 +126,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsCoachingTab.vue",
-        "frontend/src/features/settings/coachingPreferencesApi.ts"
+        "frontend/src/components/settings/SettingsCoachingTab.tsx",
+        "frontend/src/lib/settings/coachingPreferencesApi.ts"
       ]
     },
     {
@@ -130,7 +139,9 @@
         "AC-2: privacy-export-btn (ai_RNbBHYXS) initiates user data export via existing Supabase edge/RPC surface (read project/ contract only); privacy-delete-btn (ai_RNbBHYXV) opens delete-confirm-popup preserving header/actions hierarchy",
         "AC-3: delete-confirm-popup (ai_RNbBHYXY) delete-confirm-btn (ai_RNbBHYXf) and delete-cancel-btn (ai_RNbBHYXe) execute bTIiN/bTIiS workflow parity for account deletion request — no project/ schema edits"
       ],
-      "ir_refs": ["bTHDh"],
+      "ir_refs": [
+        "bTHDh"
+      ],
       "ui_refs": [
         "ai_RNbBHYWu",
         "ai_RNbBHYWv",
@@ -160,9 +171,9 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsPrivacyTab.vue",
-        "frontend/src/features/settings/DeleteConfirmPopup.vue",
-        "frontend/src/features/settings/privacyApi.ts"
+        "frontend/src/components/settings/DeleteConfirmPopup.tsx",
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx",
+        "frontend/src/lib/settings/privacyApi.ts"
       ]
     },
     {
@@ -174,7 +185,9 @@
         "AC-2: Password inputs (ai_RNbBHYXo, ai_RNbBHYXr, ai_RNbBHYXu) use IR labels and masked input presentation — no placeholder-only fields",
         "AC-3: security-change-pwd-btn (ai_RNbBHYXw) validates and updates password; security-reset-email-btn (ai_RNbBHYXx) triggers reset-email workflow matching Bubble bTIjK action — frontend auth only, no adapter passthrough"
       ],
-      "ir_refs": ["bTHDh"],
+      "ir_refs": [
+        "bTHDh"
+      ],
       "ui_refs": [
         "ai_RNbBHYXg",
         "ai_RNbBHYXh",
@@ -201,8 +214,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsSecurityTab.vue",
-        "frontend/src/features/settings/securityApi.ts"
+        "frontend/src/components/settings/SettingsSecurityTab.tsx",
+        "frontend/src/lib/settings/securityApi.ts"
       ]
     },
     {
@@ -214,7 +227,10 @@
         "AC-2: Dropdown notifications-freq-select (ai_RNbBHYYG) binds to notification_frequency option values with IR labels; static title/subtitle text matches Bubble copy",
         "AC-3: notifications-save-btn (ai_RNbBHYYL) triggers save workflow (bTIjP cluster) updating user notification_frequency_text then shows saved state"
       ],
-      "ir_refs": ["bTHDh", "notification_frequency_text"],
+      "ir_refs": [
+        "bTHDh",
+        "notification_frequency_text"
+      ],
       "ui_refs": [
         "ai_RNbBHYXy",
         "ai_RNbBHYXz",
@@ -233,8 +249,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsNotificationsTab.vue",
-        "frontend/src/features/settings/notificationsApi.ts"
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+        "frontend/src/lib/settings/notificationsApi.ts"
       ]
     },
     {
@@ -246,7 +262,11 @@
         "AC-2: Plan RG cells (plan-free-card ai_RNbBHYYn and siblings) display name/price/features from subscriptionplan table; tier badge uses ENUM-04 tier_os labels",
         "AC-3: plan-free-select-btn (ai_RNbBHYYv) and billing-update-btn (ai_RNbBHYZB) / billing-invoices-btn (ai_RNbBHYZC) wire to existing Supabase subscription/billing surfaces (read project/ for RPC names) — no project/ writes"
       ],
-      "ir_refs": ["bTHDh", "subscriptionplan", "tier_os"],
+      "ir_refs": [
+        "bTHDh",
+        "subscriptionplan",
+        "tier_os"
+      ],
       "ui_refs": [
         "ai_RNbBHYYc",
         "ai_RNbBHYYd",
@@ -273,9 +293,9 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsSubscriptionTab.vue",
-        "frontend/src/features/settings/SubscriptionPlanCard.vue",
-        "frontend/src/features/settings/subscriptionApi.ts"
+        "frontend/src/pages/Subscription.tsx",
+        "frontend/src/components/settings/SubscriptionPlanCard.tsx",
+        "frontend/src/lib/settings/subscriptionApi.ts"
       ]
     },
     {
@@ -287,7 +307,10 @@
         "AC-2: workplace-name-input (ai_RNbBHYYX) and workplace-email-input (ai_RNbBHYYa) preserve IR labels; workplace-privacy-text (ai_RNbBHYYT) matches static copy",
         "AC-3: workplace-link-btn (ai_RNbBHYYb) triggers bTIja workflow parity: validate/create workplace link for current user using workplace table (read project/ schema only)"
       ],
-      "ir_refs": ["bTHDh", "workplace"],
+      "ir_refs": [
+        "bTHDh",
+        "workplace"
+      ],
       "ui_refs": [
         "ai_RNbBHYYM",
         "ai_RNbBHYYN",
@@ -312,8 +335,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/SettingsWorkplaceTab.vue",
-        "frontend/src/features/settings/workplaceApi.ts"
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+        "frontend/src/lib/settings/workplaceApi.ts"
       ]
     },
     {
@@ -325,7 +348,9 @@
         "AC-2: admin-tab-paths (ai_RNbBHYZR) and admin-tab-resources (ai_RNbBHYZp) show toolbars, grids (admin-paths-grid/admin-resources-grid), and card templates with edit/delete buttons matching IR badges and tag rows",
         "AC-3: add-path-popup and add-resource-popup open from admin-add-path-btn/admin-add-resource-btn; submit workflows create path/resource rows via Supabase client using ENUM-03 enums for mode/tier/sensitivity dropdowns — no project/ migrations"
       ],
-      "ir_refs": ["bTHDh"],
+      "ir_refs": [
+        "bTHDh"
+      ],
       "ui_refs": [
         "ai_RNbBHYZD",
         "ai_RNbBHYZE",
@@ -351,13 +376,13 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/admin/SettingsAdminShell.vue",
-        "frontend/src/features/settings/admin/AdminPathsTab.vue",
-        "frontend/src/features/settings/admin/AdminResourcesTab.vue",
-        "frontend/src/features/settings/admin/AddPathPopup.vue",
-        "frontend/src/features/settings/admin/AddResourcePopup.vue",
-        "frontend/src/features/settings/admin/adminPathsApi.ts",
-        "frontend/src/features/settings/admin/adminResourcesApi.ts"
+        "frontend/src/components/settings/admin/AddPathPopup.tsx",
+        "frontend/src/components/settings/admin/AddResourcePopup.tsx",
+        "frontend/src/components/settings/admin/adminPathsApi.ts",
+        "frontend/src/components/settings/admin/AdminPathsTab.tsx",
+        "frontend/src/components/settings/admin/adminResourcesApi.ts",
+        "frontend/src/components/settings/admin/AdminResourcesTab.tsx",
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx"
       ]
     },
     {
@@ -369,7 +394,11 @@
         "AC-2: admin-plans-grid and admin-workplaces-grid list subscriptionplan/workplace rows with edit/delete card actions; analytics grid shows stat cards (admin-stat-total-users, checkins, mode-dist, enrolled) from read-only Supabase aggregates",
         "AC-3: add-plan-popup and add-workplace-popup forms submit via Supabase client creating subscriptionplan/workplace records; admin tab buttons ai_RNbBHYZN/ai_RNbBHYZO/ai_RNbBHYZP toggle visibility without breaking SET-09 paths/resources state"
       ],
-      "ir_refs": ["bTHDh", "subscriptionplan", "workplace"],
+      "ir_refs": [
+        "bTHDh",
+        "subscriptionplan",
+        "workplace"
+      ],
       "ui_refs": [
         "ai_RNbBHYZN",
         "ai_RNbBHYZO",
@@ -392,14 +421,14 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/settings/admin/AdminPlansTab.vue",
-        "frontend/src/features/settings/admin/AdminWorkplacesTab.vue",
-        "frontend/src/features/settings/admin/AdminAnalyticsTab.vue",
-        "frontend/src/features/settings/admin/AddPlanPopup.vue",
-        "frontend/src/features/settings/admin/AddWorkplacePopup.vue",
-        "frontend/src/features/settings/admin/adminPlansApi.ts",
-        "frontend/src/features/settings/admin/adminWorkplacesApi.ts",
-        "frontend/src/features/settings/admin/adminAnalyticsApi.ts"
+        "frontend/src/components/settings/admin/AddPlanPopup.tsx",
+        "frontend/src/components/settings/admin/AddWorkplacePopup.tsx",
+        "frontend/src/components/settings/admin/adminAnalyticsApi.ts",
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx",
+        "frontend/src/components/settings/admin/adminPlansApi.ts",
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+        "frontend/src/components/settings/admin/adminWorkplacesApi.ts",
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx"
       ]
     }
   ]

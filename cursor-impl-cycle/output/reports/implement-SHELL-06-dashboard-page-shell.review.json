@@ -1,0 +1,156 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-06-dashboard-page-shell",
+  "assessed_at": "2026-07-07T20:16:30.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /dashboard route registered",
+        "frontend/src/App.tsx — route nested under ProtectedRoute with requiresAuth meta",
+        "frontend/src/pages/Dashboard.tsx — wraps content in DashboardLayout with pageBubbleId bTHDT",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDT on shell root when pageBubbleId provided"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/routes.ts — exports ai_RNbBKLUh and ai_RNbBKLUi instance constants",
+        "frontend/src/pages/Dashboard.tsx — passes headerBubbleId and sidebarBubbleId to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — data-bubble-id={bubbleId} with dashboard override",
+        "frontend/src/components/AppSidebar.tsx — data-bubble-id={bubbleId} on Sidebar root with dashboard override",
+        "ir/inventory.json — ai_RNbBKLUh and ai_RNbBKLUi are CustomElement children of bTHDT per bTHDU____root.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx — both profile branches wrap children in div with data-bubble-id ai_RNbBHXRD and data-module-owner MOD-DRSAM-DASHBOARD",
+        "frontend/src/lib/dashboard/routes.ts — documents DASHBOARD_MAIN_BUBBLE_ID and DASHBOARD_MODULE_ID",
+        "ir/inventory.json — ai_RNbBHXRD is Group child of bTHDT (dashboard-main boundary)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "/dashboard route registered and auth-guarded via ProtectedRoute parent",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/components/ProtectedRoute.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Dashboard page mounts AppShellLayout with page-level CustomElement instance overrides",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/components/DashboardLayout.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Dashboard renders for both incomplete-profile and complete-profile states inside ai_RNbBHXRD boundary",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDT",
+      "selector": "[data-bubble-id='bTHDT']",
+      "status": "pass",
+      "notes": "Page root on DashboardLayout outer wrapper when Dashboard passes pageBubbleId"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUh",
+      "selector": "[data-bubble-id='ai_RNbBKLUh']",
+      "status": "pass",
+      "notes": "Dashboard-specific header CustomElement instance on Header via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUi",
+      "selector": "[data-bubble-id='ai_RNbBKLUi']",
+      "status": "pass",
+      "notes": "Dashboard-specific sidebar CustomElement instance on AppSidebar via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRD",
+      "selector": "[data-bubble-id='ai_RNbBHXRD']",
+      "status": "pass",
+      "notes": "dashboard-main content boundary wraps page children with data-module-owner MOD-DRSAM-DASHBOARD"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "layout",
+      "finding": "IR places ai_RNbBKLUh, ai_RNbBKLUi, and ai_RNbBHXRD as bTHDT siblings; React shell still nests Header inside the main column to the right of the sidebar (inherited from SHELL-05). Page-instance markers are correct but full-width header sibling layout remains unresolved.",
+      "evidence": [
+        "ir/inventory.json",
+        "ir/slices/bTHDU____root.json",
+        "frontend/src/components/DashboardLayout.tsx",
+        "cursor-impl-cycle/output/reports/implement-SHELL-05-app-shell-layout.review.json"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SHELL-06 added correct page-instance bubble ids (ai_RNbBKLUh/ai_RNbBKLUi) but did not restructure DashboardLayout to match bTHDU sibling order (full-width header above sidebar+main row). Header remains nested in the right column per SHELL-05 shadcn SidebarProvider pattern.",
+      "alternative": "Restructure DashboardLayout: offline banner → full-width Header (page instance) → flex row (sidebar instance | scrollable main containing only ai_RNbBHXRD children), aligning DOM hierarchy with IR page-root siblings.",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "ir/inventory.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Decompose scope says 'no dashboard feature widgets' and AC-3 names a placeholder, but brownfield implementation retains the full prototype dashboard UI inside ai_RNbBHXRD. Ownership marker (data-module-owner) is present; widget IR subtree alignment is correctly deferred to MOD-DRSAM-DASHBOARD.",
+      "alternative": "If strict shell-only landing is required, replace prototype widgets with a minimal placeholder inside ai_RNbBHXRD until DASH-01+ lands; otherwise document brownfield retention as intentional in coverage preflight.",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "routing",
+      "priority": "low",
+      "finding": "frontend/src/lib/dashboard/routes.ts exports DASHBOARD_ROUTE but authenticatedRoutes.tsx still hardcodes '/dashboard' string instead of importing the constant.",
+      "alternative": "Import DASHBOARD_ROUTE in authenticatedRoutes.tsx (and any navigate targets) for single source of truth.",
+      "evidence": [
+        "frontend/src/lib/dashboard/routes.ts",
+        "frontend/src/lib/router/authenticatedRoutes.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

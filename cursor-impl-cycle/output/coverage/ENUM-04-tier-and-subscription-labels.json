@@ -1,0 +1,59 @@
+{
+  "item_id": "ENUM-04-tier-and-subscription-labels",
+  "module_id": "MOD-DRSAM-ENUMS",
+  "assessed_at": "2026-07-07T15:05:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/enums/index.ts",
+      "frontend/src/lib/enums/onboardingSteps.ts",
+      "frontend/src/lib/enums/pathPageTabs.ts",
+      "frontend/src/lib/enums/settingsTabs.ts",
+      "frontend/src/lib/plans.ts",
+      "frontend/src/pages/Subscription.tsx"
+    ],
+    "gaps": [
+      "No tier_os or subscription enum modules existed; plan names were hardcoded in frontend/src/lib/plans.ts",
+      "Decompose target_files listed frontend/src/lib/enums/subscription.ts and tier.ts (no stale domain/ path)"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/lib/enums/tier.ts": "frontend/src/lib/enums/tier.ts",
+      "frontend/src/lib/enums/subscription.ts": "frontend/src/lib/enums/subscription.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/tier.ts — 3 tier_os values (free, pro, premium) with IR display labels and Bubble id comments (bTIrS, bTIrT, bTIrU)",
+        "frontend/src/lib/enums/subscription.ts — TIER_SUBSCRIPTION_LABELS exports title-case plan names for subscription UI surfaces",
+        "frontend/src/lib/enums/index.ts — barrel re-exports tier and subscription constants"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/subscription.ts — getTierSubscriptionLabel() and TIER_SUBSCRIPTION_LABELS provide tier names without Bubble runtime reads",
+        "frontend/src/pages/Subscription.tsx — existing subscription tab can import from @/lib/enums (mapped from SettingsSubscriptionTab.tsx per path-conventions)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/subscription.ts — module header documents tier_os slug → Bubble id → future subscription_plan.name_text mapping",
+        "frontend/src/lib/enums/tier.ts — TIER_BUBBLE_IDS maps slugs to Bubble option-set value ids for traceability"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "files_changed": [
+    "frontend/src/lib/enums/tier.ts",
+    "frontend/src/lib/enums/subscription.ts",
+    "frontend/src/lib/enums/index.ts",
+    "cursor-impl-cycle/output/coverage/ENUM-04-tier-and-subscription-labels.json"
+  ]
+}

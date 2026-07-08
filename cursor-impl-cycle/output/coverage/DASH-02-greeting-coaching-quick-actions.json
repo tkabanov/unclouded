@@ -1,0 +1,74 @@
+{
+  "item_id": "DASH-02-greeting-coaching-quick-actions",
+  "module_id": "MOD-DRSAM-DASHBOARD",
+  "assessed_at": "2026-07-07T20:45:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/dashboard/DashboardMain.tsx",
+      "frontend/src/hooks/useDashboardUser.ts",
+      "frontend/src/lib/enums/coachingMode.ts",
+      "frontend/src/lib/userProfile.tsx"
+    ],
+    "gaps": [
+      "AC-1: No DashboardGreetingCard with IR hierarchy and data-bubble-id markers",
+      "AC-2: No coaching mode dropdown bTIVQ or bTIVW Supabase update path",
+      "AC-3: No DashboardQuickActions with plan/reflect routes to /paths and /journal"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/dashboard/DashboardGreetingCard.vue": "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+      "frontend/src/components/dashboard/DashboardQuickActions.vue": "frontend/src/components/dashboard/DashboardQuickActions.tsx",
+      "frontend/src/lib/dashboard/coachingModeApi.ts": "frontend/src/lib/dashboard/coachingModeApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx — root ai_RNbBHXRG with greeting-top ai_RNbBHXRH, avatar ai_RNbBHXRI, name ai_RNbBHXRL, mode-pill ai_RNbBHXRN, coaching-note ai_RNbBHXRO",
+        "frontend/src/pages/Dashboard.tsx — greetingRow slot uses DashboardGreetingCard for loading and full profile paths"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx — bTIVE wrapper with bTIVQ Select using Dropdown_default_ and ai_coaching_mode_os options from ENUM-03",
+        "frontend/src/lib/dashboard/coachingModeApi.ts — updateCoachingModePreference mirrors bTIVW add/set_list via profiles.onboarding_data patch",
+        "frontend/src/hooks/useDashboardUser.ts — exposes coachingModeList and preferredCoachingMode from onboarding_data"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardQuickActions.tsx — root ai_RNbBHXRP with ai_RNbBHXRQ Button_accent_ → /paths and ai_RNbBHXRS Button_outline_ → /journal",
+        "frontend/src/pages/Dashboard.tsx — DashboardQuickActions sibling under greeting-row via DashboardGreetingRow wrapper"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXRG", "selector": "[data-bubble-id='ai_RNbBHXRG']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRH", "selector": "[data-bubble-id='ai_RNbBHXRH']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRI", "selector": "[data-bubble-id='ai_RNbBHXRI']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRL", "selector": "[data-bubble-id='ai_RNbBHXRL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRN", "selector": "[data-bubble-id='ai_RNbBHXRN']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRO", "selector": "[data-bubble-id='ai_RNbBHXRO']", "status": "pass" },
+    { "bubble_id": "bTIVE", "selector": "[data-bubble-id='bTIVE']", "status": "pass" },
+    { "bubble_id": "bTIVQ", "selector": "[data-bubble-id='bTIVQ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRP", "selector": "[data-bubble-id='ai_RNbBHXRP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRQ", "selector": "[data-bubble-id='ai_RNbBHXRQ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRS", "selector": "[data-bubble-id='ai_RNbBHXRS']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+    "frontend/src/components/dashboard/DashboardQuickActions.tsx",
+    "frontend/src/lib/dashboard/coachingModeApi.ts",
+    "frontend/src/hooks/useDashboardUser.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "cursor-impl-cycle/output/coverage/DASH-02-greeting-coaching-quick-actions.json"
+  ]
+}

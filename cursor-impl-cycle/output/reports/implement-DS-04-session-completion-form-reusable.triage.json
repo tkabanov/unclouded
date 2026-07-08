@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "DS-04-session-completion-form-reusable",
+  "assessed_at": "2026-07-07T20:40:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-DS-04-session-completion-form-reusable.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "IR re-read confirms bTIys/bTIyt are canonical resolver ids whose pointers map to Bubble JSON keys bTIxC/bTIxG (/element_definitions/bTIym/elements/bTIyu/elements/bTIxC|bTIxG). Decompose AC-1, ui_refs[], coverage, and downstream PATHS-07 AC-2 all explicitly name bTIxC/bTIxG as the required data-bubble-id markers; implementation matches those named ui_refs and review ui_evidence passes both selectors. Switching to canonical ids would contradict written AC without improving composable behavior for PATHS-07 depends_on."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Sibling htmlFor label is the standard shadcn/Radix Checkbox composition pattern; static copy 'Set as focus' matches IR checkbox label expression, bTIzc marker is on the interactive control, and association is accessible. Bubble co-locates label on the checkbox element property; React DOM structure differs but visible copy, styling (Text_label_), and controlled behavior are equivalent. Not scoped in AC-2; review ui_evidence passes bTIzc; PATHS-07 reuses DS-04 verbatim and does not require label-on-element DOM parity."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Valid polish gap: min-h-[96px] is a Tailwind literal not present in MultiLineInput_default_ (bubble-styles.css) or bTIzK IR presentation meta. AC-2 scopes style_ref MultiLineInput_default_ and placeholder copy only — no min-height AC. Fluid textarea without hard-coded min-height is acceptable for composable mount; defer height token derivation to a later design-system polish wave if visual parity tooling against live Bubble flags the delta."
+    }
+  ],
+  "summary": "0 fix_now, 1 defer, 2 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. C-1 accepted: bTIxC/bTIxG markers are AC- and downstream-grounded; canonical bTIys/bTIyt are resolver aliases only. C-2 accepted: sibling label is intentional React/shadcn pattern with correct copy and a11y. C-3 deferred: optional min-height polish not in AC or style_ref; no later item id assigned."
+}

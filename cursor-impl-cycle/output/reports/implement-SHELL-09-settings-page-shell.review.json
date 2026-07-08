@@ -1,0 +1,160 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-09-settings-page-shell",
+  "assessed_at": "2026-07-07T20:28:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 92,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /settings route registered with Settings element",
+        "frontend/src/App.tsx — route nested under ProtectedRoute with requiresAuth handle meta",
+        "frontend/src/pages/Settings.tsx — passes pageBubbleId bTHDh via settingsShellProps to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDh on shell root when pageBubbleId provided"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/routes.ts — exports SETTINGS_HEADER_INSTANCE_BUBBLE_ID (ai_RNbBKLUp) and SETTINGS_SIDEBAR_INSTANCE_BUBBLE_ID (ai_RNbBKLUq)",
+        "frontend/src/pages/Settings.tsx — passes headerBubbleId and sidebarBubbleId to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — data-bubble-id={bubbleId} with settings override (defaults ai_RNbBKLUc)",
+        "frontend/src/components/AppSidebar.tsx — data-bubble-id={bubbleId} on Sidebar root with settings override (defaults ai_RNbBKLUe)",
+        "ir/inventory.json — ai_RNbBKLUp and ai_RNbBKLUq are CustomElement children of bTHDh per bTHDl____root.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx — prototype settings UI wrapped in div with data-bubble-id ai_RNbBHYUr and data-module-owner MOD-DRSAM-SETTINGS",
+        "frontend/src/lib/settings/routes.ts — documents SETTINGS_MAIN_BUBBLE_ID and SETTINGS_MODULE_ID",
+        "frontend/src/lib/settings/settingsTabStub.ts — exports SETTINGS_TAB_CUSTOM_STATE_KEY (settings_tab_os_), ENUM-01 tab slugs/order, tab button bubble ids (ai_RNbBHYUx–ai_RNbBHYVE), SETTINGS_TAB_PANELS_BUBBLE_ID, and SettingsTabRouter contract for SET-01",
+        "ir/inventory.json — ai_RNbBHYUr is Group child of bTHDh; custom_state:bTHDh:settings_tab_os_ present in slice"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "/settings route registered and auth-guarded via ProtectedRoute parent",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/components/ProtectedRoute.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Settings page mounts AppShellLayout (DashboardLayout) with page-level CustomElement instance overrides",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx",
+        "frontend/src/components/DashboardLayout.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Settings content renders inside ai_RNbBHYUr boundary; settings_tab_os_ tab router stub exported and tab UI deferred to MOD-DRSAM-SETTINGS",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx",
+        "frontend/src/lib/settings/settingsTabStub.ts",
+        "frontend/src/lib/settings/routes.ts",
+        "ir/inventory.json — custom_state:bTHDh:settings_tab_os_ present in slice but not wired in shell scope"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDh",
+      "selector": "[data-bubble-id='bTHDh']",
+      "status": "pass",
+      "notes": "Page root on DashboardLayout outer wrapper when Settings passes pageBubbleId"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUp",
+      "selector": "[data-bubble-id='ai_RNbBKLUp']",
+      "status": "pass",
+      "notes": "Settings-specific header CustomElement instance on Header via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUq",
+      "selector": "[data-bubble-id='ai_RNbBKLUq']",
+      "status": "pass",
+      "notes": "Settings-specific sidebar CustomElement instance on AppSidebar via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBHYUr",
+      "selector": "[data-bubble-id='ai_RNbBHYUr']",
+      "status": "pass",
+      "notes": "settings-main content boundary wraps page children with data-module-owner MOD-DRSAM-SETTINGS"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "layout",
+      "finding": "IR places ai_RNbBKLUp, ai_RNbBKLUq, and ai_RNbBHYUr as bTHDh siblings; React shell still nests Header inside the main column to the right of the sidebar (inherited from SHELL-05). Page-instance markers are correct but full-width header sibling layout remains unresolved.",
+      "evidence": [
+        "ir/inventory.json",
+        "ir/slices/bTHDl____root.json",
+        "frontend/src/components/DashboardLayout.tsx",
+        "cursor-impl-cycle/output/reports/implement-SHELL-05-app-shell-layout.review.json"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SHELL-09 added correct page-instance bubble ids (ai_RNbBKLUp/ai_RNbBKLUq) but did not restructure DashboardLayout to match bTHDl sibling order (full-width header above sidebar+main row). Header remains nested in the right column per SHELL-05 shadcn SidebarProvider pattern.",
+      "alternative": "Restructure DashboardLayout: offline banner → full-width Header (page instance) → flex row (sidebar instance | scrollable main containing only ai_RNbBHYUr children), aligning DOM hierarchy with IR page-root siblings.",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "ir/inventory.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Decompose scope defers settings tabs, panels, and admin popups to MOD-DRSAM-SETTINGS, but brownfield implementation retains full prototype profile/subscription/logout UI inside ai_RNbBHYUr. Ownership marker (data-module-owner) and settings-main boundary are present; tab bar (ai_RNbBHYUx–ai_RNbBHYVE) and conditional panels are correctly deferred.",
+      "alternative": "If strict shell-only landing is required, replace prototype settings cards with a minimal placeholder inside ai_RNbBHYUr until SET-01+ lands; otherwise document brownfield retention as intentional in coverage preflight.",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "routing",
+      "priority": "low",
+      "finding": "frontend/src/lib/settings/routes.ts exports SETTINGS_ROUTE but authenticatedRoutes.tsx still hardcodes '/settings' string instead of importing the constant.",
+      "alternative": "Import SETTINGS_ROUTE in authenticatedRoutes.tsx (and any navigate targets) for single source of truth.",
+      "evidence": [
+        "frontend/src/lib/settings/routes.ts",
+        "frontend/src/lib/router/authenticatedRoutes.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

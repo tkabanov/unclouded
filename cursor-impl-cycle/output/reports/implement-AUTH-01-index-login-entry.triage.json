@@ -1,0 +1,33 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-01-index-login-entry",
+  "assessed_at": "2026-07-07T14:45:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-AUTH-01-index-login-entry.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DS-01-design-tokens-and-bubble-styles",
+      "rationale": "IR confirms Button_primary_/Button_outline_ carry bgcolor, border, padding, and hover in styles.json; bubbleStyles.ts maps only font-medium (matching IR font_weight 500). Header and hero CTAs already apply data-style-ref plus shadcn variant=\"cta\"|\"outline\" for visual chrome. Full Bubble-to-Tailwind token bridge is scoped to MOD-DRSAM-DESIGN-SYSTEM (DS-01); AC-3 passes and no AUTH-02+ item depends on AUTH-01 for button primitives."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR Text_heading_1_ specifies font_size 36; hero h1 applies bubbleStyle(Text_heading_1_) (text-4xl = 36px base) then overrides with md:text-7xl (72px). Divergence is real but medium-priority polish: criteria_audit AC-3 and ui_evidence ai_RNbBHWoM are pass, no downstream depends_on gates on hero font size, and responsive scaling is brownfield prototype enhancement rather than a functional or structural blocker."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Review correctly notes CrisisBar has no bTGbC____root counterpart; this is an intentional brownfield prototype extension above the IR page tree. Crisis resources are also represented in-scope at ai_RNbBHWsR; CrisisBar does not violate AC-1 element-tree requirements for named ui_refs (bTGYf, ai_RNbBHWoL, ai_RNbBHWoM) or block auth entry behavior."
+    }
+  ],
+  "summary": "Review ok (92% coverage, 0 blockers); 0 fix_now, 2 defer, 1 accept. Advance implement: defer shallow Button_primary_/Button_outline_ token mapping to DS-01-design-tokens-and-bubble-styles; defer hero md:text-7xl typography override as non-blocking polish; accept CrisisBar as documented prototype-only region."
+}

@@ -1,0 +1,69 @@
+{
+  "item_id": "ENUM-02-onboarding-question-enums",
+  "module_id": "MOD-DRSAM-ENUMS",
+  "assessed_at": "2026-07-07T15:30:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/enums/onboardingSteps.ts",
+      "frontend/src/lib/enums/index.ts",
+      "frontend/src/lib/enums/customerProfile.ts",
+      "frontend/src/lib/enums/onboardingQuestions.ts",
+      "frontend/src/components/OnboardingPillar.tsx",
+      "frontend/src/components/OnboardingRole.tsx",
+      "frontend/src/components/OnboardingAlignment.tsx",
+      "frontend/src/components/OnboardingPerformance.tsx",
+      "frontend/src/components/OnboardingStability.tsx",
+      "frontend/src/components/OnboardingLoadSignals.tsx",
+      "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/lib/classification.ts"
+    ],
+    "gaps": [
+      "Prior pass exported only 5 pro-role performance questions; AC-2 required all 25 role-keyed questions from customer_performance_question_os"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/domain/enums/customerProfile.ts": "frontend/src/lib/enums/customerProfile.ts",
+      "frontend/src/domain/enums/onboardingQuestions.ts": "frontend/src/lib/enums/onboardingQuestions.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/customerProfile.ts — customer_pillar_os (3), customer_role_os (5), customer_state_os (7) slug keys with Bubble id comments and labels from drsam-99657.bubble",
+        "frontend/src/lib/enums/index.ts — barrel re-exports profile enums and types"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts — ALIGNMENT_QUESTIONS (5×5), PERFORMANCE_QUESTIONS_BY_ROLE (25 questions: 5 roles × 5 each) sourced from drsam-99657.bubble customer_performance_question_os + customer_performance_answer_os, getPerformanceQuestionsForRole(role), STABILITY_QUESTIONS (5×5), LOAD_SIGNAL_QUESTIONS (4×3)",
+        "frontend/src/lib/enums/index.ts — exports PERFORMANCE_QUESTIONS_BY_ROLE, getPerformanceQuestionsForRole, PERFORMANCE_ANSWERS_OPTION_SET_ID"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingPillar.tsx — imports CUSTOMER_PILLAR_* from @/lib/enums/customerProfile",
+        "frontend/src/components/OnboardingRole.tsx — imports CUSTOMER_ROLE_* from @/lib/enums/customerProfile",
+        "frontend/src/components/OnboardingAlignment.tsx — imports ALIGNMENT_QUESTIONS from @/lib/enums/onboardingQuestions",
+        "frontend/src/components/OnboardingPerformance.tsx — imports getPerformanceQuestionsForRole; uses onboarding role from state when available",
+        "frontend/src/pages/Onboarding.tsx — passes roleType to OnboardingPerformance",
+        "frontend/src/components/OnboardingStability.tsx — imports STABILITY_QUESTIONS from @/lib/enums/onboardingQuestions",
+        "frontend/src/components/OnboardingLoadSignals.tsx — imports LOAD_SIGNAL_QUESTIONS from @/lib/enums/onboardingQuestions"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "files_changed": [
+    "frontend/src/lib/enums/onboardingQuestions.ts",
+    "frontend/src/lib/enums/index.ts",
+    "frontend/src/components/OnboardingPerformance.tsx",
+    "frontend/src/pages/Onboarding.tsx",
+    "cursor-impl-cycle/output/coverage/ENUM-02-onboarding-question-enums.json"
+  ]
+}

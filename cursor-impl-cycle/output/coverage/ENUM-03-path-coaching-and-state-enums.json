@@ -1,0 +1,61 @@
+{
+  "item_id": "ENUM-03-path-coaching-and-state-enums",
+  "module_id": "MOD-DRSAM-ENUMS",
+  "assessed_at": "2026-07-07T15:30:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/enums/index.ts",
+      "frontend/src/lib/enums/onboardingSteps.ts",
+      "frontend/src/lib/enums/customerProfile.ts",
+      "frontend/src/lib/enums/pathPageTabs.ts",
+      "frontend/src/lib/enums/tier.ts",
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/components/OnboardingStateSignals.tsx"
+    ],
+    "gaps": [
+      "path_enrollment_status, ai_coaching_mode_os, ai_confidence_level_os, state_energy_level_os, and state_nervous_system_os were not yet centralized under frontend/src/lib/enums/",
+      "OnboardingStateSignals.tsx still uses inline option values for nervous_system_state and energy_level_signal (consumers can migrate to wellnessState enums in a follow-up UI item)"
+    ],
+    "reuse_decision": "new",
+    "mapped_target_files": {
+      "frontend/src/lib/enums/pathEnrollment.ts": "frontend/src/lib/enums/pathEnrollment.ts",
+      "frontend/src/lib/enums/coachingMode.ts": "frontend/src/lib/enums/coachingMode.ts",
+      "frontend/src/lib/enums/wellnessState.ts": "frontend/src/lib/enums/wellnessState.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/pathEnrollment.ts — 4 path_enrollment_status slugs (active, paused, completed, abandoned) with Bubble display labels and bTIqc–bTIqi id comments",
+        "frontend/src/lib/enums/index.ts — barrel exports PATH_ENROLLMENT_STATUS_* for path enrollment badge consumers"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/coachingMode.ts — ai_coaching_mode_os (5 values: protector, stabilizer, simplifier, rebuilder, strategist) and ai_confidence_level_os (4 values: exploratory, exploratory_, guided, direct) with label maps",
+        "frontend/src/lib/enums/index.ts — barrel exports AI_COACHING_MODE_* and AI_CONFIDENCE_LEVEL_* for chat/paths UI selectors"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/wellnessState.ts — state_energy_level_os (strong, moderate, low, depleted) and state_nervous_system_os (wired, regulated, depleted, shut_down) with IR/Bubble-accurate labels",
+        "frontend/src/lib/enums/index.ts — barrel exports STATE_ENERGY_LEVEL_* and STATE_NERVOUS_SYSTEM_* for journal/check-in components"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "files_changed": [
+    "frontend/src/lib/enums/pathEnrollment.ts",
+    "frontend/src/lib/enums/coachingMode.ts",
+    "frontend/src/lib/enums/wellnessState.ts",
+    "frontend/src/lib/enums/index.ts",
+    "cursor-impl-cycle/output/coverage/ENUM-03-path-coaching-and-state-enums.json"
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "phase": "implement",
+  "target_id": "ENUM-04-tier-and-subscription-labels",
+  "assessed_at": "2026-07-07T15:10:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 92,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/tier.ts — TIER exports 3 tier_os slugs (free, pro, premium) with Bubble id comments bTIrS/bTIrT/bTIrU",
+        "frontend/src/lib/enums/tier.ts — TIER_LABELS maps slugs to IR display strings (free, pro, premium)",
+        "frontend/src/lib/enums/subscription.ts — TIER_SUBSCRIPTION_LABELS provides title-case subscription UI labels (Free, Pro, Premium)",
+        "frontend/src/lib/enums/index.ts — barrel re-exports tier and subscription constants",
+        "ir/inventory.json — tier_os option_set with 3 values bTIrS, bTIrT, bTIrU",
+        "ir/resolver.json — display_name: free, pro__edc578, premium"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/subscription.ts — getTierSubscriptionLabel() and TIER_SUBSCRIPTION_LABELS supply tier names without Bubble runtime reads",
+        "frontend/src/pages/Settings.tsx — subscription card section renders tier names (Pro/Free) via static strings, not Bubble option sets",
+        "frontend/src/pages/Subscription.tsx — plan cards render tier names from @/lib/plans (static), not Bubble runtime"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/subscription.ts — module header documents tier_os slug → Bubble id → subscription_plan.name_text mapping table",
+        "frontend/src/lib/enums/tier.ts — TIER_BUBBLE_IDS maps slugs to Bubble option-set value ids",
+        "frontend/src/lib/enums/subscription.ts — documents user field tier_option_tier_os and PlanId 1:1 alignment"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-ENUM-04-1",
+      "check": "tier_os enum module exports all 3 IR values with typed slugs, Bubble id traceability, and display labels for subscription surfaces",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/tier.ts",
+        "frontend/src/lib/enums/subscription.ts",
+        "frontend/src/lib/enums/index.ts"
+      ]
+    },
+    {
+      "id": "FV-ENUM-04-2",
+      "check": "Settings subscription section can render tier names from static enum helpers without Bubble option-set runtime reads",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/subscription.ts — getTierSubscriptionLabel",
+        "frontend/src/pages/Settings.tsx — subscription card (lines 166–195) uses hardcoded tier copy, no Bubble reads"
+      ]
+    },
+    {
+      "id": "FV-ENUM-04-3",
+      "check": "Enum module documents read-only tier_os → future Supabase subscription_plan correlation",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/subscription.ts — header mapping table and subscriptionplan field notes"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "adoption",
+      "priority": "medium",
+      "finding": "Settings.tsx and Subscription.tsx do not import from @/lib/enums; tier names remain hardcoded in Settings (\"Pro — active\" / \"Free plan\") and duplicated in frontend/src/lib/plans.ts (name fields).",
+      "alternative": "Wire getTierSubscriptionLabel(TIER.PRO) in Settings subscription card and derive PLANS[].name from TIER_SUBSCRIPTION_LABELS in a follow-up consumer refactor to eliminate drift.",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx",
+        "frontend/src/pages/Subscription.tsx",
+        "frontend/src/lib/plans.ts"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "traceability",
+      "priority": "low",
+      "finding": "TIER_BUBBLE_IDS maps slug → Bubble id but no exported reverse lookup (BUBBLE_ID_TO_TIER) for adapter layers receiving Bubble option value ids.",
+      "alternative": "Add TIER_BY_BUBBLE_ID if Supabase/API payloads carry Bubble option value ids, mirroring a future ENUM consumer pattern.",
+      "evidence": [
+        "frontend/src/lib/enums/tier.ts"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "grounding",
+      "priority": "low",
+      "finding": "ir/resolver.json lists bTIrT display_name as \"pro__edc578\" while TIER_LABELS uses \"pro\"; consistent with slug/db_value convention used in settings_tab_os but differs from title-case subscription labels.",
+      "alternative": "Document in tier.ts that TIER_LABELS reflect db_value slugs and TIER_SUBSCRIPTION_LABELS are the human-facing subscription card strings.",
+      "evidence": [
+        "ir/resolver.json",
+        "frontend/src/lib/enums/tier.ts",
+        "frontend/src/lib/enums/subscription.ts"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "independent_verification": {
+    "tier_os_count": 3,
+    "tier_os_value_ids": ["bTIrS", "bTIrT", "bTIrU"],
+    "display_string_source": "ir/resolver.json display_name (cross-checked ir/inventory.json tier_os pointers)",
+    "implementer_coverage_pct_claim": 100,
+    "reviewer_coverage_pct": 100,
+    "preflight_valid": true,
+    "files_under_project": false
+  }
+}

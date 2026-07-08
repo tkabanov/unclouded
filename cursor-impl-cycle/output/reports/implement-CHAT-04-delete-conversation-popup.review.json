@@ -1,0 +1,198 @@
+{
+  "phase": "implement",
+  "target_id": "CHAT-04-delete-conversation-popup",
+  "assessed_at": "2026-07-08T08:40:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/DeleteConversationPopup.tsx — root data-bubble-id ai_RNbBHXct; header ai_RNbBHXcv; title ai_RNbBHXeq; subtitle ai_RNbBHXer; body ai_RNbBHXes; actions ai_RNbBHXet",
+        "frontend/src/components/chat/DeleteConversationPopup.tsx — static copy matches drsam-99657.bubble TextExpression entries (Delete Conversation / This cannot be undone / warning body)",
+        "frontend/src/lib/chat/routes.ts — CHAT-04 bubble ID constants for popup subtree"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatConversationsApi.ts — tryDeleteMessagesForConversation deletes chatmessage rows before chatconversation delete",
+        "frontend/src/lib/chat/chatConversationsApi.ts — deleteConversation onboarding_data fallback when table absent",
+        "frontend/src/components/chat/DeleteConversationPopup.tsx — data-delete-confirm-btn on ai_RNbBHXev calls deleteConversation; Cancel ai_RNbBHXeu dismisses via onOpenChange without API call"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ConversationThreadCell.tsx — bU(ai_RNbBHXbU) Trash2 onClick calls onDeleteRequest with bound ConversationListItem",
+        "frontend/src/pages/Chat.tsx — deleteTarget state set by handleDeleteRequest; DeleteConversationPopup receives conversation prop",
+        "frontend/src/pages/Chat.tsx — handleConversationDeleted clears ?conversation= when active thread deleted (layout_notes bTIma parity)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Delete confirm CTA calls Supabase deleteConversation and removes row from sidebar list",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/DeleteConversationPopup.tsx — handleConfirm awaits deleteConversation then onDeleted",
+        "frontend/src/pages/Chat.tsx — handleConversationDeleted increments sidebarListVersion",
+        "frontend/src/components/chat/ConversationSidebar.tsx — listVersion effect reloads fetchConversations"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Cancel/close dismisses popup without data mutation",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/DeleteConversationPopup.tsx — Cancel onClick calls dismiss(); Dialog onOpenChange wired to parent",
+        "frontend/src/pages/Chat.tsx — handleDeletePopupOpenChange clears deleteTarget on close"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Deleting active conversation clears URL param and local thread cache",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — setConversationId(null) when deletedId matches conversationId",
+        "frontend/src/lib/chat/chatRouteStore.ts — setConversationId deletes CONVERSATION_SEARCH_PARAM from URL",
+        "frontend/src/pages/Chat.tsx — threadMessages entry removed for deletedId"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXct",
+      "selector": "[data-bubble-id='ai_RNbBHXct']",
+      "status": "pass",
+      "notes": "Popup root on DialogContent with Popup_dialog_ style_ref"
+    },
+    {
+      "bubble_id": "ai_RNbBHXcv",
+      "selector": "[data-bubble-id='ai_RNbBHXcv']",
+      "status": "pass",
+      "notes": "Header group with icon + title stack"
+    },
+    {
+      "bubble_id": "ai_RNbBHXcw",
+      "selector": "[data-bubble-id='ai_RNbBHXcw']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXcx",
+      "selector": "[data-bubble-id='ai_RNbBHXcx']",
+      "status": "pass",
+      "notes": "Trash2 icon stand-in for Bubble Icon G"
+    },
+    {
+      "bubble_id": "ai_RNbBHXcy",
+      "selector": "[data-bubble-id='ai_RNbBHXcy']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXeq",
+      "selector": "[data-bubble-id='ai_RNbBHXeq']",
+      "status": "pass",
+      "notes": "Decompose AC id; live slice uses ai_RNbBHXcz for same title node — see C-1"
+    },
+    {
+      "bubble_id": "ai_RNbBHXer",
+      "selector": "[data-bubble-id='ai_RNbBHXer']",
+      "status": "pass",
+      "notes": "Decompose AC id; live slice uses ai_RNbBHXdA for subtitle — see C-1"
+    },
+    {
+      "bubble_id": "ai_RNbBHXes",
+      "selector": "[data-bubble-id='ai_RNbBHXes']",
+      "status": "pass",
+      "notes": "Decompose AC id; live slice uses ai_RNbBHXdB for warning body — see C-1"
+    },
+    {
+      "bubble_id": "ai_RNbBHXet",
+      "selector": "[data-bubble-id='ai_RNbBHXet']",
+      "status": "pass",
+      "notes": "Decompose AC id; live slice uses ai_RNbBHXdC for actions group — see C-1"
+    },
+    {
+      "bubble_id": "ai_RNbBHXeu",
+      "selector": "[data-bubble-id='ai_RNbBHXeu']",
+      "status": "pass",
+      "notes": "Decompose AC id; live slice uses ai_RNbBHXdD for cancel — see C-1"
+    },
+    {
+      "bubble_id": "ai_RNbBHXev",
+      "selector": "[data-bubble-id='ai_RNbBHXev']",
+      "status": "pass",
+      "notes": "Decompose AC id; live slice uses ai_RNbBHXdE for confirm — see C-1"
+    },
+    {
+      "bubble_id": "ai_RNbBHXem",
+      "selector": "[data-bubble-id='ai_RNbBHXem']",
+      "status": "na",
+      "notes": "Decompose ui_ref only; no element with this id in drsam-99657.bubble or ir/slices/bTHDZ____root.json"
+    },
+    {
+      "bubble_id": "Group_overlay_",
+      "selector": "[data-style-ref='Group_overlay_']",
+      "status": "partial",
+      "notes": "Style listed in ui_refs but not applied; shadcn Dialog overlay used instead — see C-2"
+    },
+    {
+      "bubble_id": "Button_primary_",
+      "selector": "[data-style-ref='Button_primary_']",
+      "status": "pass",
+      "notes": "Confirm button ai_RNbBHXev"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Text/action nodes use decompose AC ids (ai_RNbBHXeq–ev) but ir/slices/bTHDZ____root.json and drsam-99657.bubble canonical ids are ai_RNbBHXcz, ai_RNbBHXdA–E. Copy and hierarchy match; automated parity selectors keyed to slice ids will miss.",
+      "alternative": "Remap data-bubble-id on title/subtitle/body/actions/buttons to ai_RNbBHXcz and ai_RNbBHXdA–E per slice, or document alias map in routes.ts comments.",
+      "evidence": [
+        "ir/slices/bTHDZ____root.json",
+        "frontend/src/components/chat/DeleteConversationPopup.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json — AC-1"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Group_overlay_ from ui_refs is not applied on popup inner wrapper; sibling popups (AuthDialog, SignupPopup) apply bubbleStyle(Group_overlay_) on content region while this popup relies on Popup_dialog_ + shadcn overlay only.",
+      "alternative": "Wrap dialog body in a Group_overlay_ styled container if pixel parity with Bubble inner padding/bg is required.",
+      "evidence": [
+        "frontend/src/components/chat/DeleteConversationPopup.tsx",
+        "frontend/src/components/AuthDialog.tsx"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "grounding",
+      "priority": "low",
+      "finding": "Onboarding-data fallback path deletes conversation metadata but cannot remove chatmessage rows when table is absent; local thread cache is cleared in Chat.tsx so UX is consistent, yet AC-2 message purge is table-only.",
+      "alternative": "Document fallback limitation in chatConversationsApi or persist message previews only in onboarding when table absent.",
+      "evidence": [
+        "frontend/src/lib/chat/chatConversationsApi.ts — tryDeleteMessagesForConversation returns null on schema unavailable"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

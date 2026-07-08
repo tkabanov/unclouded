@@ -11,13 +11,17 @@
         "AC-2: path_page_tab_os and settings_tab_os labels available for router/tab components with stable slug keys",
         "AC-3: Enum maps include bubble option-set ids as comments for traceability to IR"
       ],
-      "ir_refs": ["onboarding_step_os", "path_page_tab_os", "settings_tab_os"],
+      "ir_refs": [
+        "onboarding_step_os",
+        "path_page_tab_os",
+        "settings_tab_os"
+      ],
       "depends_on": [],
       "target_files": [
-        "frontend/src/domain/enums/onboardingSteps.ts",
-        "frontend/src/domain/enums/pathPageTabs.ts",
-        "frontend/src/domain/enums/settingsTabs.ts",
-        "frontend/src/domain/enums/index.ts"
+        "frontend/src/lib/enums/index.ts",
+        "frontend/src/lib/enums/onboardingSteps.ts",
+        "frontend/src/lib/enums/pathPageTabs.ts",
+        "frontend/src/lib/enums/settingsTabs.ts"
       ]
     },
     {
@@ -37,10 +41,12 @@
         "customer_performance_question_os",
         "customers_load_signal_os"
       ],
-      "depends_on": ["ENUM-01-navigation-and-onboarding-labels"],
+      "depends_on": [
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
       "target_files": [
-        "frontend/src/domain/enums/onboardingQuestions.ts",
-        "frontend/src/domain/enums/customerProfile.ts"
+        "frontend/src/lib/enums/customerProfile.ts",
+        "frontend/src/lib/enums/onboardingQuestions.ts"
       ]
     },
     {
@@ -59,11 +65,13 @@
         "state_energy_level_os",
         "state_nervous_system_os"
       ],
-      "depends_on": ["ENUM-01-navigation-and-onboarding-labels"],
+      "depends_on": [
+        "ENUM-01-navigation-and-onboarding-labels"
+      ],
       "target_files": [
-        "frontend/src/domain/enums/pathEnrollment.ts",
-        "frontend/src/domain/enums/coachingMode.ts",
-        "frontend/src/domain/enums/wellnessState.ts"
+        "frontend/src/lib/enums/coachingMode.ts",
+        "frontend/src/lib/enums/pathEnrollment.ts",
+        "frontend/src/lib/enums/wellnessState.ts"
       ]
     },
     {
@@ -75,11 +83,13 @@
         "AC-2: Settings subscription tab can render tier names without reading Bubble option sets at runtime",
         "AC-3: Enum module documents mapping from tier_os ids to future Supabase subscription_plan rows (read-only reference)"
       ],
-      "ir_refs": ["tier_os"],
+      "ir_refs": [
+        "tier_os"
+      ],
       "depends_on": [],
       "target_files": [
-        "frontend/src/domain/enums/tier.ts",
-        "frontend/src/domain/enums/subscription.ts"
+        "frontend/src/lib/enums/subscription.ts",
+        "frontend/src/lib/enums/tier.ts"
       ]
     }
   ]

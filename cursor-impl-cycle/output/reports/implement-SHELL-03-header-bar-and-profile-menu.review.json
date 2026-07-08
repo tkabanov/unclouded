@@ -1,0 +1,204 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-03-header-bar-and-profile-menu",
+  "assessed_at": "2026-07-07T17:30:00.000+02:00",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/Header.tsx — <header data-bubble-id='ai_RNbBKLUc'> with direct child regions ai_RNbBHWao (brand/BrandLogo), ai_RNbBHWaz (logged-in nav), ai_RNbBHWbE (actions)",
+        "frontend/src/components/DashboardLayout.tsx — mounts extracted Header with sidebar trigger leading slot",
+        "ir/inventory.json — ai_RNbBHWao, ai_RNbBHWaz, ai_RNbBHWbE parent_id ai_RNbBKLUc"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/navigation.ts — HEADER_NAV_LABELS, HEADER_NAV_ROUTES, HEADER_NAV_BUBBLE_IDS, HEADER_NAV_ORDER for dashboard/chat/journal/paths",
+        "frontend/src/components/shell/Header.tsx — NavLinks ai_RNbBHWbA/bB/bC/bD route to /dashboard, /chat, /journal, /paths with Link_nav_ styles",
+        "frontend/src/App.tsx — all four routes registered under ProtectedRoute"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx — avatar trigger data-bubble-id='ai_RNbBHWbH' opens DropdownMenuContent data-bubble-id='ai_RNbBHWfD'",
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx — dropdown group ai_RNbBHWbJ; settings NavLink ai_RNbBHWbL to /settings; logout ai_RNbBHWbO calls useAuth().signOut then navigate('/')",
+        "frontend/src/hooks/useAuth.tsx — signOut invokes supabase.auth.signOut()",
+        "ir/inventory.json — ai_RNbBHWbJ parent_id ai_RNbBHWfD; ai_RNbBHWbO parent ai_RNbBHWbK inside dropdown subtree"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Logged-in header nav links route to /dashboard, /chat, /journal, /paths",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/navigation.ts — HEADER_NAV_ROUTES",
+        "frontend/src/App.tsx — ProtectedRoute entries for all four paths"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Avatar click opens profile dropdown with settings navigation",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx — DropdownMenuTrigger on ai_RNbBHWbH; settings NavLink ai_RNbBHWbL to /settings inside DropdownMenuContent"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Logout control signs out via Supabase and redirects to landing",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx — handleLogout awaits signOut() then navigate('/', { replace: true })",
+        "frontend/src/hooks/useAuth.tsx — signOut calls supabase.auth.signOut()"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBKLUc",
+      "selector": "[data-bubble-id='ai_RNbBKLUc']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWao",
+      "selector": "[data-bubble-id='ai_RNbBHWao']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWau",
+      "selector": "[data-bubble-id='ai_RNbBHWau']",
+      "status": "partial",
+      "notes": "Group marker present in Header.tsx when unauthenticated but nav is empty (no marketing links); Index.tsx uses a separate inline header without this marker"
+    },
+    {
+      "bubble_id": "ai_RNbBHWaz",
+      "selector": "[data-bubble-id='ai_RNbBHWaz']",
+      "status": "pass",
+      "notes": "hidden below md breakpoint; sidebar provides mobile nav"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbE",
+      "selector": "[data-bubble-id='ai_RNbBHWbE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbA",
+      "selector": "[data-bubble-id='ai_RNbBHWbA'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbB",
+      "selector": "[data-bubble-id='ai_RNbBHWbB'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbC",
+      "selector": "[data-bubble-id='ai_RNbBHWbC'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbD",
+      "selector": "[data-bubble-id='ai_RNbBHWbD'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbH",
+      "selector": "[data-bubble-id='ai_RNbBHWbH'][data-style-ref='Button_ghost_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbI",
+      "selector": "[data-bubble-id='ai_RNbBHWbI']",
+      "status": "partial",
+      "notes": "IR sibling Button header-logout-btn under ai_RNbBHWbE not rendered; dropdown logout ai_RNbBHWbO satisfies AC-3"
+    },
+    {
+      "bubble_id": "ai_RNbBHWfD",
+      "selector": "[data-bubble-id='ai_RNbBHWfD']",
+      "status": "pass",
+      "notes": "Mapped to shadcn DropdownMenuContent (GroupFocus equivalent)"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbJ",
+      "selector": "[data-bubble-id='ai_RNbBHWbJ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbL",
+      "selector": "[data-bubble-id='ai_RNbBHWbL'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbO",
+      "selector": "[data-bubble-id='ai_RNbBHWbO']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [
+    "ui_ref ai_RNbBHWau (logged-out marketing nav) has empty placeholder — scope names this region but links deferred; Index inline header does not reuse shell Header",
+    "ui_ref ai_RNbBHWbI (standalone header-logout-btn) not implemented — logout only via dropdown ai_RNbBHWbO"
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "scope",
+      "priority": "medium",
+      "finding": "Decompose scope lists logged-out marketing nav (ai_RNbBHWau) but implementation leaves an empty nav group and Index.tsx keeps a bespoke header without ai_RNbBHWau or shell Header reuse.",
+      "alternative": "Either narrow scope to authenticated chrome only, or wire marketing links into Header and mount Header on Index for logged-out parity.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json — scope",
+        "frontend/src/components/shell/Header.tsx — empty ai_RNbBHWau nav",
+        "frontend/src/pages/Index.tsx — inline header without ai_RNbBKLUc"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Logged-in header nav (ai_RNbBHWaz) uses hidden md:flex so links are absent on small viewports; Bubble header nav is always visible when authenticated.",
+      "alternative": "Show compact nav on mobile or document sidebar-only mobile nav as an intentional deviation.",
+      "evidence": [
+        "frontend/src/components/shell/Header.tsx — className hidden md:flex on ai_RNbBHWaz"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "structure",
+      "priority": "low",
+      "finding": "IR header-actions (ai_RNbBHWbE) includes sibling logout button ai_RNbBHWbI alongside avatar ai_RNbBHWbH; React only renders avatar dropdown.",
+      "alternative": "Add ai_RNbBHWbI quick-logout button if Bubble shows both controls when authenticated.",
+      "evidence": [
+        "ir/inventory.json — ai_RNbBHWbH and ai_RNbBHWbI both parent_id ai_RNbBHWbE",
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "coverage-report",
+      "priority": "low",
+      "finding": "Implementer coverage preflight.gaps still lists pre-implementation deficiencies; files_changed omits frontend/src/lib/enums/index.ts re-exports.",
+      "alternative": "Refresh preflight.gaps on completion and list all touched source files.",
+      "evidence": ["cursor-impl-cycle/output/coverage/SHELL-03-header-bar-and-profile-menu.json"]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-05-onboarding-health-load-signals",
+  "assessed_at": "2026-07-07T18:00:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 86,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingHealthFlags.tsx",
+        "frontend/src/components/OnboardingLoadSignals.tsx",
+        "frontend/src/lib/enums/onboardingQuestions.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts",
+        "frontend/src/pages/Onboarding.tsx",
+        "frontend/src/lib/completeOnboarding.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/pages/Onboarding.tsx",
+        "frontend/src/components/OnboardingResults.tsx"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Health flags step renders enum-driven options with multi-select and none-of-the-above exclusivity",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingHealthFlags.tsx",
+        "frontend/src/lib/enums/onboardingQuestions.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Load signals step renders four question groups with required single selection per group",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingLoadSignals.tsx",
+        "frontend/src/lib/enums/onboardingQuestions.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Completing results step persists onboarding and navigates to dashboard (bTHDT)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/lib/userProfile.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGNI",
+      "selector": "[data-bubble-id='bTGNI']",
+      "status": "pass",
+      "notes": "Onboarding page root marker on OnboardingWizardShell"
+    },
+    {
+      "bubble_id": "bTHNF",
+      "selector": "[data-custom-state='health_recovery_mode_active']",
+      "status": "partial",
+      "notes": "bTHNF is a ButtonClicked workflow entity; parity is approximated via data-custom-state on health-flag option buttons rather than a workflow marker"
+    },
+    {
+      "bubble_id": "bTHNi",
+      "selector": "[data-bubble-id='bTGNn']",
+      "status": "partial",
+      "notes": "Load-signal question labels use bTGNn (IR pointer leaf) instead of literal bTHNi id; inventory maps bTHNi to the bTGNn element path"
+    }
+  ],
+  "gaps": [
+    "Health draft persistence stores healthFlags booleans but does not emit a flat custom-state map parallel to loadSignalCustomStates"
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "ui_ref bTHNi expects a data-bubble-id='bTHNi' marker on load-signal question labels, but OnboardingLoadSignals tags labels with data-bubble-id='bTGNn'.",
+      "alternative": "Add data-bubble-id='bTHNi' on the question label element (or dual-tag) so automated parity checks keyed to the decompose ui_ref pass without alias lookup.",
+      "evidence": [
+        "frontend/src/components/OnboardingLoadSignals.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Workflow ui_ref bTHNF (health recovery toggle) has no data-workflow or equivalent workflow marker; only per-option data-custom-state attributes represent SetCustomState semantics.",
+      "alternative": "Attach data-workflow='bTHNF' on the recovery health-flag option button or document workflow refs as satisfied by data-custom-state mapping.",
+      "evidence": [
+        "frontend/src/components/OnboardingHealthFlags.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "data-model",
+      "priority": "medium",
+      "finding": "HealthFlagsPayload uses recovery_mode_active/grief_mode_active field names while Bubble custom states and DOM data-custom-state keys use health_recovery_mode_active and health_grief_mode_active (IR trailing-underscore variants).",
+      "alternative": "Align persisted payload keys with Bubble custom_state:bTGNI:* names or add an explicit buildHealthCustomStates() helper mirroring buildLoadSignalCustomStates().",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts",
+        "ir/slices/bTGNJ____root.json"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Health and load step inner containers reuse shared template ids (bTHJm, bTHVW, bTHVi) from other onboarding steps rather than step-group-specific roots bTHtb/bTHnK on the component roots.",
+      "alternative": "Step-group id bTHtb/bTHnK is correctly on the Onboarding.tsx wrapper; inner reuse is acceptable if parity tooling scopes to step wrapper.",
+      "evidence": [
+        "frontend/src/components/OnboardingHealthFlags.tsx",
+        "frontend/src/components/OnboardingLoadSignals.tsx",
+        "frontend/src/pages/Onboarding.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

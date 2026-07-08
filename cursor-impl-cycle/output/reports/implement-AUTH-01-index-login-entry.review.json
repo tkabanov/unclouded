@@ -1,0 +1,135 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-01-index-login-entry",
+  "assessed_at": "2026-07-07T14:42:00.000Z",
+  "ok": true,
+  "coverage_pct": 92,
+  "coverage_confidence_pct": 86,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/App.tsx — Route path=\"/\" element={<Index />}",
+        "frontend/src/pages/Index.tsx — data-bubble-id bTGYf (page), ai_RNbBHWoL (main, parent bTGYf), ai_RNbBHWoM (hero, parent ai_RNbBHWoL)",
+        "frontend/src/pages/Index.tsx — section roots ai_RNbBHWof, ai_RNbBHWpH, ai_RNbBHWqJ, ai_RNbBHWrq, ai_RNbBHWsR under main match ir/inventory.json parent_id=ai_RNbBHWoL"
+      ],
+      "gap": "Direct bTGYf child ai_RNbBKLUg (header CustomElement) has no data-bubble-id root marker; header auth buttons carry ai_RNbBHWbF/ai_RNbBHWbG instead"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — start(signin|signup) opens AuthDialog; authenticated users navigate via destination()",
+        "frontend/src/pages/Index.tsx — destination() routes to /onboarding or /dashboard based on profile.onboardingCompleted",
+        "frontend/src/components/AuthDialog.tsx — Supabase signUp/signInWithPassword; popup roots ai_RNbBHWsn (signup) / ai_RNbBHWuX (signin)",
+        "frontend/src/App.tsx — protected /onboarding and /dashboard routes"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/bubbleStyles.ts — maps Group_hero_, Group_badge_, Text_heading_1_, Text_body_muted_, Button_primary_, Button_outline_ from ir/slices/styles.json",
+        "frontend/src/pages/Index.tsx — hero section, headline, body, and header/hero CTAs apply bubbleStyle() with data-style-ref attributes"
+      ],
+      "gap": "Button_primary_/Button_outline_ tokens only add font-medium; badge wrapper has data-style-ref but SectionTag renders its own classes; pricing/workplace CTAs omit style_ref"
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Log In CTA opens sign-in dialog and submits Supabase signInWithPassword",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — start('signin')",
+        "frontend/src/components/AuthDialog.tsx — signInWithPassword handler"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Sign Up CTA opens signup dialog and submits Supabase signUp",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — start('signup') on header and hero CTAs",
+        "frontend/src/components/AuthDialog.tsx — signUp handler"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Post-auth navigation routes to onboarding or dashboard per profile state",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — destination() and redirecting useEffect after onSuccess",
+        "frontend/src/lib/userProfile.tsx — onboardingCompleted field"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Already-authenticated user skips dialog and navigates directly",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — start() early return navigate(destination()) when user is set"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGYf",
+      "selector": "[data-bubble-id='bTGYf']",
+      "status": "pass",
+      "notes": "Page root div wraps CrisisBar, header, main, footer, AuthDialog"
+    },
+    {
+      "bubble_id": "ai_RNbBHWoL",
+      "selector": "[data-bubble-id='ai_RNbBHWoL']",
+      "status": "pass",
+      "notes": "main element; parent bTGYf per ir/inventory.json"
+    },
+    {
+      "bubble_id": "ai_RNbBHWoM",
+      "selector": "[data-bubble-id='ai_RNbBHWoM']",
+      "status": "pass",
+      "notes": "Hero section nested under ai_RNbBHWoL; Group_hero_ style_ref applied"
+    }
+  ],
+  "gaps": [
+    "Header CustomElement ai_RNbBKLUg (direct bTGYf child in IR) lacks data-bubble-id on its root wrapper",
+    "Pricing and workplace section CTA buttons do not carry data-style-ref or bubbleStyle() mappings",
+    "Group_badge_ style_ref is declared on ai_RNbBHWoO wrapper but SectionTag renders independent Tailwind classes"
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Button_primary_ and Button_outline_ in bubbleStyles.ts only map to font-medium; IR styles.json defines bgcolor, border, padding, and hover states that are delegated entirely to shadcn Button variants.",
+      "alternative": "Extend bubbleStyles to map IR color/border/padding tokens or document explicit shadcn-to-Bubble token bridge in MOD-DRSAM-DESIGN-SYSTEM.",
+      "evidence": ["frontend/src/lib/bubbleStyles.ts", "ir/slices/styles.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Hero h1 applies bubbleStyle(Text_heading_1_) then overrides with md:text-7xl, diverging from IR font_size 36 (Text_heading_1_).",
+      "alternative": "Remove the md:text-7xl override or add a dedicated IR style token if larger hero typography is intentional.",
+      "evidence": ["frontend/src/pages/Index.tsx", "ir/slices/styles.json"]
+    },
+    {
+      "id": "C-3",
+      "area": "ir-markers",
+      "priority": "low",
+      "finding": "Prototype CrisisBar sits above the page tree with no IR counterpart on bTGYf; acceptable brownfield extension but adds layout not in bTGbC____root slice.",
+      "alternative": "Mark with a documented prototype-only region or nest under a named IR group if crisis bar is later decomposed.",
+      "evidence": ["frontend/src/pages/Index.tsx", "ir/inventory.json"]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

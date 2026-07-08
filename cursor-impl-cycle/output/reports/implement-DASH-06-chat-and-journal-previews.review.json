@@ -1,0 +1,329 @@
+{
+  "phase": "implement",
+  "target_id": "DASH-06-chat-and-journal-previews",
+  "assessed_at": "2026-07-07T21:38:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardChatPreviewCard.tsx — root ai_RNbBHXSN (Group_card_) with ai_RNbBHXSO header, ai_RNbBHXSU meta row, ai_RNbBHXSZ quick-start, chips ai_RNbBHXSc/Sd/Se, link ai_RNbBHXSS to /chat",
+        "frontend/src/components/dashboard/DashboardMain.tsx — DASHBOARD_CHAT_PREVIEW_SLOT_BUBBLE_ID ai_RNbBHXSM wraps chatPreview slot",
+        "frontend/src/pages/Dashboard.tsx — chatPreview slot renders DashboardChatPreviewCard on complete-profile branch",
+        "drsam-99657.bubble — ai_RNbBHXSM > ai_RNbBHXSN > [ai_RNbBHXSO, ai_RNbBHXST, ai_RNbBHXSZ]; chip copy Plan my day / Reflect on this week / Set a new goal; link Open chat"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardJournalPreviewCard.tsx — root ai_RNbBHXSx with ai_RNbBHXSy header, ai_RNbBHXTC View all link, ai_RNbBHXTD RepeatingGroup_list_ cells ai_RNbBHXTE (ai_RNbBHXTG title, ai_RNbBHXTH preview, ai_RNbBHXTJ mood, ai_RNbBHXTK date)",
+        "frontend/src/pages/Dashboard.tsx — journalPreview slot renders DashboardJournalPreviewCard",
+        "drsam-99657.bubble — ai_RNbBHXSx children [bTIXy, ai_RNbBHXSy, ai_RNbBHXTD]; Recent Journal / View all copy matches"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/chatPreviewApi.ts — fetchChatPreview queries chatconversation.title_text and chatmessage.content_text for user_user, falls back to profiles.onboarding_data chat_preview / chat_messages",
+        "frontend/src/lib/dashboard/journalPreviewApi.ts — fetchJournalPreviewEntries selects journal_entries for user_id ordered by created_at desc limit 3",
+        "frontend/src/components/dashboard/DashboardChatPreviewCard.tsx — loads preview into ai_RNbBHXSY via useEffect + fetchChatPreview",
+        "frontend/src/components/dashboard/DashboardJournalPreviewCard.tsx — RG maps JournalPreviewEntry rows from Supabase",
+        "frontend/supabase/migrations/20260702192837_*.sql — journal_entries table with RLS"
+      ],
+      "gap": "Prototype schema has no chatmessage/chatconversation tables; chat preview uses onboarding_data fallback until CHAT module persists messages."
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Chat preview loads dynamic last message text into ai_RNbBHXSY (not static placeholder-only card)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardChatPreviewCard.tsx — fetchChatPreview on mount, setLastMessageText into ai_RNbBHXSY",
+        "frontend/src/lib/dashboard/chatPreviewApi.ts — Supabase table reads with onboarding_data fallback"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Journal RG lists recent JournalEntry rows for authenticated user ordered newest-first",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/journalPreviewApi.ts — journal_entries query eq user_id, order created_at desc, limit 3",
+        "frontend/src/components/dashboard/DashboardJournalPreviewCard.tsx — entries.map renders JournalPreviewCell per row"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Preview links route to /chat and /journal",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardChatPreviewCard.tsx — ai_RNbBHXSS Link to=/chat",
+        "frontend/src/components/dashboard/DashboardJournalPreviewCard.tsx — ai_RNbBHXTC Link to=/journal"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Quick-start prompt chips are interactive navigation targets (not dead UI)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardChatPreviewCard.tsx — CHAT_PROMPT_CHIPS map to Link href=/chat with data-bubble-id ai_RNbBHXSc/Sd/Se"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXSM",
+      "selector": "[data-bubble-id='ai_RNbBHXSM']",
+      "status": "pass",
+      "notes": "DashboardMain right-column chat slot wrapper; matches Bubble ai_RNbBHXSM > ai_RNbBHXSN nesting"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSN",
+      "selector": "[data-bubble-id='ai_RNbBHXSN']",
+      "status": "pass",
+      "notes": "data-style-ref Group_card_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSO",
+      "selector": "[data-bubble-id='ai_RNbBHXSO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSP",
+      "selector": "[data-bubble-id='ai_RNbBHXSP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSS",
+      "selector": "[data-bubble-id='ai_RNbBHXSS']",
+      "status": "pass",
+      "notes": "Text_link_ Open chat"
+    },
+    {
+      "bubble_id": "ai_RNbBHXST",
+      "selector": "[data-bubble-id='ai_RNbBHXST']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSU",
+      "selector": "[data-bubble-id='ai_RNbBHXSU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSW",
+      "selector": "[data-bubble-id='ai_RNbBHXSW']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSY",
+      "selector": "[data-bubble-id='ai_RNbBHXSY']",
+      "status": "pass",
+      "notes": "Dynamic last message bound from fetchChatPreview"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSZ",
+      "selector": "[data-bubble-id='ai_RNbBHXSZ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSa",
+      "selector": "[data-bubble-id='ai_RNbBHXSa']",
+      "status": "pass",
+      "notes": "Quick start label"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSb",
+      "selector": "[data-bubble-id='ai_RNbBHXSb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSc",
+      "selector": "[data-bubble-id='ai_RNbBHXSc']",
+      "status": "pass",
+      "notes": "Group_chip_ Plan my day"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSd",
+      "selector": "[data-bubble-id='ai_RNbBHXSd']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSe",
+      "selector": "[data-bubble-id='ai_RNbBHXSe']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSx",
+      "selector": "[data-bubble-id='ai_RNbBHXSx']",
+      "status": "partial",
+      "notes": "Duplicate data-bubble-id on DashboardMain slot wrapper and card root — see C-1"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSy",
+      "selector": "[data-bubble-id='ai_RNbBHXSy']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSz",
+      "selector": "[data-bubble-id='ai_RNbBHXSz']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTA",
+      "selector": "[data-bubble-id='ai_RNbBHXTA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTB",
+      "selector": "[data-bubble-id='ai_RNbBHXTB']",
+      "status": "pass",
+      "notes": "data-style-ref Text_heading_3_ Recent Journal"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTC",
+      "selector": "[data-bubble-id='ai_RNbBHXTC']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTD",
+      "selector": "[data-bubble-id='ai_RNbBHXTD']",
+      "status": "pass",
+      "notes": "data-style-ref RepeatingGroup_list_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTE",
+      "selector": "[data-bubble-id='ai_RNbBHXTE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTF",
+      "selector": "[data-bubble-id='ai_RNbBHXTF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTG",
+      "selector": "[data-bubble-id='ai_RNbBHXTG']",
+      "status": "pass",
+      "notes": "data-style-ref Text_label_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTH",
+      "selector": "[data-bubble-id='ai_RNbBHXTH']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTI",
+      "selector": "[data-bubble-id='ai_RNbBHXTI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTJ",
+      "selector": "[data-bubble-id='ai_RNbBHXTJ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXTK",
+      "selector": "[data-bubble-id='ai_RNbBHXTK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIXy",
+      "selector": "[data-bubble-id='bTIXy']",
+      "status": "pass",
+      "notes": "No entries yet empty state; first child of ai_RNbBHXSx per Bubble tree"
+    },
+    {
+      "bubble_id": "style_ref:ai_RNbBHXTB",
+      "selector": "[data-bubble-id='ai_RNbBHXTB'][data-style-ref='Text_heading_3_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "style_ref:ai_RNbBHXTG",
+      "selector": "[data-bubble-id='ai_RNbBHXTG'][data-style-ref='Text_label_']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "schema",
+      "finding": "frontend/supabase has journal_entries but no chatmessage or chatconversation migrations; chat preview cannot read live chat rows in prototype.",
+      "evidence": [
+        "frontend/supabase/migrations — journal_entries only",
+        "frontend/src/lib/dashboard/chatPreviewApi.ts — isSchemaUnavailable fallback to profiles.onboarding_data"
+      ]
+    },
+    {
+      "id": "G-2",
+      "area": "cross-module",
+      "finding": "Chat page still uses session-local threads; dashboard preview will not reflect in-app chat history until CHAT module persists to Supabase.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/DASH-06-chat-and-journal-previews.json — preflight.gaps",
+        "frontend/src/components/chat/types.ts — documents Bubble chatmessage/chatconversation shapes only"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Journal preview slot and card both emit data-bubble-id='ai_RNbBHXSx', producing nested duplicate markers; chat slot correctly separates ai_RNbBHXSM wrapper from ai_RNbBHXSN card root.",
+      "alternative": "Omit bubble id on DashboardMain journal slot wrapper (card root owns ai_RNbBHXSx) or render DashboardJournalPreviewCard without an extra DashboardSlot wrapper.",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardMain.tsx — DASHBOARD_JOURNAL_PREVIEW_SLOT_BUBBLE_ID ai_RNbBHXSx",
+        "frontend/src/components/dashboard/DashboardJournalPreviewCard.tsx — root data-bubble-id ai_RNbBHXSx"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "functional",
+      "priority": "high",
+      "finding": "Without chatmessage/chatconversation tables or CHAT persistence, most users see default or onboarding_data chat preview rather than their actual last chat message.",
+      "alternative": "Land CHAT module Supabase persistence or seed onboarding_data.chat_preview during chat sessions until tables exist.",
+      "evidence": [
+        "frontend/src/lib/dashboard/chatPreviewApi.ts — tryFetchLastMessage returns null when tables absent",
+        "cursor-impl-cycle/output/coverage/DASH-06-chat-and-journal-previews.json — preflight.gaps"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "Dashboard incomplete-onboarding branch (no profile.results) does not pass chatPreview or journalPreview slots, so authenticated pre-assessment users see empty right-column anchors.",
+      "alternative": "Wire DashboardChatPreviewCard and DashboardJournalPreviewCard into the incomplete-profile DashboardMain slots alongside the onboarding CTA.",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx — lines 77-160 slots omit chatPreview/journalPreview"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "workflow-parity",
+      "priority": "low",
+      "finding": "Prompt chips navigate to /chat generically; Bubble chip buttons may pre-seed conversation context.",
+      "alternative": "Pass chip label or prompt key via router state/query when CHAT module supports seeded prompts.",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardChatPreviewCard.tsx — CHAT_PROMPT_CHIPS href=/chat only"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "brownfield": {
+    "preflight_present": true,
+    "reuse_decision": "gap-fill",
+    "forbidden_paths_touched": false
+  }
+}

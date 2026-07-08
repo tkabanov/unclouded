@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "PATHS-04-paths-resources-panel",
+  "assessed_at": "2026-07-08T09:52:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-04-paths-resources-panel.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "PATHS-04 AC-3 explicitly requires resource-view-btn ai_RNbBHYJN to open the resource popup; delivering ResourceDetailPopup wiring in this rewrite was necessary to pass AC-3/FV-4 and is not a criteria failure. Full popup body migration is scoped to PATHS-05-resource-detail-popup (target_files: ResourceDetailPopup.tsx). Record cross-item completion for PATHS-05 so that wave can run delta review or mark largely satisfied rather than re-implementing."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Crisis card titles use tel:/sms: href links instead of IR static Text — a deliberate functional improvement for crisis resources, consistent with existing brownfield patterns (CrisisBar, CrisisSupportCard, AppSidebar). AC-2 passes on copy, Group_card_ styling, and named ui_refs (ai_RNbBHYIQ/IZ/Ii); no ui_evidence failure. Review itself labels this an acceptable UX delta; pixel-parity non-link text is not in PATHS-04 ACs."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "STATIC_FALLBACK_RESOURCES in pathsResourcesApi ensures the resource RG renders when Supabase tables are empty in dev — prototype ergonomics, not live Bubble custom.resource parity. All ACs and functional checks pass with real or fallback data; no criteria_audit or data-contract failure. Optional VITE_DEV_ONLY gating or empty-state copy is polish outside PATHS-04 scope; defer to a later data-hardening wave if needed."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — post-rewrite review ok=true, coverage 100%, rewrite_pass true, 0 blockers, all ACs and FV-4 pass. C-1 deferred to PATHS-05-resource-detail-popup for delta review / cross-item completion note. C-2 accepted: tel/sms crisis links match app-wide crisis UX; IR static-text parity not required. C-3 deferred: dev static fallback is non-blocking prototype convenience."
+}

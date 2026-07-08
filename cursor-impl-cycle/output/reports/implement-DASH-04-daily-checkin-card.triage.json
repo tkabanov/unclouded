@@ -1,0 +1,46 @@
+{
+  "phase": "implement",
+  "target_id": "DASH-04-daily-checkin-card",
+  "assessed_at": "2026-07-07T21:38:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-DASH-04-daily-checkin-card.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR and checkinApi.ts re-read confirm submitDailyCheckIn computes streak from onboarding_data dates even when tryInsertCheckinTable succeeds (lines 188–190). This is a latent bug in the forward-looking insert branch, but the active brownfield runtime path always hits !inserted because frontend/supabase has no dailycheckin table (implementation-policy read_only_context_paths). The fallback path appends today's row to onboarding_data before computeNextStreak, so FV-1/FV-2 and AC-3 pass in the prototype. A correct table-history query requires dailycheckin schema and cannot be validated in this wave; defer streak-from-table fix to the schema/backend wave when migrations land."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR inventory confirms bTIXh parent_id ai_RNbBHXRh (sibling of ai_RNbBHXRi), while DashboardCheckinCard.tsx nests bTIXh inside ai_RNbBHXRi. ui_evidence is partial for hierarchy selectors only — bTIXh carries the correct data-bubble-id, binds live mood text per AC-2/FV-3, and layout is unchanged. bTIXh is not a standalone named ui_ref in decompose ui_refs[] (only ai_RNbBHXRh/ai_RNbBHXRi are). This matches the DASH-02 C-1 pattern: intermediate nesting parity-tooling polish that does not fail AC-2 or block DASH-05 depends_on."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Coverage preflight and criteria_audit AC-3 gap explicitly document client-side yesterday-continuation streak as intentional brownfield simplification versus Bubble bTIWG CancelScheduledAPIEvent/ScheduleAPIEvent bTIWr chain. implementation-policy adapter_when reserves multi-step scheduled orchestration for server-side work; AC-3 wording requires insert + streak badge refresh, not full deferred-reset API parity. computeNextStreak satisfies AC-3 and FV-2 in the prototype; bTIWr port belongs to a future backend/schema wave."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "DashboardCheckinCard.tsx renders ai_RNbBHXRd only when streak > 0. Review ui_evidence marks ai_RNbBHXRd pass with note on conditional render; AC-1 requires the streak badge marker on the card tree, not unconditional visibility at zero. Showing a '0 day streak' badge or matching Bubble data-binding visibility is low-priority ui-fidelity polish that does not affect submit workflow or DASH-05 layout depends_on."
+    },
+    {
+      "critique_id": "C-5",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Bubble ai_RNbBHXRw workflow includes ResetInputs after ScheduleAPIEvent; React clears reflection and shows toast on success while retaining mood/energy slider values. No AC specifies post-submit input reset; FV-1/FV-3 pass with live slider binding intact. Retaining submitted slider values is reasonable React UX and aligns with the DASH-02 C-3 pattern of accepting intentional brownfield workflow simplification when ACs are satisfied."
+    }
+  ],
+  "summary": "0 fix_now, 3 defer, 2 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 table-based streak query when dailycheckin schema lands; C-2 bTIXh sibling nesting under ai_RNbBHXRh as parity-tooling polish; C-4 zero-streak badge visibility. Accepted: C-3 simplified client streak vs bTIWG scheduled cancellation per documented brownfield scope; C-5 ResetInputs parity not required by AC."
+}

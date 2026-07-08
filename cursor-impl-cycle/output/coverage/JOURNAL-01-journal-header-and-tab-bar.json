@@ -1,0 +1,112 @@
+{
+  "item_id": "JOURNAL-01-journal-header-and-tab-bar",
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-07T20:32:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/lib/journal/routes.ts",
+      "frontend/src/components/DashboardLayout.tsx"
+    ],
+    "gaps": [
+      "AC-1: Journal lacked ai_RNbBHXie content area with nested header ai_RNbBHXif and sibling tab bar ai_RNbBHXij",
+      "AC-2: No journal/milestones tab toggle or ai_RNbBHXim / ai_RNbBHXjO panel visibility",
+      "AC-3: Header and tab typography used Tailwind placeholders instead of bubbleStyle() style_ref tokens"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/JournalPage.vue": "frontend/src/pages/Journal.tsx",
+      "frontend/src/components/journal/JournalTabBar.vue": "frontend/src/components/journal/JournalTabBar.tsx",
+      "frontend/src/lib/journal/journalTabStore.ts": "frontend/src/lib/journal/journalTabStore.ts",
+      "frontend/src/components/journal/JournalPageContent.vue": "frontend/src/components/journal/JournalPageContent.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx — ai_RNbBHXie journal-content-area with child ai_RNbBHXif header (ai_RNbBHXig/ih/ii title group) and sibling ai_RNbBHXij tab bar via JournalTabBar",
+        "frontend/src/pages/Journal.tsx — mounts JournalPageContent inside existing ai_RNbBHXid SHELL-07 boundary"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalTabStore.ts — activeTab journal | milestones with select handlers",
+        "frontend/src/components/journal/JournalTabBar.tsx — ai_RNbBHXik journal-tab-btn and ai_RNbBHXil milestones-tab-btn toggle Button_tab_active_ / Button_tab_ styles",
+        "frontend/src/components/journal/JournalPageContent.tsx — ai_RNbBHXim journal-tab-content and ai_RNbBHXjO milestones-tab-content visibility toggled by activeTab"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx — Text_heading_1_ and Text_body_muted_ via bubbleStyle() for title/subtitle",
+        "frontend/src/components/journal/JournalTabBar.tsx — Group_tab_bar_, Button_tab_, Button_tab_active_ via bubbleStyle() from DS-01 styles.json"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXie",
+      "selector": "[data-bubble-id='ai_RNbBHXie']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXif",
+      "selector": "[data-bubble-id='ai_RNbBHXif']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXig",
+      "selector": "[data-bubble-id='ai_RNbBHXig']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXih",
+      "selector": "[data-bubble-id='ai_RNbBHXih']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXii",
+      "selector": "[data-bubble-id='ai_RNbBHXii']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXij",
+      "selector": "[data-bubble-id='ai_RNbBHXij']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXik",
+      "selector": "[data-bubble-id='ai_RNbBHXik']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXil",
+      "selector": "[data-bubble-id='ai_RNbBHXil']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXim",
+      "selector": "[data-bubble-id='ai_RNbBHXim']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjO",
+      "selector": "[data-bubble-id='ai_RNbBHXjO']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/journal/routes.ts",
+    "frontend/src/lib/journal/journalTabStore.ts",
+    "frontend/src/components/journal/JournalTabBar.tsx",
+    "frontend/src/components/journal/JournalPageContent.tsx",
+    "frontend/src/pages/Journal.tsx",
+    "cursor-impl-cycle/output/coverage/JOURNAL-01-journal-header-and-tab-bar.json"
+  ]
+}

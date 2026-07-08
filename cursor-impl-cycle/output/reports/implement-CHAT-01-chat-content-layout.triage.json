@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "CHAT-01-chat-content-layout",
+  "assessed_at": "2026-07-08T07:04:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-CHAT-01-chat-content-layout.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read (ir/inventory.json text_expressions on ai_RNbBHXbH, drsam-99657.bubble properties.text) confirms Bubble static copy is 'New' without a Lucide Plus icon, while ChatPageContent.tsx renders 'New conversation' with a decorative icon. CHAT-01 AC-3 gates ai_RNbBHXbH data-bubble-id and Button_primary_ style_ref via bubbleStyle() — both pass in criteria_audit and ui_evidence; static copy parity is rubric guidance but not AC-gated. The button is wired and functional (FV-3 pass). Trivial copy/icon alignment can land when CHAT-05-new-conversation-flow touches the same ai_RNbBHXbH control or in a micro ui-fidelity polish pass without blocking CHAT-02 depends_on."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Decompose scope explicitly assigns conversation-sidebar migration to CHAT-02-conversation-thread-sidebar: ui_refs ai_RNbBHXbK (conversation-sidebar root) and ai_RNbBHXbL (RepeatingGroup) with AC-1 requiring data-bubble-id markers and cell hierarchy. CHAT-01 scope is layout-only — ai_RNbBHXbE sidebar region marker passes AC-2 with brownfield thread list as interim slot content. Review ui_evidence passes ai_RNbBHXbE; missing ai_RNbBHXbK/ai_RNbBHXbL markers inside the slot do not fail CHAT-01 ACs and CHAT-02 depends_on CHAT-01 is satisfiable with the current region mount point."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "ai_RNbBHXbG and ai_RNbBHXbH correctly apply bubbleStyle('Text_heading_3_') and bubbleStyle('Button_primary_') per AC-3; data-style-ref attributes are parity-tooling selectors used elsewhere (e.g. DashboardCheckinCard) but are not named in CHAT-01 acceptance criteria or ui_refs. criteria_audit AC-3 and all ui_evidence entries pass. Adding data-style-ref on title and button is low-priority automated-selector consistency polish — defer to a design-system parity-tooling sweep or CHAT module follow-up without blocking advance."
+    }
+  ],
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 ai_RNbBHXbH static copy/icon vs Bubble 'New' (ui-fidelity polish, bundle with CHAT-05 button wiring); C-2 → CHAT-02-conversation-thread-sidebar (ai_RNbBHXbK/ai_RNbBHXbL sidebar subtree markers); C-3 data-style-ref parity-tooling on title row elements."
+}

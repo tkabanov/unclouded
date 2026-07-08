@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-09-settings-page-shell",
+  "assessed_at": "2026-07-07T20:30:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-SHELL-09-settings-page-shell.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read (bTHDl____root.json, ir/inventory.json) confirms bTHDh siblings ai_RNbBKLUp, ai_RNbBKLUq, and ai_RNbBHYUr should be full-width header above a sidebar+main row. DashboardLayout still nests Header in the right column for shadcn SidebarProvider + mobile SidebarTrigger — same structural gap deferred at SHELL-05 C-1, SHELL-06 C-1, SHELL-07 C-1, and SHELL-08 C-1. SHELL-09 scope requires mounting page-instance bubble ids and settings-main boundary, not layout restructure; all four named ui_refs pass ui_evidence and AC-1/AC-2/AC-3 pass. Downstream SET-01 (MOD-DRSAM-SETTINGS) depends_on SHELL-09 for the ai_RNbBHYUr content slot, settings_tab_os_ stub, and ownership marker — not full-width header span. Reconcile layout in a shell layout polish pass after SHELL-10 completes the authenticated page-shell batch."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Brownfield retention of prototype profile/subscription/logout UI inside ai_RNbBHYUr is intentional and satisfies SHELL-09 AC-3: the content slot is bounded by data-bubble-id ai_RNbBHYUr with data-module-owner MOD-DRSAM-SETTINGS, and settings_tab_os_ tab router stub is exported for SET-01. Decompose scope explicitly defers settings tabs, panels, and admin popups to MOD-DRSAM-SETTINGS (SET-01+). Coverage preflight already records prototype widget retention. Replacing with a minimal placeholder would regress working brownfield UI without blocking downstream gates."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "SETTINGS_ROUTE in frontend/src/lib/settings/routes.ts is not yet imported by authenticatedRoutes.tsx, which hardcodes '/settings'. Routing works correctly (AC-1 pass, FV-1 pass); this is single-source-of-truth hygiene only, analogous to SHELL-06 C-3 (DASHBOARD_ROUTE), SHELL-07 C-3 (JOURNAL_ROUTE), and SHELL-08 C-3 (PATHS_ROUTE) deferred as routing polish. No downstream depends_on gate requires the constant import before advance. Consolidate when batching shell routing hygiene across page routes (SHELL-10 CHAT_ROUTE or a dedicated routing DRY pass)."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and ui_evidence pass. Deferred: C-1 full-width header sibling layout vs shadcn column nesting (inherited SHELL-05 gap, shell layout polish after SHELL-10); C-3 SETTINGS_ROUTE import DRY (routing hygiene, batch with SHELL-10+). Accepted: C-2 brownfield prototype settings UI inside ai_RNbBHYUr with MOD-DRSAM-SETTINGS ownership marker and tab stub per scope boundary."
+}

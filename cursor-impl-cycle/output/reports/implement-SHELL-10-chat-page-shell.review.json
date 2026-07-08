@@ -1,0 +1,161 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-10-chat-page-shell",
+  "assessed_at": "2026-07-07T20:35:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /chat route registered with Chat element",
+        "frontend/src/App.tsx — route nested under ProtectedRoute with requiresAuth handle meta",
+        "frontend/src/pages/Chat.tsx — passes pageBubbleId bTHDV via chatShellProps to DashboardLayout",
+        "frontend/src/lib/chat/routes.ts — exports CHAT_PAGE_BUBBLE_ID = bTHDV",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id on shell root when pageBubbleId provided"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/routes.ts — exports CHAT_HEADER_INSTANCE_BUBBLE_ID (ai_RNbBKLUj) and CHAT_SIDEBAR_INSTANCE_BUBBLE_ID (ai_RNbBKLUk)",
+        "frontend/src/pages/Chat.tsx — passes headerBubbleId and sidebarBubbleId to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — data-bubble-id={bubbleId} with chat override (defaults ai_RNbBKLUc)",
+        "frontend/src/components/AppSidebar.tsx — data-bubble-id={bubbleId} on Sidebar root with chat override (defaults ai_RNbBKLUe)",
+        "ir/inventory.json — ai_RNbBKLUj and ai_RNbBKLUk are CustomElement children of bTHDV",
+        "ir/slices/bTHDZ____root.json — ai_RNbBKLUj listed before ai_RNbBKLUk in slice entity order"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — children wrapped in div with data-bubble-id ai_RNbBHXbD and data-module-owner MOD-DRSAM-CHAT",
+        "frontend/src/lib/chat/routes.ts — documents CHAT_MAIN_BUBBLE_ID and CHAT_MODULE_ID; notes chat-delete-popup and thread subtree owned by MOD-DRSAM-CHAT",
+        "ir/inventory.json — ai_RNbBHXbD is Group child of bTHDV (chat-main content region)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "/chat route registered and auth-guarded via ProtectedRoute parent",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/components/ProtectedRoute.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Chat page mounts AppShellLayout (DashboardLayout) with page-level CustomElement instance overrides",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/components/DashboardLayout.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Chat content bounded by ai_RNbBHXbD; chat-delete-popup and IR thread subtree correctly deferred to MOD-DRSAM-CHAT",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/lib/chat/routes.ts",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json — CHAT-01+ owns chat-main subtree",
+        "ir/inventory.json — chat-delete-popup (Popup child of bTHDV) not mounted in shell scope"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDV",
+      "selector": "[data-bubble-id='bTHDV']",
+      "status": "pass",
+      "notes": "Page root on DashboardLayout outer wrapper when Chat passes pageBubbleId"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUj",
+      "selector": "[data-bubble-id='ai_RNbBKLUj']",
+      "status": "pass",
+      "notes": "Chat-specific header CustomElement instance on Header via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUk",
+      "selector": "[data-bubble-id='ai_RNbBKLUk']",
+      "status": "pass",
+      "notes": "Chat-specific sidebar CustomElement instance on AppSidebar via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbD",
+      "selector": "[data-bubble-id='ai_RNbBHXbD']",
+      "status": "pass",
+      "notes": "chat-main content boundary wraps page children with data-module-owner MOD-DRSAM-CHAT"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "layout",
+      "finding": "IR places ai_RNbBKLUj, ai_RNbBKLUk, and ai_RNbBHXbD as bTHDV siblings; React shell still nests Header inside the main column to the right of the sidebar (inherited from SHELL-05). Page-instance markers are correct but full-width header sibling layout remains unresolved.",
+      "evidence": [
+        "ir/inventory.json",
+        "ir/slices/bTHDZ____root.json",
+        "frontend/src/components/DashboardLayout.tsx",
+        "cursor-impl-cycle/output/reports/implement-SHELL-05-app-shell-layout.review.json"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SHELL-10 added correct page-instance bubble ids (ai_RNbBKLUj/ai_RNbBKLUk) but did not restructure DashboardLayout to match bTHDZ sibling order (full-width header above sidebar+main row). Header remains nested in the right column per SHELL-05 shadcn SidebarProvider pattern.",
+      "alternative": "Restructure DashboardLayout: offline banner → full-width Header (page instance) → flex row (sidebar instance | scrollable main containing only ai_RNbBHXbD children), aligning DOM hierarchy with IR page-root siblings.",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "ir/inventory.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Decompose scope defers conversation UI and chat-delete-popup to MOD-DRSAM-CHAT, but brownfield implementation retains full prototype thread list and ChatWindow inside ai_RNbBHXbD. Ownership marker (data-module-owner) and chat-main boundary are present; IR conversation subtree entities and delete popup are correctly not wired.",
+      "alternative": "If strict shell-only landing is required, replace prototype chat UI with a minimal placeholder inside ai_RNbBHXbD until CHAT-01+ lands; otherwise document brownfield retention as intentional in coverage preflight.",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "routing",
+      "priority": "low",
+      "finding": "frontend/src/lib/chat/routes.ts exports CHAT_ROUTE but authenticatedRoutes.tsx still hardcodes '/chat' string instead of importing the constant.",
+      "alternative": "Import CHAT_ROUTE in authenticatedRoutes.tsx (and any navigate targets) for single source of truth.",
+      "evidence": [
+        "frontend/src/lib/chat/routes.ts",
+        "frontend/src/lib/router/authenticatedRoutes.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

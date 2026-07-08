@@ -1,0 +1,87 @@
+{
+  "item_id": "SHELL-09-settings-page-shell",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T20:25:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Settings.tsx",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/components/shell/Header.tsx",
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/lib/router/authenticatedRoutes.tsx",
+      "frontend/src/lib/enums/settingsTabs.ts",
+      "frontend/src/App.tsx"
+    ],
+    "gaps": [
+      "AC-1: Settings page lacked page root data-bubble-id bTHDh on shell wrapper",
+      "AC-2: Header and sidebar used reusable root ids (ai_RNbBKLUc/ai_RNbBKLUe) instead of settings page instances ai_RNbBKLUp/ai_RNbBKLUq",
+      "AC-3: Main content not bounded by ai_RNbBHYUr settings-main; no settings_tab_os_ tab router stub or MOD-DRSAM-SETTINGS ownership marker"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/SettingsPage.vue": "frontend/src/pages/Settings.tsx",
+      "frontend/src/features/settings/routes.ts": "frontend/src/lib/settings/routes.ts",
+      "frontend/src/features/settings/settingsTabStub.ts": "frontend/src/lib/settings/settingsTabStub.ts",
+      "frontend/src/App.tsx": "frontend/src/lib/router/authenticatedRoutes.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx — passes pageBubbleId bTHDh to DashboardLayout via settingsShellProps",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDh on shell root when pageBubbleId provided",
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /settings route registered with requiresAuth meta via ProtectedRoute parent in App.tsx"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx — passes headerBubbleId ai_RNbBKLUp and sidebarBubbleId ai_RNbBKLUq",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — accepts bubbleId override (defaults ai_RNbBKLUc for other pages)",
+        "frontend/src/components/AppSidebar.tsx — accepts bubbleId override (defaults ai_RNbBKLUe for other pages)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Settings.tsx — prototype settings UI wrapped in data-bubble-id ai_RNbBHYUr with data-module-owner MOD-DRSAM-SETTINGS; tab panels and admin popups deferred to MOD-DRSAM-SETTINGS",
+        "frontend/src/lib/settings/routes.ts — exports SETTINGS_MAIN_BUBBLE_ID and SETTINGS_MODULE_ID documenting settings-main ownership",
+        "frontend/src/lib/settings/settingsTabStub.ts — exports settings_tab_os_ custom state key, ENUM-01 tab slugs, tab button bubble ids (ai_RNbBHYUx–ai_RNbBHYVE), and SettingsTabRouter contract for SET-01"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDh",
+      "selector": "[data-bubble-id='bTHDh']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUp",
+      "selector": "[data-bubble-id='ai_RNbBKLUp']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUq",
+      "selector": "[data-bubble-id='ai_RNbBKLUq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYUr",
+      "selector": "[data-bubble-id='ai_RNbBHYUr']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/settings/routes.ts",
+    "frontend/src/lib/settings/settingsTabStub.ts",
+    "frontend/src/pages/Settings.tsx",
+    "cursor-impl-cycle/output/coverage/SHELL-09-settings-page-shell.json"
+  ]
+}

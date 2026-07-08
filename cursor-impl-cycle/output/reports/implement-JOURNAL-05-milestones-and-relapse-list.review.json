@@ -1,0 +1,236 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-05-milestones-and-relapse-list",
+  "assessed_at": "2026-07-08T06:20:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx — data-bubble-id ai_RNbBHXjO milestones-tab-content panel mounts milestonesTab children",
+        "frontend/src/components/journal/MilestonesTab.tsx — ai_RNbBHXja milestones-grid RepeatingGroup_list_ maps milestones with MilestoneCard per row",
+        "frontend/src/components/journal/MilestonesTab.tsx — ai_RNbBHXjp relapse-events-section with divider ai_RNbBHXjr, label row ai_RNbBHXjs/ju, private badge ai_RNbBHXjv, grid ai_RNbBHXjy",
+        "frontend/src/components/journal/MilestoneCard.tsx — ai_RNbBHXjb milestone-card-template Group_card_ root",
+        "frontend/src/components/journal/RelapseEventCard.tsx — ai_RNbBHXjz relapse-event-card-template Group_panel_ root",
+        "frontend/src/pages/Journal.tsx — MilestonesTab passed as milestonesTab inside JOURNAL-01 ai_RNbBHXjO slot without duplicating panel marker",
+        "ir/inventory.json — parent_id chain ai_RNbBHXjO → (ai_RNbBHXjP | ai_RNbBHXja | ai_RNbBHXjp) matches React DOM sibling order"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/milestonesApi.ts — fetchMilestones() queries uds_milestone (title_text, description_text, achieved_at_date, user_user) with 42P01/PGRST205 → onboarding_data.milestones fallback",
+        "frontend/src/lib/journal/relapseEventsApi.ts — fetchRelapseEvents() queries uds_relapseevent (event_date_date, notes_text, user_user) with same schema-unavailable fallback to onboarding_data.relapse_events",
+        "frontend/src/components/journal/MilestoneCard.tsx — ai_RNbBHXjh title_text and ai_RNbBHXji Achieved achieved_at_date bind to row data",
+        "frontend/src/components/journal/RelapseEventCard.tsx — ai_RNbBHXkD event_date_date and ai_RNbBHXkJ notes_text bind to row data",
+        "frontend/src/pages/Journal.tsx — loadMilestones() fetches both lists for current user via useAuth + profile.onboardingData",
+        "frontend/supabase/ — no uds_milestone/uds_relapseevent migrations; fallback path documented in coverage preflight"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestonesTab.tsx — ai_RNbBHXjX add-milestone-btn onClick={onAddMilestone}, ai_RNbBHXjU log-relapse-btn onClick={onLogRelapse}",
+        "frontend/src/components/journal/MilestoneCard.tsx — ai_RNbBHXjk edit and ai_RNbBHXjm action buttons call onEditMilestone(milestone)",
+        "frontend/src/components/journal/RelapseEventCard.tsx — ai_RNbBHXkF edit button calls onEditRelapse(event)",
+        "frontend/src/pages/Journal.tsx — handleAddMilestone, handleLogRelapse, handleEditMilestone, handleEditRelapse defined and passed to MilestonesTab for JOURNAL-06/07 popup hosts"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Authenticated user sees milestones and relapse events loaded via fetchMilestones/fetchRelapseEvents with Supabase-first and onboarding_data fallback",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — loadMilestones on mount",
+        "frontend/src/lib/journal/milestonesApi.ts",
+        "frontend/src/lib/journal/relapseEventsApi.ts",
+        "frontend/src/components/journal/MilestonesTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "add-milestone-btn (ai_RNbBHXjX) triggers onAddMilestone callback (not unregistered handler)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestonesTab.tsx — onAddMilestone on ai_RNbBHXjX",
+        "frontend/src/pages/Journal.tsx — handleAddMilestone wired (popup body deferred to JOURNAL-06)"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "log-relapse-btn (ai_RNbBHXjU) triggers onLogRelapse callback (not unregistered handler)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestonesTab.tsx — onLogRelapse on ai_RNbBHXjU",
+        "frontend/src/pages/Journal.tsx — handleLogRelapse wired (popup body deferred to JOURNAL-07)"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Milestone and relapse card edit actions invoke parent callbacks with the selected row",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestoneCard.tsx — onEditMilestone(milestone)",
+        "frontend/src/components/journal/RelapseEventCard.tsx — onEditRelapse(event)",
+        "frontend/src/pages/Journal.tsx — handleEditMilestone / handleEditRelapse"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Milestones count label reflects live list length after load",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestonesTab.tsx — milestones.length in ai_RNbBHXjS when not loading",
+        "frontend/src/pages/Journal.tsx — setMilestones after fetch"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXjO",
+      "selector": "[data-bubble-id='ai_RNbBHXjO']",
+      "status": "pass",
+      "notes": "JOURNAL-01 panel marker on JournalPageContent; MilestonesTab mounts as child content"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjP",
+      "selector": "[data-bubble-id='ai_RNbBHXjP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjQ",
+      "selector": "[data-bubble-id='ai_RNbBHXjQ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjR",
+      "selector": "[data-bubble-id='ai_RNbBHXjR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjS",
+      "selector": "[data-bubble-id='ai_RNbBHXjS']",
+      "status": "pass",
+      "notes": "Count appended inline as (N) — matches JOURNAL-02 pattern"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjU",
+      "selector": "[data-bubble-id='ai_RNbBHXjU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjX",
+      "selector": "[data-bubble-id='ai_RNbBHXjX']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXja",
+      "selector": "[data-bubble-id='ai_RNbBHXja']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjb",
+      "selector": "[data-bubble-id='ai_RNbBHXjb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjp",
+      "selector": "[data-bubble-id='ai_RNbBHXjp']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjq",
+      "selector": "[data-bubble-id='ai_RNbBHXjq']",
+      "status": "pass",
+      "notes": "relapse-section-header wraps divider + label row per layout_notes"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjr",
+      "selector": "[data-bubble-id='ai_RNbBHXjr']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXju",
+      "selector": "[data-bubble-id='ai_RNbBHXju']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjv",
+      "selector": "[data-bubble-id='ai_RNbBHXjv']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjy",
+      "selector": "[data-bubble-id='ai_RNbBHXjy']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjz",
+      "selector": "[data-bubble-id='ai_RNbBHXjz']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "Journal.tsx popup handlers (handleAddMilestone, handleLogRelapse, handleEditMilestone, handleEditRelapse) are empty no-ops with JOURNAL-06/07 comments — buttons click with no visible feedback until downstream popups land.",
+      "alternative": "JOURNAL-06/07 should replace stubs with setState + Dialog mounts on first implement turn; optional interim toast is out of scope but avoids silent clicks during parallel waves.",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — lines 169–183"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Milestone delete icon (ai_RNbBHXjm) shares onEditMilestone with edit (ai_RNbBHXjk) and uses aria-label 'Edit milestone options' — delete workflow is scoped to JOURNAL-06 edit popup but dual icons may confuse until popup distinguishes actions.",
+      "alternative": "JOURNAL-06 EditMilestonePopup should own delete; consider distinct aria-label on ai_RNbBHXjm or route delete to a dedicated onDeleteMilestone prop if Bubble workflow separates icons.",
+      "evidence": [
+        "frontend/src/components/journal/MilestoneCard.tsx",
+        "ai_RNbBHXjm"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "data",
+      "priority": "low",
+      "finding": "onboarding_data fallback assigns crypto.randomUUID() when array entries lack id, producing unstable React keys across reloads for legacy onboarding blobs.",
+      "alternative": "Derive deterministic key from title_text + achieved_at_date hash or require id on write paths in JOURNAL-06.",
+      "evidence": [
+        "frontend/src/lib/journal/milestonesApi.ts — readOnboardingMilestones",
+        "frontend/src/lib/journal/relapseEventsApi.ts — readOnboardingRelapseEvents"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "brownfield",
+      "priority": "low",
+      "finding": "UntypedSupabase cast bypasses generated client types for uds_milestone/uds_relapseevent — necessary while tables are absent from prototype schema but should be removed when migrations land.",
+      "alternative": "Regenerate Supabase types and drop UntypedSupabase once uds_* tables exist in frontend/supabase or project contract.",
+      "evidence": [
+        "frontend/src/lib/journal/milestonesApi.ts",
+        "frontend/src/lib/journal/relapseEventsApi.ts"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

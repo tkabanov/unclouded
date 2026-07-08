@@ -12,7 +12,11 @@
         "AC-3: When SessionCompletionRoute marks bTJAB visible, bTJDf hides per IR conditional state on bTJDf — grid/resources panels must not render underneath the form",
         "AC-4: path_page_tab_os_ toggles mutual visibility of sibling panels under bTJDf — ai_RNbBHYHE paths-guided-panel (bTJDr, IR is_visible true) when tab is bTIsz/my_paths_ (My Paths); ai_RNbBHYIK paths-resources-panel (bTJDs, IR is_visible false) when tab is bTItA/paths_library (Paths Library); only one panel visible at a time with collapse_when_hidden per ir/slices/bTHDg____root.json"
       ],
-      "ir_refs": ["bTHDf", "custom_state:bTHDf:path_page_tab_os_", "path_page_tab_os"],
+      "ir_refs": [
+        "bTHDf",
+        "custom_state:bTHDf:path_page_tab_os_",
+        "path_page_tab_os"
+      ],
       "ui_refs": [
         "bTHDf",
         "ai_RNbBHYGq",
@@ -37,10 +41,10 @@
         "ENUM-01-navigation-and-onboarding-labels"
       ],
       "target_files": [
-        "frontend/src/features/paths/PathsPageContent.vue",
-        "frontend/src/features/paths/pathsTabStore.ts",
-        "frontend/src/features/paths/components/PathsPageHeader.vue",
-        "frontend/src/features/paths/components/PathsTabBar.vue"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/PathsPageHeader.tsx",
+        "frontend/src/components/paths/PathsTabBar.tsx",
+        "frontend/src/lib/paths/pathsTabStore.ts"
       ]
     },
     {
@@ -52,7 +56,12 @@
         "AC-2: Grid RG ai_RNbBHYHn cell ai_RNbBHYHo shows path-card-header (badges ai_RNbBHYHr/Ht/Hw), body title ai_RNbBHYHz, footer enrolled-indicator bTIvJ (icon bTIvO, text bTIvP) and view-details btn ai_RNbBHYIJ; progress uses DS-02 ProgressBar (bTIva) + pct text bTIvt",
         "AC-3: Grid RG ai_RNbBHYHn lists enrolled paths from pathenrollment1 via bTItY GetElement parity; tier DD ai_RNbBHYHb filters visible cards by selected ENUM-04 tier_os; enrollment status badges use ENUM-03 path_enrollment_status"
       ],
-      "ir_refs": ["bTHDf", "bTItY", "pathenrollment1", "path_enrollment_status"],
+      "ir_refs": [
+        "bTHDf",
+        "bTItY",
+        "pathenrollment1",
+        "path_enrollment_status"
+      ],
       "ui_refs": [
         "ai_RNbBHYHE",
         "ai_RNbBHYHF",
@@ -88,9 +97,9 @@
         "ENUM-04-tier-and-subscription-labels"
       ],
       "target_files": [
-        "frontend/src/features/paths/components/PathsGridPanel.vue",
-        "frontend/src/features/paths/components/PathCard.vue",
-        "frontend/src/features/paths/components/PathsFilterRow.vue"
+        "frontend/src/components/paths/PathCard.tsx",
+        "frontend/src/components/paths/PathsFilterRow.tsx",
+        "frontend/src/components/paths/PathsGridPanel.tsx"
       ]
     },
     {
@@ -102,7 +111,10 @@
         "AC-2: Body groups ai_RNbBHYJc render steps label/text (ai_RNbBHYJh/Ji), disclaimer banner ai_RNbBHYJk, progress group ai_RNbBHYJn with DS-02 wrapper bTItq/bTIuq and pct ai_RNbBHYJs plus last-step text ai_RNbBHYJt",
         "AC-3: Footer ai_RNbBHYJu wires path-detail-enroll-btn ai_RNbBHYJw and path-detail-unenroll-btn ai_RNbBHYJv to create/update pathenrollment1 rows; Btn Upgrade Plan bTJHa visible per tier gating stub using ENUM-04 tier_os"
       ],
-      "ir_refs": ["bTHDf", "pathenrollment1"],
+      "ir_refs": [
+        "bTHDf",
+        "pathenrollment1"
+      ],
       "ui_refs": [
         "ai_RNbBHYJO",
         "ai_RNbBHYMU",
@@ -133,8 +145,8 @@
         "ENUM-04-tier-and-subscription-labels"
       ],
       "target_files": [
-        "frontend/src/features/paths/components/PathDetailPopup.vue",
-        "frontend/src/features/paths/pathsEnrollmentApi.ts"
+        "frontend/src/pages/PathDetail.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts"
       ]
     },
     {
@@ -146,7 +158,9 @@
         "AC-2: Pinned section ai_RNbBHYIL preserves three crisis-resource groups (ai_RNbBHYIQ, ai_RNbBHYIZ, ai_RNbBHYIi) with icon rows, titles, descriptions, and free-badge groups using IR copy and Group_card_ styling",
         "AC-3: Resource RG ai_RNbBHYIu cell ai_RNbBHYIv shows card title ai_RNbBHYJF, content ai_RNbBHYJG, sensitivity badge ai_RNbBHYJI, disclaimer ai_RNbBHYJM, and resource-view-btn ai_RNbBHYJN opening resource popup"
       ],
-      "ir_refs": ["bTHDf"],
+      "ir_refs": [
+        "bTHDf"
+      ],
       "ui_refs": [
         "ai_RNbBHYIK",
         "ai_RNbBHYIL",
@@ -169,9 +183,9 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/paths/components/PathsResourcesPanel.vue",
-        "frontend/src/features/paths/components/ResourceCard.vue",
-        "frontend/src/features/paths/pathsResourcesApi.ts"
+        "frontend/src/components/paths/PathsResourcesPanel.tsx",
+        "frontend/src/components/paths/ResourceCard.tsx",
+        "frontend/src/lib/paths/pathsResourcesApi.ts"
       ]
     },
     {
@@ -183,7 +197,9 @@
         "AC-2: Body groups ai_RNbBHYKL render resource-card-content ai_RNbBHYKR, sensitivity badge ai_RNbBHYKS/ai_RNbBHYKT, and disclaimer note ai_RNbBHYJM copy from IR",
         "AC-3: Footer ai_RNbBHYKV includes link ai_RNbBHYKU and Button_primary_ ai_RNbBHYKW with static label from IR; close control ai_RNbBHYKJ dismisses popup"
       ],
-      "ir_refs": ["bTHDf"],
+      "ir_refs": [
+        "bTHDf"
+      ],
       "ui_refs": [
         "ai_RNbBHYJx",
         "ai_RNbBHYMy",
@@ -200,9 +216,11 @@
         "Button_primary_"
       ],
       "layout_notes": "Modal overlay matching path-detail popup shell; link row above full-width primary button. Sensitivity badge uses icon + text inline row from IR.",
-      "depends_on": ["PATHS-04-paths-resources-panel"],
+      "depends_on": [
+        "PATHS-04-paths-resources-panel"
+      ],
       "target_files": [
-        "frontend/src/features/paths/components/ResourceDetailPopup.vue"
+        "frontend/src/components/paths/ResourceDetailPopup.tsx"
       ]
     },
     {
@@ -214,17 +232,25 @@
         "AC-2: RepeatingGroup bTItY lists current-user pathenrollment1 rows with cell layout from ir/slices/bTHDg____root.json; selecting enrollment updates shared paths store used by ai_RNbBHYHn GetElement binding",
         "AC-3: Store exposes current_session_custom_pathsession per enrollment for PATHS-07 URL session param matching against bTItY list data"
       ],
-      "ir_refs": ["bTHDf", "bTItY", "pathenrollment1"],
-      "ui_refs": ["bTItS", "bTItY", "FG-services"],
+      "ir_refs": [
+        "bTHDf",
+        "bTItY",
+        "pathenrollment1"
+      ],
+      "ui_refs": [
+        "bTItS",
+        "bTItY",
+        "FG-services"
+      ],
       "layout_notes": "FloatingGroup anchored per IR (reference top); horizontal repeating enrollment chips/cards. SHELL-08 defers FG mount — this item owns bTItS content only.",
       "depends_on": [
         "PATHS-01-paths-tab-state-and-header",
         "ENUM-03-path-coaching-and-state-enums"
       ],
       "target_files": [
-        "frontend/src/features/paths/components/EnrollmentFloatingBar.vue",
-        "frontend/src/features/paths/pathsEnrollmentStore.ts",
-        "frontend/src/features/paths/pathsEnrollmentApi.ts"
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts"
       ]
     },
     {
@@ -236,8 +262,18 @@
         "AC-2: Visible form replaces bTJDf content (PATHS-01 mutual hide); header/session title bindings use parent pathsession fields matching bTIyi IR text nodes bTIxC/bTIxG",
         "AC-3: Submit btn bTIzk triggers frontend stub mirroring bTJBW workflow — plugin placeholders bTJBC/bTJBI inert, ScheduleAPIEvent schedules path-session completion handler, then ChangePage clears session URL param (keep_current_page_params) returning to My Paths grid"
       ],
-      "ir_refs": ["bTHDf", "bTIyi", "pathsession", "pathquestion"],
-      "ui_refs": ["bTJAB", "bTJAG", "bTIyi", "bTItY"],
+      "ir_refs": [
+        "bTHDf",
+        "bTIyi",
+        "pathsession",
+        "pathquestion"
+      ],
+      "ui_refs": [
+        "bTJAB",
+        "bTJAG",
+        "bTIyi",
+        "bTItY"
+      ],
       "layout_notes": "Session form is full-width overlay inside ai_RNbBHYGq content slot — not a separate route. Reuse DS-04 component verbatim; page item only handles routing, data bind, and submit orchestration.",
       "depends_on": [
         "PATHS-01-paths-tab-state-and-header",
@@ -246,9 +282,9 @@
         "ENUM-03-path-coaching-and-state-enums"
       ],
       "target_files": [
-        "frontend/src/features/paths/components/SessionCompletionRoute.vue",
-        "frontend/src/features/paths/pathsSessionApi.ts",
-        "frontend/src/features/paths/useSessionCompletionRoute.ts"
+        "frontend/src/components/paths/SessionCompletionRoute.tsx",
+        "frontend/src/hooks/useSessionCompletionRoute.ts",
+        "frontend/src/lib/paths/pathsSessionApi.ts"
       ]
     }
   ]

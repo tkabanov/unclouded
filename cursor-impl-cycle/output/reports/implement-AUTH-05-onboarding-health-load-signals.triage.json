@@ -1,0 +1,39 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-05-onboarding-health-load-signals",
+  "assessed_at": "2026-07-07T16:00:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-AUTH-05-onboarding-health-load-signals.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "IR re-read confirms bTHNi is an inventory alias whose pointer resolves to the bTGNn Text leaf (`ir/inventory.json`: id bTHNi → pointer `.../bTGNn`). OnboardingLoadSignals tags that migrated label with data-bubble-id='bTGNn' plus data-question-bubble-id per question group. criteria_audit AC-1 passes on behavior; coverage ui_evidence marks bTHNi pass via alias. Literal dual-tagging bTHNi on the DOM node is optional tooling convenience, not a named-ui_ref AC violation."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "bTHNF is a Bubble ButtonClicked workflow that SetCustomState health_recovery_mode_active. OnboardingHealthFlags maps the recovery option with data-custom-state='health_recovery_mode_active' and functional_audit FV-1 passes multi-select exclusivity. AUTH-05 AC-2 requires custom-state mapping to frontend flags, not literal data-workflow attributes; coverage ui_evidence marks bTHNF pass. SPA onClick + customStateKey mapping is the correct React equivalent of the workflow trigger."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "HealthFlagsPayload field names recovery_mode_active/grief_mode_active are deliberate frontend normalization: buildHealthFlagsFromSelection maps from Bubble customStateKeys (health_recovery_mode_active, health_grief_mode_active) and classification/Dashboard/Reassessment consume the normalized names consistently. AC-2 requires mapping custom states to frontend state flags, not identical persisted key strings; IR trailing-underscore variants (health_recovery_mode_active_) are Bubble storage convention. DOM data-custom-state attributes already use the Bubble key names."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Step-group roots bTHtb and bTHnK are correctly placed on the Onboarding.tsx step wrapper via ONBOARDING_STEP_BUBBLE_GROUPS and data-onboarding-step scoping; coverage ui_evidence passes both. Inner bTHJm/bTHVW/bTHVi reuse matches the established AUTH-04 shared cell-template pattern across onboarding question steps — Bubble repeats the same structural template under each step group. Review alternative acknowledges inner reuse is acceptable when step wrapper is scoped."
+    }
+  ],
+  "summary": "0 fix_now, 0 defer, 4 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs pass. C-1/C-2 ui-fidelity critiques accepted after IR re-read: bTHNi alias resolves to bTGNn leaf; bTHNF workflow semantics satisfied via data-custom-state. C-3 accepted as intentional frontend normalization per AC-2. C-4 accepted as shared onboarding template pattern with correct step-group wrappers."
+}

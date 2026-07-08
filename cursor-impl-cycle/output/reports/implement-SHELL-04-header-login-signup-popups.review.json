@@ -1,0 +1,206 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-04-header-login-signup-popups",
+  "assessed_at": "2026-07-07T17:45:00.000+02:00",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 87,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AuthDialog.tsx — DialogContent data-bubble-id='ai_RNbBHWbR' (Popup login-popup from element_definitions/ai_RNbBKLUd/elements/ai_RNbBHWdq)",
+        "frontend/src/components/AuthDialog.tsx — login hierarchy ai_RNbBHWbT header, ai_RNbBHWba/bd field groups, inputs ai_RNbBHWbc/bf with Text_label_ + Input_default_ style_refs",
+        "frontend/src/components/AuthDialog.tsx — Group_overlay_ via data-style-ref and bubbleStyle('Group_overlay_')"
+      ],
+      "gap": "Login footer ai_RNbBHWbh and submit ai_RNbBHWbg are siblings outside ai_RNbBHWbZ in JSX; IR nests both under ai_RNbBHWbZ"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/SignupPopup.tsx — root data-bubble-id='ai_RNbBHWbk', step container ai_RNbBHWbs with step-index visibility swap (0/1/2)",
+        "frontend/src/components/shell/SignupPopup.tsx — close Button data-bubble-id='ai_RNbBHWbq' with Button_icon_ style and aria-label",
+        "frontend/src/components/shell/SignupPopup.tsx — field labels use data-style-ref='Text_label_' across all steps"
+      ],
+      "gap": "IR signup-recovery-fields subtree (ai_RNbBHWce/sobriety/substance groups) not rendered when Recovery sub-mode is selected"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — header-login-btn ai_RNbBHWbF opens AuthDialog via start('signin'); header-signup-btn ai_RNbBHWbG opens SignupPopup via start('signup')",
+        "frontend/src/pages/Index.tsx — handleAuthSuccess closes both popups; destination() routes to /onboarding or /dashboard per profile.onboardingCompleted",
+        "frontend/src/components/AuthDialog.tsx — signInWithPassword; frontend/src/components/shell/SignupPopup.tsx — signUp with profile metadata"
+      ],
+      "gap": "Auth buttons live on Index inline header, not inside reusable shell/Header.tsx ai_RNbBHWbE wrapper"
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "header-login-btn ai_RNbBHWbF opens login popup (AuthDialog ai_RNbBHWbR) and submits Supabase signInWithPassword",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — start('signin') sets loginOpen",
+        "frontend/src/components/AuthDialog.tsx — handleSubmit signInWithPassword"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "header-signup-btn ai_RNbBHWbG opens signup popup (SignupPopup ai_RNbBHWbk) with multi-step navigation",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — start('signup') sets signupOpen",
+        "frontend/src/components/shell/SignupPopup.tsx — advanceFromStep1/advanceFromStep2 validate and setStep"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Signup final step submits Supabase signUp with collected profile fields",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/SignupPopup.tsx — handleSubmit signUp with options.data metadata"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Successful auth closes popup and routes to onboarding or dashboard per AUTH parity",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — handleAuthSuccess + redirecting useEffect with destination()",
+        "frontend/src/lib/userProfile.tsx — onboardingCompleted field"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Login/signup popups support cross-switch and close controls",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AuthDialog.tsx — onSwitchToSignup, close ai_RNbBHWbX",
+        "frontend/src/components/shell/SignupPopup.tsx — onSwitchToLogin, close ai_RNbBHWbq, resetForm on close"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHWbR",
+      "selector": "[data-bubble-id='ai_RNbBHWbR']",
+      "status": "pass",
+      "notes": "Login popup root on DialogContent; Popup_dialog_ style_ref applied"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbc",
+      "selector": "[data-bubble-id='ai_RNbBHWbc']",
+      "status": "pass",
+      "notes": "Email Input under ai_RNbBHWba group"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbf",
+      "selector": "[data-bubble-id='ai_RNbBHWbf']",
+      "status": "pass",
+      "notes": "Password Input under ai_RNbBHWbd group"
+    },
+    {
+      "bubble_id": "ai_RNbBHWba",
+      "selector": "[data-bubble-id='ai_RNbBHWba']",
+      "status": "pass",
+      "notes": "Group login-email-group"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbd",
+      "selector": "[data-bubble-id='ai_RNbBHWbd']",
+      "status": "pass",
+      "notes": "Group login-password-group"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbT",
+      "selector": "[data-bubble-id='ai_RNbBHWbT']",
+      "status": "pass",
+      "notes": "Group login-popup-header with title/subtitle/close"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbk",
+      "selector": "[data-bubble-id='ai_RNbBHWbk']",
+      "status": "pass",
+      "notes": "Signup popup root on DialogContent"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbs",
+      "selector": "[data-bubble-id='ai_RNbBHWbs']",
+      "status": "pass",
+      "notes": "Group signup-step-1; React step swap preserves single IR step group id"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbq",
+      "selector": "[data-bubble-id='ai_RNbBHWbq']",
+      "status": "pass",
+      "notes": "Button signup-close-btn with Button_icon_ style"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbF",
+      "selector": "[data-bubble-id='ai_RNbBHWbF']",
+      "status": "pass",
+      "notes": "Button header-login-btn on Index sticky header"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbG",
+      "selector": "[data-bubble-id='ai_RNbBHWbG']",
+      "status": "pass",
+      "notes": "Button header-signup-btn on Index sticky header"
+    },
+    {
+      "bubble_id": "Group_overlay_",
+      "selector": "[data-style-ref='Group_overlay_']",
+      "status": "pass",
+      "notes": "Overlay padding/border/bg from bubble-styles.css matches ir/slices/styles.json"
+    }
+  ],
+  "gaps": [
+    "Signup recovery conditional fields (ai_RNbBHWce signup-recovery-fields, sobriety date, substance type) absent from step 2",
+    "Index header auth buttons not nested under data-bubble-id ai_RNbBHWbE per IR parent_id chain",
+    "Signup footer row ai_RNbBHWdN rendered outside ai_RNbBHWbs; IR lists parent_id ai_RNbBHWbs"
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Signup step 2 omits IR recovery field groups (ai_RNbBHWce/ai_RNbBHWcf/ai_RNbBHWcj) that Bubble shows when health Recovery sub-mode is active.",
+      "alternative": "Conditionally render sobriety date and substance dropdown when primaryMode=health and subMode=Recovery, matching Bubble visibility workflows.",
+      "evidence": ["frontend/src/components/shell/SignupPopup.tsx", "ir/resolver.json", "ir/inventory.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "ir-markers",
+      "priority": "low",
+      "finding": "Header login/signup buttons on Index lack parent wrapper data-bubble-id ai_RNbBHWbE (actions group under ai_RNbBKLUc).",
+      "alternative": "Wrap the button cluster in a div data-bubble-id='ai_RNbBHWbE' to match header reusable hierarchy.",
+      "evidence": ["frontend/src/pages/Index.tsx", "ir/inventory.json"]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Intermediate signup Continue/Back buttons lack data-bubble-id markers; only final Sign Up carries ai_RNbBHWdM.",
+      "alternative": "Map step navigation buttons to IR continue/submit button ids if parity tooling should track wizard progression.",
+      "evidence": ["frontend/src/components/shell/SignupPopup.tsx"]
+    },
+    {
+      "id": "C-4",
+      "area": "brownfield",
+      "priority": "low",
+      "finding": "shell/Header.tsx does not surface ai_RNbBHWbF/bG when logged out; popups are wired only on Index.tsx inline header.",
+      "alternative": "Acceptable for index-only entry in this item; document that logged-out Header reuse is Index-specific until a shared marketing shell lands.",
+      "evidence": ["frontend/src/components/shell/Header.tsx", "frontend/src/pages/Index.tsx"]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

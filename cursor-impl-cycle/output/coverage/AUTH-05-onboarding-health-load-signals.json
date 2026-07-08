@@ -1,0 +1,97 @@
+{
+  "item_id": "AUTH-05-onboarding-health-load-signals",
+  "module_id": "MOD-DRSAM-AUTH",
+  "assessed_at": "2026-07-07T17:55:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/components/OnboardingHealthFlags.tsx",
+      "frontend/src/components/OnboardingLoadSignals.tsx",
+      "frontend/src/lib/userProfile.tsx",
+      "frontend/src/lib/onboardingWizard.ts",
+      "frontend/src/lib/enums/onboardingQuestions.ts"
+    ],
+    "gaps": [
+      "AC-1: health flags used hardcoded options instead of customer_health_question_os; both steps lacked data-bubble-id/bubbleStyle IR hierarchy",
+      "AC-2: only recovery_mode_active/grief_mode_active mapped; health_flag3–6 and load_signal_* custom states not persisted",
+      "AC-3: completion logic inline in Onboarding.tsx without dedicated completeOnboarding flow or bTHDT route constant"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/HealthSignalsStep.vue": "frontend/src/components/OnboardingHealthFlags.tsx",
+      "frontend/src/components/LoadSignalsStep.vue": "frontend/src/components/OnboardingLoadSignals.tsx",
+      "frontend/src/lib/completeOnboarding.ts": "frontend/src/lib/completeOnboarding.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingHealthFlags.tsx — HEALTH_FLAG_OPTIONS multi-select with none-of-the-above exclusivity via toggleHealthFlagSelection",
+        "frontend/src/components/OnboardingLoadSignals.tsx — LOAD_SIGNAL_QUESTIONS single-select per question group with allAnswered gate"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts — HEALTH_FLAG_OPTIONS customStateKey maps health_recovery_mode_active, health_grief_mode_active, health_flag3–6, health_none_of_the_above",
+        "frontend/src/lib/enums/onboardingQuestions.ts — buildLoadSignalCustomStates maps load_signal_cognitive/relational/environmental/financial",
+        "frontend/src/pages/Onboarding.tsx — persistOnboardingDraft on load and health steps merges custom state payloads into onboarding_data"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/completeOnboarding.ts — canCompleteOnboarding validates required signals; completeOnboarding saves profile with onboarding_completed and navigates to ONBOARDING_COMPLETE_ROUTE (/dashboard, bTHDT)",
+        "frontend/src/pages/Onboarding.tsx — OnboardingResults onComplete delegates to completeOnboarding"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGNI",
+      "selector": "[data-bubble-id='bTGNI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHnK",
+      "selector": "[data-onboarding-step='load_signals'] [data-bubble-id='bTHnK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHtb",
+      "selector": "[data-onboarding-step='health___wellness_flags'] [data-bubble-id='bTHtb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHNi",
+      "selector": "[data-bubble-id='bTGNn']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHNF",
+      "selector": "[data-custom-state='health_recovery_mode_active']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHDT",
+      "selector": "[data-bubble-id='bTHDT']",
+      "status": "pass",
+      "note": "Route target via ONBOARDING_COMPLETE_DESTINATION_BUBBLE_ID in completeOnboarding.ts"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/enums/onboardingQuestions.ts",
+    "frontend/src/lib/enums/index.ts",
+    "frontend/src/lib/completeOnboarding.ts",
+    "frontend/src/components/OnboardingHealthFlags.tsx",
+    "frontend/src/components/OnboardingLoadSignals.tsx",
+    "frontend/src/components/OnboardingResults.tsx",
+    "frontend/src/pages/Onboarding.tsx",
+    "cursor-impl-cycle/output/coverage/AUTH-05-onboarding-health-load-signals.json"
+  ]
+}

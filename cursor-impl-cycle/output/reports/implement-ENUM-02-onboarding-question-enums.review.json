@@ -1,0 +1,126 @@
+{
+  "phase": "implement",
+  "target_id": "ENUM-02-onboarding-question-enums",
+  "assessed_at": "2026-07-07T15:35:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 94,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/customerProfile.ts — customer_pillar_os (3), customer_role_os (5), customer_state_os (7) slug keys with Bubble id comments",
+        "drsam-99657.bubble option_sets/customer_pillar_os (label attr), customer_role_os (card_label attr), customer_state_os (display slug)",
+        "frontend/src/lib/enums/index.ts — barrel re-exports profile enums and types"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts — ALIGNMENT_QUESTIONS (5×5), PERFORMANCE_QUESTIONS_BY_ROLE (25: 5 roles × 5 each), STABILITY_QUESTIONS (5×5), LOAD_SIGNAL_QUESTIONS (4×3)",
+        "drsam-99657.bubble customer_performance_question_os — 25 role-keyed entries (pro/student/caregiver/transition/retired); 4 orphan _/_0/_1/_2 entries correctly excluded",
+        "getPerformanceQuestionsForRole(role) + PERFORMANCE_ANSWERS_OPTION_SET_ID exported via index.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingPillar.tsx — CUSTOMER_PILLAR_* from @/lib/enums/customerProfile",
+        "frontend/src/components/OnboardingRole.tsx — CUSTOMER_ROLE_* from @/lib/enums/customerProfile",
+        "frontend/src/components/OnboardingAlignment.tsx — ALIGNMENT_QUESTIONS from @/lib/enums/onboardingQuestions",
+        "frontend/src/components/OnboardingPerformance.tsx — getPerformanceQuestionsForRole from @/lib/enums/onboardingQuestions",
+        "frontend/src/components/OnboardingStability.tsx — STABILITY_QUESTIONS from @/lib/enums/onboardingQuestions",
+        "frontend/src/components/OnboardingLoadSignals.tsx — LOAD_SIGNAL_QUESTIONS from @/lib/enums/onboardingQuestions",
+        "frontend/src/pages/Onboarding.tsx — passes roleType to OnboardingPerformance"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-ENUM-02-1",
+      "check": "Onboarding questionnaire components render Q/A from centralized enum modules, not inline hardcoded question arrays",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingAlignment.tsx",
+        "frontend/src/components/OnboardingPerformance.tsx",
+        "frontend/src/components/OnboardingStability.tsx",
+        "frontend/src/components/OnboardingLoadSignals.tsx"
+      ]
+    },
+    {
+      "id": "FV-ENUM-02-2",
+      "check": "Performance step selects role-keyed question set (5 per role) based on onboarding role state",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts — PERFORMANCE_QUESTIONS_BY_ROLE + getPerformanceQuestionsForRole",
+        "frontend/src/components/OnboardingPerformance.tsx — resolvePerformanceRole + useMemo",
+        "frontend/src/pages/Onboarding.tsx — role={roleType} on PERFORMANCE step"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "code-quality",
+      "priority": "low",
+      "finding": "OnboardingScaleAnswer and OnboardingScaleQuestion interfaces are declared twice in onboardingQuestions.ts (lines 9–22 and 448–461); harmless at compile time but adds noise.",
+      "alternative": "Remove the duplicate interface block before STABILITY_QUESTIONS and rely on the top-of-file definitions.",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-copy",
+      "priority": "low",
+      "finding": "OnboardingPerformance.tsx keeps static pro-oriented heading copy ('How you're showing up professionally') even when student/caregiver/transition/retired question sets are shown; enum wiring is correct but shell copy is not role-adaptive.",
+      "alternative": "Defer role-specific step titles to AUTH-04/consumer UI items or add per-role title maps alongside PERFORMANCE_QUESTIONS_BY_ROLE.",
+      "evidence": [
+        "frontend/src/components/OnboardingPerformance.tsx"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "traceability",
+      "priority": "low",
+      "finding": "Some performance answer slugs mirror Bubble duplicate disambiguation suffixes (e.g. quickly0, more0); labels are correct but slugs are awkward for future API keys.",
+      "alternative": "Document that slugs are Bubble-faithful db_value keys; normalize only if Supabase schema requires cleaner keys.",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingQuestions.ts",
+        "drsam-99657.bubble option_sets/customer_performance_answer_os"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  },
+  "independent_verification": {
+    "prior_fix_now_C-1": "resolved",
+    "prior_fix_now_C-1_detail": "Rewrite added all 25 role-keyed performance questions (was 5 pro-only); bubble cross-check confirms exact match on role-keyed question bubbleIds",
+    "performance_question_count_bubble_role_keyed": 25,
+    "performance_question_count_bubble_total": 29,
+    "performance_question_count_ts": 25,
+    "performance_roles_verified": ["pro", "student", "caregiver", "transition", "retired"],
+    "alignment_questions": 5,
+    "stability_questions": 5,
+    "load_signal_questions": 4,
+    "ts_bubble_ids_cross_checked": 226,
+    "ts_bubble_ids_missing": 0,
+    "implementer_coverage_pct_claim": 100,
+    "reviewer_coverage_pct": 100,
+    "preflight_valid": true,
+    "preflight_reuse_decision": "extend"
+  }
+}

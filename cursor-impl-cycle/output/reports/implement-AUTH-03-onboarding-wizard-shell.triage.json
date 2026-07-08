@@ -1,0 +1,34 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-03-onboarding-wizard-shell",
+  "assessed_at": "2026-07-07T15:32:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-AUTH-03-onboarding-wizard-shell.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "DS-01-design-tokens-and-bubble-styles",
+      "rationale": "AUTH-03 ui_refs name bTGNI, bTHEL, and bTHEQ only — not intermediate group bTHHM. criteria_audit AC-1 and ui_evidence pass for all named ui_refs; the bTHHM flattening is noted as a gap but does not fail AC-1. Simplified shadcn header chrome and unresolved style_ref tokens mirror the AUTH-01/AUTH-02 pattern: full Bubble Group layout and styles.json token bridge belong to MOD-DRSAM-DESIGN-SYSTEM (DS-01). AUTH-04/05 depend_on AUTH-03 for composable step routing and chrome markers, not pixel-perfect bTHHM nesting."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "AUTH-04-onboarding-profile-questions",
+      "rationale": "AUTH-03 scope is wizard container and step progression (next_step/previous_step logical branches). criteria_audit AC-3 passes: goNext/goBack mirror bTHIT/bTHIw ChangeThing ±1 over onboarding_step_os; data-workflow-next/back attributes document workflow ids. Per-step ButtonClicked workflows in bTGNJ__workflows____part_A.json are question-panel behavior — AUTH-04 AC-3 (persist answers and advance on validation) and AUTH-05 completion flows own those triggers. Downstream depends_on is satisfiable via shell callbacks without literal CustomEvent dispatch or synthetic event emission."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Mid-flow onboarding_step_os persistence to CurrentUser on each next/back transition is not an AUTH-03 acceptance criterion; review criteria_audit AC-3 explicitly accepts in-memory React state for shell-only scope (prototype defers profile save to completion). AUTH-04 AC-3 assigns answer persistence and step advance on validation to the profile-questions wave. Resume-on-refresh is a valid follow-up hardening item if product requires it; it does not block AUTH-04/05 depends_on gates."
+    }
+  ],
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs pass. Deferred: C-1 → DS-01-design-tokens-and-bubble-styles (bTHHM wrapper and style_ref chrome); C-2 → AUTH-04-onboarding-profile-questions / AUTH-05-onboarding-health-load-signals (per-step ButtonClicked workflows); C-3 → follow-up resume-on-refresh if required (per-transition onboarding_step_os profile write)."
+}

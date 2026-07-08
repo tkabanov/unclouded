@@ -1,0 +1,121 @@
+{
+  "phase": "implement",
+  "target_id": "CRISIS-01-crisis-support-reusable",
+  "assessed_at": "2026-07-08T07:10:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/CrisisSupportCard.tsx — root data-bubble-id=bTIdW; bTIdb uses flex-col, rounded-xl (12px), border border-[var(--color_primary_default)], p-5 (20px), bg-[var(--color_surface_default)]"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/CrisisSupportCard.tsx — bTIdg header with bTIdh circle, bTIdi Heart icon, bTIdm title, bTIdn disclaimer with bubbleStyle(Text_caption_); bTIdo flex-wrap gap-2 (8px) hotline row"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/CrisisHotlineRow.tsx — nested data-bubble-id markers for bTIds/bTIeA/bTIeL groups and child text/icon ids; tel:988, sms:741741?body=HOME, tel:18006624357 hrefs with IR copy preserved"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Shared crisis components export from frontend/src/components/crisis/index.ts for downstream mounts",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/index.ts",
+        "frontend/src/components/dashboard/CrisisSupportCard.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Dashboard consumes shared CrisisSupportCard (bTIfU mount) without duplicated markup",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx — import from @/components/crisis; crisisSupport slot renders <CrisisSupportCard />"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Hotline rows expose actionable tel:/sms: deep links per scope (presentation-only)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/CrisisHotlineRow.tsx — <a href={href}> wraps each hotline group"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "bTIdW", "selector": "[data-bubble-id='bTIdW']", "status": "pass", "notes": "RE root wrapper" },
+    { "bubble_id": "bTIdb", "selector": "[data-bubble-id='bTIdb']", "status": "pass", "notes": "Card shell column layout" },
+    { "bubble_id": "bTIdg", "selector": "[data-bubble-id='bTIdg']", "status": "pass", "notes": "Header row" },
+    { "bubble_id": "bTIdh", "selector": "[data-bubble-id='bTIdh']", "status": "pass", "notes": "Primary icon circle" },
+    { "bubble_id": "bTIdi", "selector": "[data-bubble-id='bTIdi']", "status": "pass", "notes": "Heart icon (lucide substitute)" },
+    { "bubble_id": "bTIdm", "selector": "[data-bubble-id='bTIdm']", "status": "pass", "notes": "Crisis Resources title" },
+    { "bubble_id": "bTIdn", "selector": "[data-bubble-id='bTIdn']", "status": "pass", "notes": "Disclaimer in title column per AC-2/layout_notes; IR inventory parent_id is bTIdb" },
+    { "bubble_id": "bTIdo", "selector": "[data-bubble-id='bTIdo']", "status": "pass", "notes": "Wrapping hotline row gap-2" },
+    { "bubble_id": "bTIds", "selector": "[data-bubble-id='bTIds']", "status": "pass" },
+    { "bubble_id": "bTIdt", "selector": "[data-bubble-id='bTIdt']", "status": "pass" },
+    { "bubble_id": "bTIdu", "selector": "[data-bubble-id='bTIdu']", "status": "pass" },
+    { "bubble_id": "bTIdy", "selector": "[data-bubble-id='bTIdy']", "status": "pass" },
+    { "bubble_id": "bTIdz", "selector": "[data-bubble-id='bTIdz']", "status": "pass" },
+    { "bubble_id": "bTIeA", "selector": "[data-bubble-id='bTIeA']", "status": "pass" },
+    { "bubble_id": "bTIeE", "selector": "[data-bubble-id='bTIeE']", "status": "pass" },
+    { "bubble_id": "bTIeF", "selector": "[data-bubble-id='bTIeF']", "status": "pass" },
+    { "bubble_id": "bTIeG", "selector": "[data-bubble-id='bTIeG']", "status": "pass" },
+    { "bubble_id": "bTIeK", "selector": "[data-bubble-id='bTIeK']", "status": "pass" },
+    { "bubble_id": "bTIeL", "selector": "[data-bubble-id='bTIeL']", "status": "pass" },
+    { "bubble_id": "bTIeM", "selector": "[data-bubble-id='bTIeM']", "status": "pass" },
+    { "bubble_id": "bTIeQ", "selector": "[data-bubble-id='bTIeQ']", "status": "pass" },
+    { "bubble_id": "bTIeR", "selector": "[data-bubble-id='bTIeR']", "status": "pass" },
+    { "bubble_id": "bTIeS", "selector": "[data-bubble-id='bTIeS']", "status": "pass" },
+    { "bubble_id": "Text_caption_", "selector": ".Text_caption_", "status": "pass", "notes": "Applied via bubbleStyle on bTIdn; Tailwind text-muted-foreground may override IR font_color" }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "AC-3 names Bubble phosphor icons (bTIdt/bTIeE/bTIeM) but implementation uses lucide-react Phone/MessageSquare/Heart. Semantically correct and consistent with the brownfield stack, but not phosphor glyph parity.",
+      "alternative": "Map IR phosphor icon names to closest lucide equivalents in a shared icon adapter, or document lucide as the canonical React mapping in decompose AC wording.",
+      "evidence": ["frontend/src/components/crisis/CrisisSupportCard.tsx", "frontend/src/components/crisis/CrisisHotlineRow.tsx"]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Disclaimer bTIdn applies bubbleStyle(Text_caption_) then overrides with text-muted-foreground and text-xs, which can mask styles.json font_color (var(--color_aiRNbAaxgs_default)) and 12px size from Text_caption_.",
+      "alternative": "Rely on .Text_caption_ alone or map muted token to --color_aiRNbAaxgs_default in tokens.css.",
+      "evidence": ["frontend/src/components/crisis/CrisisSupportCard.tsx", "frontend/src/styles/bubble-styles.css"]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Title/disclaimer column uses flex-col and gap-1 without display:flex, so gap-1 spacing may not apply; block stacking still works by default.",
+      "alternative": "Add flex class: cn(..., 'flex min-w-0 flex-col gap-1').",
+      "evidence": ["frontend/src/components/crisis/CrisisSupportCard.tsx"]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 5
+  }
+}

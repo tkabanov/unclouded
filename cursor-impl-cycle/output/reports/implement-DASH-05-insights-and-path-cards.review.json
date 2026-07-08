@@ -1,0 +1,296 @@
+{
+  "phase": "implement",
+  "target_id": "DASH-05-insights-and-path-cards",
+  "assessed_at": "2026-07-08T06:03:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — root ai_RNbBHXRx (Group_card_) with header ai_RNbBHXRy, title ai_RNbBHXSA, list ai_RNbBHXSB, three insight-item groups, disclaimer ai_RNbBHXSL",
+        "frontend/src/pages/Dashboard.tsx — dailyCheckIn slot renders DashboardInsightsCard after DashboardCheckinCard and assessment results card",
+        "drsam-99657.bubble — static copy matches Coaching Insights title, three insight texts, and disclaimer verbatim"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — root ai_RNbBHXSf with header ai_RNbBHXSg, path-name ai_RNbBHXSm, ProgressBar in bTIvC wrapper inside ai_RNbBHXSn, path-next-step ai_RNbBHXSt fed by enrollment.nextStepTitle",
+        "frontend/src/components/design-system/ProgressBar.tsx — DS-02 reusable with data-bubble-id bTIuS/bTIua/bTIuZ",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — pathenrollment1 search for active enrollment with profiles.onboarding_data.path_enrollment1 fallback (Bubble bTIrY binding)",
+        "frontend/src/pages/Dashboard.tsx — currentPath slot mounts DashboardCurrentPathCard as first right-column widget"
+      ],
+      "gap": "Prototype lacks pathenrollment1 migration; onboarding_data fallback mirrors DASH-03 micro-commitments pattern."
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — Link to=\"/paths\" on ai_RNbBHXSk with Browse paths copy",
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /paths route registered to Paths page",
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — ai_RNbBHXSB list renders ai_RNbBHXSC (icon ai_RNbBHXSD, text ai_RNbBHXSE) and ai_RNbBHXSF (icon ai_RNbBHXSG, text ai_RNbBHXSH) plus third item ai_RNbBHXSI with bubble IDs on all nodes"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Current path card loads enrollment (path name, progress %, next step) from Supabase pathenrollment1 or onboarding fallback — not placeholder",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — useEffect calls fetchCurrentPathEnrollment(user.id, profile.onboardingData)",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — tryFetchFromPathenrollmentTable then deriveFromOnboardingData",
+        "frontend/src/hooks/useDashboardUser.ts — DashboardUserProvider wraps DashboardMain for profile context"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Browse paths link navigates authenticated user to /paths",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — react-router-dom Link to=\"/paths\"",
+        "frontend/src/lib/router/authenticatedRoutes.tsx — { path: \"/paths\", element: <Paths /> }"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Coaching insights card renders IR hierarchy with static coaching copy (in-scope static feed)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — INSIGHT_ITEMS constant with three Bubble-matching strings",
+        "drsam-99657.bubble — ai_RNbBHXSE/ai_RNbBHXSH/ai_RNbBHXSK text expressions match implementation"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXRx",
+      "selector": "[data-bubble-id='ai_RNbBHXRx']",
+      "status": "pass",
+      "notes": "data-style-ref Group_card_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRy",
+      "selector": "[data-bubble-id='ai_RNbBHXRy']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSA",
+      "selector": "[data-bubble-id='ai_RNbBHXSA']",
+      "status": "pass",
+      "notes": "Text_heading_3_ Coaching Insights"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSB",
+      "selector": "[data-bubble-id='ai_RNbBHXSB']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSC",
+      "selector": "[data-bubble-id='ai_RNbBHXSC']",
+      "status": "partial",
+      "notes": "Bubble bgcolor var(--color_aiRNbAaxgt_default) border_roundness 8; React uses bg-accent/30 rounded-lg"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSD",
+      "selector": "[data-bubble-id='ai_RNbBHXSD']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSE",
+      "selector": "[data-bubble-id='ai_RNbBHXSE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSF",
+      "selector": "[data-bubble-id='ai_RNbBHXSF']",
+      "status": "partial",
+      "notes": "Same accent background delta as ai_RNbBHXSC"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSG",
+      "selector": "[data-bubble-id='ai_RNbBHXSG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSH",
+      "selector": "[data-bubble-id='ai_RNbBHXSH']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSI",
+      "selector": "[data-bubble-id='ai_RNbBHXSI']",
+      "status": "pass",
+      "notes": "Third insight item beyond AC-3 minimum pair"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSL",
+      "selector": "[data-bubble-id='ai_RNbBHXSL']",
+      "status": "pass",
+      "notes": "Text_small_ disclaimer"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSf",
+      "selector": "[data-bubble-id='ai_RNbBHXSf']",
+      "status": "pass",
+      "notes": "data-style-ref Group_card_"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSg",
+      "selector": "[data-bubble-id='ai_RNbBHXSg']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSj",
+      "selector": "[data-bubble-id='ai_RNbBHXSj']",
+      "status": "pass",
+      "notes": "Current Path heading"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSk",
+      "selector": "[data-bubble-id='ai_RNbBHXSk']",
+      "status": "pass",
+      "notes": "Text_link_ Browse paths"
+    },
+    {
+      "bubble_id": "bTIrY",
+      "selector": "[data-bubble-id='bTIrY']",
+      "status": "partial",
+      "notes": "RG - path RepeatingGroup not marked; enrollment cell ai_RNbBHXSl used instead of RG wrapper"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSl",
+      "selector": "[data-bubble-id='ai_RNbBHXSl']",
+      "status": "pass",
+      "notes": "bTIrY cell template (bTIre) for active enrollment row"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSm",
+      "selector": "[data-bubble-id='ai_RNbBHXSm']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSn",
+      "selector": "[data-bubble-id='ai_RNbBHXSn']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIvC",
+      "selector": "[data-bubble-id='bTIvC']",
+      "status": "pass",
+      "notes": "fit_height progress row wrapper per layout_notes"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSp",
+      "selector": "[data-bubble-id='ai_RNbBHXSp']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSq",
+      "selector": "[data-bubble-id='ai_RNbBHXSq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSt",
+      "selector": "[data-bubble-id='ai_RNbBHXSt']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "style_ref:ai_RNbBHXSA",
+      "selector": "[data-bubble-id='ai_RNbBHXSA'][data-style-ref='Text_heading_3_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "style_ref:ai_RNbBHXSL",
+      "selector": "[data-bubble-id='ai_RNbBHXSL'][data-style-ref='Text_small_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "style_ref:ai_RNbBHXSf",
+      "selector": "[data-bubble-id='ai_RNbBHXSf'][data-style-ref='Group_card_']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "schema",
+      "finding": "frontend/supabase has no pathenrollment1 table; pathEnrollmentApi falls back to profiles.onboarding_data.path_enrollment1.",
+      "evidence": [
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — isSchemaUnavailable fallback",
+        "cursor-impl-cycle/output/coverage/DASH-05-insights-and-path-cards.json — preflight.gaps"
+      ]
+    },
+    {
+      "id": "G-2",
+      "area": "data-feed",
+      "finding": "Coaching insights are static IR copy; no dynamic insights API in item scope.",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — INSIGHT_ITEMS constant",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json — DASH-05 scope frontend-only cards"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "RG - path (bTIrY) RepeatingGroup wrapper has no data-bubble-id; implementation collapses search to a single ai_RNbBHXSl cell render.",
+      "alternative": "Add data-bubble-id=\"bTIrY\" on the enrollment content wrapper (or map .map over enrollments) to preserve RG marker for parity tooling.",
+      "evidence": [
+        "ir/inventory.json — bTIrY parent_id ai_RNbBHXSf, element_type RepeatingGroup",
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — ai_RNbBHXSl without bTIrY parent"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Insight-item groups use Tailwind bg-accent/30 rounded-lg; Bubble ai_RNbBHXSC sets bgcolor var(--color_aiRNbAaxgt_default) and border_roundness 8.",
+      "alternative": "Apply bubbleStyle or CSS variable --color_aiRNbAaxgt_default on insight-item rows to match IR presentation.",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — insight-item className",
+        "drsam-99657.bubble — ai_RNbBHXSC properties.bgcolor"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional",
+      "priority": "low",
+      "finding": "When pathenrollment1 table exists but returns no active row, API returns EMPTY_ENROLLMENT from table path without consulting onboarding_data fallback.",
+      "alternative": "Merge table miss with onboarding_data derive (as microCommitmentsApi does) so prototype users with only JSON enrollment still see current path when table is empty.",
+      "evidence": [
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — fetchCurrentPathEnrollment returns fromTable when not null, including EMPTY_ENROLLMENT"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "path-next-step ai_RNbBHXSt and ai_RNbBHXSq both surface the same nextStepTitle when present; matches Bubble duplicate regions but may read redundant in UI.",
+      "alternative": "Hide ai_RNbBHXSt when ai_RNbBHXSq already shows Next: prefix, or bind ai_RNbBHXSt to a distinct field if IR differentiates them.",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — ai_RNbBHXSq and ai_RNbBHXSt both render enrollment.nextStepTitle"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  },
+  "brownfield": {
+    "preflight_present": true,
+    "reuse_decision": "gap-fill",
+    "forbidden_paths_touched": false
+  }
+}

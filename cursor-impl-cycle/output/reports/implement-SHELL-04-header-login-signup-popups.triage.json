@@ -1,0 +1,40 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-04-header-login-signup-popups",
+  "assessed_at": "2026-07-07T17:48:00.000+02:00",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-SHELL-04-header-login-signup-popups.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "AUTH-05-onboarding-health-load-signals",
+      "rationale": "IR confirms ai_RNbBHWce/ai_RNbBHWcf/ai_RNbBHWcj are conditional children of signup-step group ai_RNbBHWbs (parent_id chain in ir/inventory.json) shown when health Recovery sub-mode is active. Valid ui-fidelity gap, but SHELL-04 ui_refs anchor only ai_RNbBHWbs—not recovery field ids—and AC-2/criteria_audit pass with the documented gap. Medium priority; signUp metadata and FV-3 do not require sobriety/substance at signup gate. Recovery mode signals and health flags are owned by AUTH-05; profile recovery capture also appears in SETTINGS. No downstream depends_on item blocks on signup-time recovery fields. Record as backlog polish for conditional step-2 rendering."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Index.tsx renders ai_RNbBHWbF/bG inside a plain flex div rather than under header-actions wrapper ai_RNbBHWbE. Low-priority ir-marker hierarchy: AC-3 requires the button ids and popup wiring (pass), not the actions-group parent marker. shell/Header.tsx already defines ai_RNbBHWbE for authenticated chrome (SHELL-03). Nesting fix is coupled to adopting shared Header on Index (see C-4); trivial marker-only wrap without Header reuse adds little value now."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Intermediate Continue/Back buttons in SignupPopup.tsx lack data-bubble-id markers while final submit carries ai_RNbBHWdM. Low-priority parity-tooling polish: named ui_refs list ai_RNbBHWbs as the step-group anchor, not per-step nav button ids. FV-2 passes multi-step navigation; no AC or downstream item requires wizard button markers for gate satisfaction."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Decompose scope and target_files focus on AuthDialog and SignupPopup overlays with CTAs opening popups (AC-3). Index inline header satisfies AC-3 and AUTH-01 index entry; Header.tsx logged-out auth surface is intentionally empty pending marketing-shell reuse. SHELL-05 app-shell-layout composes Header into authenticated routes and does not gate on logged-out Index Header adoption. Review alternative explicitly accepts index-only entry for this item."
+    }
+  ],
+  "summary": "Review ok (coverage 100%, no blockers); all ACs and functional checks pass. 0 fix_now, 3 defer, 1 accept. Defer conditional signup recovery fields (C-1) to AUTH-05/SETTINGS alignment; defer ai_RNbBHWbE wrapper (C-2) and wizard nav bubble ids (C-3) as ir-marker polish. Accept Index-only auth CTA wiring (C-4) per scope. Advance implement gate."
+}

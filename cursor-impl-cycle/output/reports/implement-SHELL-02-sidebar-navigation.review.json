@@ -1,0 +1,188 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-02-sidebar-navigation",
+  "assessed_at": "2026-07-07T17:20:00.000+02:00",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AppSidebar.tsx — root Sidebar data-bubble-id='ai_RNbBKLUe', data-style-ref='Group_sidebar_', bubbleStyle('Group_sidebar_') applied",
+        "frontend/src/components/AppSidebar.tsx — ai_RNbBHWkU sidebar-top group nests ai_RNbBHWkV (mode indicator) and ai_RNbBHWkY (nav) matching drsam-99657.bubble hierarchy under ai_RNbBKLUf",
+        "ir/slices/styles.json — Group_sidebar_ (surface bgcolor, 16px padding, border-right 1px)",
+        "frontend/src/styles/bubble-styles.css — .Group_sidebar_ class mirrors styles.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/navigation.ts — SIDEBAR_NAV_LABELS, SIDEBAR_NAV_ROUTES, SIDEBAR_NAV_BUBBLE_IDS, SIDEBAR_NAV_ORDER for five IR links",
+        "frontend/src/components/AppSidebar.tsx — NavLinks ai_RNbBHWkZ/kc/kf/ki/kl route to /dashboard, /chat, /journal, /paths, /settings with ENUM-style label map",
+        "drsam-99657.bubble — link static text: Dashboard, Chat, Journal, Paths & Resources, Settings",
+        "frontend/src/App.tsx — all five routes registered under ProtectedRoute",
+        "frontend/src/styles/bubble-styles.css — Link_nav_ with [aria-current='page'] active state; NavLink uses data-style-ref='Link_nav_'"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AppSidebar.tsx — ai_RNbBHWkV mode-indicator group; ai_RNbBHWkW renders SIDEBAR_MODE_LABEL; ai_RNbBHWkX renders profile-derived or SIDEBAR_MODE_VALUE_PLACEHOLDER",
+        "frontend/src/lib/enums/navigation.ts — SIDEBAR_MODE_LABEL='Current Mode'; SIDEBAR_MODE_VALUE_PLACEHOLDER='Professional • Executive Coaching'",
+        "drsam-99657.bubble — ai_RNbBHWkW text 'Current Mode'; ai_RNbBHWkX text 'Professional • Executive Coaching'"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Primary nav links route to /dashboard, /chat, /journal, /paths, /settings",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/navigation.ts — SIDEBAR_NAV_ROUTES",
+        "frontend/src/App.tsx — matching ProtectedRoute entries for all five paths"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Active route highlighting mirrors Bubble Link_nav_ conditional styles",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/NavLink.tsx — wraps react-router-dom NavLink (sets aria-current='page' when active)",
+        "frontend/src/styles/bubble-styles.css — .Link_nav_[aria-current='page'] primary color + muted background"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Mode indicator renders IR static label and placeholder value copy",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AppSidebar.tsx — SIDEBAR_MODE_LABEL and SIDEBAR_MODE_VALUE_PLACEHOLDER wired to ai_RNbBHWkW/ai_RNbBHWkX",
+        "drsam-99657.bubble — static text nodes verified"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBKLUe",
+      "selector": "[data-bubble-id='ai_RNbBKLUe'][data-style-ref='Group_sidebar_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkU",
+      "selector": "[data-bubble-id='ai_RNbBHWkU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkV",
+      "selector": "[data-bubble-id='ai_RNbBHWkV']",
+      "status": "pass",
+      "notes": "Hidden when sidebar collapsed; present in expanded state"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkW",
+      "selector": "[data-bubble-id='ai_RNbBHWkW'][data-style-ref='Text_caption_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkX",
+      "selector": "[data-bubble-id='ai_RNbBHWkX']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkY",
+      "selector": "[data-bubble-id='ai_RNbBHWkY']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkZ",
+      "selector": "[data-bubble-id='ai_RNbBHWkZ'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkc",
+      "selector": "[data-bubble-id='ai_RNbBHWkc'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkf",
+      "selector": "[data-bubble-id='ai_RNbBHWkf'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWki",
+      "selector": "[data-bubble-id='ai_RNbBHWki'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkl",
+      "selector": "[data-bubble-id='ai_RNbBHWkl'][data-style-ref='Link_nav_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_sidebar_",
+      "selector": "[data-style-ref='Group_sidebar_']",
+      "status": "pass",
+      "notes": "border-r-0 Tailwind override suppresses catalogued right border (see C-1)"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "AppSidebar applies Group_sidebar_ then immediately overrides its border-right with Tailwind border-r-0; layout_notes bind a right border from Group_sidebar_.",
+      "alternative": "Remove border-r-0 and rely on Group_sidebar_ border, or map shadcn sidebar border token to var(--color_aiRNbAaxgw_default) for a single consistent edge.",
+      "evidence": [
+        "frontend/src/components/AppSidebar.tsx",
+        "frontend/src/styles/bubble-styles.css — .Group_sidebar_ border-right",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json — layout_notes"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Lucide icons replace Bubble [fa] icon prefixes on nav links; labels match IR but iconography differs.",
+      "alternative": "Adopt a Font Awesome or phosphor set if strict icon parity is required.",
+      "evidence": [
+        "frontend/src/components/AppSidebar.tsx — NAV_ICONS map",
+        "drsam-99657.bubble — ai_RNbBHWkZ/kc/kf/ki/kl link text with [fa] tags"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "structure",
+      "priority": "low",
+      "finding": "IR places crisis CustomElement bTIfa as sibling of ai_RNbBHWkU under sidebar root; React maps it to SidebarFooter below nav — functionally fine but region order differs from Bubble element tree.",
+      "alternative": "If parity tooling scans DOM order, colocate bTIfa immediately after sidebar-top within the same container.",
+      "evidence": [
+        "drsam-99657.bubble — ai_RNbBKLUf children bTIfa + ai_RNbBHWkU",
+        "frontend/src/components/AppSidebar.tsx — SidebarHeader vs SidebarFooter split"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "coverage-report",
+      "priority": "low",
+      "finding": "Implementer coverage preflight.gaps still lists pre-implementation deficiencies even though criteria now pass; files_changed omits NavLink.tsx.",
+      "alternative": "Refresh preflight.gaps to [] on completion and list all touched source files.",
+      "evidence": ["cursor-impl-cycle/output/coverage/SHELL-02-sidebar-navigation.json"]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
+}

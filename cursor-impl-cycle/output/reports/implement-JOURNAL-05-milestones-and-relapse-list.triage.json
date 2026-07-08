@@ -1,0 +1,39 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-05-milestones-and-relapse-list",
+  "assessed_at": "2026-07-08T06:22:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-JOURNAL-05-milestones-and-relapse-list.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "JOURNAL-05 AC-3 requires action buttons to emit open-popup callbacks for downstream items, not to mount popup UI. criteria_audit AC-3 and functional_audit FV-2/FV-3/FV-4 pass: handlers are defined, wired through MilestonesTab, and invoked on click. Popup setState + Dialog bodies are explicitly scoped to JOURNAL-06-milestone-add-edit-popups and JOURNAL-07-relapse-log-edit-popups per decompose; those items list JOURNAL-05 in depends_on and can replace the Journal.tsx stubs on their first implement turn without blocking this item's gate."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR names ai_RNbBHXjm as milestone-delete-btn and JOURNAL-06 AC-2 assigns delete to edit-milestone-delete-btn inside EditMilestonePopup, not inline card delete. Routing both ai_RNbBHXjk and ai_RNbBHXjm to onEditMilestone satisfies JOURNAL-05 AC-3 emit pattern until JOURNAL-06 mounts the edit popup. Card-internal button ids are outside JOURNAL-05 named ui_refs; ui_evidence passes. Distinct delete handler, Trash2 workflow, and corrected aria-label belong in JOURNAL-06 alongside EditMilestonePopup."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Unstable crypto.randomUUID() keys affect only legacy onboarding_data blobs missing id fields — a brownfield fallback path documented in coverage preflight while uds_milestone/uds_relapseevent tables are absent. Supabase-backed rows return stable ids. Deterministic key derivation or mandatory id on write is better addressed in JOURNAL-06 when create/update paths persist milestones with ids; does not fail AC-2 or block JOURNAL-06 depends_on gate."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "UntypedSupabase cast is the documented greenfield pattern for querying uds_* tables not yet in frontend/supabase schema (42P01/PGRST205 fallback). Critique acknowledges necessity; removing the cast requires migrations and regenerated client types — out of JOURNAL-05 scope and not an adapter-policy violation. Revisit when uds_milestone/uds_relapseevent migrations land (likely alongside JOURNAL-06/07 write paths or a schema wave)."
+    }
+  ],
+  "summary": "Review passed at 100% coverage with 0 blockers. Triage: 0 fix_now, 4 defer, 0 accept. Deferred: C-1 → JOURNAL-06/07 (popup mount + handler bodies); C-2 → JOURNAL-06 (delete semantics and aria-label on ai_RNbBHXjm); C-3 → JOURNAL-06 (stable ids on write); C-4 → schema/typegen wave when uds_* tables exist. ok_to_advance=true, rewrite_required=false."
+}

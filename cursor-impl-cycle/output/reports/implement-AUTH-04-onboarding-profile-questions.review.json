@@ -1,0 +1,182 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-04-onboarding-profile-questions",
+  "assessed_at": "2026-07-07T20:10:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingRole.tsx — CUSTOMER_ROLE_ORDER/LABELS/DESCRIPTIONS/BUBBLE_IDS from customer_role_os",
+        "frontend/src/components/OnboardingPillar.tsx — CUSTOMER_PILLAR_ORDER/LABELS/DESCRIPTIONS/BUBBLE_IDS from customer_pillar_os",
+        "frontend/src/components/OnboardingOrientation.tsx — ORIENTATION_ANSWERS from customer_orientation_answer_os",
+        "frontend/src/components/OnboardingPerformance.tsx — getPerformanceQuestionsForRole(resolvePerformanceRole(role)) from customer_performance_question_os",
+        "frontend/src/lib/enums/onboardingQuestions.ts — PERFORMANCE_STEP_HEADINGS/CAPTIONS from onboarding_performance_screen_texts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingRole.tsx — bTHJm/bTHOZ/bTGNh/bTGNn/bTGNo/bTHQR/bTGOj/bTGOk/bTGOp with bubbleStyle()",
+        "frontend/src/components/OnboardingPillar.tsx — same chip hierarchy markers",
+        "frontend/src/components/OnboardingOrientation.tsx — bTHli/bTHVW/bTHVi/bTHVm with RepeatingGroup_list_",
+        "frontend/src/components/OnboardingPerformance.tsx — dynamic data-bubble-id={stepCopy.headingBubbleId} (bTHfG/bTHfK/bTHfM/bTHfL/bTHfQ) plus bTHOZ/bTGNh/bTGNn/bTHVW answer tree",
+        "frontend/src/pages/Onboarding.tsx — step wrappers bTHMo/bTHRN/bTHfq/bTHkb via ONBOARDING_STEP_BUBBLE_GROUPS"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile.tsx — persistOnboardingDraft merges role_type, primary_pillar, onboarding_data",
+        "frontend/src/pages/Onboarding.tsx — role/pillar/performance/orientation onNext persist draft then goNext; step components disable Continue until valid selection"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Role step renders five customer_role_os options; Continue disabled until selection",
+      "status": "pass",
+      "evidence": ["frontend/src/components/OnboardingRole.tsx"]
+    },
+    {
+      "id": "FV-2",
+      "check": "Pillar step renders three customer_pillar_os options; Continue disabled until selection",
+      "status": "pass",
+      "evidence": ["frontend/src/components/OnboardingPillar.tsx"]
+    },
+    {
+      "id": "FV-3",
+      "check": "Performance step shows role-keyed heading, caption, and five questions for selected role",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingPerformance.tsx",
+        "frontend/src/lib/enums/onboardingQuestions.ts — getPerformanceStepCopyForRole, getPerformanceQuestionsForRole"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Orientation step renders five scale answers; Continue disabled until selection",
+      "status": "pass",
+      "evidence": ["frontend/src/components/OnboardingOrientation.tsx"]
+    },
+    {
+      "id": "FV-5",
+      "check": "Role, pillar, performance, and orientation answers persist onboarding draft on continue",
+      "status": "pass",
+      "evidence": ["frontend/src/pages/Onboarding.tsx", "frontend/src/lib/userProfile.tsx"]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGNP",
+      "selector": "[data-bubble-id='bTGNP']",
+      "status": "pass",
+      "notes": "Wizard subtree root via OnboardingWizardShell / step routing"
+    },
+    {
+      "bubble_id": "0b12b49e-bf93-427d-a689-13dc2158ba29",
+      "selector": "[data-bubble-id='bTGNP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHMo",
+      "selector": "[data-onboarding-step='role'] [data-bubble-id='bTHMo']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHRN",
+      "selector": "[data-onboarding-step='pillar'] [data-bubble-id='bTHRN']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHkb",
+      "selector": "[data-onboarding-step='orientation'] [data-bubble-id='bTHkb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHfq",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHOZ",
+      "selector": "[data-bubble-id='bTHOZ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHJm",
+      "selector": "[data-bubble-id='bTHJm']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHfG",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfG']",
+      "status": "pass",
+      "notes": "pro role heading; student/caregiver/transition/retired swap to bTHfK/bTHfM/bTHfL/bTHfQ via stepCopy.headingBubbleId"
+    },
+    {
+      "bubble_id": "bTHfK",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfK']",
+      "status": "pass",
+      "notes": "student role heading when role=student"
+    },
+    {
+      "bubble_id": "bTHfM",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfM']",
+      "status": "pass",
+      "notes": "caregiver role heading when role=caregiver"
+    },
+    {
+      "bubble_id": "bTHfL",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfL']",
+      "status": "pass",
+      "notes": "transition role heading when role=transition"
+    },
+    {
+      "bubble_id": "bTHfQ",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfQ']",
+      "status": "pass",
+      "notes": "retired role heading when role=retired"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Performance step dimension caption ('PuP 360 Dimension 2 of 3 · Universal all roles') is hardcoded JSX rather than sourced from IR/Bubble presentation metadata, unlike role-keyed headings now in PERFORMANCE_STEP_CAPTIONS.",
+      "alternative": "Extract dimension label copy to onboardingQuestions.ts or a shared step-chrome helper alongside Stability/Alignment dimension captions for traceability.",
+      "evidence": ["frontend/src/components/OnboardingPerformance.tsx"]
+    },
+    {
+      "id": "C-2",
+      "area": "code-quality",
+      "priority": "low",
+      "finding": "onboardingQuestions.ts declares OnboardingScaleAnswer and OnboardingScaleQuestion twice (lines 9–22 and 525–538); harmless but noisy for maintainers.",
+      "alternative": "Remove the duplicate interface block on next edit to onboardingQuestions.ts (ENUM-02 triage defer).",
+      "evidence": ["frontend/src/lib/enums/onboardingQuestions.ts"]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 5
+  },
+  "rewrite_verification": {
+    "prior_critique": "C-2 fix_now (triage)",
+    "resolved": true,
+    "detail": "OnboardingPerformance.tsx now resolves role via resolvePerformanceRole(role), loads stepCopy via getPerformanceStepCopyForRole(resolvedRole), and binds data-bubble-id={stepCopy.headingBubbleId} with {stepCopy.heading}/{stepCopy.caption} — no hardcoded pro-only copy remains."
+  }
+}

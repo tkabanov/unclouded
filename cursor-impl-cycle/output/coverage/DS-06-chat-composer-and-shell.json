@@ -1,0 +1,80 @@
+{
+  "item_id": "DS-06-chat-composer-and-shell",
+  "module_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-07T20:40:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/chat/ChatHeader.tsx",
+      "frontend/src/components/chat/ChatMessagesList.tsx",
+      "frontend/src/components/chat/ChatMessageCell.tsx",
+      "frontend/src/components/chat/types.ts",
+      "frontend/src/components/chat/index.ts",
+      "frontend/src/components/ChatWindow.tsx",
+      "frontend/src/pages/Chat.tsx"
+    ],
+    "gaps": [
+      "No ChatComposer, ChatFloatingDisclaimer, or ChatReusable components",
+      "ChatWindow.tsx uses ai-elements prompt input instead of IR-faithful bTITC composer shell"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/chat/ChatComposer.vue": "frontend/src/components/chat/ChatComposer.tsx",
+      "frontend/src/components/chat/ChatFloatingDisclaimer.vue": "frontend/src/components/chat/ChatFloatingDisclaimer.tsx",
+      "frontend/src/components/chat/ChatReusable.vue": "frontend/src/components/chat/ChatReusable.tsx",
+      "frontend/src/components/chat/index.ts": "frontend/src/components/chat/index.ts",
+      "frontend/src/components/ChatWindow.tsx": "frontend/src/components/ChatWindow.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatComposer.tsx",
+        "frontend/src/components/chat/types.ts"
+      ],
+      "notes": "Root data-bubble-id=\"bTITC\"; mode buttons bTITI/bTITM/bTITN/bTITO in bTITH row with IR copy; input group bTITS with caption bTITU (Text_caption_, \"Your message\"), input bTITY (Input_default_, placeholder from bubble), send bTITZ (Button_primary_, \"Send\"); controlled value/onChange/onSend props and optional selectedMode/onModeSelect"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatFloatingDisclaimer.tsx",
+        "frontend/src/components/chat/types.ts"
+      ],
+      "notes": "FloatingGroup data-bubble-id=\"bTIUh\" with z-[4] absolute bottom-full overlay above composer; HTML region bTIne renders static CHAT_BEHAVIOR_HTML from drsam-99657.bubble; collapsed prop honors collapse_when_hidden"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatReusable.tsx"
+      ],
+      "notes": "Root data-bubble-id=\"bTIRW\" accepts conversation and messages props; flex column composes ChatHeader + ChatMessagesList + relative composer wrapper (ChatFloatingDisclaimer + ChatComposer) matching bTIRa vertical hierarchy"
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "bTIRW", "selector": "[data-bubble-id='bTIRW']", "status": "pass" },
+    { "bubble_id": "bTITC", "selector": "[data-bubble-id='bTITC']", "status": "pass" },
+    { "bubble_id": "bTITH", "selector": "[data-bubble-id='bTITH']", "status": "pass" },
+    { "bubble_id": "bTITI", "selector": "[data-bubble-id='bTITI']", "status": "pass" },
+    { "bubble_id": "bTITM", "selector": "[data-bubble-id='bTITM']", "status": "pass" },
+    { "bubble_id": "bTITN", "selector": "[data-bubble-id='bTITN']", "status": "pass" },
+    { "bubble_id": "bTITO", "selector": "[data-bubble-id='bTITO']", "status": "pass" },
+    { "bubble_id": "bTITS", "selector": "[data-bubble-id='bTITS']", "status": "pass" },
+    { "bubble_id": "bTITU", "selector": "[data-bubble-id='bTITU']", "status": "pass" },
+    { "bubble_id": "bTITY", "selector": "[data-bubble-id='bTITY']", "status": "pass" },
+    { "bubble_id": "bTITZ", "selector": "[data-bubble-id='bTITZ']", "status": "pass" },
+    { "bubble_id": "bTIUh", "selector": "[data-bubble-id='bTIUh']", "status": "pass" },
+    { "bubble_id": "bTIne", "selector": "[data-bubble-id='bTIne']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/chat/types.ts",
+    "frontend/src/components/chat/ChatComposer.tsx",
+    "frontend/src/components/chat/ChatFloatingDisclaimer.tsx",
+    "frontend/src/components/chat/ChatReusable.tsx",
+    "frontend/src/components/chat/index.ts",
+    "cursor-impl-cycle/output/coverage/DS-06-chat-composer-and-shell.json"
+  ]
+}

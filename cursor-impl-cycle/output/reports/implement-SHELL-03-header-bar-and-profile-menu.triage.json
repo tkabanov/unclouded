@@ -1,0 +1,41 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-03-header-bar-and-profile-menu",
+  "assessed_at": "2026-07-07T17:35:00.000+02:00",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-SHELL-03-header-bar-and-profile-menu.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "SHELL-04-header-login-signup-popups",
+      "rationale": "Valid scope gap: ai_RNbBHWau group marker exists in Header.tsx but marketing links are empty and Index.tsx still uses a bespoke header. All three ACs pass (AC-1 names brand, logged-in nav, and actions regions only). Coverage preflight already documents deferral of logged-out nav content to Index/SHELL-04. SHELL-04 depends on SHELL-03 for header-actions wiring (login/signup triggers ai_RNbBHWbF/bG) and is the correct wave to mount shared Header on Index and populate marketing links; does not block SHELL-04 gate."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "deferred_to_item": "SHELL-02-sidebar-navigation",
+      "rationale": "Logged-in header nav (ai_RNbBHWaz) hidden below md is an intentional responsive deviation: SHELL-02 sidebar provides equivalent mobile primary navigation. Not required by AC-2 (route parity only). Medium-priority ui-fidelity polish; downstream items depending on SHELL-03 need composable Header mounted and nav routes, both satisfied. Document as accepted SPA pattern unless Bubble parity audit demands change in a later polish pass."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR lists sibling logout button ai_RNbBHWbI under header-actions alongside avatar ai_RNbBHWbH, but AC-3 explicitly requires logout via dropdown control ai_RNbBHWbO wired to Supabase signOut — which is implemented and passes FV-3. Standalone quick-logout is low-priority ui_ref fidelity beyond AC scope; no downstream item in depends_on requires ai_RNbBHWbI specifically."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Coverage artifact hygiene only: preflight.gaps still lists pre-implementation deficiencies despite 100% criteria pass, and files_changed already includes frontend/src/lib/enums/index.ts in the current coverage JSON. Refresh preflight on next implement or review pass; does not affect functional implementation or block advance."
+    }
+  ],
+  "summary": "Review ok (coverage 100%, no blockers); all ACs and functional checks pass. 0 fix_now, 4 defer, 0 accept. Logged-out marketing nav and Index Header reuse deferred to SHELL-04; mobile nav parity deferred (sidebar covers). Standalone logout button ai_RNbBHWbI and coverage preflight refresh recorded as backlog polish. Advance implement gate."
+}

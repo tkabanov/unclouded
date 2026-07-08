@@ -1,0 +1,102 @@
+{
+  "item_id": "DS-03-score-bar-reusable",
+  "module_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-07T20:26:00.000Z",
+  "coverage_pct": 100,
+  "rewrite": {
+    "reason": "B-1 / C-1 fix_now: segment-1 shapeId corrected from Bubble pointer path id bTIIm to canonical resolver entity id bTIIh",
+    "blocker_ref": "implement-DS-03-score-bar-reusable.review.json"
+  },
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/styles/tokens.css",
+      "frontend/src/styles/bubble-styles.css",
+      "frontend/src/styles/index.ts",
+      "frontend/src/components/design-system/ProgressBar.tsx",
+      "frontend/src/components/design-system/ScoreBar.tsx",
+      "frontend/src/components/design-system/index.ts"
+    ],
+    "gaps": [],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/design-system/ScoreBar.vue": "frontend/src/components/design-system/ScoreBar.tsx",
+      "frontend/src/components/design-system/index.ts": "frontend/src/components/design-system/index.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/ScoreBar.tsx",
+        "frontend/src/components/design-system/index.ts"
+      ],
+      "notes": "Root div data-bubble-id=\"bTIHr\"; score prop typed number and clamped 1–5; optional labels[] prop; onChange optional for interactive mode"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/ScoreBar.tsx",
+        "frontend/src/styles/tokens.css",
+        "ir/inventory.json (canonical id bTIIh for segment-1 Shape)"
+      ],
+      "notes": "Five segment groups bTIIU→bTIHw with Shape children bTIIh/bTIIn/bTIIt/bTIIz/bTIJF (canonical resolver ids); filled segments use var(--color_primary_default), track uses var(--color_aiRNbAaxgr_default)"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/ScoreBar.tsx",
+        "drsam-99657.bubble element_definitions/bTIHs/elements/bTIJQ"
+      ],
+      "notes": "Segment row flex row gap-1 (4px column_gap); min-h 8px rounded 4px tracks; bTIJL HTML region preserved via sr-only dangerouslySetInnerHTML style scaffold; dynamic fill width implemented in React"
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIHr",
+      "selector": "[data-bubble-id='bTIHr']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIIU",
+      "selector": "[data-bubble-id='bTIIU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIIh",
+      "selector": "[data-bubble-id='bTIIh']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIIO",
+      "selector": "[data-bubble-id='bTIIO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIII",
+      "selector": "[data-bubble-id='bTIII']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIIC",
+      "selector": "[data-bubble-id='bTIIC']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIHw",
+      "selector": "[data-bubble-id='bTIHw']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIJL",
+      "selector": "[data-bubble-id='bTIJL']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/design-system/ScoreBar.tsx",
+    "cursor-impl-cycle/output/coverage/DS-03-score-bar-reusable.json"
+  ]
+}

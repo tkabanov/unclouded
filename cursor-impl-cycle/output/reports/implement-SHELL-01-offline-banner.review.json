@@ -1,0 +1,121 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-01-offline-banner",
+  "assessed_at": "2026-07-07T15:10:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 92,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/OfflineBanner.tsx — root div data-bubble-id='bTHvT0' (element_definitions/bTHvT0 per ir/inventory.json); child span data-bubble-id='bTHEc'; child icon data-bubble-id='bTHEi'",
+        "drsam-99657.bubble — element_definitions/bTHvT0: row container with children bTHEc (Text) + bTHEi (Icon); static copy 'Offline - you are using cached data.'"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useOnlineStatus.ts — initial navigator.onLine plus window 'online'/'offline' listeners",
+        "frontend/src/components/shell/OfflineBanner.tsx — returns null when isOnline (Bubble IsOffline is_false → is_visible false); renders banner when offline (IsOffline is_true → is_visible true)",
+        "drsam-99657.bubble — CustomElement bTHwE0 states: IsOffline is_false → is_visible false; IsOffline is_true → is_visible true",
+        "frontend/src/components/DashboardLayout.tsx — OfflineBanner mounted at shell top across authenticated pages"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "ir/slices/styles.json — Group_section_ (bgcolor var(--color_background_default)), Text_caption_ (12px/1.4, font_color var(--color_aiRNbAaxgs_default)), Icon_muted_ (icon_color var(--color_aiRNbAaxgs_default)) all catalogued",
+        "frontend/src/lib/bubbleStyles.ts — styleRef keys Group_section_, Text_caption_, Icon_muted_ only; no Group_offline_banner_/Text_offline_banner_/Icon_offline_banner_ invented tokens",
+        "frontend/src/components/shell/OfflineBanner.tsx — data-style-ref Group_section_ on root, Text_caption_ on bTHEc, Icon_muted_ on bTHEi; bubbleStyle() applies catalog mappings"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Banner hidden when browser reports online connectivity",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/OfflineBanner.tsx — if (isOnline) return null",
+        "frontend/src/hooks/useOnlineStatus.ts — navigator.onLine default true"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Banner visible offline with IR static copy",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/OfflineBanner.tsx — OFFLINE_COPY matches drsam-99657.bubble bTHEc text",
+        "drsam-99657.bubble — 'Offline - you are using cached data.'"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Connectivity changes update banner without page reload",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useOnlineStatus.ts — online/offline event listeners with cleanup"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHvM0",
+      "selector": "[data-bubble-id='bTHvT0']",
+      "status": "pass",
+      "notes": "Reusable offline_banner (inventory id bTHvM0) implemented at definition pointer bTHvT0 per AC-1"
+    },
+    {
+      "bubble_id": "bTHEc",
+      "selector": "[data-bubble-id='bTHEc'][data-style-ref='Text_caption_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHEi",
+      "selector": "[data-bubble-id='bTHEi'][data-style-ref='Icon_muted_']",
+      "status": "pass",
+      "notes": "Bubble show/hide is on CustomElement instance (IsOffline); icon bTHEi is child inside toggled banner — parity via component-level null render"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Group_section_/Text_caption_/Icon_muted_ yield a light surface bar with muted typography; raw Bubble offline_banner uses rgba(82,82,82,1) bgcolor with white text/icon — palette diverges from live Bubble though AC-3 mandates catalog tokens.",
+      "alternative": "If pixel parity becomes in scope later, add a catalogued inverse/surface style to styles.json rather than inventing offline-specific tokens.",
+      "evidence": ["drsam-99657.bubble element_definitions/bTHvT0", "frontend/src/lib/bubbleStyles.ts"]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Lucide CloudOff substitutes Bubble phosphor outline cloud-slash on bTHEi.",
+      "alternative": "Swap to a phosphor-compatible icon set if strict icon parity is required.",
+      "evidence": ["frontend/src/components/shell/OfflineBanner.tsx", "drsam-99657.bubble bTHEi icon property"]
+    },
+    {
+      "id": "C-3",
+      "area": "coverage-report",
+      "priority": "low",
+      "finding": "Implementer coverage files_changed omits useOnlineStatus.ts and DashboardLayout.tsx even though both are part of AC-2 integration.",
+      "alternative": "Include all touched source files in coverage artifacts for audit traceability.",
+      "evidence": ["cursor-impl-cycle/output/coverage/SHELL-01-offline-banner.json"]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
+}

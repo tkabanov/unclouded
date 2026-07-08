@@ -1,0 +1,86 @@
+{
+  "item_id": "SHELL-06-dashboard-page-shell",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T20:14:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/components/shell/Header.tsx",
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/lib/router/authenticatedRoutes.tsx",
+      "frontend/src/App.tsx"
+    ],
+    "gaps": [
+      "AC-1: Dashboard page lacked page root data-bubble-id bTHDT on shell wrapper",
+      "AC-2: Header and sidebar used reusable root ids (ai_RNbBKLUc/ai_RNbBKLUe) instead of dashboard page instances ai_RNbBKLUh/ai_RNbBKLUi",
+      "AC-3: Main content not bounded by ai_RNbBHXRD dashboard-main; no MOD-DRSAM-DASHBOARD ownership marker"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/DashboardPage.vue": "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/features/dashboard/routes.ts": "frontend/src/lib/dashboard/routes.ts",
+      "frontend/src/App.tsx": "frontend/src/App.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx — passes pageBubbleId bTHDT to DashboardLayout on both profile states",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDT on shell root when pageBubbleId provided",
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /dashboard route with requiresAuth meta via ProtectedRoute parent in App.tsx"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx — passes headerBubbleId ai_RNbBKLUh and sidebarBubbleId ai_RNbBKLUi",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — accepts bubbleId override (defaults ai_RNbBKLUc for other pages)",
+        "frontend/src/components/AppSidebar.tsx — accepts bubbleId override (defaults ai_RNbBKLUe for other pages)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Dashboard.tsx — content wrapped in data-bubble-id ai_RNbBHXRD with data-module-owner MOD-DRSAM-DASHBOARD; prototype widgets retained inside boundary",
+        "frontend/src/lib/dashboard/routes.ts — exports DASHBOARD_MAIN_BUBBLE_ID and DASHBOARD_MODULE_ID documenting dashboard-main ownership"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDT",
+      "selector": "[data-bubble-id='bTHDT']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUh",
+      "selector": "[data-bubble-id='ai_RNbBKLUh']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUi",
+      "selector": "[data-bubble-id='ai_RNbBKLUi']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRD",
+      "selector": "[data-bubble-id='ai_RNbBHXRD']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/dashboard/routes.ts",
+    "frontend/src/components/DashboardLayout.tsx",
+    "frontend/src/components/shell/Header.tsx",
+    "frontend/src/components/AppSidebar.tsx",
+    "frontend/src/pages/Dashboard.tsx",
+    "cursor-impl-cycle/output/coverage/SHELL-06-dashboard-page-shell.json"
+  ]
+}

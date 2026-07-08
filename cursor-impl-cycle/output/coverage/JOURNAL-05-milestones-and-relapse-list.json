@@ -1,0 +1,88 @@
+{
+  "item_id": "JOURNAL-05-milestones-and-relapse-list",
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-08T06:15:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/components/journal/JournalPageContent.tsx",
+      "frontend/src/lib/journal/routes.ts",
+      "frontend/src/lib/journal/journalEntriesApi.ts",
+      "frontend/src/lib/userProfile.tsx"
+    ],
+    "gaps": [
+      "AC-1: JournalPageContent ai_RNbBHXjO milestones-tab-content had placeholder text only — no milestones-grid or relapse-events-section",
+      "AC-2: No milestonesApi/relapseEventsApi — uds_milestone and uds_relapseevent not queried",
+      "AC-3: add-milestone-btn, log-relapse-btn, and card edit actions missing callback props for JOURNAL-06/07"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/journal/MilestonesTab.vue": "frontend/src/components/journal/MilestonesTab.tsx",
+      "frontend/src/components/journal/MilestoneCard.vue": "frontend/src/components/journal/MilestoneCard.tsx",
+      "frontend/src/components/journal/RelapseEventCard.vue": "frontend/src/components/journal/RelapseEventCard.tsx",
+      "frontend/src/lib/journal/milestonesApi.ts": "frontend/src/lib/journal/milestonesApi.ts",
+      "frontend/src/lib/journal/relapseEventsApi.ts": "frontend/src/lib/journal/relapseEventsApi.ts"
+    },
+    "data_fallback": "Prototype schema lacks uds_milestone/uds_relapseevent tables; APIs try Supabase tables first (42P01/PGRST205 → null) then read profiles.onboarding_data.milestones and profiles.onboarding_data.relapse_events arrays"
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestonesTab.tsx — ai_RNbBHXja milestones-grid RepeatingGroup_list_ with ai_RNbBHXjb MilestoneCard template",
+        "frontend/src/components/journal/MilestonesTab.tsx — ai_RNbBHXjp relapse-events-section with divider ai_RNbBHXjr, label ai_RNbBHXju, private badge ai_RNbBHXjv, grid ai_RNbBHXjy",
+        "frontend/src/components/journal/RelapseEventCard.tsx — ai_RNbBHXjz relapse-event-card-template Group_panel_",
+        "frontend/src/pages/Journal.tsx — mounts MilestonesTab inside JournalPageContent ai_RNbBHXjO slot without duplicating wrapper bubble id"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/milestonesApi.ts — fetchMilestones() queries uds_milestone (title_text, description_text, achieved_at_date, user_user) with onboarding_data fallback",
+        "frontend/src/lib/journal/relapseEventsApi.ts — fetchRelapseEvents() queries uds_relapseevent (event_date_date, notes_text, user_user) with onboarding_data fallback",
+        "frontend/src/components/journal/MilestoneCard.tsx — title_text and Achieved achieved_at_date bind to row data",
+        "frontend/src/components/journal/RelapseEventCard.tsx — event_date_date and notes_text bind to row data",
+        "frontend/src/pages/Journal.tsx — loadMilestones() fetches both lists for current user via useAuth + useUserProfile onboarding_data"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestonesTab.tsx — ai_RNbBHXjX add-milestone-btn onClick={onAddMilestone}, ai_RNbBHXjU log-relapse-btn onClick={onLogRelapse}",
+        "frontend/src/components/journal/MilestoneCard.tsx — ai_RNbBHXjk edit and ai_RNbBHXjm action buttons call onEditMilestone",
+        "frontend/src/components/journal/RelapseEventCard.tsx — ai_RNbBHXkF edit button calls onEditRelapse",
+        "frontend/src/pages/Journal.tsx — handleAddMilestone, handleLogRelapse, handleEditMilestone, handleEditRelapse wired to MilestonesTab (JOURNAL-06/07 popup hosts)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXjP", "selector": "[data-bubble-id='ai_RNbBHXjP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjQ", "selector": "[data-bubble-id='ai_RNbBHXjQ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjR", "selector": "[data-bubble-id='ai_RNbBHXjR']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjS", "selector": "[data-bubble-id='ai_RNbBHXjS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjU", "selector": "[data-bubble-id='ai_RNbBHXjU']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjX", "selector": "[data-bubble-id='ai_RNbBHXjX']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXja", "selector": "[data-bubble-id='ai_RNbBHXja']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjb", "selector": "[data-bubble-id='ai_RNbBHXjb']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjp", "selector": "[data-bubble-id='ai_RNbBHXjp']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjr", "selector": "[data-bubble-id='ai_RNbBHXjr']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXju", "selector": "[data-bubble-id='ai_RNbBHXju']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjv", "selector": "[data-bubble-id='ai_RNbBHXjv']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjy", "selector": "[data-bubble-id='ai_RNbBHXjy']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjz", "selector": "[data-bubble-id='ai_RNbBHXjz']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/lib/journal/routes.ts",
+    "frontend/src/lib/journal/milestonesApi.ts",
+    "frontend/src/lib/journal/relapseEventsApi.ts",
+    "frontend/src/components/journal/MilestonesTab.tsx",
+    "frontend/src/components/journal/MilestoneCard.tsx",
+    "frontend/src/components/journal/RelapseEventCard.tsx",
+    "frontend/src/pages/Journal.tsx",
+    "cursor-impl-cycle/output/coverage/JOURNAL-05-milestones-and-relapse-list.json"
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "phase": "implement",
+  "target_id": "DS-05-chat-header-and-messages",
+  "assessed_at": "2026-07-07T20:38:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "frontend/src/components/chat/types.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatMessagesList.tsx",
+        "frontend/src/components/chat/ChatMessageCell.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatMessagesList.tsx",
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "frontend/src/components/chat/ChatMessageCell.tsx",
+        "frontend/src/styles/bubble-styles.css"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Chat header/messages components export from chat barrel with typed ChatConversation and ChatMessage props",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/index.ts",
+        "frontend/src/components/chat/types.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "ChatHeader binds conversation.title, mode_badge_text, and disclaimer_badge_text to bTIRh/bTIRi/bTIRs with IR defaults",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "frontend/src/components/chat/types.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "ChatMessagesList maps messages array to role-specific cells with user right-align and assistant left-align + avatar column",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatMessagesList.tsx",
+        "frontend/src/components/chat/ChatMessageCell.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIRW",
+      "selector": "[data-bubble-id='bTIRW']",
+      "status": "pass",
+      "notes": "RE - chat root intentionally deferred to DS-06 ChatReusable shell; DS-05 scope covers only header + messages children"
+    },
+    {
+      "bubble_id": "bTIRb",
+      "selector": "[data-bubble-id='bTIRb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRg",
+      "selector": "[data-bubble-id='bTIRg']",
+      "status": "pass",
+      "notes": "Left title column group under bTIRb"
+    },
+    {
+      "bubble_id": "bTIRh",
+      "selector": "[data-bubble-id='bTIRh']",
+      "status": "pass",
+      "notes": "Text_body_ plus text-lg font-semibold override for title emphasis"
+    },
+    {
+      "bubble_id": "bTIRi",
+      "selector": "[data-bubble-id='bTIRi']",
+      "status": "pass",
+      "notes": "Text_body_ with text-xs muted color for mode badge"
+    },
+    {
+      "bubble_id": "bTIRm",
+      "selector": "[data-bubble-id='bTIRm']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRn",
+      "selector": "[data-bubble-id='bTIRn']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIRo",
+      "selector": "[data-bubble-id='bTIRo']",
+      "status": "pass",
+      "notes": "Lucide Info icon with Icon_default_ class"
+    },
+    {
+      "bubble_id": "bTIRs",
+      "selector": "[data-bubble-id='bTIRs']",
+      "status": "pass",
+      "notes": "Text_small_ via bubbleStyle(); data-style-ref attribute omitted"
+    },
+    {
+      "bubble_id": "bTISK",
+      "selector": "[data-bubble-id='bTISK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTISM",
+      "selector": "[data-bubble-id='bTISM']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTISQ",
+      "selector": "[data-bubble-id='bTISQ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTISS",
+      "selector": "[data-bubble-id='bTISS']",
+      "status": "pass",
+      "notes": "Text_body_ on bubble; primary bgcolor applied via Tailwind not a Bubble style_ref"
+    },
+    {
+      "bubble_id": "bTIUI",
+      "selector": "[data-bubble-id='bTIUI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUK",
+      "selector": "[data-bubble-id='bTIUK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUO",
+      "selector": "[data-bubble-id='bTIUO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUP",
+      "selector": "[data-bubble-id='bTIUP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUQ",
+      "selector": "[data-bubble-id='bTIUQ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUU",
+      "selector": "[data-bubble-id='bTIUU']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "User bubble (bTISS) and assistant content group (bTIUP) use hard-coded Tailwind bgcolor/radius tokens instead of resolving a Bubble style_ref from styles.json. AC-3 requires DS-01 classes for typography and badge colors but leaves bubble shells implicit; colors may drift from IR if tokens change.",
+      "alternative": "Extract chat bubble shell styles into bubble-styles.css (or map to an existing Group_* style) and apply via bubbleStyle() on bTISS/bTIUP wrappers.",
+      "evidence": [
+        "frontend/src/components/chat/ChatMessageCell.tsx",
+        "ir/slices/styles.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Title text bTIRh applies Text_body_ then overrides with text-lg font-semibold; IR names the element Text chat-panel-title and may use heading-weight presentation rather than raw body 16px.",
+      "alternative": "Resolve bTIRh presentation from element_definitions/bTIRa and either drop overrides or switch to the correct Text_heading_* / font_weight from IR.",
+      "evidence": [
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "integration",
+      "priority": "low",
+      "finding": "New chat components are not yet composed into ChatWindow.tsx or Chat.tsx; prototype still uses ai-elements. In-scope for DS-05 (library primitives) but downstream screens will not show IR-faithful chat until DS-06 wires the shell.",
+      "alternative": "DS-06 should replace ChatWindow internals with ChatReusable composing these exports.",
+      "evidence": [
+        "frontend/src/components/ChatWindow.tsx",
+        "frontend/src/components/chat/index.ts"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Assistant disclaimer bTIUU renders a module-level constant (CHAT_ASSISTANT_DISCLAIMER) rather than a per-message prop; Bubble binds bTIUU text via parent chatmessage data.",
+      "alternative": "Add optional disclaimer_text to ChatMessage or derive from conversation context when DS-06 integrates live data.",
+      "evidence": [
+        "frontend/src/components/chat/ChatMessageCell.tsx",
+        "frontend/src/components/chat/types.ts",
+        "ir/inventory.json"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 5
+  }
+}

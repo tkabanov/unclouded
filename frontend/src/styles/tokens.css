@@ -1,0 +1,31 @@
+/**
+ * Bubble design tokens referenced by ir/slices/styles.json.
+ * Source: drsam-99657.bubble color_tokens / font_tokens.
+ */
+:root {
+  --color_aiRNbAaxgr_default: rgba(240, 238, 235, 1);
+  --color_aiRNbAaxgs_default: rgba(106, 113, 129, 1);
+  --color_aiRNbAaxgt_default: rgba(226, 241, 244, 1);
+  --color_aiRNbAaxgu_default: rgba(34, 99, 109, 1);
+  --color_aiRNbAaxgv_default: rgba(255, 255, 255, 1);
+  --color_aiRNbAaxgw_default: rgba(229, 226, 220, 1);
+  --color_aiRNbAaxgx_default: rgba(235, 233, 229, 1);
+  --color_aiRNbAaxhA_default: rgba(251, 250, 249, 0.8);
+  --color_aiRNbAaxhH_default: rgba(44, 127, 140, 0.9);
+  --color_aiRNbAaxhI_default: rgba(44, 127, 140, 0.8);
+  --color_aiRNbAaxhJ_default: rgba(240, 238, 235, 0.9);
+  --color_aiRNbAaxhL_default: rgba(226, 241, 244, 0.9);
+  --color_aiRNbAaxhN_default: rgba(221, 56, 44, 0.9);
+  --color_aiRNbAaxhO_default: rgba(221, 56, 44, 0.8);
+  --color_alert_default: rgba(243, 155, 22, 1);
+  --color_background_default: rgba(251, 250, 249, 1);
+  --color_destructive_default: rgba(221, 56, 44, 1);
+  --color_primary_contrast_default: rgba(255, 255, 255, 1);
+  --color_primary_default: rgba(44, 127, 140, 1);
+  --color_primary_default_rgb: 44, 127, 140;
+  --color_success_default: rgba(66, 148, 118, 1);
+  --color_surface_default: rgba(255, 255, 255, 1);
+  --color_text_default: rgba(39, 44, 52, 1);
+  --font_aiRNbAaxhX_default: DM Serif Display;
+  --font_default: Inter;
+}

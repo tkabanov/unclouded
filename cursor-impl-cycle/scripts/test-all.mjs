@@ -13,4 +13,5 @@ function run(cmd, args) {
 run("node", ["scripts/test-stop-hook.mjs"]);
 run("node", ["scripts/test-scheduler.mjs"]);
 run("node", ["scripts/test-item-registry.mjs"]);
+run("node", ["scripts/validate-decompose-paths.mjs"]);
 console.log("OK test-all.mjs");

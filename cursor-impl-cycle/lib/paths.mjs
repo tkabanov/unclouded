@@ -14,6 +14,14 @@ export function loadProjectConfig(packRoot = PACK_ROOT) {
   return JSON.parse(fs.readFileSync(configPath, "utf8"));
 }
 
+export function loadImplementationPolicy(packRoot = PACK_ROOT, workspaceRoot = null) {
+  const project = loadProjectConfig(packRoot);
+  const wsRoot = workspaceRoot ?? resolveWorkspaceRoot(packRoot);
+  const paths = resolvePaths(wsRoot, project, packRoot);
+  if (!fs.existsSync(paths.implementationPolicyPath)) return {};
+  return JSON.parse(fs.readFileSync(paths.implementationPolicyPath, "utf8"));
+}
+
 function packDefault(workspaceRoot, packRoot, subpath) {
   return path.join(workspaceRoot, packRelPath(packRoot, workspaceRoot), subpath);
 }
@@ -59,6 +67,16 @@ export function resolvePaths(workspaceRoot, project, packRoot = PACK_ROOT) {
     supabaseContextDir: path.join(
       workspaceRoot,
       project.supabase_context_dir ?? "project/supabase",
+    ),
+    prototypeInventoryPath: path.join(
+      workspaceRoot,
+      project.prototype_inventory_path ??
+        packDefault(workspaceRoot, packRoot, "config/prototype-inventory.json"),
+    ),
+    pathConventionsPath: path.join(
+      workspaceRoot,
+      project.path_conventions_path ??
+        packDefault(workspaceRoot, packRoot, "config/path-conventions.json"),
     ),
     promptsDir: path.join(packRoot, "prompts"),
     schemasDir: path.join(packRoot, "schemas"),

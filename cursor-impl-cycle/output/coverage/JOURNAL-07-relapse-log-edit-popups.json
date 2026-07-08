@@ -1,0 +1,80 @@
+{
+  "item_id": "JOURNAL-07-relapse-log-edit-popups",
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-08T08:40:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/lib/journal/relapseEventsApi.ts",
+      "frontend/src/lib/journal/routes.ts",
+      "frontend/src/components/journal/MilestonesTab.tsx",
+      "frontend/src/components/journal/RelapseEventCard.tsx",
+      "frontend/src/components/journal/AddMilestonePopup.tsx",
+      "frontend/src/components/journal/EditMilestonePopup.tsx"
+    ],
+    "gaps": [
+      "AC-1: LogRelapsePopup.tsx and EditRelapsePopup.tsx did not exist — only stub handlers in Journal.tsx",
+      "AC-2: relapseEventsApi.ts had fetchRelapseEvents only — no create/update/delete mutations",
+      "AC-3: log-relapse-disclaimer group ai_RNbBHXmq with icon/text not implemented"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/journal/LogRelapsePopup.vue": "frontend/src/components/journal/LogRelapsePopup.tsx",
+      "frontend/src/components/journal/EditRelapsePopup.vue": "frontend/src/components/journal/EditRelapsePopup.tsx",
+      "frontend/src/lib/journal/relapseEventsApi.ts": "frontend/src/lib/journal/relapseEventsApi.ts"
+    },
+    "data_fallback": "createRelapseEvent/updateRelapseEvent/deleteRelapseEvent try uds_relapseevent first; on 42P01/PGRST205 fall back to profiles.onboarding_data.relapse_events (same pattern as fetchRelapseEvents)"
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — ai_RNbBHXma popup with DateInput ai_RNbBHXml and MultiLineInput ai_RNbBHXmp",
+        "frontend/src/components/journal/EditRelapsePopup.tsx — ai_RNbBHXnA popup with DateInput ai_RNbBHXnL and MultiLineInput ai_RNbBHXnO",
+        "frontend/src/lib/journal/routes.ts — bubble id constants for all in-scope relapse popup elements"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/relapseEventsApi.ts — createRelapseEvent inserts uds_relapseevent (event_date_date, notes_text, user_user)",
+        "frontend/src/lib/journal/relapseEventsApi.ts — updateRelapseEvent and deleteRelapseEvent with onboarding_data fallback",
+        "frontend/src/components/journal/EditRelapsePopup.tsx — ai_RNbBHXnQ delete button removes row",
+        "frontend/src/pages/Journal.tsx — handleMilestonesChanged refreshes profile and reloads JOURNAL-05 relapse grid"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — disclaimer group ai_RNbBHXmq with icon ai_RNbBHXmr and text ai_RNbBHXms",
+        "frontend/src/lib/journal/relapseEventsApi.ts — user_user scoping on table ops; onboarding_data keyed per user profile",
+        "frontend/src/components/journal/MilestonesTab.tsx — relapse section private badge already marks user-scoped data"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXma", "selector": "[data-bubble-id='ai_RNbBHXma']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXml", "selector": "[data-bubble-id='ai_RNbBHXml']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmp", "selector": "[data-bubble-id='ai_RNbBHXmp']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmq", "selector": "[data-bubble-id='ai_RNbBHXmq']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmr", "selector": "[data-bubble-id='ai_RNbBHXmr']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXms", "selector": "[data-bubble-id='ai_RNbBHXms']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXmx", "selector": "[data-bubble-id='ai_RNbBHXmx']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXnA", "selector": "[data-bubble-id='ai_RNbBHXnA']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXnL", "selector": "[data-bubble-id='ai_RNbBHXnL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXnO", "selector": "[data-bubble-id='ai_RNbBHXnO']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXnQ", "selector": "[data-bubble-id='ai_RNbBHXnQ']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/lib/journal/routes.ts",
+    "frontend/src/lib/journal/relapseEventsApi.ts",
+    "frontend/src/components/journal/LogRelapsePopup.tsx",
+    "frontend/src/components/journal/EditRelapsePopup.tsx",
+    "frontend/src/pages/Journal.tsx",
+    "cursor-impl-cycle/output/coverage/JOURNAL-07-relapse-log-edit-popups.json"
+  ]
+}

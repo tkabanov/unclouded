@@ -1,0 +1,74 @@
+{
+  "item_id": "AUTH-01-index-login-entry",
+  "module_id": "MOD-DRSAM-AUTH",
+  "assessed_at": "2026-07-07T14:35:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Index.tsx",
+      "frontend/src/App.tsx",
+      "frontend/src/components/AuthDialog.tsx",
+      "frontend/src/hooks/useAuth.tsx",
+      "frontend/src/components/ProtectedRoute.tsx"
+    ],
+    "gaps": [
+      "AC-1: missing data-bubble-id on page root and index-main/hero section regions",
+      "AC-3: hero, button, and typography elements lacked style_ref token mapping from styles.json"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/IndexPage.vue": "frontend/src/pages/Index.tsx",
+      "frontend/src/router/index.ts": "frontend/src/App.tsx",
+      "frontend/src/features/auth/routes.ts": "frontend/src/App.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — data-bubble-id on bTGYf (page), ai_RNbBHWoL (index-main), ai_RNbBHWoM (hero-section), and child section roots (ai_RNbBHWof, ai_RNbBHWpH, ai_RNbBHWqJ, ai_RNbBHWrq, ai_RNbBHWsR)"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Index.tsx — header and hero CTAs call start(signin|signup); authenticated users navigate via destination() to /onboarding or /dashboard",
+        "frontend/src/components/AuthDialog.tsx — Supabase auth on success triggers onSuccess redirect flow",
+        "frontend/src/App.tsx — / route renders Index; /onboarding and /dashboard protected routes exist"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/bubbleStyles.ts — maps Group_hero_, Text_heading_1_, Text_body_muted_, Button_primary_, Button_outline_, Group_badge_ from ir/slices/styles.json",
+        "frontend/src/pages/Index.tsx — hero, headline, body, and CTA buttons apply bubbleStyle() with data-style-ref attributes"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGYf",
+      "selector": "[data-bubble-id='bTGYf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWoL",
+      "selector": "[data-bubble-id='ai_RNbBHWoL']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWoM",
+      "selector": "[data-bubble-id='ai_RNbBHWoM']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/pages/Index.tsx",
+    "frontend/src/components/AuthDialog.tsx",
+    "frontend/src/lib/bubbleStyles.ts",
+    "cursor-impl-cycle/output/coverage/AUTH-01-index-login-entry.json"
+  ]
+}

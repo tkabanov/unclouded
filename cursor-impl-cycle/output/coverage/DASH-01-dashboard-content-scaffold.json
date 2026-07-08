@@ -1,0 +1,105 @@
+{
+  "item_id": "DASH-01-dashboard-content-scaffold",
+  "module_id": "MOD-DRSAM-DASHBOARD",
+  "assessed_at": "2026-07-07T20:35:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/lib/dashboard/routes.ts",
+      "frontend/src/lib/userProfile.tsx"
+    ],
+    "gaps": [
+      "AC-1: Dashboard lacked nested IR regions ai_RNbBHXRE and ai_RNbBHXRW under dashboard-main",
+      "AC-2: No fluid two-column dashboard-grid with named widget slot bubble ids",
+      "AC-3: No useDashboardUser composable supplying current_user display fields to widget slots"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/DashboardPage.vue": "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/dashboard/DashboardMain.vue": "frontend/src/components/dashboard/DashboardMain.tsx",
+      "frontend/src/hooks/useDashboardUser.ts": "frontend/src/hooks/useDashboardUser.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardMain.tsx — root data-bubble-id ai_RNbBHXRD with child ai_RNbBHXRE (dashboard-content) and ai_RNbBHXRW (dashboard-grid) preserving IR nesting",
+        "frontend/src/pages/Dashboard.tsx — renders DashboardMain inside SHELL-06 layout; shell props unchanged"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardMain.tsx — dashboard-grid uses fluid lg:grid-cols-2 layout; left column ai_RNbBHXRX; right column slots ai_RNbBHXSf, ai_RNbBHXSM, ai_RNbBHXSx, bTIfU as placeholder divs",
+        "frontend/src/lib/dashboard/routes.ts — exports grid and slot bubble id constants"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useDashboardUser.ts — maps useUserProfile to DashboardUserDisplay (firstName, classification, pressure profile, mode flags)",
+        "frontend/src/components/dashboard/DashboardMain.tsx — wraps subtree in DashboardUserProvider; useDashboardUserContext available to DASH-02+ widget slots"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXRD",
+      "selector": "[data-bubble-id='ai_RNbBHXRD']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRE",
+      "selector": "[data-bubble-id='ai_RNbBHXRE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRF",
+      "selector": "[data-bubble-id='ai_RNbBHXRF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRW",
+      "selector": "[data-bubble-id='ai_RNbBHXRW']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRX",
+      "selector": "[data-bubble-id='ai_RNbBHXRX']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSf",
+      "selector": "[data-bubble-id='ai_RNbBHXSf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSM",
+      "selector": "[data-bubble-id='ai_RNbBHXSM']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSx",
+      "selector": "[data-bubble-id='ai_RNbBHXSx']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIfU",
+      "selector": "[data-bubble-id='bTIfU']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/dashboard/DashboardMain.tsx",
+    "frontend/src/hooks/useDashboardUser.ts",
+    "frontend/src/lib/dashboard/routes.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "cursor-impl-cycle/output/coverage/DASH-01-dashboard-content-scaffold.json"
+  ]
+}

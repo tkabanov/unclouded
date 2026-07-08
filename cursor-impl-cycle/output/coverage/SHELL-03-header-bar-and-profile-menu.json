@@ -1,0 +1,130 @@
+{
+  "item_id": "SHELL-03-header-bar-and-profile-menu",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T15:25:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/components/BrandLogo.tsx",
+      "frontend/src/components/NavLink.tsx",
+      "frontend/src/hooks/useAuth.tsx",
+      "frontend/src/lib/enums/navigation.ts",
+      "frontend/src/pages/Index.tsx",
+      "frontend/src/styles/bubble-styles.css"
+    ],
+    "gaps": [
+      "AC-1: DashboardLayout header lacked data-bubble-id hierarchy (ai_RNbBKLUc root and child regions)",
+      "AC-2: no logged-in header nav links with ENUM labels or IR bubble ids",
+      "AC-3: no profile dropdown on avatar click; no settings link or signOut wiring",
+      "Logged-out marketing nav (ai_RNbBHWau) and login/signup buttons deferred to Index / SHELL-04"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/shell/Header.vue": "frontend/src/components/shell/Header.tsx",
+      "frontend/src/components/shell/HeaderProfileDropdown.vue": "frontend/src/components/shell/HeaderProfileDropdown.tsx",
+      "frontend/src/layouts/AppShellLayout.tsx": "frontend/src/components/DashboardLayout.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/Header.tsx — root header data-bubble-id ai_RNbBKLUc with child regions ai_RNbBHWao (brand), ai_RNbBHWaz (logged-in nav), ai_RNbBHWbE (actions)",
+        "frontend/src/components/DashboardLayout.tsx — mounts extracted Header with sidebar trigger leading slot"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/navigation.ts — HEADER_NAV_LABELS, HEADER_NAV_ROUTES, HEADER_NAV_BUBBLE_IDS for dashboard/chat/journal/paths",
+        "frontend/src/components/shell/Header.tsx — NavLinks ai_RNbBHWbA/bB/bC/bD route to /dashboard, /chat, /journal, /paths with Link_nav_ styles"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx — avatar trigger ai_RNbBHWbH opens DropdownMenuContent ai_RNbBHWfD with dropdown group ai_RNbBHWbJ",
+        "frontend/src/components/shell/HeaderProfileDropdown.tsx — settings NavLink ai_RNbBHWbL to /settings; logout ai_RNbBHWbO calls useAuth signOut and navigates to /"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBKLUc",
+      "selector": "[data-bubble-id='ai_RNbBKLUc']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWao",
+      "selector": "[data-bubble-id='ai_RNbBHWao']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWaz",
+      "selector": "[data-bubble-id='ai_RNbBHWaz']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbE",
+      "selector": "[data-bubble-id='ai_RNbBHWbE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbA",
+      "selector": "[data-bubble-id='ai_RNbBHWbA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbB",
+      "selector": "[data-bubble-id='ai_RNbBHWbB']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbC",
+      "selector": "[data-bubble-id='ai_RNbBHWbC']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbD",
+      "selector": "[data-bubble-id='ai_RNbBHWbD']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbH",
+      "selector": "[data-bubble-id='ai_RNbBHWbH']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWfD",
+      "selector": "[data-bubble-id='ai_RNbBHWfD']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbJ",
+      "selector": "[data-bubble-id='ai_RNbBHWbJ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbL",
+      "selector": "[data-bubble-id='ai_RNbBHWbL']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWbO",
+      "selector": "[data-bubble-id='ai_RNbBHWbO']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/shell/Header.tsx",
+    "frontend/src/components/shell/HeaderProfileDropdown.tsx",
+    "frontend/src/components/DashboardLayout.tsx",
+    "frontend/src/lib/enums/navigation.ts",
+    "frontend/src/lib/enums/index.ts",
+    "cursor-impl-cycle/output/coverage/SHELL-03-header-bar-and-profile-menu.json"
+  ]
+}

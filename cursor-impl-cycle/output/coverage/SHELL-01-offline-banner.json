@@ -1,0 +1,70 @@
+{
+  "item_id": "SHELL-01-offline-banner",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T14:55:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/shell/OfflineBanner.tsx",
+      "frontend/src/hooks/useOnlineStatus.ts",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/lib/bubbleStyles.ts"
+    ],
+    "gaps": [
+      "AC-3: invented Group_offline_banner_/Text_offline_banner_/Icon_offline_banner_ tokens removed; replaced with catalogued Group_section_, Text_caption_, Icon_muted_ from ir/slices/styles.json"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/shell/OfflineBanner.vue": "frontend/src/components/shell/OfflineBanner.tsx",
+      "frontend/src/composables/useOnlineStatus.ts": "frontend/src/hooks/useOnlineStatus.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/shell/OfflineBanner.tsx — bTHvT0 root group with data-bubble-id; child text bTHEc and icon bTHEi preserve IR element tree (Group → Icon + Text row)"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useOnlineStatus.ts — listens to navigator.onLine plus window online/offline events",
+        "frontend/src/components/shell/OfflineBanner.tsx — returns null when online (Bubble IsOffline is_false → is_visible false); renders when offline (IsOffline is_true → is_visible true)",
+        "frontend/src/components/DashboardLayout.tsx — OfflineBanner mounted at shell top across authenticated pages"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/bubbleStyles.ts — Group_section_ maps bgcolor var(--color_background_default) via bg-background; Text_caption_ maps 12px/1.4 caption typography; Icon_muted_ maps icon_color var(--color_aiRNbAaxgs_default); no invented offline_banner tokens",
+        "frontend/src/components/shell/OfflineBanner.tsx — data-style-ref Group_section_ on root, Text_caption_ on bTHEc, Icon_muted_ on bTHEi; bubbleStyle() applies catalogued tokens (no bg-foreground inverse bar)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHvT0",
+      "selector": "[data-bubble-id='bTHvT0']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHEc",
+      "selector": "[data-bubble-id='bTHEc']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHEi",
+      "selector": "[data-bubble-id='bTHEi']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/shell/OfflineBanner.tsx",
+    "frontend/src/lib/bubbleStyles.ts",
+    "cursor-impl-cycle/output/coverage/SHELL-01-offline-banner.json"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "item_id": "PATHS-07-session-completion-route-integration",
+  "module_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-08T08:05:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/hooks/useSessionCompletionVisible.ts",
+      "frontend/src/components/design-system/SessionCompletionForm.tsx",
+      "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+      "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+      "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+      "frontend/src/lib/chat/chatRouteStore.ts",
+      "frontend/src/lib/paths/routes.ts"
+    ],
+    "gaps": [
+      "AC-1: SessionCompletionRoute, useSessionCompletionRoute, and pathsSessionApi did not exist",
+      "AC-2: useSessionCompletionVisible was a stub; bTJDf hide/show not wired to live enrollment session match",
+      "AC-3: Submit workflow stub (bTJCM) and clear ?session= param not implemented",
+      "Onboarding fallback enrollments lacked currentSessionId for URL session matching"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/paths/SessionCompletionRoute.vue": "frontend/src/components/paths/SessionCompletionRoute.tsx",
+      "frontend/src/hooks/useSessionCompletionRoute.ts": "frontend/src/hooks/useSessionCompletionRoute.ts",
+      "frontend/src/lib/paths/pathsSessionApi.ts": "frontend/src/lib/paths/pathsSessionApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/SessionCompletionRoute.tsx — bTJAG/bTJAB mount renders DS-04 SessionCompletionForm with pathsession from fetchPathSession",
+        "frontend/src/hooks/useSessionCompletionRoute.ts — reads ?session= via SESSION_SEARCH_PARAM; visible when enrollment currentSessionId matches",
+        "frontend/src/lib/paths/pathsSessionApi.ts — fetchPathSession resolves pathsession table or catalog fallback"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — sessionCompletionVisible replaces bTJDf content; EnrollmentFloatingBar hidden when form shown",
+        "frontend/src/components/design-system/SessionCompletionForm.tsx — bTIxC/bTIxG title and coaching bindings from pathsession data (reused verbatim)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/SessionCompletionRoute.tsx — bTIzk submit calls schedulePathSessionCompletion then clearSessionParam + selectMyPaths",
+        "frontend/src/lib/paths/pathsSessionApi.ts — schedulePathSessionCompletion bTJCM stub; inert plugin placeholders bTJBC/bTJBI in SessionCompletionForm"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTJAG",
+      "selector": "[data-bubble-id='bTJAG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTJAB",
+      "selector": "[data-bubble-id='bTJAB']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIyi",
+      "selector": "[data-bubble-id='bTIyi']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTItY",
+      "selector": "[data-bubble-id='bTItY']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/paths/SessionCompletionRoute.tsx",
+    "frontend/src/hooks/useSessionCompletionRoute.ts",
+    "frontend/src/hooks/useSessionCompletionVisible.ts",
+    "frontend/src/lib/paths/pathsSessionApi.ts",
+    "frontend/src/lib/paths/routes.ts",
+    "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+    "frontend/src/pages/Paths.tsx",
+    "cursor-impl-cycle/output/coverage/PATHS-07-session-completion-route-integration.json"
+  ]
+}

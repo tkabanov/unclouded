@@ -1,0 +1,39 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-07-relapse-log-edit-popups",
+  "assessed_at": "2026-07-08T08:50:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-JOURNAL-07-relapse-log-edit-popups.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read confirms ai_RNbBHXmw and ai_RNbBHXnU resolve to Button_outline_ while both popups apply Button_ghost_ with shadcn variant=\"ghost\". Finding is valid, but cancel entities are outside JOURNAL-07 ui_refs[] (only save/delete CTAs are named) and criteria_audit/ui_evidence pass. The same ghost-cancel pattern appears in JOURNAL-06 AddMilestonePopup/EditMilestonePopup and NewEntryPopup — a module-wide brownfield convention, not a relapse-only regression. Swap to Button_outline_ + variant=\"outline\" in a journal popup style-ref polish wave without blocking JOURNAL-07 advance."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR confirms ai_RNbBHXmr style_ref Icon_primary_; implementation uses Icon_muted_ with a Lock lucide glyph. layout_notes name the ai_RNbBHXmr/ai_RNbBHXms pair and AC-3 requires disclaimer icon+text layout — structure passes (flex row, data-bubble-id markers, Group_info_banner_). Remaining gap is token color and Bubble icon asset resolution, not missing disclaimer region. Peer journal surfaces (MilestonesTab, RelapseEventCard) already use Icon_primary_ as the target pattern; align disclaimer icon style_ref and glyph in the same journal UX polish wave as C-1."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "EditRelapsePopup handleDelete fires immediately; functional_audit FV-4 passes and AC-2 requires delete to remove the row and refresh the JOURNAL-05 grid — no confirmation step in decompose ACs or Bubble ui_refs. Matches EditMilestonePopup (JOURNAL-06), which triaged the same finding as defer. Journal entry AlertDialog delete is a brownfield SPA enhancement, not IR-mandated relapse workflow. Optional delete-confirmation hardening deferred to a later polish wave."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "IR re-read confirms ai_RNbBHXme, ai_RNbBHXmf, and ai_RNbBHXms carry text_expressions with host_class render_prop — dynamic Bubble bindings, not static presentation.text literals in inventory. JOURNAL-07 ui_refs scope form fields, disclaimer group ai_RNbBHXmq, and CTAs inside the popup roots; header copy entities are not named ui_refs. LogRelapsePopup mounts data-bubble-id on title/subtitle/disclaimer text with appropriate style_ref classes; React-authored strings are reasonable placeholders until render_prop expressions are resolved from drsam-99657.bubble in a dedicated copy-parity pass (same disposition as JOURNAL-06 triage C-3)."
+    }
+  ],
+  "summary": "Review passed at 100% coverage with 0 blockers. Triage: 0 fix_now, 3 defer, 1 accept. Deferred: C-1/C-2 → journal popup style-ref polish (Button_outline_ cancel CTAs, Icon_primary_ disclaimer icon + Bubble glyph); C-3 → optional delete-confirmation UX (not in AC-2). Accepted: C-4 (dynamic text_expressions on header/disclaimer copy; markers present). ok_to_advance=true, rewrite_required=false."
+}

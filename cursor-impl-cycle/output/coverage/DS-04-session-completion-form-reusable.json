@@ -1,0 +1,138 @@
+{
+  "item_id": "DS-04-session-completion-form-reusable",
+  "module_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-07T20:30:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/styles/tokens.css",
+      "frontend/src/styles/bubble-styles.css",
+      "frontend/src/styles/index.ts",
+      "frontend/src/components/design-system/ProgressBar.tsx",
+      "frontend/src/components/design-system/ScoreBar.tsx",
+      "frontend/src/components/design-system/index.ts",
+      "frontend/src/lib/paths.ts"
+    ],
+    "gaps": [
+      "No SessionCompletionForm or SessionQuestionCell components; pathsession types not yet defined for form binding"
+    ],
+    "reuse_decision": "new",
+    "mapped_target_files": {
+      "frontend/src/components/design-system/SessionCompletionForm.vue": "frontend/src/components/design-system/SessionCompletionForm.tsx",
+      "frontend/src/components/design-system/SessionQuestionCell.vue": "frontend/src/components/design-system/SessionQuestionCell.tsx",
+      "frontend/src/components/design-system/index.ts": "frontend/src/components/design-system/index.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/components/design-system/index.ts"
+      ],
+      "notes": "Root form data-bubble-id=\"bTIyi\" with Group_card_; PathSessionFormData prop (title_text, coaching_text_text, micro_commitment_text, questions); header bTIyn with title bTIxC (Text_heading_2_) and subtitle bTIxG (Text_body_muted_) from session prop"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/components/design-system/SessionQuestionCell.tsx"
+      ],
+      "notes": "RepeatingGroup bTIzA with RepeatingGroup_list_; SessionQuestionCell bTIzF with label bTIzG (Text_label_), MultiLineInput bTIzK (MultiLineInput_default_, placeholder \"Your answer…\"); reflection bTIzS with labels bTIzY (\"Micro-commitment\") / bTIzX (micro_commitment_text) and Checkbox bTIzc (Checkbox_default_, \"Set as focus\")"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "drsam-99657.bubble element_definitions/bTIym/elements/bTIzp"
+      ],
+      "notes": "Submit button bTIzk uses Button_primary_ with static IR label \"Submit answers\"; inert plugin stubs bTJBC and bTJBI preserve data-bubble-id markers (hidden, aria-hidden)"
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIyi",
+      "selector": "[data-bubble-id='bTIyi']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIyn",
+      "selector": "[data-bubble-id='bTIyn']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIxC",
+      "selector": "[data-bubble-id='bTIxC']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIxG",
+      "selector": "[data-bubble-id='bTIxG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzA",
+      "selector": "[data-bubble-id='bTIzA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzF",
+      "selector": "[data-bubble-id='bTIzF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzG",
+      "selector": "[data-bubble-id='bTIzG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzK",
+      "selector": "[data-bubble-id='bTIzK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzS",
+      "selector": "[data-bubble-id='bTIzS']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzX",
+      "selector": "[data-bubble-id='bTIzX']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzY",
+      "selector": "[data-bubble-id='bTIzY']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzc",
+      "selector": "[data-bubble-id='bTIzc']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIzk",
+      "selector": "[data-bubble-id='bTIzk']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTJBC",
+      "selector": "[data-bubble-id='bTJBC']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTJBI",
+      "selector": "[data-bubble-id='bTJBI']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/design-system/SessionCompletionForm.tsx",
+    "frontend/src/components/design-system/SessionQuestionCell.tsx",
+    "frontend/src/components/design-system/index.ts",
+    "cursor-impl-cycle/output/coverage/DS-04-session-completion-form-reusable.json"
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "item_id": "CHAT-01-chat-content-layout",
+  "module_id": "MOD-DRSAM-CHAT",
+  "assessed_at": "2026-07-08T06:57:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Chat.tsx",
+      "frontend/src/lib/chat/routes.ts",
+      "frontend/src/components/ChatWindow.tsx",
+      "frontend/src/components/DashboardLayout.tsx"
+    ],
+    "gaps": [
+      "AC-1: Chat layout lived inline in Chat.tsx without ChatPageContent component or IR group hierarchy under ai_RNbBHXbD",
+      "AC-2: No ai_RNbBHXbE / bTIUt column regions; no responsive flex-col stack for narrow viewports",
+      "AC-3: Title row lacked ai_RNbBHXbF/ai_RNbBHXbG/ai_RNbBHXbH bubble ids and bubbleStyle() style_ref tokens"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/chat/ChatPageContent.vue": "frontend/src/components/chat/ChatPageContent.tsx",
+      "frontend/src/pages/ChatPage.vue": "frontend/src/pages/Chat.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx — root data-bubble-id ai_RNbBHXbD with data-module-owner MOD-DRSAM-CHAT preserving IR group hierarchy from bTHDZ____root.json",
+        "frontend/src/pages/Chat.tsx — mounts ChatPageContent inside SHELL-10 DashboardLayout content slot"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx — left column ai_RNbBHXbE (conversation-sidebar region) and right column bTIUt panel mount as flex siblings",
+        "frontend/src/components/chat/ChatPageContent.tsx — flex-col md:flex-row responsive stack per Bubble fit_width semantics; brownfield thread list and ChatWindow wired into slot regions"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx — title row ai_RNbBHXbF with chat-page-title ai_RNbBHXbG (Text_heading_3_) and new-conversation btn ai_RNbBHXbH (Button_primary_) via bubbleStyle() from DS-01",
+        "frontend/src/lib/chat/routes.ts — exports CHAT_SIDEBAR_REGION_BUBBLE_ID, CHAT_PAGE_TITLE_ROW_BUBBLE_ID, CHAT_PAGE_TITLE_BUBBLE_ID, NEW_CONVERSATION_BTN_BUBBLE_ID, CHAT_PANEL_MOUNT_BUBBLE_ID"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXbD",
+      "selector": "[data-bubble-id='ai_RNbBHXbD']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbE",
+      "selector": "[data-bubble-id='ai_RNbBHXbE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbF",
+      "selector": "[data-bubble-id='ai_RNbBHXbF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbG",
+      "selector": "[data-bubble-id='ai_RNbBHXbG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbH",
+      "selector": "[data-bubble-id='ai_RNbBHXbH']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIUt",
+      "selector": "[data-bubble-id='bTIUt']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/chat/routes.ts",
+    "frontend/src/components/chat/ChatPageContent.tsx",
+    "frontend/src/pages/Chat.tsx",
+    "cursor-impl-cycle/output/coverage/CHAT-01-chat-content-layout.json"
+  ]
+}

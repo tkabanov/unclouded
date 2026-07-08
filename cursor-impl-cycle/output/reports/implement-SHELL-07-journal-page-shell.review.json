@@ -1,0 +1,157 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-07-journal-page-shell",
+  "assessed_at": "2026-07-07T20:18:30.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /journal route registered",
+        "frontend/src/App.tsx — route nested under ProtectedRoute with requiresAuth meta",
+        "frontend/src/pages/Journal.tsx — passes pageBubbleId bTHDa via journalShellProps to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDa on shell root when pageBubbleId provided"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/routes.ts — exports ai_RNbBKLUl and ai_RNbBKLUm instance constants",
+        "frontend/src/pages/Journal.tsx — passes headerBubbleId and sidebarBubbleId to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — data-bubble-id={bubbleId} with journal override",
+        "frontend/src/components/AppSidebar.tsx — data-bubble-id={bubbleId} on Sidebar root with journal override",
+        "ir/inventory.json — ai_RNbBKLUl and ai_RNbBKLUm are CustomElement children of bTHDa per bTHDb____root.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — journal UI wrapped in div with data-bubble-id ai_RNbBHXid and data-module-owner MOD-DRSAM-JOURNAL",
+        "frontend/src/pages/Journal.tsx — editor Dialog and delete AlertDialog render outside ai_RNbBHXid boundary (page-level siblings inside DashboardLayout children)",
+        "frontend/src/lib/journal/routes.ts — documents JOURNAL_MAIN_BUBBLE_ID and JOURNAL_MODULE_ID",
+        "ir/inventory.json — ai_RNbBHXid is Group child of bTHDa (journal-main boundary)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "/journal route registered and auth-guarded via ProtectedRoute parent",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/components/ProtectedRoute.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Journal page mounts AppShellLayout with page-level CustomElement instance overrides",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx",
+        "frontend/src/components/DashboardLayout.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Journal content renders inside ai_RNbBHXid boundary; page-level dialogs remain outside journal-main",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDa",
+      "selector": "[data-bubble-id='bTHDa']",
+      "status": "pass",
+      "notes": "Page root on DashboardLayout outer wrapper when Journal passes pageBubbleId"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUl",
+      "selector": "[data-bubble-id='ai_RNbBKLUl']",
+      "status": "pass",
+      "notes": "Journal-specific header CustomElement instance on Header via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUm",
+      "selector": "[data-bubble-id='ai_RNbBKLUm']",
+      "status": "pass",
+      "notes": "Journal-specific sidebar CustomElement instance on AppSidebar via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBHXid",
+      "selector": "[data-bubble-id='ai_RNbBHXid']",
+      "status": "pass",
+      "notes": "journal-main content boundary wraps page children with data-module-owner MOD-DRSAM-JOURNAL"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "layout",
+      "finding": "IR places ai_RNbBKLUl, ai_RNbBKLUm, and ai_RNbBHXid as bTHDa siblings; React shell still nests Header inside the main column to the right of the sidebar (inherited from SHELL-05). Page-instance markers are correct but full-width header sibling layout remains unresolved.",
+      "evidence": [
+        "ir/inventory.json",
+        "ir/slices/bTHDb____root.json",
+        "frontend/src/components/DashboardLayout.tsx",
+        "cursor-impl-cycle/output/reports/implement-SHELL-05-app-shell-layout.review.json"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SHELL-07 added correct page-instance bubble ids (ai_RNbBKLUl/ai_RNbBKLUm) but did not restructure DashboardLayout to match bTHDb sibling order (full-width header above sidebar+main row). Header remains nested in the right column per SHELL-05 shadcn SidebarProvider pattern.",
+      "alternative": "Restructure DashboardLayout: offline banner → full-width Header (page instance) → flex row (sidebar instance | scrollable main containing only ai_RNbBHXid children), aligning DOM hierarchy with IR page-root siblings.",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "ir/inventory.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Decompose scope says 'popups and journal widgets out of scope' and AC-3 defers page-level popups, but brownfield implementation retains full prototype journal CRUD UI and editor/delete dialogs. Ownership marker (data-module-owner) and journal-main boundary are present; popup/widget IR subtree alignment is correctly deferred to MOD-DRSAM-JOURNAL.",
+      "alternative": "If strict shell-only landing is required, replace prototype journal widgets with a minimal placeholder inside ai_RNbBHXid until JOURNAL-01+ lands; otherwise document brownfield retention as intentional in coverage preflight.",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "routing",
+      "priority": "low",
+      "finding": "frontend/src/lib/journal/routes.ts exports JOURNAL_ROUTE but authenticatedRoutes.tsx still hardcodes '/journal' string instead of importing the constant.",
+      "alternative": "Import JOURNAL_ROUTE in authenticatedRoutes.tsx (and any navigate targets) for single source of truth.",
+      "evidence": [
+        "frontend/src/lib/journal/routes.ts",
+        "frontend/src/lib/router/authenticatedRoutes.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

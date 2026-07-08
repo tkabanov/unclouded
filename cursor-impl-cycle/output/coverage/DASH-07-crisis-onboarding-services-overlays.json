@@ -1,0 +1,78 @@
+{
+  "item_id": "DASH-07-crisis-onboarding-services-overlays",
+  "module_id": "MOD-DRSAM-DASHBOARD",
+  "assessed_at": "2026-07-08T06:10:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/dashboard/DashboardMain.tsx",
+      "frontend/src/components/CrisisBar.tsx",
+      "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+      "frontend/src/hooks/useDashboardUser.ts",
+      "frontend/src/styles/index.ts"
+    ],
+    "gaps": [
+      "AC-1: no shared frontend/src/components/crisis/ module yet (CRISIS-01 deferred); dashboard-local CrisisSupportCard implements bTIdW tree inline",
+      "AC-3: pathenrollment1 table may be absent in prototype schema; fetchPathEnrollments falls back to profiles.onboarding_data.path_enrollment1"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/dashboard/CrisisSupportCard.vue": "frontend/src/components/dashboard/CrisisSupportCard.tsx",
+      "frontend/src/components/dashboard/ContinueOnboardingBanner.vue": "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx",
+      "frontend/src/components/dashboard/ServicesFloatingPanel.vue": "frontend/src/components/dashboard/ServicesFloatingPanel.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/CrisisSupportCard.tsx — bTIdW root nests bTIdb card, bTIdg header (bTIdh/bTIdi icon, bTIdm title), bTIdn disclaimer, bTIdo list with bTIds/bTIeA/bTIeL hotline groups and IR copy on bTIdy/bTIdz, bTIeG/bTIeK, bTIeR/bTIeS",
+        "frontend/src/pages/Dashboard.tsx — crisisSupport slot renders CrisisSupportCard under DashboardMain bTIfU slot"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx — bTIpm banner with bTIps sparkle icon, bTIpy title, bTIqE subtitle, bTIqK button routing to /onboarding",
+        "frontend/src/pages/Dashboard.tsx — beforeGrid uses ContinueOnboardingBanner when !profile.results (onboarding incomplete per useDashboardUser.onboardingCompleted / hasResults)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx — page-level bTJEO fixed bottom-right z-[60] outside DashboardMain; bTJEQ RepeatingGroup_list_ lists enrollment rows",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — fetchPathEnrollments queries pathenrollment1 for current user with onboarding_data fallback",
+        "frontend/src/pages/Dashboard.tsx — ServicesFloatingPanel sibling to DashboardLayout (not inside dashboard-main subtree)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "bTIfU", "selector": "[data-bubble-id='bTIfU']", "status": "pass" },
+    { "bubble_id": "bTIdW", "selector": "[data-bubble-id='bTIdW']", "status": "pass" },
+    { "bubble_id": "bTIdb", "selector": "[data-bubble-id='bTIdb']", "status": "pass" },
+    { "bubble_id": "bTIdg", "selector": "[data-bubble-id='bTIdg']", "status": "pass" },
+    { "bubble_id": "bTIdo", "selector": "[data-bubble-id='bTIdo']", "status": "pass" },
+    { "bubble_id": "bTIds", "selector": "[data-bubble-id='bTIds']", "status": "pass" },
+    { "bubble_id": "bTIeA", "selector": "[data-bubble-id='bTIeA']", "status": "pass" },
+    { "bubble_id": "bTIeL", "selector": "[data-bubble-id='bTIeL']", "status": "pass" },
+    { "bubble_id": "bTIpm", "selector": "[data-bubble-id='bTIpm']", "status": "pass" },
+    { "bubble_id": "bTIps", "selector": "[data-bubble-id='bTIps']", "status": "pass" },
+    { "bubble_id": "bTIpy", "selector": "[data-bubble-id='bTIpy']", "status": "pass" },
+    { "bubble_id": "bTIqE", "selector": "[data-bubble-id='bTIqE']", "status": "pass" },
+    { "bubble_id": "bTIqK", "selector": "[data-bubble-id='bTIqK']", "status": "pass" },
+    { "bubble_id": "bTJEO", "selector": "[data-bubble-id='bTJEO']", "status": "pass" },
+    { "bubble_id": "bTJEQ", "selector": "[data-bubble-id='bTJEQ']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/dashboard/CrisisSupportCard.tsx",
+    "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx",
+    "frontend/src/components/dashboard/ServicesFloatingPanel.tsx",
+    "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "cursor-impl-cycle/output/coverage/DASH-07-crisis-onboarding-services-overlays.json"
+  ]
+}

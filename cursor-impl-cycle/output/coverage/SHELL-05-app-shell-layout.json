@@ -1,0 +1,85 @@
+{
+  "item_id": "SHELL-05-app-shell-layout",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T20:10:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/components/ProtectedRoute.tsx",
+      "frontend/src/components/shell/OfflineBanner.tsx",
+      "frontend/src/components/shell/Header.tsx",
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/App.tsx",
+      "frontend/src/hooks/useAuth.tsx"
+    ],
+    "gaps": [
+      "AC-1: OfflineBanner reusable mount lacked composition-level data-bubble-id bTHvM0 in DashboardLayout",
+      "AC-2: authenticated routes duplicated ProtectedRoute wrappers in App.tsx; no shared requiresAuth meta or requireAuth helper",
+      "AC-3: shell row/main column needed explicit min-w-0 on flex children for fluid main width parity with bTHDU/bTHDb"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/layouts/AppShellLayout.tsx": "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/lib/router/requireAuth.ts": "frontend/src/lib/router/requireAuth.ts",
+      "frontend/src/lib/router/authenticatedRoutes.ts": "frontend/src/lib/router/authenticatedRoutes.tsx",
+      "frontend/src/components/ProtectedRoute.tsx": "frontend/src/components/ProtectedRoute.tsx",
+      "frontend/src/App.tsx": "frontend/src/App.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx — mounts OfflineBanner under data-bubble-id bTHvM0; Header (ai_RNbBKLUc) and AppSidebar (ai_RNbBKLUe) mounted with existing reusable-root markers on child components",
+        "frontend/src/components/shell/OfflineBanner.tsx — bTHvT0 element tree inside bTHvM0 mount",
+        "frontend/src/components/shell/Header.tsx — root data-bubble-id ai_RNbBKLUc",
+        "frontend/src/components/AppSidebar.tsx — root data-bubble-id ai_RNbBKLUe"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx — centralized authenticated route defs with handle.requiresAuth meta",
+        "frontend/src/lib/router/requireAuth.ts — useRequireAuth resolves loading/authenticated/unauthenticated; AUTH_REDIRECT_PATH /",
+        "frontend/src/components/ProtectedRoute.tsx — uses useRequireAuth; Outlet pattern for parent route; Navigate to / when unauthenticated",
+        "frontend/src/App.tsx — single ProtectedRoute parent wraps all authenticated routes; public / and /reset_pw remain outside guard"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx — sidebar + main column flex row (flex-1 min-h-0 min-w-0); main content column flex-1 min-w-0 overflow-y-auto matching bTHDU/bTHDb shell structure",
+        "frontend/src/components/DashboardLayout.tsx — Group_transparent_ bubbleStyle on shell root container"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHvM0",
+      "selector": "[data-bubble-id='bTHvM0']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUc",
+      "selector": "[data-bubble-id='ai_RNbBKLUc']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUe",
+      "selector": "[data-bubble-id='ai_RNbBKLUe']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/DashboardLayout.tsx",
+    "frontend/src/components/ProtectedRoute.tsx",
+    "frontend/src/lib/router/requireAuth.ts",
+    "frontend/src/lib/router/authenticatedRoutes.tsx",
+    "frontend/src/App.tsx",
+    "cursor-impl-cycle/output/coverage/SHELL-05-app-shell-layout.json"
+  ]
+}

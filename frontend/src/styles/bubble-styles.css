@@ -1,0 +1,710 @@
+/**
+ * Bubble style classes from ir/slices/styles.json (71 entries).
+ * Apply via bubbleStyle("StyleId_") or className directly.
+ */
+
+/* Button — accent */
+.Button_accent_ {
+  background-color: var(--color_aiRNbAaxgt_default);
+  color: var(--color_aiRNbAaxgu_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_aiRNbAaxgu_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px 8px 16px;
+  box-shadow: none;
+}
+.Button_accent_:hover {
+  background-color: var(--color_aiRNbAaxhL_default);
+}
+
+/* Button — destructive */
+.Button_destructive_ {
+  background-color: var(--color_destructive_default);
+  color: var(--color_aiRNbAaxgv_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_aiRNbAaxgv_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px 8px 16px;
+  box-shadow: none;
+  transition: background-color 200ms ease;
+}
+.Button_destructive_:hover {
+  background-color: var(--color_aiRNbAaxhN_default);
+}
+
+/* Button — ghost */
+.Button_ghost_ {
+  background: none;
+  color: var(--color_text_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_text_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px 8px 16px;
+  box-shadow: none;
+}
+.Button_ghost_:hover {
+  background-color: var(--color_aiRNbAaxgr_default);
+}
+
+/* Button — icon */
+.Button_icon_ {
+  background: none;
+  color: var(--color_text_default);
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: var(--font_default), sans-serif;
+  --bubble-icon-color: var(--color_text_default);
+  --bubble-icon-size: 16px;
+  border-radius: 6px;
+  padding: 8px 8px 8px 8px;
+  box-shadow: none;
+}
+.Button_icon_:hover {
+  background-color: var(--color_aiRNbAaxgr_default);
+}
+
+/* Button — link */
+.Button_link_ {
+  background: none;
+  color: var(--color_primary_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_primary_default);
+  --bubble-icon-size: 14px;
+  padding: 0px 0px 0px 0px;
+  box-shadow: none;
+}
+
+/* Button — outline */
+.Button_outline_ {
+  background: none;
+  color: var(--color_text_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_text_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 8px 16px 8px 16px;
+  box-shadow: none;
+  transition: background-color 200ms ease;
+}
+.Button_outline_:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+/* Button — primary */
+.Button_primary_ {
+  background-color: var(--color_primary_default);
+  color: var(--color_primary_contrast_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_primary_contrast_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px 8px 16px;
+  box-shadow: none;
+  transition: background-color 200ms ease;
+}
+.Button_primary_:hover {
+  background-color: var(--color_aiRNbAaxhH_default);
+}
+.Button_primary_:disabled,
+.Button_primary_[aria-disabled="true"] {
+  background-color: rgba(var(--color_primary_default_rgb), 0.5);
+  cursor: not-allowed;
+}
+
+/* Button — secondary */
+.Button_secondary_ {
+  background-color: var(--color_aiRNbAaxgr_default);
+  color: var(--color_aiRNbAaxgs_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_aiRNbAaxgs_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px 8px 16px;
+  box-shadow: none;
+}
+.Button_secondary_:hover {
+  background-color: var(--color_aiRNbAaxhJ_default);
+}
+
+/* Button — tab */
+.Button_tab_ {
+  background: none;
+  color: var(--color_aiRNbAaxgs_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_aiRNbAaxgs_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px 8px 16px;
+  box-shadow: none;
+}
+.Button_tab_:hover {
+  color: var(--color_text_default);
+  --bubble-icon-color: var(--color_text_default);
+}
+
+/* Button — tab active */
+.Button_tab_active_ {
+  background-color: var(--color_background_default);
+  color: var(--color_text_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+  --bubble-icon-color: var(--color_text_default);
+  --bubble-icon-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px 8px 16px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+/* Checkbox — default */
+.Checkbox_default_ {
+  color: var(--color_text_default);
+  border-radius: 4px;
+}
+
+/* Dropdown — default */
+.Dropdown_default_ {
+  background-color: var(--color_aiRNbAaxgx_default);
+  color: var(--color_text_default);
+  font-size: 14px;
+  font-family: var(--font_default), sans-serif;
+  border-radius: 6px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 0px 12px 0px 12px;
+  --bubble-placeholder-color: #9BA3AF;
+}
+
+/* Group — alert banner */
+.Group_alert_banner_ {
+  background-color: var(--color_alert_default);
+  border-radius: 8px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 12px 16px 12px 16px;
+}
+
+/* Group — badge */
+.Group_badge_ {
+  background-color: var(--color_aiRNbAaxgr_default);
+  border-radius: 9999px;
+  padding: 4px 8px 4px 8px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — badge accent */
+.Group_badge_accent_ {
+  background-color: var(--color_aiRNbAaxgt_default);
+  border-radius: 9999px;
+  padding: 4px 8px 4px 8px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — badge destructive */
+.Group_badge_destructive_ {
+  background-color: var(--color_destructive_default);
+  border-radius: 9999px;
+  padding: 4px 8px 4px 8px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — badge primary */
+.Group_badge_primary_ {
+  background-color: var(--color_primary_default);
+  border-radius: 9999px;
+  padding: 4px 8px 4px 8px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — badge success */
+.Group_badge_success_ {
+  background-color: var(--color_success_default);
+  border-radius: 9999px;
+  padding: 4px 8px 4px 8px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — card */
+.Group_card_ {
+  background-color: var(--color_surface_default);
+  border-radius: 12px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 24px 24px 24px 24px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  transition: background-color 200ms ease;
+}
+
+/* Group — card muted */
+.Group_card_muted_ {
+  background-color: var(--color_aiRNbAaxgr_default);
+  border-radius: 12px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 20px 20px 20px 20px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  transition: background-color 200ms ease;
+}
+
+/* Group — chip */
+.Group_chip_ {
+  background-color: var(--color_aiRNbAaxgr_default);
+  border-radius: 9999px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 4px 12px 4px 12px;
+  transition: background-color 200ms ease;
+}
+.Group_chip_:hover {
+  background-color: var(--color_aiRNbAaxgt_default);
+}
+
+/* Group — chip active */
+.Group_chip_active_ {
+  background-color: var(--color_primary_default);
+  border-radius: 9999px;
+  border: 1px solid var(--color_primary_default);
+  padding: 4px 12px 4px 12px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — crisis bar */
+.Group_crisis_bar_ {
+  background-color: var(--color_destructive_default);
+  border-radius: 8px;
+  border: 1px solid var(--color_aiRNbAaxhO_default);
+  padding: 12px 16px 12px 16px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — divider */
+.Group_divider_ {
+  background: none;
+  border-top: 1px solid var(--color_aiRNbAaxgw_default);
+  transition: background-color 200ms ease;
+}
+
+/* Group — hero */
+.Group_hero_ {
+  background-color: var(--color_background_default);
+  border-radius: 16px;
+  padding: 64px 32px 64px 32px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — overlay */
+.Group_overlay_ {
+  background-color: var(--color_aiRNbAaxhA_default);
+  border-radius: 12px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 24px 24px 24px 24px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — panel */
+.Group_panel_ {
+  background-color: var(--color_background_default);
+  border-radius: 8px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 16px 16px 16px 16px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — pricing card */
+.Group_pricing_card_ {
+  background-color: var(--color_surface_default);
+  border-radius: 16px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 32px 32px 32px 32px;
+  box-shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: background-color 200ms ease;
+}
+
+/* Group — pricing card featured */
+.Group_pricing_card_featured_ {
+  background-color: var(--color_primary_default);
+  border-radius: 16px;
+  border: 1px solid var(--color_aiRNbAaxhI_default);
+  padding: 32px 32px 32px 32px;
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: background-color 200ms ease;
+}
+
+/* Group — section */
+.Group_section_ {
+  background-color: var(--color_background_default);
+  border-bottom: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 32px 24px 32px 24px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — sidebar */
+.Group_sidebar_ {
+  background-color: var(--color_surface_default);
+  border-right: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 16px 16px 16px 16px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — tab bar */
+.Group_tab_bar_ {
+  background-color: var(--color_aiRNbAaxgr_default);
+  border-radius: 8px;
+  padding: 4px 4px 4px 4px;
+  transition: background-color 200ms ease;
+}
+
+/* Group — transparent */
+.Group_transparent_ {
+  background: none;
+  transition: background-color 200ms ease;
+}
+
+/* Icon — default */
+.Icon_default_ {
+  color: var(--color_text_default);
+  --bubble-icon-color: var(--color_text_default);
+}
+
+/* Icon — destructive */
+.Icon_destructive_ {
+  color: var(--color_destructive_default);
+  --bubble-icon-color: var(--color_destructive_default);
+}
+
+/* Icon — muted */
+.Icon_muted_ {
+  color: var(--color_aiRNbAaxgs_default);
+  --bubble-icon-color: var(--color_aiRNbAaxgs_default);
+}
+
+/* Icon — primary */
+.Icon_primary_ {
+  color: var(--color_primary_default);
+  --bubble-icon-color: var(--color_primary_default);
+}
+
+/* Icon — success */
+.Icon_success_ {
+  color: var(--color_success_default);
+  --bubble-icon-color: var(--color_success_default);
+}
+
+/* Image — avatar */
+.Image_avatar_ {
+  border-radius: 9999px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+}
+
+/* Image — default */
+.Image_default_ {
+  border-radius: 8px;
+}
+
+/* Input — default */
+.Input_default_ {
+  background-color: var(--color_aiRNbAaxgx_default);
+  color: var(--color_text_default);
+  border-radius: 6px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 8px 12px 8px 12px;
+  --bubble-placeholder-color: rgba(155,163,175,1);
+}
+
+/* Input — multiline */
+.Input_multiline_ {
+  background-color: var(--color_aiRNbAaxgx_default);
+  border-radius: 6px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 8px 12px 8px 12px;
+  --bubble-placeholder-color: rgba(155,163,175,1);
+}
+
+/* Link — inline */
+.Link_inline_ {
+  color: var(--color_primary_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+}
+
+/* Link — nav */
+.Link_nav_ {
+  color: var(--color_text_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+}
+.Link_nav_:hover {
+  color: var(--color_primary_default);
+}
+.Link_nav_[aria-current="page"] {
+  color: var(--color_primary_default);
+  font-weight: 500;
+}
+
+/* MultiLineInput — Default */
+.MultiLineInput_default_ {
+  background-color: var(--color_aiRNbAaxgx_default);
+  color: var(--color_text_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  border-radius: 6px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 8px 12px 8px 12px;
+  --bubble-placeholder-color: rgba(155,163,175,1);
+}
+
+/* Popup — confirm */
+.Popup_confirm_ {
+  background-color: var(--color_surface_default);
+  border-radius: 12px;
+  border: 1px solid var(--color_destructive_default);
+  padding: 24px 24px 24px 24px;
+  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Popup — detail */
+.Popup_detail_ {
+  background-color: var(--color_surface_default);
+  border-radius: 16px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 32px 32px 32px 32px;
+  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Popup — dialog */
+.Popup_dialog_ {
+  background-color: var(--color_surface_default);
+  border-radius: 16px;
+  border: 1px solid var(--color_aiRNbAaxgw_default);
+  padding: 32px 32px 32px 32px;
+  box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* RepeatingGroup — chips */
+.RepeatingGroup_chips_ {
+  background: none;
+}
+
+/* RepeatingGroup — grid */
+.RepeatingGroup_grid_ {
+  background: none;
+}
+
+/* RepeatingGroup — list */
+.RepeatingGroup_list_ {
+  background: none;
+}
+
+/* Text — body */
+.Text_body_ {
+  color: var(--color_text_default);
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: var(--font_default), sans-serif;
+}
+
+/* Text — body muted */
+.Text_body_muted_ {
+  color: var(--color_aiRNbAaxgs_default);
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: var(--font_default), sans-serif;
+}
+
+/* Text — caption */
+.Text_caption_ {
+  color: var(--color_aiRNbAaxgs_default);
+  font-size: 12px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+}
+
+/* Text — destructive */
+.Text_destructive_ {
+  color: var(--color_destructive_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+}
+
+/* Text — disclaimer */
+.Text_disclaimer_ {
+  color: var(--color_aiRNbAaxgs_default);
+  font-size: 12px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+}
+
+/* Text — heading 1, black */
+.Text_heading_1_ {
+  color: var(--color_text_default);
+  font-size: 36px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 700;
+}
+
+/* Text — heading 1, white */
+.Text_heading_1_copy_ {
+  color: var(--color_primary_contrast_default);
+  font-size: 36px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 700;
+}
+
+/* Text — heading 2, black */
+.Text_heading_2_ {
+  color: var(--color_text_default);
+  font-size: 24px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 600;
+}
+
+/* Text — heading 2, white */
+.Text_heading_2_copy_ {
+  color: var(--color_primary_contrast_default);
+  font-size: 24px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 600;
+}
+
+/* Text — heading 3, black */
+.Text_heading_3_ {
+  color: var(--color_text_default);
+  font-size: 20px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 600;
+}
+
+/* Text — heading 3, white */
+.Text_heading_3_copy_ {
+  color: var(--color_primary_contrast_default);
+  font-size: 20px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 600;
+}
+
+/* Text — inter 13, 400, white */
+.Text_inter_13__400__white_ {
+  color: var(--color_primary_contrast_default);
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: var(--font_default), sans-serif;
+  border: none;
+}
+
+/* Text — inter 13, 400, gray */
+.Text_inter_13__400__white_copy_ {
+  color: var(--color_aiRNbAaxgs_default);
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: var(--font_default), sans-serif;
+  border: none;
+}
+
+/* Text — inter 13, 400, black */
+.Text_inter_13__400__white_copy_copy_ {
+  color: var(--color_text_default);
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: var(--font_default), sans-serif;
+  border: none;
+}
+
+/* Text — inter 14, 500, black */
+.Text_label_ {
+  color: var(--color_text_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+}
+
+/* Text — inter 14, 600, black */
+.Text_label_copy_ {
+  color: var(--color_text_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 600;
+}
+
+/* Text — link */
+.Text_link_ {
+  color: var(--color_primary_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+}
+
+/* Text — price */
+.Text_price_ {
+  color: var(--color_text_default);
+  font-size: 30px;
+  line-height: 1.4;
+  font-family: var(--font_aiRNbAaxhX_default), sans-serif;
+  font-weight: 700;
+}
+
+/* Text — small */
+.Text_small_ {
+  color: var(--color_aiRNbAaxgs_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+}
+
+/* Text — success */
+.Text_success_ {
+  color: var(--color_success_default);
+  font-size: 14px;
+  line-height: 1.4;
+  font-family: var(--font_default), sans-serif;
+  font-weight: 500;
+}
+
+[class^="Icon_"], [class*=" Icon_"] svg,
+.Icon_default_ svg, .Icon_muted_ svg, .Icon_primary_ svg, .Icon_success_ svg, .Icon_destructive_ svg {
+  color: var(--bubble-icon-color, currentColor);
+}
+
+.Input_default_::placeholder,
+.Input_multiline_::placeholder,
+.MultiLineInput_default_::placeholder,
+.Dropdown_default_::placeholder {
+  color: var(--bubble-placeholder-color, rgba(155, 163, 175, 1));
+}

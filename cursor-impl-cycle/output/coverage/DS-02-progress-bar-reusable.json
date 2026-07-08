@@ -1,0 +1,73 @@
+{
+  "item_id": "DS-02-progress-bar-reusable",
+  "module_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-07T20:10:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/styles/tokens.css",
+      "frontend/src/styles/bubble-styles.css",
+      "frontend/src/styles/index.ts",
+      "frontend/src/components/ui/progress.tsx"
+    ],
+    "gaps": [
+      "No frontend/src/components/design-system/ directory or ProgressBar component",
+      "shadcn Progress (ui/progress.tsx) uses Radix + Tailwind theme tokens, not Bubble IR bTIuS hierarchy"
+    ],
+    "reuse_decision": "new",
+    "mapped_target_files": {
+      "frontend/src/components/design-system/ProgressBar.vue": "frontend/src/components/design-system/ProgressBar.tsx",
+      "frontend/src/components/design-system/index.ts": "frontend/src/components/design-system/index.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/ProgressBar.tsx"
+      ],
+      "notes": "Root div data-bubble-id=\"bTIuS\"; value prop typed number and clamped 0–100 via clampProgress()"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/ProgressBar.tsx",
+        "frontend/src/styles/tokens.css",
+        "drsam-99657.bubble element_definitions/bTIuT"
+      ],
+      "notes": "bTIua track: flex row, min-h 8px, rounded 4px, muted track bg var(--color_aiRNbAaxgr_default); bTIuZ fill: var(--color_primary_default)"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/design-system/ProgressBar.tsx"
+      ],
+      "notes": "Fill width style width: ${percent}% scales with clamped value; colors use DS-01 CSS variables, no inline hex"
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIuS",
+      "selector": "[data-bubble-id='bTIuS']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIua",
+      "selector": "[data-bubble-id='bTIua']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIuZ",
+      "selector": "[data-bubble-id='bTIuZ']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/design-system/ProgressBar.tsx",
+    "frontend/src/components/design-system/index.ts",
+    "cursor-impl-cycle/output/coverage/DS-02-progress-bar-reusable.json"
+  ]
+}

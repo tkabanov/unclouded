@@ -1,0 +1,77 @@
+{
+  "item_id": "DASH-05-insights-and-path-cards",
+  "module_id": "MOD-DRSAM-DASHBOARD",
+  "assessed_at": "2026-07-08T04:58:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/dashboard/DashboardMain.tsx",
+      "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+      "frontend/src/components/design-system/ProgressBar.tsx",
+      "frontend/src/lib/dashboard/microCommitmentsApi.ts",
+      "frontend/src/lib/paths.ts",
+      "frontend/src/styles/index.ts"
+    ],
+    "gaps": [
+      "AC-2: pathenrollment1 table absent from frontend/supabase migrations; pathEnrollmentApi falls back to profiles.onboarding_data.path_enrollment1 like microCommitmentsApi",
+      "AC-1: insights remain static coaching copy from Bubble IR (no Supabase insights feed in scope)"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/dashboard/DashboardInsightsCard.vue": "frontend/src/components/dashboard/DashboardInsightsCard.tsx",
+      "frontend/src/components/dashboard/DashboardCurrentPathCard.vue": "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx",
+      "frontend/src/lib/dashboard/pathEnrollmentApi.ts": "frontend/src/lib/dashboard/pathEnrollmentApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — root ai_RNbBHXRx (Group_card_) with header ai_RNbBHXRy, title ai_RNbBHXSA, list ai_RNbBHXSB, disclaimer ai_RNbBHXSL",
+        "frontend/src/pages/Dashboard.tsx — dailyCheckIn slot stacks DashboardCheckinCard then DashboardInsightsCard below assessment results card"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — root ai_RNbBHXSf with header ai_RNbBHXSg, path-name ai_RNbBHXSm, DS-02 ProgressBar in ai_RNbBHXSn/bTIvC, next-step ai_RNbBHXSt from fetchCurrentPathEnrollment",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — pathenrollment1 read with onboarding_data fallback for path name, progress percent, current_session title"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — path-card-link ai_RNbBHXSk routes to /paths",
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — insights-list ai_RNbBHXSB renders insight-item groups ai_RNbBHXSC (icon ai_RNbBHXSD, text ai_RNbBHXSE) and ai_RNbBHXSF (icon ai_RNbBHXSG, text ai_RNbBHXSH) plus ai_RNbBHXSI"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXRx", "selector": "[data-bubble-id='ai_RNbBHXRx']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRy", "selector": "[data-bubble-id='ai_RNbBHXRy']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSA", "selector": "[data-bubble-id='ai_RNbBHXSA']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSB", "selector": "[data-bubble-id='ai_RNbBHXSB']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSC", "selector": "[data-bubble-id='ai_RNbBHXSC']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSD", "selector": "[data-bubble-id='ai_RNbBHXSD']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSE", "selector": "[data-bubble-id='ai_RNbBHXSE']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSF", "selector": "[data-bubble-id='ai_RNbBHXSF']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSL", "selector": "[data-bubble-id='ai_RNbBHXSL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSf", "selector": "[data-bubble-id='ai_RNbBHXSf']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSg", "selector": "[data-bubble-id='ai_RNbBHXSg']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSk", "selector": "[data-bubble-id='ai_RNbBHXSk']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSm", "selector": "[data-bubble-id='ai_RNbBHXSm']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSn", "selector": "[data-bubble-id='ai_RNbBHXSn']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXSt", "selector": "[data-bubble-id='ai_RNbBHXSt']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/dashboard/DashboardInsightsCard.tsx",
+    "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx",
+    "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "cursor-impl-cycle/output/coverage/DASH-05-insights-and-path-cards.json"
+  ]
+}

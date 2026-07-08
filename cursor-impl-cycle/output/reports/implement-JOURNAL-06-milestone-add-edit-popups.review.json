@@ -1,0 +1,194 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-06-milestone-add-edit-popups",
+  "assessed_at": "2026-07-08T08:36:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/AddMilestonePopup.tsx — ai_RNbBHXlf popup root; form ai_RNbBHXln with title ai_RNbBHXlq, description ai_RNbBHXlt, DateInput ai_RNbBHXlw; nested field groups preserve IR hierarchy",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — ai_RNbBHXmC popup root; form ai_RNbBHXmJ with title ai_RNbBHXmM, description ai_RNbBHXmP, DateInput ai_RNbBHXmS",
+        "frontend/src/lib/journal/routes.ts — bubble id constants for all in-scope popup entities including save ai_RNbBHXlz and delete ai_RNbBHXmU"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/milestonesApi.ts — createMilestone inserts uds_milestone (title_text, description_text, achieved_at_date, user_user) with onboarding_data fallback",
+        "frontend/src/lib/journal/milestonesApi.ts — updateMilestone and deleteMilestone with same table-first / fallback pattern",
+        "frontend/src/components/journal/AddMilestonePopup.tsx — ai_RNbBHXlz save calls createMilestone",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — ai_RNbBHXmZ save calls updateMilestone; ai_RNbBHXmU delete calls deleteMilestone",
+        "frontend/src/pages/Journal.tsx — handleMilestonesChanged awaits refreshProfile() then loadMilestones() to refresh JOURNAL-05 grid"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/AddMilestonePopup.tsx — ai_RNbBHXly cancel and ai_RNbBHXll close call dismiss() with no API",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — ai_RNbBHXmY cancel and ai_RNbBHXmH close call dismiss() with no mutation",
+        "frontend/src/components/journal/AddMilestonePopup.tsx and EditMilestonePopup.tsx — achieved_at_date state maps to type=date inputs and MilestoneInput.achieved_at_date column",
+        "frontend/src/components/journal/MilestoneCard.tsx — ai_RNbBHXjm delete icon routes through onEditMilestone (delete hosted in edit popup per IR)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "add-milestone-btn opens AddMilestonePopup and save CTA persists a milestone row",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — handleAddMilestone sets addMilestoneOpen; AddMilestonePopup mounted with onSaved",
+        "frontend/src/components/journal/AddMilestonePopup.tsx — handleSave calls createMilestone then onSaved + dismiss"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Milestone card edit opens EditMilestonePopup prefilled with selected row",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — handleEditMilestone sets editingMilestone + editMilestoneOpen",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — useEffect hydrates title, description, achieved_at_date from milestone prop"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Edit save CTA updates milestone via updateMilestone (not dead handler)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EditMilestonePopup.tsx — handleSave calls updateMilestone",
+        "frontend/src/lib/journal/milestonesApi.ts — updateMilestone table + fallback paths"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Edit delete CTA removes milestone and parent reloads milestones grid",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EditMilestonePopup.tsx — handleDelete calls deleteMilestone then onSaved",
+        "frontend/src/pages/Journal.tsx — onSaved={handleMilestonesChanged} refreshes profile and reloads milestones"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Cancel and close buttons on both popups dismiss without mutation",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/AddMilestonePopup.tsx — dismiss on cancel ai_RNbBHXly and close ai_RNbBHXll",
+        "frontend/src/components/journal/EditMilestonePopup.tsx — dismiss on cancel ai_RNbBHXmY and close ai_RNbBHXmH"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXlf",
+      "selector": "[data-bubble-id='ai_RNbBHXlf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXln",
+      "selector": "[data-bubble-id='ai_RNbBHXln']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlq",
+      "selector": "[data-bubble-id='ai_RNbBHXlq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlt",
+      "selector": "[data-bubble-id='ai_RNbBHXlt']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlw",
+      "selector": "[data-bubble-id='ai_RNbBHXlw']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXlz",
+      "selector": "[data-bubble-id='ai_RNbBHXlz']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmC",
+      "selector": "[data-bubble-id='ai_RNbBHXmC']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmJ",
+      "selector": "[data-bubble-id='ai_RNbBHXmJ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmM",
+      "selector": "[data-bubble-id='ai_RNbBHXmM']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmP",
+      "selector": "[data-bubble-id='ai_RNbBHXmP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmS",
+      "selector": "[data-bubble-id='ai_RNbBHXmS']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmU",
+      "selector": "[data-bubble-id='ai_RNbBHXmU']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "MilestoneCard delete icon (ai_RNbBHXjm) still shares onEditMilestone with edit (ai_RNbBHXjk) and retains aria-label 'Edit milestone options' — JOURNAL-05 triage deferred distinct delete semantics to JOURNAL-06 but card-level affordance was not updated.",
+      "alternative": "Route ai_RNbBHXjm to open EditMilestonePopup with delete-focused focus state, or add aria-label 'Delete milestone' and document that delete is only available inside the edit popup.",
+      "evidence": [
+        "frontend/src/components/journal/MilestoneCard.tsx — ai_RNbBHXjm onClick={() => onEditMilestone(milestone)}"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "EditMilestonePopup delete (ai_RNbBHXmU) fires immediately with no confirmation step — destructive one-click removal unlike journal entry delete which uses AlertDialog.",
+      "alternative": "Add AlertDialog confirm before deleteMilestone, matching Journal.tsx entry-delete pattern and reducing accidental data loss.",
+      "evidence": [
+        "frontend/src/components/journal/EditMilestonePopup.tsx — handleDelete",
+        "frontend/src/pages/Journal.tsx — AlertDialog for journal entry delete"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "grounding",
+      "priority": "low",
+      "finding": "Popup header copy ('Celebrate a win worth remembering', 'Update or remove this milestone') is React-authored; IR text_expressions on ai_RNbBHXlj/ai_RNbBHXlk are dynamic pointers — static Bubble strings were not extracted from drsam-99657.bubble for parity verification.",
+      "alternative": "Resolve text_expressions from bubble source and align subtitle/title strings when static literals exist in the export.",
+      "evidence": [
+        "frontend/src/components/journal/AddMilestonePopup.tsx — DialogTitle/DialogDescription copy",
+        "ir/inventory.json — ai_RNbBHXlj text_expressions host_class render_prop"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

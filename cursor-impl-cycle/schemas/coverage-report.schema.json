@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Coverage report",
   "type": "object",
-  "required": ["item_id", "module_id", "assessed_at", "coverage_pct", "criteria"],
+  "required": ["item_id", "module_id", "assessed_at", "coverage_pct", "criteria", "preflight"],
   "properties": {
     "item_id": { "type": "string", "minLength": 3 },
     "module_id": { "type": "string", "pattern": "^MOD-[A-Z0-9-]+$" },
@@ -22,6 +22,22 @@
         }
       }
     },
-    "files_changed": { "type": "array", "items": { "type": "string" } }
+    "files_changed": { "type": "array", "items": { "type": "string" } },
+    "preflight": {
+      "type": "object",
+      "required": ["reuse_decision"],
+      "properties": {
+        "existing_files_found": { "type": "array", "items": { "type": "string" } },
+        "gaps": { "type": "array", "items": { "type": "string" } },
+        "reuse_decision": {
+          "type": "string",
+          "enum": ["extend", "gap-fill", "new", "skip"]
+        },
+        "mapped_target_files": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    }
   }
 }

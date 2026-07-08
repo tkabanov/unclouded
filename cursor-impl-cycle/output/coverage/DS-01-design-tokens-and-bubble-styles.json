@@ -1,0 +1,100 @@
+{
+  "item_id": "DS-01-design-tokens-and-bubble-styles",
+  "module_id": "MOD-DRSAM-DESIGN-SYSTEM",
+  "assessed_at": "2026-07-07T15:52:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/bubbleStyles.ts",
+      "frontend/src/index.css",
+      "frontend/src/main.tsx",
+      "frontend/tailwind.config.ts",
+      "frontend/src/pages/Index.tsx",
+      "frontend/src/pages/ResetPassword.tsx",
+      "frontend/src/components/shell/OfflineBanner.tsx",
+      "frontend/src/styles/tokens.css",
+      "frontend/src/styles/bubble-styles.css",
+      "frontend/src/styles/index.ts"
+    ],
+    "gaps": [],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/styles/tokens.css": "frontend/src/styles/tokens.css",
+      "frontend/src/styles/bubble-styles.css": "frontend/src/styles/bubble-styles.css",
+      "frontend/src/styles/index.ts": "frontend/src/styles/index.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/styles/tokens.css",
+        "ir/slices/styles.json",
+        "drsam-99657.bubble settings.client_safe.color_tokens / font_tokens"
+      ],
+      "notes": "25 distinct --color_* and --font_* tokens referenced in styles.json (including --color_primary_default_rgb: 44, 127, 140) defined on :root"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/styles/bubble-styles.css",
+        "ir/slices/styles.json"
+      ],
+      "notes": "71 CSS classes (one per styles.json entry) with typography, padding, border-radius, box-shadow, and :hover / :disabled state overrides from IR states; Link_nav_:hover matches IR is_hovered state (font_color only, no bgcolor); Button_primary_.states.bTHKS maps to .Button_primary_:disabled / [aria-disabled=true] with background-color: rgba(var(--color_primary_default_rgb), 0.5)"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/styles/index.ts",
+        "frontend/src/main.tsx",
+        "frontend/src/lib/bubbleStyles.ts"
+      ],
+      "notes": "index.ts imports tokens + bubble-styles and exports bubbleStyle()/styleRef; main.tsx loads @/styles globally; bubbleStyles.ts delegates to @/styles for backward compatibility with Index, ResetPassword, OfflineBanner"
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "Button_primary_",
+      "selector": ".Button_primary_:disabled",
+      "status": "pass",
+      "notes": "bTHKS disabled bgcolor rgba(var(--color_primary_default_rgb), 0.5)"
+    },
+    {
+      "bubble_id": "Text_body_",
+      "selector": ".Text_body_",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_card_",
+      "selector": ".Group_card_",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_badge_accent_",
+      "selector": ".Group_badge_accent_",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_transparent_",
+      "selector": ".Group_transparent_",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Link_nav_",
+      "selector": ".Link_nav_:hover",
+      "status": "pass",
+      "notes": "IR is_hovered state: font_color var(--color_primary_default) only; no background-color"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/styles/bubble-styles.css",
+    "cursor-impl-cycle/output/coverage/DS-01-design-tokens-and-bubble-styles.json"
+  ],
+  "rewrite": {
+    "reason": "B-1/B-2: remove non-IR background-color from Link_nav_ hover and aria-current selectors",
+    "applied_at": "2026-07-07T15:52:00.000Z"
+  }
+}

@@ -25,7 +25,7 @@ const bad = validateDependsOn(
   {
     module_id: "MOD-TEST",
     decomposed: true,
-    items: [{ id: "X1", depends_on: ["ENUMS-01-navigation-labels"] }],
+    items: [{ id: "X1", depends_on: ["ENUMS-01-enum-provider-page-path"] }],
   },
   registry,
   moduleIds,
@@ -42,8 +42,8 @@ const cycle = {
       id: "MOD-DRSAM-DESIGN-SYSTEM",
       decompose_passes: true,
       items: [
-        { id: "DS-01", implement_passes: true, implement_gate: "triage" },
-        { id: "DS-02", implement_passes: true, implement_gate: "triage" },
+        { id: "DS-01-design-tokens-and-bubble-styles", implement_passes: true, implement_gate: "triage" },
+        { id: "DS-02-progress-bar-reusable", implement_passes: true, implement_gate: "triage" },
       ],
     },
     {
@@ -51,16 +51,16 @@ const cycle = {
       decompose_passes: true,
       items: [
         {
-          id: "SHELL-02-enum-view-router-and-feature-slots",
+          id: "SHELL-02-sidebar-navigation",
           implement_passes: true,
           implement_gate: "triage",
           depends_on: [],
         },
         {
-          id: "SHELL-05-home-dashboard-shell-and-header",
+          id: "SHELL-06-dashboard-page-shell",
           implement_passes: false,
           implement_gate: "write",
-          depends_on: ["SHELL-02-enum-view-router-and-feature-slots", "MOD-DRSAM-DESIGN-SYSTEM"],
+          depends_on: ["SHELL-02-sidebar-navigation", "MOD-DRSAM-DESIGN-SYSTEM"],
         },
       ],
     },
@@ -70,8 +70,8 @@ const cycle = {
 const plan = await planWave({ cycle, paths, project });
 const ready = plan.kind === "wave" ? plan.dispatches.map((d) => d.target_id) : [];
 check(
-  ready.includes("SHELL-05-home-dashboard-shell-and-header"),
-  "module-level MOD-DRSAM-DESIGN-SYSTEM dep should unblock SHELL-05",
+  ready.includes("SHELL-06-dashboard-page-shell"),
+  "module-level MOD-DRSAM-DESIGN-SYSTEM dep should unblock SHELL-06",
 );
 
 if (errors.length) {

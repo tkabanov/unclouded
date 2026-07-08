@@ -1,0 +1,238 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-02-journal-entries-list",
+  "assessed_at": "2026-07-08T08:28:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 92,
+  "functional_ok": true,
+  "rewrite_pass": true,
+  "c1_rewrite_status": "resolved",
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalPageContent.tsx — data-bubble-id ai_RNbBHXim journal-tab-content mounts JournalEntriesTab as child",
+        "frontend/src/components/journal/JournalEntriesTab.tsx — ai_RNbBHXin actions row with ai_RNbBHXio count-label group, ai_RNbBHXip icon, ai_RNbBHXiq label, single ai_RNbBHXir new-entry-btn",
+        "frontend/src/components/journal/JournalEntriesTab.tsx — ai_RNbBHXiu journal-entries-grid RepeatingGroup_list_ maps entries",
+        "frontend/src/components/journal/JournalEntryCard.tsx — ai_RNbBHXiv journal-entry-card-template with nested ai_RNbBHXiw header, ai_RNbBHXix meta/badge row, ai_RNbBHXjJ footer reflection group",
+        "frontend/src/pages/Journal.tsx — JournalEntriesTab passed as journalTab inside JOURNAL-01 ai_RNbBHXim slot without duplicating panel marker",
+        "ir/inventory.json — parent_id chain ai_RNbBHXim → (ai_RNbBHXin | ai_RNbBHXiu) and ai_RNbBHXiu → ai_RNbBHXiv → ai_RNbBHXiw → ai_RNbBHXix → (ai_RNbBHXiy | ai_RNbBHXjB) matches React DOM"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts — fetchJournalEntries() queries journal_entries for user_id with title→title_text, mood→mood_tag_text, body→content_text + content_preview truncation",
+        "frontend/src/pages/Journal.tsx — load() calls fetchJournalEntries(user.id) via useAuth on mount",
+        "frontend/supabase/migrations/20260702192837_aa7faa5d-1538-4d3b-855b-94aac42fe308.sql — existing prototype journal_entries table; no project/ schema writes in item scope"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntriesTab.tsx — onNewEntry wired to ai_RNbBHXir new-entry-btn onClick",
+        "frontend/src/components/journal/JournalEntryCard.tsx — onViewEntry wired to ai_RNbBHXjN journal-view-entry-btn onClick",
+        "frontend/src/pages/Journal.tsx — openNew / openEdit connect callbacks to brownfield Dialog CRUD handlers (interim until JOURNAL-03/04 Bubble popups)",
+        "frontend/src/components/journal/JournalEntriesTab.tsx — ai_RNbBHXiq entry count label appends (entries.length) when not loading"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Authenticated user sees journal entries loaded via fetchJournalEntries from Supabase journal_entries",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — load on mount with user.id",
+        "frontend/src/lib/journal/journalEntriesApi.ts",
+        "frontend/src/components/journal/JournalEntriesTab.tsx — grid renders entries or loading skeleton"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "new-entry-btn (ai_RNbBHXir) triggers onNewEntry callback and opens editor flow",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntriesTab.tsx — onClick={onNewEntry} on ai_RNbBHXir",
+        "frontend/src/pages/Journal.tsx — openNew sets editorOpen and clears form fields"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "journal-view-entry-btn (ai_RNbBHXjN) invokes onViewEntry with the selected row",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntryCard.tsx — onClick={() => onViewEntry(entry)}",
+        "frontend/src/pages/Journal.tsx — openEdit hydrates Dialog from JournalEntryListItem"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Entry count label reflects live list length after load",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntriesTab.tsx — ({entries.length}) inline on ai_RNbBHXiq when !loading",
+        "frontend/src/pages/Journal.tsx — setEntries after fetchJournalEntries"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Prior C-1: exactly one DOM node carries data-bubble-id ai_RNbBHXir (actions-row new-entry-btn only; empty-state CTA has no duplicate)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntriesTab.tsx — line 66 data-bubble-id={NEW_ENTRY_BTN_BUBBLE_ID} on actions-row button only",
+        "frontend/src/components/journal/JournalEntriesTab.tsx — lines 110–121 empty-state CTA retains data-style-ref Button_primary_ without data-bubble-id",
+        "repo grep — NEW_ENTRY_BTN_BUBBLE_ID used once in TSX components"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXim",
+      "selector": "[data-bubble-id='ai_RNbBHXim']",
+      "status": "pass",
+      "notes": "JOURNAL-01 panel marker on JournalPageContent; JournalEntriesTab mounts as child content"
+    },
+    {
+      "bubble_id": "ai_RNbBHXin",
+      "selector": "[data-bubble-id='ai_RNbBHXin']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXio",
+      "selector": "[data-bubble-id='ai_RNbBHXio']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXip",
+      "selector": "[data-bubble-id='ai_RNbBHXip']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXiq",
+      "selector": "[data-bubble-id='ai_RNbBHXiq']",
+      "status": "pass",
+      "notes": "Count appended inline as (N) — matches JOURNAL-05 milestones pattern"
+    },
+    {
+      "bubble_id": "ai_RNbBHXir",
+      "selector": "[data-bubble-id='ai_RNbBHXir']",
+      "status": "pass",
+      "notes": "C-1 rewrite verified: single instance under ai_RNbBHXin actions row; empty-state CTA correctly omits duplicate id"
+    },
+    {
+      "bubble_id": "ai_RNbBHXiu",
+      "selector": "[data-bubble-id='ai_RNbBHXiu']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXiv",
+      "selector": "[data-bubble-id='ai_RNbBHXiv']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXiw",
+      "selector": "[data-bubble-id='ai_RNbBHXiw']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXix",
+      "selector": "[data-bubble-id='ai_RNbBHXix']",
+      "status": "pass",
+      "notes": "Badge row group wraps mood badge ai_RNbBHXiy and date ai_RNbBHXjB per layout_notes"
+    },
+    {
+      "bubble_id": "ai_RNbBHXiy",
+      "selector": "[data-bubble-id='ai_RNbBHXiy']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjB",
+      "selector": "[data-bubble-id='ai_RNbBHXjB']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjH",
+      "selector": "[data-bubble-id='ai_RNbBHXjH']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjI",
+      "selector": "[data-bubble-id='ai_RNbBHXjI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjJ",
+      "selector": "[data-bubble-id='ai_RNbBHXjJ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjK",
+      "selector": "[data-bubble-id='ai_RNbBHXjK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjL",
+      "selector": "[data-bubble-id='ai_RNbBHXjL']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjM",
+      "selector": "[data-bubble-id='ai_RNbBHXjM']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXjN",
+      "selector": "[data-bubble-id='ai_RNbBHXjN']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "data",
+      "priority": "low",
+      "finding": "journalEntriesApi.ts hardcodes has_ai_reflection: false on every list row; AI reflection badge subtree (ai_RNbBHXjK–jM) never renders until JOURNAL-04 wires reflection fetch.",
+      "alternative": "JOURNAL-04 should extend fetchJournalEntries or add a join/select for ai_reflection_text presence and drive has_ai_reflection from live data.",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts — mapJournalEntryRow has_ai_reflection: false",
+        "frontend/src/components/journal/JournalEntryCard.tsx — conditional on entry.has_ai_reflection"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Empty-state card inside ai_RNbBHXiu is brownfield UX (dashed border, Smile icon, 'Write your first entry' copy) without IR bubble anchors — intentional after C-1 duplicate-id removal.",
+      "alternative": "If Bubble IR documents a distinct empty-state entity, add a dedicated data-bubble-id on the empty wrapper (not ai_RNbBHXir) when inventory lookup confirms an id; otherwise accept as SPA enhancement.",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntriesTab.tsx — lines 92–122 empty branch"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "onNewEntry/onViewEntry still open brownfield shadcn Dialog in Journal.tsx rather than Bubble new-entry-popup (ai_RNbBHXkK) or entry-detail-popup (ai_RNbBHXkh) — functional CRUD works but popup IR migration is deferred to JOURNAL-03/04.",
+      "alternative": "JOURNAL-03/04 should replace Dialog hosts with IR popups while preserving the same callback contracts from JournalEntriesTab.",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — Dialog open={editorOpen}",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json — JOURNAL-03/04 depends_on JOURNAL-02"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
+}

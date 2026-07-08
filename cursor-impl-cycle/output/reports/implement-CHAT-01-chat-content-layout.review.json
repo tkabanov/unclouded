@@ -1,0 +1,182 @@
+{
+  "phase": "implement",
+  "target_id": "CHAT-01-chat-content-layout",
+  "assessed_at": "2026-07-08T07:00:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx — root div data-bubble-id ai_RNbBHXbD with data-module-owner MOD-DRSAM-CHAT",
+        "frontend/src/pages/Chat.tsx — mounts ChatPageContent as DashboardLayout children (main content slot)",
+        "ir/inventory.json — ai_RNbBHXbD Group child of bTHDV (bTHDZ____root slice)",
+        "frontend/src/lib/chat/routes.ts — CHAT_MAIN_BUBBLE_ID = ai_RNbBHXbD"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx — aside data-bubble-id ai_RNbBHXbE (left column) and sibling div data-bubble-id bTIUt (panel mount)",
+        "frontend/src/components/chat/ChatPageContent.tsx — root flex-col md:flex-row for narrow-viewport stack; ai_RNbBHXbE fit_width via md:w-64 shrink-0, bTIUt flex-1 min-w-0",
+        "ir/inventory.json — ai_RNbBHXbE and bTIUt both parent_id ai_RNbBHXbD; Bubble order 1 (sidebar) / 3 (panel) in row layout",
+        "frontend/src/pages/Chat.tsx — brownfield thread list slotted into sidebar; ChatWindow slotted into bTIUt panel"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx — title row ai_RNbBHXbF nests ai_RNbBHXbG h2 with bubbleStyle('Text_heading_3_') and ai_RNbBHXbH Button with bubbleStyle('Button_primary_')",
+        "ir/refs.json — ai_RNbBHXbH style_ref → Button_primary_",
+        "ir/slices/styles.json — Text_heading_3_ and Button_primary_ definitions",
+        "frontend/src/styles/bubble-styles.css — DS-01 token classes for both style refs",
+        "frontend/src/lib/chat/routes.ts — exports CHAT_PAGE_TITLE_ROW_BUBBLE_ID, CHAT_PAGE_TITLE_BUBBLE_ID, NEW_CONVERSATION_BTN_BUBBLE_ID"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Chat page content layout component mounts in authenticated /chat shell",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/components/DashboardLayout.tsx",
+        "frontend/src/lib/router/authenticatedRoutes.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Two-column layout accepts sidebar and panel slots with working brownfield content",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx",
+        "frontend/src/pages/Chat.tsx — sidebar thread list and ChatWindow panel wired"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "New-conversation control wired to page handler",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — onNewConversation={handleNew}",
+        "frontend/src/components/chat/ChatPageContent.tsx — conditional Button on ai_RNbBHXbH"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDV",
+      "selector": "[data-bubble-id='bTHDV']",
+      "status": "pass",
+      "notes": "Page root on DashboardLayout via Chat pageBubbleId (SHELL-10); not owned by ChatPageContent"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbD",
+      "selector": "[data-bubble-id='ai_RNbBHXbD']",
+      "status": "pass",
+      "notes": "chat-main root Group with data-module-owner MOD-DRSAM-CHAT"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbE",
+      "selector": "[data-bubble-id='ai_RNbBHXbE']",
+      "status": "pass",
+      "notes": "Left conversation-sidebar column region (aside); brownfield thread list inside until CHAT-02"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbF",
+      "selector": "[data-bubble-id='ai_RNbBHXbF']",
+      "status": "pass",
+      "notes": "Title row group with flex row/column responsive alignment"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbG",
+      "selector": "[data-bubble-id='ai_RNbBHXbG']",
+      "status": "pass",
+      "notes": "Static copy 'Conversations' matches drsam-99657.bubble; bubbleStyle Text_heading_3_ applied"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbH",
+      "selector": "[data-bubble-id='ai_RNbBHXbH']",
+      "status": "pass",
+      "notes": "Button_primary_ via bubbleStyle; copy delta vs Bubble 'New' noted in critiques"
+    },
+    {
+      "bubble_id": "bTIUt",
+      "selector": "[data-bubble-id='bTIUt']",
+      "status": "pass",
+      "notes": "Right panel CustomElement mount wrapping ChatWindow slot"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "copy",
+      "finding": "new-conversation btn ai_RNbBHXbH renders 'New conversation' with Plus icon; Bubble static text is 'New' only.",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx",
+        "drsam-99657.bubble — ai_RNbBHXbH properties.text"
+      ]
+    },
+    {
+      "id": "G-2",
+      "area": "hierarchy",
+      "finding": "conversation-sidebar subtree ai_RNbBHXbK (RepeatingGroup ai_RNbBHXbL) not marked inside ai_RNbBHXbE; brownfield thread list used as interim slot content.",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "ir/inventory.json — ai_RNbBHXbK parent ai_RNbBHXbE",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json — CHAT-02 owns conversation-sidebar"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Button label on ai_RNbBHXbH is 'New conversation' plus a Lucide Plus icon; Bubble IR static text for the same element is 'New'. Layout AC is satisfied but copy diverges from source.",
+      "alternative": "Match Bubble copy ('New') or resolve full text expression from IR if dynamic; drop decorative icon unless IR cell template includes it.",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Sidebar slot content is brownfield prototype thread list without data-bubble-id ai_RNbBHXbK / ai_RNbBHXbL markers. Acceptable for CHAT-01 layout boundary but leaves conversation-sidebar IR subtree unmarked until CHAT-02.",
+      "alternative": "In CHAT-02, wrap thread list in ConversationSidebar with ai_RNbBHXbK root and migrate RG/cell hierarchy per decompose.",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "ir/inventory.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "parity-tooling",
+      "priority": "low",
+      "finding": "ai_RNbBHXbG and ai_RNbBHXbH use bubbleStyle() className but omit data-style-ref attributes present on other migrated screens (e.g. DashboardCheckinCard).",
+      "alternative": "Add data-style-ref='Text_heading_3_' on title and data-style-ref='Button_primary_' on button for automated parity selectors.",
+      "evidence": [
+        "frontend/src/components/chat/ChatPageContent.tsx",
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

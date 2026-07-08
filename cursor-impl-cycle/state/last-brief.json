@@ -2,25 +2,83 @@
   "wave": true,
   "phase": "implement",
   "max_parallel": 4,
-  "generated_at": "2026-07-06T19:25:35.562Z",
+  "generated_at": "2026-07-08T09:01:39.291Z",
   "dispatches": [
     {
-      "role": "implement",
-      "target_id": "AUTH-01-index-login-entry",
-      "gate": "write",
+      "role": "triage",
+      "target_id": "CHAT-04-delete-conversation-popup",
+      "gate": "triage",
       "reason": null,
-      "brief_path": "cursor-impl-cycle/state/briefs/implement-implement-AUTH-01-index-login-entry.json",
-      "template": "cursor-impl-cycle/prompts/write-implement.md",
+      "brief_path": "cursor-impl-cycle/state/briefs/implement-triage-CHAT-04-delete-conversation-popup.json",
+      "template": "cursor-impl-cycle/prompts/triage-review.md",
       "outputs": [
-        "cursor-impl-cycle/output/coverage/AUTH-01-index-login-entry.json"
+        "cursor-impl-cycle/output/reports/implement-CHAT-04-delete-conversation-popup.triage.json"
       ],
       "subagent_type": "generalPurpose",
       "model": null,
-      "readonly": false,
+      "readonly": true,
       "target_files": [
-        "frontend/src/pages/IndexPage.vue",
-        "frontend/src/router/index.ts",
-        "frontend/src/features/auth/routes.ts"
+        "frontend/src/features/chat/DeleteConversationPopup.vue",
+        "frontend/src/features/chat/chatConversationsApi.ts"
+      ]
+    },
+    {
+      "role": "review",
+      "target_id": "CHAT-06-chat-welcome-empty-state",
+      "gate": "review",
+      "reason": null,
+      "brief_path": "cursor-impl-cycle/state/briefs/implement-review-CHAT-06-chat-welcome-empty-state.json",
+      "template": "cursor-impl-cycle/prompts/review-implement.md",
+      "outputs": [
+        "cursor-impl-cycle/output/reports/implement-CHAT-06-chat-welcome-empty-state.review.json"
+      ],
+      "subagent_type": "generalPurpose",
+      "model": null,
+      "readonly": true,
+      "target_files": [
+        "frontend/src/features/chat/ChatWelcomePanel.vue",
+        "frontend/src/features/chat/ChatSuggestionCard.vue"
+      ]
+    },
+    {
+      "role": "review",
+      "target_id": "SET-01-settings-tab-router-and-header",
+      "gate": "review",
+      "reason": null,
+      "brief_path": "cursor-impl-cycle/state/briefs/implement-review-SET-01-settings-tab-router-and-header.json",
+      "template": "cursor-impl-cycle/prompts/review-implement.md",
+      "outputs": [
+        "cursor-impl-cycle/output/reports/implement-SET-01-settings-tab-router-and-header.review.json"
+      ],
+      "subagent_type": "generalPurpose",
+      "model": null,
+      "readonly": true,
+      "target_files": [
+        "frontend/src/features/settings/SettingsMain.vue",
+        "frontend/src/features/settings/SettingsTabBar.vue",
+        "frontend/src/features/settings/settingsTabStore.ts",
+        "frontend/src/pages/SettingsPage.vue"
+      ]
+    },
+    {
+      "role": "review",
+      "target_id": "API-01-pillar-score-engine",
+      "gate": "review",
+      "reason": null,
+      "brief_path": "cursor-impl-cycle/state/briefs/implement-review-API-01-pillar-score-engine.json",
+      "template": "cursor-impl-cycle/prompts/review-implement.md",
+      "outputs": [
+        "cursor-impl-cycle/output/reports/implement-API-01-pillar-score-engine.review.json"
+      ],
+      "subagent_type": "generalPurpose",
+      "model": null,
+      "readonly": true,
+      "target_files": [
+        "frontend/src/api/userProfile/aggregatePillarScore.ts",
+        "frontend/src/api/userProfile/calculateUserStability.ts",
+        "frontend/src/api/userProfile/calculateUserAlignment.ts",
+        "frontend/src/api/userProfile/calculateUserPerformance.ts",
+        "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
       ]
     }
   ]

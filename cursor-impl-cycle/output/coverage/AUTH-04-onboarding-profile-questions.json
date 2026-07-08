@@ -1,0 +1,113 @@
+{
+  "item_id": "AUTH-04-onboarding-profile-questions",
+  "module_id": "MOD-DRSAM-AUTH",
+  "assessed_at": "2026-07-07T20:06:00.000Z",
+  "coverage_pct": 100,
+  "rewrite": {
+    "reason": "triage C-2 fix_now",
+    "fix": "OnboardingPerformance.tsx sources role-keyed heading and dimension caption from PERFORMANCE_STEP_HEADINGS/CAPTIONS via getPerformanceStepCopyForRole(resolvePerformanceRole(role)) instead of hardcoded pro copy"
+  },
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/components/OnboardingPillar.tsx",
+      "frontend/src/components/OnboardingRole.tsx",
+      "frontend/src/components/OnboardingOrientation.tsx",
+      "frontend/src/components/OnboardingPerformance.tsx",
+      "frontend/src/lib/userProfile.tsx",
+      "frontend/src/lib/onboardingWizard.ts",
+      "frontend/src/lib/enums/customerProfile.ts",
+      "frontend/src/lib/enums/onboardingQuestions.ts"
+    ],
+    "gaps": [],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/OnboardingPage.vue": "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/components/ProfileQuestionsStep.vue": "frontend/src/components/OnboardingPillar.tsx",
+      "frontend/src/components/RolePillarStep.vue": "frontend/src/components/OnboardingRole.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingPillar.tsx — CUSTOMER_PILLAR_ORDER/LABELS/DESCRIPTIONS/BUBBLE_IDS from customer_pillar_os",
+        "frontend/src/components/OnboardingRole.tsx — CUSTOMER_ROLE_ORDER/LABELS/DESCRIPTIONS/BUBBLE_IDS from customer_role_os",
+        "frontend/src/components/OnboardingOrientation.tsx — ORIENTATION_ANSWERS from customer_orientation_answer_os",
+        "frontend/src/components/OnboardingPerformance.tsx — getPerformanceQuestionsForRole(role) and getPerformanceStepCopyForRole(role) from onboarding_performance_screen_texts / customer_performance_question_os"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/OnboardingRole.tsx — bTHJm/bTHOZ/bTGNh/bTHQR/bTGOk hierarchy with bubbleStyle(Text_label_copy_, Group_chip_, Button_primary_, etc.)",
+        "frontend/src/components/OnboardingPillar.tsx — same bTGNP subtree markers for pillar step (bTHRN group on Onboarding.tsx wrapper)",
+        "frontend/src/components/OnboardingOrientation.tsx — bTHli/bTHVW/bTHVi/bTHVm with RepeatingGroup_list_ and Text_inter styles",
+        "frontend/src/components/OnboardingPerformance.tsx — role-keyed heading data-bubble-id (bTHfG/bTHfK/bTHfM/bTHfL/bTHfQ) plus bTHOZ/bTGNh/bTGNn/bTHVW answer hierarchy"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile.tsx — persistOnboardingDraft merges role_type, primary_pillar, and onboarding_data to profiles",
+        "frontend/src/pages/Onboarding.tsx — role/pillar/orientation/performance onNext handlers persist draft then goNext; validation gates Continue buttons in step components"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGNP",
+      "selector": "[data-bubble-id='bTGNP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "0b12b49e-bf93-427d-a689-13dc2158ba29",
+      "selector": "[data-bubble-id='bTGNP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHMo",
+      "selector": "[data-onboarding-step='role'] [data-bubble-id='bTHMo']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHRN",
+      "selector": "[data-onboarding-step='pillar'] [data-bubble-id='bTHRN']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHkb",
+      "selector": "[data-onboarding-step='orientation'] [data-bubble-id='bTHkb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHfq",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHOZ",
+      "selector": "[data-bubble-id='bTHOZ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHJm",
+      "selector": "[data-bubble-id='bTHJm']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTHfG",
+      "selector": "[data-onboarding-step='performance'] [data-bubble-id='bTHfG']",
+      "status": "pass",
+      "note": "pro role heading; student/caregiver/transition/retired use bTHfK/bTHfM/bTHfL/bTHfQ respectively"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/enums/onboardingQuestions.ts",
+    "frontend/src/components/OnboardingPerformance.tsx",
+    "cursor-impl-cycle/output/coverage/AUTH-04-onboarding-profile-questions.json"
+  ]
+}

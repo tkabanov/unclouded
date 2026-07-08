@@ -11,16 +11,24 @@
         "AC-2: Layout renders left column ai_RNbBHXbE (conversation-sidebar region) and right column bTIUt mount area with responsive stack on narrow viewports per Bubble fit_width semantics",
         "AC-3: Page title row ai_RNbBHXbF shows chat-page-title ai_RNbBHXbG and new-conversation btn ai_RNbBHXbH with style_ref tokens from DS-01"
       ],
-      "ir_refs": ["bTHDV"],
-      "ui_refs": ["bTHDV", "ai_RNbBHXbD", "ai_RNbBHXbE", "ai_RNbBHXbF", "ai_RNbBHXbG", "ai_RNbBHXbH"],
+      "ir_refs": [
+        "bTHDV"
+      ],
+      "ui_refs": [
+        "bTHDV",
+        "ai_RNbBHXbD",
+        "ai_RNbBHXbE",
+        "ai_RNbBHXbF",
+        "ai_RNbBHXbG",
+        "ai_RNbBHXbH"
+      ],
       "layout_notes": "SHELL-10 owns route and shell chrome; this item fills chat-main only. Sidebar and panel are siblings under ai_RNbBHXbD — preserve horizontal split from IR (~87 page entities, most under chat-main subtree).",
       "depends_on": [
         "SHELL-10-chat-page-shell",
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/chat/ChatPageContent.vue",
-        "frontend/src/pages/ChatPage.vue"
+        "frontend/src/pages/Chat.tsx"
       ]
     },
     {
@@ -34,7 +42,13 @@
         "AC-4: Thread cell delete controls group ai_RNbBHXbN with trigger buttons ai_RNbBHXbS and ai_RNbBHXbU (parent group ai_RNbBHXbR) open DeleteConversationPopup with bound chatconversation — preserve IR cell action row hierarchy",
         "AC-5: When RG ai_RNbBHXbL is empty, bTInQ ConditionTrue bootstrap parity runs: bTInY NewThing creates first chatconversation for CurrentUser then bTInW ChangePage navigates to /chat?conversation=<new_id>"
       ],
-      "ir_refs": ["bTHDV", "chatconversation", "bTInQ", "bTInY", "bTInW"],
+      "ir_refs": [
+        "bTHDV",
+        "chatconversation",
+        "bTInQ",
+        "bTInY",
+        "bTInW"
+      ],
       "ui_refs": [
         "ai_RNbBHXbK",
         "ai_RNbBHXbL",
@@ -54,11 +68,11 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/chat/ConversationSidebar.vue",
-        "frontend/src/features/chat/ConversationThreadCell.vue",
-        "frontend/src/features/chat/chatConversationsApi.ts",
-        "frontend/src/features/chat/chatRouteStore.ts",
-        "frontend/src/features/chat/useEmptyConversationBootstrap.ts"
+        "frontend/src/components/chat/ConversationSidebar.tsx",
+        "frontend/src/components/chat/ConversationThreadCell.tsx",
+        "frontend/src/hooks/useEmptyConversationBootstrap.ts",
+        "frontend/src/lib/chat/chatConversationsApi.ts",
+        "frontend/src/lib/chat/chatRouteStore.ts"
       ]
     },
     {
@@ -70,8 +84,15 @@
         "AC-2: When ?conversation= is present, bTInF GetParamFromUrl parity binds ChatReusable; when param absent, bTIUt/ChatReusable hidden and CHAT-06 welcome panel shown instead",
         "AC-3: ChatReusable receives live message list from chatMessagesApi; panel preserves IR GetElement visibility conditions on bTIUt — no ai_RNbBHXbU thread-cell button conflated with empty state"
       ],
-      "ir_refs": ["bTHDV", "bTIRW", "bTInF"],
-      "ui_refs": ["bTIUt", "bTIRW"],
+      "ir_refs": [
+        "bTHDV",
+        "bTIRW",
+        "bTInF"
+      ],
+      "ui_refs": [
+        "bTIUt",
+        "bTIRW"
+      ],
       "layout_notes": "Right column flex-grow panel; ChatReusable fills available height with internal header/messages/composer stack from DS-06. Mutually exclusive with CHAT-06 welcome panel — only one visible based on ?conversation= param. bTIRW integration only — no duplicate chat UI implementation in this module.",
       "depends_on": [
         "CHAT-01-chat-content-layout",
@@ -81,8 +102,8 @@
         "DS-06-chat-composer-and-shell"
       ],
       "target_files": [
-        "frontend/src/features/chat/ChatPanelMount.vue",
-        "frontend/src/features/chat/useChatConversationParam.ts"
+        "frontend/src/components/ChatWindow.tsx",
+        "frontend/src/hooks/useChatConversationParam.ts"
       ]
     },
     {
@@ -94,7 +115,10 @@
         "AC-2: delete-confirm-btn removes chatconversation row and associated chatmessage rows via Supabase client; cancel/close dismiss without mutation",
         "AC-3: Popup opens from thread cell delete controls ai_RNbBHXbS or ai_RNbBHXbU (group ai_RNbBHXbR) with parent chatconversation data binding matching IR Popup custom.chatconversation type"
       ],
-      "ir_refs": ["bTHDV", "chatconversation"],
+      "ir_refs": [
+        "bTHDV",
+        "chatconversation"
+      ],
       "ui_refs": [
         "ai_RNbBHXct",
         "ai_RNbBHXcv",
@@ -114,8 +138,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/chat/DeleteConversationPopup.vue",
-        "frontend/src/features/chat/chatConversationsApi.ts"
+        "frontend/src/components/chat/DeleteConversationPopup.tsx",
+        "frontend/src/lib/chat/chatConversationsApi.ts"
       ]
     },
     {
@@ -127,8 +151,19 @@
         "AC-2: new-conversation btn ai_RNbBHXbH creates chatconversation for CurrentUser and navigates to /chat?conversation=<new_id> matching bTImJ ChangePage url_parameters parity",
         "AC-3: AI assistant reply uses frontend stub mirroring ScheduleAPIEvent on chat page workflows (read project/supabase for handler name only); LoggedOut workflow bTIma clears chat store on sign-out"
       ],
-      "ir_refs": ["bTHDV", "bTIRW", "chatmessage", "chatconversation"],
-      "ui_refs": ["bTITZ", "bTImE", "bTInA", "bTImV", "bTImb"],
+      "ir_refs": [
+        "bTHDV",
+        "bTIRW",
+        "chatmessage",
+        "chatconversation"
+      ],
+      "ui_refs": [
+        "bTITZ",
+        "bTImE",
+        "bTInA",
+        "bTImV",
+        "bTImb"
+      ],
       "layout_notes": "API layer item — no new UI regions. Connects DS-06 composer send events and CHAT-02/03 routing to data layer. Coaching mode buttons bTITI/bTITM/bTITN/bTITO remain DS-06 scope; this item wires their emitted mode-change events to chatconversation context field updates only.",
       "depends_on": [
         "CHAT-03-chat-reusable-panel-mount",
@@ -136,10 +171,10 @@
         "DS-06-chat-composer-and-shell"
       ],
       "target_files": [
-        "frontend/src/features/chat/chatMessagesApi.ts",
-        "frontend/src/features/chat/chatAiReplyStub.ts",
-        "frontend/src/features/chat/useNewConversation.ts",
-        "frontend/src/features/chat/useCoachingModeUpdate.ts"
+        "frontend/src/hooks/useCoachingModeUpdate.ts",
+        "frontend/src/hooks/useNewConversation.ts",
+        "frontend/src/lib/chat/chatAiReplyStub.ts",
+        "frontend/src/lib/chat/chatMessagesApi.ts"
       ]
     },
     {
@@ -151,7 +186,9 @@
         "AC-2: Header region ai_RNbBHXcF with title stack ai_RNbBHXcG and static copy texts ai_RNbBHXcd preserve IR typography and style_ref tokens from DS-01",
         "AC-3: Suggestions section ai_RNbBHXcL renders prompt card groups ai_RNbBHXcY with icon/text children; panel visible only when ?conversation= absent — mutually exclusive with bTIUt ChatReusable mount"
       ],
-      "ir_refs": ["bTHDV"],
+      "ir_refs": [
+        "bTHDV"
+      ],
       "ui_refs": [
         "ai_RNbBHXcE",
         "ai_RNbBHXcF",
@@ -186,8 +223,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/chat/ChatWelcomePanel.vue",
-        "frontend/src/features/chat/ChatSuggestionCard.vue"
+        "frontend/src/components/chat/ChatSuggestionCard.tsx",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx"
       ]
     }
   ]

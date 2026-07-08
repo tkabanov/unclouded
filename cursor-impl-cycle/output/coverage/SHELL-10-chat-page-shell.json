@@ -1,0 +1,84 @@
+{
+  "item_id": "SHELL-10-chat-page-shell",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T20:22:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Chat.tsx",
+      "frontend/src/components/ChatWindow.tsx",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/components/shell/Header.tsx",
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/lib/router/authenticatedRoutes.tsx",
+      "frontend/src/App.tsx"
+    ],
+    "gaps": [
+      "AC-1: Chat page lacked page root data-bubble-id bTHDV on shell wrapper",
+      "AC-2: Header and sidebar used reusable root ids (ai_RNbBKLUc/ai_RNbBKLUe) instead of chat page instances ai_RNbBKLUj/ai_RNbBKLUk",
+      "AC-3: Main content not bounded by ai_RNbBHXbD chat-main; no MOD-DRSAM-CHAT ownership marker"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/ChatPage.vue": "frontend/src/pages/Chat.tsx",
+      "frontend/src/features/chat/routes.ts": "frontend/src/lib/chat/routes.ts",
+      "frontend/src/App.tsx": "frontend/src/lib/router/authenticatedRoutes.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — passes pageBubbleId bTHDV to DashboardLayout via chatShellProps",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDV on shell root when pageBubbleId provided",
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /chat route registered with requiresAuth meta via ProtectedRoute parent in App.tsx"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — passes headerBubbleId ai_RNbBKLUj and sidebarBubbleId ai_RNbBKLUk",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — accepts bubbleId override (defaults ai_RNbBKLUc for other pages)",
+        "frontend/src/components/AppSidebar.tsx — accepts bubbleId override (defaults ai_RNbBKLUe for other pages)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — prototype thread list and ChatWindow wrapped in data-bubble-id ai_RNbBHXbD with data-module-owner MOD-DRSAM-CHAT",
+        "frontend/src/lib/chat/routes.ts — exports CHAT_MAIN_BUBBLE_ID and CHAT_MODULE_ID documenting chat-main ownership; conversation UI and delete popup deferred to MOD-DRSAM-CHAT"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDV",
+      "selector": "[data-bubble-id='bTHDV']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUj",
+      "selector": "[data-bubble-id='ai_RNbBKLUj']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUk",
+      "selector": "[data-bubble-id='ai_RNbBKLUk']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbD",
+      "selector": "[data-bubble-id='ai_RNbBHXbD']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/chat/routes.ts",
+    "frontend/src/pages/Chat.tsx",
+    "cursor-impl-cycle/output/coverage/SHELL-10-chat-page-shell.json"
+  ]
+}

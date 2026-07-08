@@ -1,0 +1,83 @@
+{
+  "item_id": "SHELL-07-journal-page-shell",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T20:16:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/components/shell/Header.tsx",
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/lib/router/authenticatedRoutes.tsx",
+      "frontend/src/App.tsx"
+    ],
+    "gaps": [
+      "AC-1: Journal page lacked page root data-bubble-id bTHDa on shell wrapper",
+      "AC-2: Header and sidebar used reusable root ids (ai_RNbBKLUc/ai_RNbBKLUe) instead of journal page instances ai_RNbBKLUl/ai_RNbBKLUm",
+      "AC-3: Main content not bounded by ai_RNbBHXid journal-main; no MOD-DRSAM-JOURNAL ownership marker"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/JournalPage.vue": "frontend/src/pages/Journal.tsx",
+      "frontend/src/features/journal/routes.ts": "frontend/src/lib/journal/routes.ts",
+      "frontend/src/App.tsx": "frontend/src/lib/router/authenticatedRoutes.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — passes pageBubbleId bTHDa to DashboardLayout via journalShellProps",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDa on shell root when pageBubbleId provided",
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /journal route registered with requiresAuth meta via ProtectedRoute parent in App.tsx"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — passes headerBubbleId ai_RNbBKLUl and sidebarBubbleId ai_RNbBKLUm",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — accepts bubbleId override (defaults ai_RNbBKLUc for other pages)",
+        "frontend/src/components/AppSidebar.tsx — accepts bubbleId override (defaults ai_RNbBKLUe for other pages)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — prototype journal UI wrapped in data-bubble-id ai_RNbBHXid with data-module-owner MOD-DRSAM-JOURNAL; editor/delete dialogs remain outside journal-main boundary (page-level popups deferred to MOD-DRSAM-JOURNAL)",
+        "frontend/src/lib/journal/routes.ts — exports JOURNAL_MAIN_BUBBLE_ID and JOURNAL_MODULE_ID documenting journal-main ownership"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDa",
+      "selector": "[data-bubble-id='bTHDa']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUl",
+      "selector": "[data-bubble-id='ai_RNbBKLUl']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUm",
+      "selector": "[data-bubble-id='ai_RNbBKLUm']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXid",
+      "selector": "[data-bubble-id='ai_RNbBHXid']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/journal/routes.ts",
+    "frontend/src/pages/Journal.tsx",
+    "cursor-impl-cycle/output/coverage/SHELL-07-journal-page-shell.json"
+  ]
+}

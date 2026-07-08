@@ -1,0 +1,86 @@
+{
+  "item_id": "PATHS-02-paths-grid-filters-and-cards",
+  "module_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-08T07:24:00.000Z",
+  "coverage_pct": 100,
+  "rewrite_pass": true,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/lib/paths/routes.ts",
+      "frontend/src/lib/paths/pathsTabStore.ts",
+      "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+      "frontend/src/components/design-system/ProgressBar.tsx",
+      "frontend/src/lib/enums/tier.ts",
+      "frontend/src/lib/enums/pathEnrollment.ts"
+    ],
+    "gaps": [],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/paths/PathsGridPanel.vue": "frontend/src/components/paths/PathsGridPanel.tsx",
+      "frontend/src/components/paths/PathCard.vue": "frontend/src/components/paths/PathCard.tsx",
+      "frontend/src/components/paths/PathsFilterRow.vue": "frontend/src/components/paths/PathsFilterRow.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — ai_RNbBHYHE guided tabpanel mounts PathsGridPanel only when my_paths_ (PATHS-01 AC-4)",
+        "frontend/src/components/paths/PathsFilterRow.tsx — ai_RNbBHYHZ filter-tier-group with ai_RNbBHYHa label and ai_RNbBHYHb tier DD using ENUM-04 TIER_LABELS / All Tiers placeholder",
+        "frontend/src/components/paths/PathsGridPanel.tsx — ai_RNbBHYHh recommended section with ai_RNbBHYHi/ai_RNbBHYHj indicator and ai_RNbBHYHk title (My Paths tab label)"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathsGridPanel.tsx — ai_RNbBHYHn grid RG inside bTItY enrollment RG wrapper; empty grid renders bTJEI with IR copy PATHS_GRID_EMPTY_TEXT via bubbleStyle(Text_body_)",
+        "frontend/src/components/paths/PathCard.tsx — ai_RNbBHYHo cell DOM order matches IR: header ai_RNbBHYHp (badges ai_RNbBHYHr/Ht/Hw) → body ai_RNbBHYHy/title ai_RNbBHYHz → progress bTIvg (bTIva ProgressBar + bTIvt pct) → footer bTIvJ (bTIvO icon + bTIvP status text)",
+        "frontend/src/components/paths/PathCard.tsx — view-details ai_RNbBHYIJ uses data-style-ref Button_accent_ and bubbleStyle(Button_accent_) per IR style_ref"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathsGridPanel.tsx — fetchPathEnrollments(userId, onboardingData) feeds grid; tier DD filters via matchesTierFilter on enrollment.tier",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — pathenrollment1 select extended with progress fields; PathEnrollmentListItem carries tier/pillar/progressPercent",
+        "frontend/src/components/paths/PathCard.tsx — bTIvP uses PATH_ENROLLMENT_STATUS_LABELS (ENUM-03)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYHE", "selector": "[data-bubble-id='ai_RNbBHYHE']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHZ", "selector": "[data-bubble-id='ai_RNbBHYHZ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHb", "selector": "[data-bubble-id='ai_RNbBHYHb']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHh", "selector": "[data-bubble-id='ai_RNbBHYHh']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHk", "selector": "[data-bubble-id='ai_RNbBHYHk']", "status": "pass" },
+    { "bubble_id": "bTItY", "selector": "[data-bubble-id='bTItY']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHn", "selector": "[data-bubble-id='ai_RNbBHYHn']", "status": "pass" },
+    { "bubble_id": "bTJEI", "selector": "[data-bubble-id='bTJEI']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHo", "selector": "[data-bubble-id='ai_RNbBHYHo']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHr", "selector": "[data-bubble-id='ai_RNbBHYHr']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHt", "selector": "[data-bubble-id='ai_RNbBHYHt']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHw", "selector": "[data-bubble-id='ai_RNbBHYHw']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHz", "selector": "[data-bubble-id='ai_RNbBHYHz']", "status": "pass" },
+    { "bubble_id": "bTIvJ", "selector": "[data-bubble-id='bTIvJ']", "status": "pass" },
+    { "bubble_id": "bTIvO", "selector": "[data-bubble-id='bTIvO']", "status": "pass" },
+    { "bubble_id": "bTIvP", "selector": "[data-bubble-id='bTIvP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYIJ", "selector": "[data-bubble-id='ai_RNbBHYIJ']", "status": "pass" },
+    { "bubble_id": "bTIva", "selector": "[data-bubble-id='bTIva']", "status": "pass" },
+    { "bubble_id": "bTIvt", "selector": "[data-bubble-id='bTIvt']", "status": "pass" }
+  ],
+  "rewrite_fixes": [
+    "C-1: PathCard DOM reordered to header → body → progress (bTIvg) → footer per ai_RNbBHYHo IR element order",
+    "C-2: Empty grid uses bTJEI IR copy \"You haven't enrolled in any path yet\" with Text_body_ style",
+    "C-3: View-details btn ai_RNbBHYIJ switched from Button_secondary_ to Button_accent_"
+  ],
+  "files_changed": [
+    "frontend/src/components/paths/PathCard.tsx",
+    "frontend/src/components/paths/PathsGridPanel.tsx",
+    "frontend/src/lib/paths/routes.ts",
+    "cursor-impl-cycle/output/coverage/PATHS-02-paths-grid-filters-and-cards.json"
+  ]
+}

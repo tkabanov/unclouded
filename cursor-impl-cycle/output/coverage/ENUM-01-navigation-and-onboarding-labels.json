@@ -1,0 +1,64 @@
+{
+  "item_id": "ENUM-01-navigation-and-onboarding-labels",
+  "module_id": "MOD-DRSAM-ENUMS",
+  "assessed_at": "2026-07-07T15:00:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/plans.ts",
+      "frontend/src/lib/classification.ts",
+      "frontend/src/lib/paths.ts",
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/pages/Settings.tsx",
+      "frontend/src/pages/Paths.tsx"
+    ],
+    "gaps": [
+      "No frontend/src/lib/enums/ directory existed; navigation/onboarding/settings labels were hardcoded inline in components",
+      "Decompose target_files referenced stale frontend/src/domain/enums/ paths (forbidden per path-conventions)"
+    ],
+    "reuse_decision": "new",
+    "mapped_target_files": {
+      "frontend/src/domain/enums/onboardingSteps.ts": "frontend/src/lib/enums/onboardingSteps.ts",
+      "frontend/src/domain/enums/pathPageTabs.ts": "frontend/src/lib/enums/pathPageTabs.ts",
+      "frontend/src/domain/enums/settingsTabs.ts": "frontend/src/lib/enums/settingsTabs.ts",
+      "frontend/src/domain/enums/index.ts": "frontend/src/lib/enums/index.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingSteps.ts — 13 onboarding_step_os values with slug keys and IR display labels (Welcome, Name, Role, Pillar, Stability, Performance, Alignment, Orientation, Load Signals, State Signals, Behavioral Pattern, Health & Wellness Flags, Results)",
+        "frontend/src/lib/enums/index.ts — barrel re-exports onboarding step constants and types"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/pathPageTabs.ts — path_page_tab_os slugs (my_paths_, paths_library) with labels My Paths, Paths Library",
+        "frontend/src/lib/enums/settingsTabs.ts — settings_tab_os slugs (profile, coaching_preferences, privacy, security, workplace, notifications, subscription, admin) with stable slug-keyed label map",
+        "frontend/src/lib/enums/index.ts — barrel exports for router/tab consumers"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingSteps.ts — each slug constant annotated with Bubble value id (bTHHu–bTIFm); ONBOARDING_STEP_OPTION_SET_ID documents onboarding_step_os",
+        "frontend/src/lib/enums/pathPageTabs.ts — bTIsz/bTItA comments; PATH_PAGE_TAB_OPTION_SET_ID documents path_page_tab_os",
+        "frontend/src/lib/enums/settingsTabs.ts — bTIiw–bTIjJ comments; SETTINGS_TAB_OPTION_SET_ID documents settings_tab_os"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "files_changed": [
+    "frontend/src/lib/enums/onboardingSteps.ts",
+    "frontend/src/lib/enums/pathPageTabs.ts",
+    "frontend/src/lib/enums/settingsTabs.ts",
+    "frontend/src/lib/enums/index.ts",
+    "cursor-impl-cycle/output/coverage/ENUM-01-navigation-and-onboarding-labels.json"
+  ]
+}

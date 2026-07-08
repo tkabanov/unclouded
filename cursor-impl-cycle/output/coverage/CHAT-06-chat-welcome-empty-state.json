@@ -1,0 +1,86 @@
+{
+  "item_id": "CHAT-06-chat-welcome-empty-state",
+  "module_id": "MOD-DRSAM-CHAT",
+  "assessed_at": "2026-07-08T08:46:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Chat.tsx",
+      "frontend/src/components/chat/ChatPageContent.tsx",
+      "frontend/src/components/chat/ChatWelcomePanel.tsx",
+      "frontend/src/components/chat/ChatSuggestionCard.tsx",
+      "frontend/src/lib/chat/routes.ts",
+      "frontend/src/lib/chat/chatRouteStore.ts"
+    ],
+    "gaps": [
+      "Review gap: missing disclaimer node ai_RNbBHXce under suggestions/cards section in ChatWelcomePanel"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/features/chat/ChatWelcomePanel.vue": "frontend/src/components/chat/ChatWelcomePanel.tsx",
+      "frontend/src/features/chat/ChatSuggestionCard.vue": "frontend/src/components/chat/ChatSuggestionCard.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — root data-bubble-id ai_RNbBHXcE with nested group hierarchy from bTHDZ____root.json (header ai_RNbBHXcF, resources ai_RNbBHXcL)",
+        "frontend/src/pages/Chat.tsx — mounts ChatWelcomePanel in bTIUt panel slot when conversationId is null"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — header ai_RNbBHXcF with title row ai_RNbBHXcG, icon group ai_RNbBHXcH/ai_RNbBHXcI, title ai_RNbBHXcJ and subtitle ai_RNbBHXcK using bubbleStyle(Text_heading_3_, Text_caption_) and IR static copy",
+        "frontend/src/components/chat/ChatSuggestionCard.tsx — card action text ai_RNbBHXcd and sibling text nodes preserve IR typography tokens from DS-01",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — disclaimer text node ai_RNbBHXce uses exact Bubble copy: \"Unclouded is AI coaching only — not therapy or medical care. In an emergency, call 911.\""
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — suggestions section ai_RNbBHXcL renders three ChatSuggestionCard groups (ai_RNbBHXcM, ai_RNbBHXcS, ai_RNbBHXcY) with icon/text children per IR",
+        "frontend/src/pages/Chat.tsx — ChatWelcomePanel shown only when ?conversation= absent; ChatWindow shown when param present (mutually exclusive with bTIUt ChatReusable mount)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXcE", "selector": "[data-bubble-id='ai_RNbBHXcE']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcF", "selector": "[data-bubble-id='ai_RNbBHXcF']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcG", "selector": "[data-bubble-id='ai_RNbBHXcG']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcH", "selector": "[data-bubble-id='ai_RNbBHXcH']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcI", "selector": "[data-bubble-id='ai_RNbBHXcI']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcJ", "selector": "[data-bubble-id='ai_RNbBHXcJ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcK", "selector": "[data-bubble-id='ai_RNbBHXcK']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcL", "selector": "[data-bubble-id='ai_RNbBHXcL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcM", "selector": "[data-bubble-id='ai_RNbBHXcM']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcN", "selector": "[data-bubble-id='ai_RNbBHXcN']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcO", "selector": "[data-bubble-id='ai_RNbBHXcO']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcP", "selector": "[data-bubble-id='ai_RNbBHXcP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcQ", "selector": "[data-bubble-id='ai_RNbBHXcQ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcR", "selector": "[data-bubble-id='ai_RNbBHXcR']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcS", "selector": "[data-bubble-id='ai_RNbBHXcS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcT", "selector": "[data-bubble-id='ai_RNbBHXcT']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcU", "selector": "[data-bubble-id='ai_RNbBHXcU']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcV", "selector": "[data-bubble-id='ai_RNbBHXcV']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcW", "selector": "[data-bubble-id='ai_RNbBHXcW']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcX", "selector": "[data-bubble-id='ai_RNbBHXcX']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcY", "selector": "[data-bubble-id='ai_RNbBHXcY']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcZ", "selector": "[data-bubble-id='ai_RNbBHXcZ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXca", "selector": "[data-bubble-id='ai_RNbBHXca']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcb", "selector": "[data-bubble-id='ai_RNbBHXcb']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcc", "selector": "[data-bubble-id='ai_RNbBHXcc']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcd", "selector": "[data-bubble-id='ai_RNbBHXcd']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXce", "selector": "[data-bubble-id='ai_RNbBHXce']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/chat/ChatWelcomePanel.tsx",
+    "frontend/src/components/chat/ChatSuggestionCard.tsx",
+    "frontend/src/lib/chat/routes.ts",
+    "cursor-impl-cycle/output/coverage/CHAT-06-chat-welcome-empty-state.json"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "item_id": "PATHS-01-paths-tab-state-and-header",
+  "module_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-08T07:00:00.000Z",
+  "coverage_pct": 100,
+  "rewrite_pass": true,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/lib/paths/routes.ts",
+      "frontend/src/lib/enums/pathPageTabs.ts",
+      "frontend/src/lib/paths.ts",
+      "frontend/src/components/journal/JournalPageContent.tsx",
+      "frontend/src/lib/journal/journalTabStore.ts"
+    ],
+    "gaps": [],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/PathsPageContent.vue": "frontend/src/pages/Paths.tsx",
+      "frontend/src/lib/paths/pathsTabStore.ts": "frontend/src/lib/paths/pathsTabStore.ts",
+      "frontend/src/components/paths/PathsPageHeader.vue": "frontend/src/components/paths/PathsPageHeader.tsx",
+      "frontend/src/components/paths/PathsTabBar.vue": "frontend/src/components/paths/PathsTabBar.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — ai_RNbBHYGq root via PATHS_MAIN_BUBBLE_ID; bTJDf content slot PATHS_CONTENT_BUBBLE_ID",
+        "frontend/src/components/paths/PathsPageHeader.tsx — ai_RNbBHYGr header with ai_RNbBHYGt title and ai_RNbBHYGu subtitle using bubbleStyle Text_heading_1_ / Text_body_muted_; IR copy: \"Guided coaching paths and curated resources tailored to your journey.\""
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathsTabBar.tsx — ai_RNbBHYHB tab bar lists path_page_tab_os values (My Paths / Paths Library) with ai_RNbBHYHD buttons",
+        "frontend/src/lib/paths/pathsTabStore.ts — path_page_tab_os_ state defaults to my_paths_ (bTIsz); setActiveTab on click"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useSessionCompletionVisible.ts — stub returns false until PATHS-07",
+        "frontend/src/pages/Paths.tsx — bTJDf subtree gated by !sessionCompletionVisible so grid/panels do not render under future bTJAB overlay"
+      ]
+    },
+    {
+      "id": "AC-4",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — ai_RNbBHYHE/bTJDr guided panel visible when my_paths_; ai_RNbBHYIK/bTJDs resources placeholder when paths_library_; mutual hidden class + hidden attribute"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYGq", "selector": "[data-bubble-id='ai_RNbBHYGq']", "status": "pass" },
+    { "bubble_id": "bTJDf", "selector": "[data-bubble-id='bTJDf']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYGr", "selector": "[data-bubble-id='ai_RNbBHYGr']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYGt", "selector": "[data-bubble-id='ai_RNbBHYGt']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYGu", "selector": "[data-bubble-id='ai_RNbBHYGu']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHB", "selector": "[data-bubble-id='ai_RNbBHYHB']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHD", "selector": "[data-bubble-id='ai_RNbBHYHD']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYHE", "selector": "[data-bubble-id='ai_RNbBHYHE']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYIK", "selector": "[data-bubble-id='ai_RNbBHYIK']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/paths/PathsPageHeader.tsx",
+    "cursor-impl-cycle/output/coverage/PATHS-01-paths-tab-state-and-header.json"
+  ]
+}

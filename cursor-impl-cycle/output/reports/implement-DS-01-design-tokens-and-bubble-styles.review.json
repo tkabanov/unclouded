@@ -1,0 +1,121 @@
+{
+  "phase": "implement",
+  "target_id": "DS-01-design-tokens-and-bubble-styles",
+  "assessed_at": "2026-07-07T20:06:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 97,
+  "functional_ok": true,
+  "rewrite_verification": {
+    "prior_blockers": ["B-1", "B-2"],
+    "status": "resolved",
+    "notes": "Link_nav_:hover sets color: var(--color_primary_default) only (IR is_hovered font_color); Link_nav_[aria-current=\"page\"] sets color + font-weight with no background-color"
+  },
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/styles/tokens.css",
+        "ir/slices/styles.json"
+      ],
+      "gap": null,
+      "notes": "Independent audit: 25 distinct var(--color_*) and var(--font_*) references in styles.json all resolve on :root; includes --color_primary_default_rgb for rgba() disabled states"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/styles/bubble-styles.css",
+        "ir/slices/styles.json"
+      ],
+      "gap": null,
+      "notes": "71/71 base CSS classes present (IR keys match exactly, zero missing/extra); hover/disabled overrides faithful — Button_primary_.states.bTHKS → :disabled/[aria-disabled=true] with rgba(var(--color_primary_default_rgb), 0.5); Link_nav_:hover font_color only per IR is_hovered"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/styles/index.ts",
+        "frontend/src/main.tsx",
+        "frontend/src/lib/bubbleStyles.ts"
+      ],
+      "gap": null,
+      "notes": "Barrel imports tokens.css + bubble-styles.css; exports bubbleStyle(), styleRef, BUBBLE_STYLE_IDS (71 entries); main.tsx loads @/styles globally; legacy bubbleStyles.ts re-exports from @/styles"
+    }
+  ],
+  "functional_audit": [
+    {
+      "check": "Design-system primitives load globally without runtime errors",
+      "status": "pass",
+      "evidence": ["frontend/src/main.tsx", "frontend/src/styles/index.ts"]
+    },
+    {
+      "check": "bubbleStyle() resolves all 71 in-scope style_ref IDs",
+      "status": "pass",
+      "evidence": ["frontend/src/styles/index.ts"]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "Link_nav_",
+      "selector": ".Link_nav_:hover",
+      "status": "pass",
+      "notes": "IR is_hovered: font_color var(--color_primary_default) only; no background-color"
+    },
+    {
+      "bubble_id": "Link_nav_",
+      "selector": ".Link_nav_[aria-current=\"page\"]",
+      "status": "pass",
+      "notes": "SPA active-route convention: primary color + font-weight; no background-color (B-1/B-2 fix confirmed)"
+    },
+    {
+      "bubble_id": "Button_primary_",
+      "selector": ".Button_primary_:disabled",
+      "status": "pass",
+      "notes": "IR state bTHKS (isnt_clickable): bgcolor rgba(var(--color_primary_default_rgb), 0.5)"
+    },
+    {
+      "bubble_id": "Text_body_",
+      "selector": ".Text_body_",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_card_",
+      "selector": ".Group_card_",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_badge_accent_",
+      "selector": ".Group_badge_accent_",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_transparent_",
+      "selector": ".Group_transparent_",
+      "status": "pass"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": ".Link_nav_[aria-current=\"page\"] is an SPA routing convention (primary color for active nav) not defined in Bubble IR states; acceptable for downstream SHELL items but not IR-grounded",
+      "alternative": "Document aria-current as an explicit SPA extension in index.ts or defer active-state styling to consuming NavLink components",
+      "evidence": ["frontend/src/styles/bubble-styles.css", "ir/slices/styles.json"]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 5
+  },
+  "brownfield": {
+    "preflight_present": true,
+    "reuse_decision": "extend",
+    "forbidden_paths_touched": false
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-03-onboarding-wizard-shell",
+  "assessed_at": "2026-07-07T15:25:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/App.tsx — Route path=\"/onboarding\" behind ProtectedRoute mounts Onboarding",
+        "frontend/src/components/OnboardingWizardShell.tsx — data-bubble-id bTGNI (page), bTIgV (crisis), bTGNP (onboarding-wrapper) match drsam-99657.bubble top-level bTGNJ element children",
+        "frontend/src/components/OnboardingWizardShell.tsx — data-bubble-id bTHEL and bTHEQ on wizard chrome header",
+        "frontend/src/pages/Onboarding.tsx — per-step wrapper applies ONBOARDING_STEP_BUBBLE_GROUPS data-bubble-id for steps 2–13"
+      ],
+      "gap": "Intermediate bTHHM group (parent of bTHEL/bTHEQ and step panels in IR) is flattened; no data-bubble-id=\"bTHHM\" wrapper"
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingSteps.ts — ONBOARDING_STEP_ORDER lists all 13 onboarding_step_os db_values in Bubble sort order (welcome→results)",
+        "frontend/src/pages/Onboarding.tsx — useState<OnboardingStepSlug> with exhaustive switch routing every slug to an existing step component",
+        "frontend/src/lib/onboardingWizard.ts — advanceStep/retreatStep index ±1 over ONBOARDING_STEP_ORDER",
+        "frontend/src/components/OnboardingWizardShell.tsx — back button wired when canGoBack(step); progress text Step N of 12 via getStepDisplayNumber"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/onboardingWizard.ts — ONBOARDING_WORKFLOW_EVENTS.NEXT_STEP=bTHIT, PREVIOUS_STEP=bTHIw match ir/inventory.json CustomEvent workflows bTHIe/bTHJC",
+        "drsam-99657.bubble — bTHIe (next_step) and bTHJC (previous_step) each run ChangeThing on CurrentUser.onboarding_step_option_onboarding_step_os filtered by current number ±1",
+        "frontend/src/pages/Onboarding.tsx — goNext/goBack mirror index ±1; per-step onNext handlers chain local field capture then goNext; data-workflow-next/back attributes document workflow ids"
+      ],
+      "gap": "React uses in-memory step state rather than persisting onboarding_step_os to user profile on each transition (Bubble ChangeThing target); acceptable for shell-only scope since prototype already defers save to completion"
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "/onboarding route mounts wizard shell for authenticated users",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/App.tsx — ProtectedRoute wraps Onboarding at /onboarding"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "All 13 onboarding_step_os steps render real step components (not placeholder shell)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Onboarding.tsx — exhaustive switch delegates to existing OnboardingWelcome through OnboardingResults components"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Next advances step slug forward; back retreats one step with chrome hidden on welcome",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/onboardingWizard.ts — advanceStep/retreatStep/canGoBack/showsWizardChrome",
+        "frontend/src/components/OnboardingWizardShell.tsx — header chrome gated by showsWizardChrome; back button calls onBack"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Step progress indicator shows scored steps 1–12 after welcome",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/onboardingWizard.ts — ONBOARDING_SCORED_STEP_COUNT=12, getStepDisplayNumber returns index for steps after welcome",
+        "frontend/src/components/OnboardingWizardShell.tsx — Step {displayNumber} of {ONBOARDING_SCORED_STEP_COUNT}"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTGNI",
+      "selector": "[data-bubble-id='bTGNI']",
+      "status": "pass",
+      "notes": "Page root div in OnboardingWizardShell"
+    },
+    {
+      "bubble_id": "bTGNP",
+      "selector": "[data-bubble-id='bTGNP']",
+      "status": "pass",
+      "notes": "onboarding-wrapper flex column; IR pointer /pages/bTGNJ/elements/bTGNP"
+    },
+    {
+      "bubble_id": "bTIgV",
+      "selector": "[data-bubble-id='bTIgV']",
+      "status": "pass",
+      "notes": "CrisisBar wrapper; RE crisis support CustomElement at page top level"
+    },
+    {
+      "bubble_id": "bTHEL",
+      "selector": "[data-bubble-id='bTHEL']",
+      "status": "pass",
+      "notes": "User greeting region; IR entity maps to element bTHHe under bTHHM"
+    },
+    {
+      "bubble_id": "bTHEQ",
+      "selector": "[data-bubble-id='bTHEQ']",
+      "status": "pass",
+      "notes": "Step progress group; IR entity maps to element bTHIS; child bTHER marked on progress text"
+    }
+  ],
+  "gaps": [
+    "bTHHM intermediate group (bTGNP child containing chrome + all step panels) has no data-bubble-id wrapper",
+    "Welcome step has no step-group marker (ONBOARDING_STEP_BUBBLE_GROUPS welcome=null); consistent with Bubble bTHHM having no dedicated welcome child group",
+    "onboarding_step_os not written to user profile on each next/back transition — only local React state until handleComplete"
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Wizard header chrome is a simplified shadcn flex row; IR nests bTHEL/bTHEQ under bTHHM with Bubble Group layout, padding, and style_ref tokens not resolved.",
+      "alternative": "Add bTHHM wrapper with data-bubble-id and map header Group styles from ir/slices/styles.json when MOD-DRSAM-DESIGN-SYSTEM lands.",
+      "evidence": ["frontend/src/components/OnboardingWizardShell.tsx", "ir/inventory.json"]
+    },
+    {
+      "id": "C-2",
+      "area": "workflow-parity",
+      "priority": "medium",
+      "finding": "bTGNJ__workflows____part_A.json lists many ButtonClicked workflows per step; shell correctly implements CustomEvent next_step/previous_step (bTHIT/bTHIw) but does not dispatch actual CustomEvents — navigation is direct React state updates.",
+      "alternative": "Acceptable for SPA shell; document that per-step ButtonClicked workflows remain in step components (AUTH-04/05). Optionally emit synthetic events for parity testing.",
+      "evidence": ["frontend/src/lib/onboardingWizard.ts", "ir/slices/bTGNJ__workflows____part_A.json"]
+    },
+    {
+      "id": "C-3",
+      "area": "state-persistence",
+      "priority": "low",
+      "finding": "Bubble ChangeThing on next_step/previous_step persists onboarding_step_os to CurrentUser; React keeps step in useState only, so mid-flow refresh loses position.",
+      "alternative": "Sync step slug to userProfile or session storage in a follow-up item if resume-on-refresh is required.",
+      "evidence": ["frontend/src/pages/Onboarding.tsx", "drsam-99657.bubble"]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

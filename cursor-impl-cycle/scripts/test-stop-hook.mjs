@@ -105,11 +105,16 @@ function setupFixtures() {
     module_id: "MOD-QMS",
     assessed_at: new Date().toISOString(),
     coverage_pct: 95,
+    preflight: {
+      existing_files_found: ["frontend/src/pages/Index.tsx"],
+      gaps: [],
+      reuse_decision: "extend",
+    },
     criteria: [
-      { id: "AC-1", status: "pass", evidence: ["app/src/views/ModuleListView.vue"] },
-      { id: "AC-2", status: "pass", evidence: ["app/src/composables/useModuleList.ts"] },
+      { id: "AC-1", status: "pass", evidence: ["frontend/src/pages/Index.tsx"] },
+      { id: "AC-2", status: "pass", evidence: ["frontend/src/lib/utils.ts"] },
     ],
-    files_changed: ["app/src/views/ModuleListView.vue"],
+    files_changed: ["frontend/src/pages/Index.tsx"],
   });
 }
 
@@ -203,7 +208,7 @@ async function main() {
   writeReview("implement", "QMS-01-lists", {
     coverage_pct: 95,
     functional_ok: true,
-    functional_audit: [{ id: "FV-1", status: "pass", evidence: ["app/src/views/ModuleListView.vue"] }],
+    functional_audit: [{ id: "FV-1", status: "pass", evidence: ["frontend/src/pages/Index.tsx"] }],
   });
   r = await runStep("implement review → triage", (c) => {
     c.gate_stage = "review";

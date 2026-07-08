@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "CRISIS-01-crisis-support-reusable",
+  "assessed_at": "2026-07-08T09:15:00.000+02:00",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-CRISIS-01-crisis-support-reusable.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "AC-3 names Bubble phosphor icon entities (bTIdt/bTIeE/bTIeM) but brownfield frontend is lucide-react throughout (60+ files); icons are mounted at named ui_refs with data-bubble-id markers and semantically correct Phone/MessageSquare/Heart glyphs. criteria_audit AC-3 and all icon ui_evidence pass. Mirrors SHELL-02-sidebar-navigation C-2 deferral: glyph library parity is optional visual polish, not a composable contract. Downstream consumers (DASH-07 bTIfU, SET-01 bTIfw/bTIfa, PATHS bTIwu) depend_on CRISIS-01 for shared export and tel/sms anchors — not phosphor glyph fidelity."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Disclaimer bTIdn applies bubbleStyle(Text_caption_) then adds text-xs and text-muted-foreground; Tailwind utilities can override styles.json font_color var(--color_aiRNbAaxgs_default) though text-xs matches the 12px Text_caption_ size. criteria_audit AC-2 and ui_evidence Text_caption_ pass. Removing redundant Tailwind or mapping muted-foreground to the Bubble token is polish aligned with DS-01-design-tokens-and-bubble-styles — does not block SET-01 or PATHS crisis mounts."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Title/disclaimer column (bTIdg child) uses flex-col and gap-1 without display:flex, so gap-1 spacing may not apply; block-level h3/p still stack correctly. criteria_audit AC-2 and ui_evidence on bTIdm/bTIdn pass. One-line flex addition is micro-layout polish — does not affect shared export contract or downstream depends_on gates."
+    }
+  ],
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 lucide vs phosphor glyph parity (optional polish, SHELL-02 precedent); C-2 Text_caption_ Tailwind override (DS-01 token bridge); C-3 title column flex gap (micro-layout polish)."
+}

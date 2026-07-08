@@ -1,0 +1,67 @@
+{
+  "item_id": "DASH-04-daily-checkin-card",
+  "module_id": "MOD-DRSAM-DASHBOARD",
+  "assessed_at": "2026-07-07T21:00:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/dashboard/DashboardMain.tsx",
+      "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+      "frontend/src/hooks/useDashboardUser.ts",
+      "frontend/src/lib/userProfile.tsx",
+      "frontend/src/integrations/supabase/client.ts",
+      "frontend/src/styles/index.ts"
+    ],
+    "gaps": [
+      "AC-3: dailycheckin and user tables are absent from frontend/supabase migrations; checkinApi attempts best-effort insert then falls back to profiles.onboarding_data.daily_checkins with daily_check_in_streak_number / streak_days_number",
+      "AC-3: Streak computation is client-side simplified parity (yesterday continuation) rather than full Bubble bTIWG scheduled cancellation workflow"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/dashboard/DashboardCheckinCard.vue": "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+      "frontend/src/lib/dashboard/checkinApi.ts": "frontend/src/lib/dashboard/checkinApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — root ai_RNbBHXRY (Group_card_) nests ai_RNbBHXRZ header, ai_RNbBHXRd streak badge, ai_RNbBHXRg form",
+        "frontend/src/pages/Dashboard.tsx — dailyCheckIn slot renders DashboardCheckinCard under DashboardMain ai_RNbBHXRX slot"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — ai_RNbBHXRk and ai_RNbBHXRo sliders use IR handle_color hsla(188,52%,36%,1); mood binds bTIXh/ai_RNbBHXRj and energy binds ai_RNbBHXRn with var(--color_primary_default) Text_label_ tokens",
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — removed brownfield placeholder accent-primary range styling from Dashboard.tsx MoodSlider"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/checkinApi.ts — submitDailyCheckIn inserts dailycheckin (mood_number, energy_stress_level_number, reflection_text, date_date, user_user) and returns refreshed daily_check_in_streak_number",
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — ai_RNbBHXRw submit calls submitDailyCheckIn then refresh() and updates ai_RNbBHXRf streak badge"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXRY", "selector": "[data-bubble-id='ai_RNbBHXRY']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRZ", "selector": "[data-bubble-id='ai_RNbBHXRZ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRd", "selector": "[data-bubble-id='ai_RNbBHXRd']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRg", "selector": "[data-bubble-id='ai_RNbBHXRg']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRk", "selector": "[data-bubble-id='ai_RNbBHXRk']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRo", "selector": "[data-bubble-id='ai_RNbBHXRo']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRw", "selector": "[data-bubble-id='ai_RNbBHXRw']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+    "frontend/src/lib/dashboard/checkinApi.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "cursor-impl-cycle/output/coverage/DASH-04-daily-checkin-card.json"
+  ]
+}

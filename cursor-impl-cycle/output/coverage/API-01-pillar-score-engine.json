@@ -1,0 +1,66 @@
+{
+  "item_id": "API-01-pillar-score-engine",
+  "module_id": "MOD-DRSAM-API",
+  "assessed_at": "2026-07-08T08:40:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/completeOnboarding.ts",
+      "frontend/src/lib/userProfile.tsx",
+      "frontend/src/pages/Onboarding.tsx",
+      "frontend/src/components/OnboardingStability.tsx",
+      "frontend/src/components/OnboardingAlignment.tsx",
+      "frontend/src/components/OnboardingPerformance.tsx",
+      "frontend/src/lib/enums/onboardingQuestions.ts",
+      "frontend/src/lib/dashboard/coachingModeApi.ts"
+    ],
+    "gaps": [],
+    "reuse_decision": "new",
+    "mapped_target_files": {
+      "frontend/src/api/userProfile/aggregatePillarScore.ts": "frontend/src/lib/userProfile/aggregatePillarScore.ts",
+      "frontend/src/api/userProfile/calculateUserStability.ts": "frontend/src/lib/userProfile/calculateUserStability.ts",
+      "frontend/src/api/userProfile/calculateUserAlignment.ts": "frontend/src/lib/userProfile/calculateUserAlignment.ts",
+      "frontend/src/api/userProfile/calculateUserPerformance.ts": "frontend/src/lib/userProfile/calculateUserPerformance.ts",
+      "frontend/src/api/userProfile/onboardingProfilePipeline.ts": "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/aggregatePillarScore.ts — computePillarScore(q1..q5) averages five scores rounded to one decimal, matching bTHxW/bTHxo and onboarding step components"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserStability.ts — reads sq1_number..sq5_number (or stabilityScores nested keys), invokes computePillarScore, patches stability_score_number",
+        "frontend/src/lib/userProfile/calculateUserAlignment.ts — reads aq1..aq5, patches alignment_score_number (bTHyM)",
+        "frontend/src/lib/userProfile/calculateUserPerformance.ts — reads pq1..pq5, patches performance_score_number (bTHyU)",
+        "frontend/src/lib/userProfile/pillarScoreUserData.ts — UDS field names from output/drsam-99657/agent/schema/uds.types.ts; Supabase profiles.onboarding_data JSONB patch"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts — runPillarScoreCalculators(userId) runs stability → alignment → performance (bTHVC/bTHja/bTHgY chain)",
+        "frontend/src/lib/completeOnboarding.ts — invokes runPillarScoreCalculators after saveOnboarding",
+        "frontend/src/pages/Onboarding.tsx — passes userId into completeOnboarding deps"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/userProfile/aggregatePillarScore.ts",
+    "frontend/src/lib/userProfile/pillarScoreUserData.ts",
+    "frontend/src/lib/userProfile/calculateUserStability.ts",
+    "frontend/src/lib/userProfile/calculateUserAlignment.ts",
+    "frontend/src/lib/userProfile/calculateUserPerformance.ts",
+    "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+    "frontend/src/lib/completeOnboarding.ts",
+    "frontend/src/pages/Onboarding.tsx",
+    "cursor-impl-cycle/output/coverage/API-01-pillar-score-engine.json"
+  ]
+}

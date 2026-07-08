@@ -1,0 +1,158 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-08-paths-page-shell",
+  "assessed_at": "2026-07-07T20:22:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx — /paths route registered with Paths element",
+        "frontend/src/App.tsx — route nested under ProtectedRoute with requiresAuth handle meta",
+        "frontend/src/pages/Paths.tsx — passes pageBubbleId bTHDf via pathsShellProps to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — applies data-bubble-id bTHDf on shell root when pageBubbleId provided"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/paths/routes.ts — exports PATHS_HEADER_INSTANCE_BUBBLE_ID (ai_RNbBKLUn) and PATHS_SIDEBAR_INSTANCE_BUBBLE_ID (ai_RNbBKLUo)",
+        "frontend/src/pages/Paths.tsx — passes headerBubbleId and sidebarBubbleId to DashboardLayout",
+        "frontend/src/components/DashboardLayout.tsx — forwards instance ids to Header and AppSidebar",
+        "frontend/src/components/shell/Header.tsx — data-bubble-id={bubbleId} with paths override (defaults ai_RNbBKLUc)",
+        "frontend/src/components/AppSidebar.tsx — data-bubble-id={bubbleId} on Sidebar root with paths override (defaults ai_RNbBKLUe)",
+        "ir/inventory.json — ai_RNbBKLUn and ai_RNbBKLUo are CustomElement children of bTHDf per bTHDg____root.json"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — prototype path cards wrapped in div with data-bubble-id ai_RNbBHYGq and data-module-owner MOD-DRSAM-PATHS",
+        "frontend/src/lib/paths/routes.ts — documents PATHS_MAIN_BUBBLE_ID and PATHS_MODULE_ID; path_page_tab_os_ tab UI correctly deferred",
+        "ir/inventory.json — ai_RNbBHYGq is Group child of bTHDf (paths-main boundary)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "/paths route registered and auth-guarded via ProtectedRoute parent",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/router/authenticatedRoutes.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/components/ProtectedRoute.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Paths page mounts AppShellLayout (DashboardLayout) with page-level CustomElement instance overrides",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/DashboardLayout.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Paths content renders inside ai_RNbBHYGq boundary; path_page_tab_os_ tab router deferred to MOD-DRSAM-PATHS",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/lib/paths/routes.ts",
+        "ir/inventory.json — custom_state:bTHDf:path_page_tab_os_ present in slice but not wired in shell scope"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDf",
+      "selector": "[data-bubble-id='bTHDf']",
+      "status": "pass",
+      "notes": "Page root on DashboardLayout outer wrapper when Paths passes pageBubbleId"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUn",
+      "selector": "[data-bubble-id='ai_RNbBKLUn']",
+      "status": "pass",
+      "notes": "Paths-specific header CustomElement instance on Header via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBKLUo",
+      "selector": "[data-bubble-id='ai_RNbBKLUo']",
+      "status": "pass",
+      "notes": "Paths-specific sidebar CustomElement instance on AppSidebar via bubbleId override"
+    },
+    {
+      "bubble_id": "ai_RNbBHYGq",
+      "selector": "[data-bubble-id='ai_RNbBHYGq']",
+      "status": "pass",
+      "notes": "paths-main content boundary wraps page children with data-module-owner MOD-DRSAM-PATHS"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "layout",
+      "finding": "IR places ai_RNbBKLUn, ai_RNbBKLUo, and ai_RNbBHYGq as bTHDf siblings; React shell still nests Header inside the main column to the right of the sidebar (inherited from SHELL-05). Page-instance markers are correct but full-width header sibling layout remains unresolved.",
+      "evidence": [
+        "ir/inventory.json",
+        "ir/slices/bTHDg____root.json",
+        "frontend/src/components/DashboardLayout.tsx",
+        "cursor-impl-cycle/output/reports/implement-SHELL-05-app-shell-layout.review.json"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "SHELL-08 added correct page-instance bubble ids (ai_RNbBKLUn/ai_RNbBKLUo) but did not restructure DashboardLayout to match bTHDg sibling order (full-width header above sidebar+main row). Header remains nested in the right column per SHELL-05 shadcn SidebarProvider pattern.",
+      "alternative": "Restructure DashboardLayout: offline banner → full-width Header (page instance) → flex row (sidebar instance | scrollable main containing only ai_RNbBHYGq children), aligning DOM hierarchy with IR page-root siblings.",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "ir/inventory.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "scope",
+      "priority": "low",
+      "finding": "Decompose scope defers path tabs and enrollment UI to MOD-DRSAM-PATHS, but brownfield implementation retains full prototype path-card grid inside ai_RNbBHYGq. Ownership marker (data-module-owner) and paths-main boundary are present; tab router (path_page_tab_os_) and enrollment subtree alignment are correctly deferred.",
+      "alternative": "If strict shell-only landing is required, replace prototype path cards with a minimal placeholder inside ai_RNbBHYGq until PATHS-01+ lands; otherwise document brownfield retention as intentional in coverage preflight.",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SHELL.json",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "routing",
+      "priority": "low",
+      "finding": "frontend/src/lib/paths/routes.ts exports PATHS_ROUTE but authenticatedRoutes.tsx still hardcodes '/paths' string instead of importing the constant.",
+      "alternative": "Import PATHS_ROUTE in authenticatedRoutes.tsx (and any navigate targets) for single source of truth.",
+      "evidence": [
+        "frontend/src/lib/paths/routes.ts",
+        "frontend/src/lib/router/authenticatedRoutes.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

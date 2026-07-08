@@ -1,0 +1,25 @@
+{
+  "phase": "implement",
+  "target_id": "ENUM-01-navigation-and-onboarding-labels",
+  "assessed_at": "2026-07-07T15:10:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-ENUM-01-navigation-and-onboarding-labels.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "ENUM-01 scope is to centralize and export typed slug-keyed label maps for onboarding_step_os, path_page_tab_os, and settings_tab_os — not to rewire consumer pages. All three ACs pass (criteria_audit pass, coverage 100%); none require Onboarding, Settings, Paths, or AppSidebar to import @/lib/enums at runtime. Downstream ENUM-02 and ENUM-03 depend_on ENUM-01 for the shared enum-module pattern and additional option sets, not for page-level adoption of these three maps. Consumer wiring remains valid follow-up polish and can land when those screens are refactored (e.g. ENUM-02 questionnaire work or a dedicated consumer pass)."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "AC-3 requires Bubble option-set value ids as comments for IR traceability — satisfied in onboardingSteps.ts, pathPageTabs.ts, and settingsTabs.ts. An exported BUBBLE_ID_TO_SLUG reverse map is optional adapter-layer convenience not named in ENUM-01 acceptance criteria; the reviewer's alternative correctly frames it as conditional on Supabase/API payloads carrying Bubble value ids. criteria_audit AC-3 passes; no downstream depends_on gate requires reverse lookup maps now."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, all ACs pass. Deferred: C-1 page/component adoption of @/lib/enums (consumer wiring out of ENUM-01 scope); C-2 optional Bubble id → slug reverse maps (AC-3 satisfied via inline comments)."
+}

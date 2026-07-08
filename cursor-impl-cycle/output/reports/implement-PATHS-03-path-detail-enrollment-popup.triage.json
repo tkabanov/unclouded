@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "PATHS-03-path-detail-enrollment-popup",
+  "assessed_at": "2026-07-08T08:03:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-03-path-detail-enrollment-popup.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read confirms ai_RNbBHYJR (header-text group), ai_RNbBHYJg (path-detail-steps-group), and ai_RNbBHYJp (progress-bar-wrap) are intermediate Group_transparent_ nodes in decompose ui_refs[], but AC-1/AC-2 cite only leaf markers (ai_RNbBHYJS/JZ, ai_RNbBHYJh/Ji, bTItq/bTIuq/ai_RNbBHYJs) — not these wrappers. PathDetailPopup.tsx preserves layout via space-y flex nesting; all leaf data-bubble-id selectors pass criteria_audit and coverage ui_evidence. ui_evidence is partial solely for automated hierarchy selectors on the three flattened wrappers. Matches DASH-02 C-1 and DASH-04 C-1 precedent: two-line wrapper divs are parity-tooling polish, not a rewrite blocker; PATHS-04/PATHS-06 depends_on need enroll/unenroll wiring and store refresh, not intermediate DOM anchors."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Finding confirmed: handleEnroll/handleUnenroll catch blocks only console.error (PathDetailPopup.tsx L129-130, L147-148). functional_audit FV-2/FV-3 and criteria_audit AC-3 pass on happy-path mutation + store refresh; decompose scope and ACs do not require inline error toast or banner. Brownfield dashboard/journal items defer similar mutation-error surfacing when ACs are satisfied (JOURNAL-03 C-2 auth-edge-case pattern). User-visible enroll/unenroll failure feedback is UX hardening backlog, not a gate blocker for PATHS-03."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "formatStepsText joins sessions with spaces into single ai_RNbBHYJi paragraph; IR text_expressions may render per-session line breaks in Bubble. AC-2 requires steps label ai_RNbBHYJh and text ai_RNbBHYJi bound to path session data — satisfied with correct copy content. criteria_audit AC-2 and ui_evidence for ai_RNbBHYJi pass; review priority is low and alternative defers action until visual parity testing confirms mismatch. Line-broken or list rendering is optional fidelity polish within PATHS-03 scope, not a downstream depends_on blocker."
+    }
+  ],
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 intermediate ui_ref wrappers (ai_RNbBHYJR, ai_RNbBHYJg, ai_RNbBHYJp) as parity-tooling polish per DASH-02 C-1 precedent; C-2 mutation error toast as UX hardening not in ACs; C-3 steps line-break layout pending optional visual parity confirmation."
+}

@@ -1,0 +1,98 @@
+{
+  "phase": "implement",
+  "target_id": "ENUM-01-navigation-and-onboarding-labels",
+  "assessed_at": "2026-07-07T15:05:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 95,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingSteps.ts",
+        "frontend/src/lib/enums/index.ts",
+        "drsam-99657.bubble option_sets/onboarding_step_os (13 values)"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/pathPageTabs.ts",
+        "frontend/src/lib/enums/settingsTabs.ts",
+        "frontend/src/lib/enums/index.ts",
+        "drsam-99657.bubble option_sets/path_page_tab_os (2 values)",
+        "drsam-99657.bubble option_sets/settings_tab_os (8 values)"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingSteps.ts — ONBOARDING_STEP_OPTION_SET_ID + per-value bTHHu–bTIFm comments",
+        "frontend/src/lib/enums/pathPageTabs.ts — PATH_PAGE_TAB_OPTION_SET_ID + bTIsz/bTItA comments",
+        "frontend/src/lib/enums/settingsTabs.ts — SETTINGS_TAB_OPTION_SET_ID + bTIiw–bTIjJ comments"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-ENUM-01",
+      "check": "Typed enum modules export all three IR option sets with correct slug keys and display labels for downstream router/tab consumers",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingSteps.ts",
+        "frontend/src/lib/enums/pathPageTabs.ts",
+        "frontend/src/lib/enums/settingsTabs.ts",
+        "frontend/src/lib/enums/index.ts"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "adoption",
+      "priority": "low",
+      "finding": "No prototype pages or components import from @/lib/enums yet; Onboarding, Settings, Paths, and AppSidebar still use inline labels.",
+      "alternative": "Wire imports in a follow-up item or as part of ENUM-02/consumer refactors so the centralized maps become the single source of truth at runtime.",
+      "evidence": [
+        "frontend/src/pages/Onboarding.tsx",
+        "frontend/src/pages/Settings.tsx",
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/AppSidebar.tsx"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "traceability",
+      "priority": "low",
+      "finding": "Bubble value id → slug reverse lookup is only available via inline comments; no exported BUBBLE_ID_TO_SLUG map for adapter layers.",
+      "alternative": "Add optional ONBOARDING_STEP_BY_BUBBLE_ID (and siblings) if Supabase/API payloads carry Bubble option value ids.",
+      "evidence": [
+        "frontend/src/lib/enums/onboardingSteps.ts"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  },
+  "independent_verification": {
+    "onboarding_step_os_count": 13,
+    "path_page_tab_os_count": 2,
+    "settings_tab_os_count": 8,
+    "display_string_source": "drsam-99657.bubble option_sets (cross-checked ir/resolver.json display_name)",
+    "implementer_coverage_pct_claim": 100,
+    "reviewer_coverage_pct": 100,
+    "preflight_valid": true
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "item_id": "PATHS-05-resource-detail-popup",
+  "module_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-08T10:10:00.000Z",
+  "coverage_pct": 100,
+  "rewrite_pass": true,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/paths/ResourceDetailPopup.tsx",
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/lib/paths/routes.ts",
+      "frontend/src/components/paths/ResourceCard.tsx"
+    ],
+    "gaps": [
+      "Rewrite B-1: ai_RNbBHYKS/ai_RNbBHYKT were wrongly mapped as sensitivity; IR defines them as link-group and link-label (External Link). Header sensitivity belongs on ai_RNbBHYKG in badges row."
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/paths/ResourceDetailPopup.tsx": "frontend/src/components/paths/ResourceDetailPopup.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — resource-view-btn ai_RNbBHYJN opens ResourceDetailPopup with viewingResource state",
+        "frontend/src/components/paths/ResourceDetailPopup.tsx — popup ai_RNbBHYJx; header ai_RNbBHYJz with text group ai_RNbBHYKA; mode/submode badges ai_RNbBHYKC/ai_RNbBHYKE and sensitivity badge ai_RNbBHYKG in ai_RNbBHYKB row; title ai_RNbBHYKI"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/ResourceDetailPopup.tsx — body ai_RNbBHYKL with disclaimer row ai_RNbBHYKM, content ai_RNbBHYKR; sensitivity shown only in header ai_RNbBHYKG (no popup body sensitivity in IR; card uses ai_RNbBHYJI/JJ/JK separately)",
+        "frontend/src/lib/paths/routes.ts — PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY from Bubble ai_RNbBHYKO static text"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/ResourceDetailPopup.tsx — footer ai_RNbBHYKV with link group ai_RNbBHYKS, label ai_RNbBHYKT (External Link), href ai_RNbBHYKU, and Button_primary_ ai_RNbBHYKW (Done); close ai_RNbBHYKJ dismisses popup",
+        "frontend/src/components/paths/ResourceDetailPopup.tsx — overlay ai_RNbBHYMy with data-style-ref Group_overlay_"
+      ]
+    }
+  ],
+  "functional_verification": [
+    {
+      "id": "FV-4",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — onViewResource sets viewingResource and resourcePopupOpen",
+        "frontend/src/components/paths/ResourceDetailPopup.tsx — Dialog bound to ResourceListItem; close ai_RNbBHYKJ and Done ai_RNbBHYKW call onOpenChange(false)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYJx", "selector": "[data-bubble-id='ai_RNbBHYJx']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYMy", "selector": "[data-bubble-id='ai_RNbBHYMy']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJz", "selector": "[data-bubble-id='ai_RNbBHYJz']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKA", "selector": "[data-bubble-id='ai_RNbBHYKA']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKC", "selector": "[data-bubble-id='ai_RNbBHYKC']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKE", "selector": "[data-bubble-id='ai_RNbBHYKE']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKG", "selector": "[data-bubble-id='ai_RNbBHYKG']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKI", "selector": "[data-bubble-id='ai_RNbBHYKI']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKL", "selector": "[data-bubble-id='ai_RNbBHYKL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKR", "selector": "[data-bubble-id='ai_RNbBHYKR']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKS", "selector": "[data-bubble-id='ai_RNbBHYKS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKT", "selector": "[data-bubble-id='ai_RNbBHYKT']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYJM", "selector": "[data-bubble-id='ai_RNbBHYJM']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKV", "selector": "[data-bubble-id='ai_RNbBHYKV']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKU", "selector": "[data-bubble-id='ai_RNbBHYKU']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKW", "selector": "[data-bubble-id='ai_RNbBHYKW']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKJ", "selector": "[data-bubble-id='ai_RNbBHYKJ']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/paths/ResourceDetailPopup.tsx",
+    "frontend/src/lib/paths/routes.ts",
+    "cursor-impl-cycle/output/coverage/PATHS-05-resource-detail-popup.json"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "stack": "react-vite-tsx",
+  "frontend_app_dir": "frontend",
+  "directory_layout": {
+    "pages": "frontend/src/pages/",
+    "components": "frontend/src/components/",
+    "lib": "frontend/src/lib/",
+    "hooks": "frontend/src/hooks/",
+    "integrations": "frontend/src/integrations/",
+    "styles": "frontend/src/styles/"
+  },
+  "forbidden_target_prefixes": [
+    "frontend/src/features/",
+    "frontend/src/composables/",
+    "frontend/src/domain/",
+    "frontend/src/api/",
+    "frontend/src/router/",
+    "frontend/src/layouts/"
+  ],
+  "extensions": {
+    "pages": ".tsx",
+    "components": ".tsx",
+    "hooks": ".ts",
+    "lib": ".ts"
+  },
+  "paths": {
+    "routes": "frontend/src/App.tsx",
+    "auth_guard": "frontend/src/components/ProtectedRoute.tsx",
+    "supabase_client": "frontend/src/integrations/supabase/client.ts",
+    "pages_dir": "frontend/src/pages/",
+    "components_dir": "frontend/src/components/",
+    "lib_dir": "frontend/src/lib/",
+    "hooks_dir": "frontend/src/hooks/"
+  },
+  "page_name_map": {
+    "IndexPage": "Index",
+    "DashboardPage": "Dashboard",
+    "JournalPage": "Journal",
+    "PathsPage": "Paths",
+    "SettingsPage": "Settings",
+    "ChatPage": "Chat",
+    "OnboardingPage": "Onboarding",
+    "ResetPasswordPage": "ResetPassword"
+  },
+  "page_content_map": {
+    "dashboard/DashboardMain": "pages/Dashboard.tsx",
+    "journal/JournalPageContent": "pages/Journal.tsx",
+    "paths/PathsPageContent": "pages/Paths.tsx",
+    "settings/SettingsMain": "pages/Settings.tsx",
+    "chat/ChatPageContent": "pages/Chat.tsx"
+  },
+  "prototype_component_map": {
+    "frontend/src/components/shell/Sidebar.tsx": "frontend/src/components/AppSidebar.tsx",
+    "frontend/src/components/shell/LoginPopup.tsx": "frontend/src/components/AuthDialog.tsx",
+    "frontend/src/layouts/AppShellLayout.tsx": "frontend/src/components/DashboardLayout.tsx",
+    "frontend/src/components/shell/Header.tsx": "frontend/src/components/DashboardLayout.tsx",
+    "frontend/src/components/shell/SidebarNavLink.tsx": "frontend/src/components/NavLink.tsx",
+    "frontend/src/features/onboarding/steps/ProfileQuestionsStep.tsx": "frontend/src/components/OnboardingPillar.tsx",
+    "frontend/src/features/onboarding/steps/RolePillarStep.tsx": "frontend/src/components/OnboardingRole.tsx",
+    "frontend/src/features/onboarding/steps/HealthSignalsStep.tsx": "frontend/src/components/OnboardingHealthFlags.tsx",
+    "frontend/src/features/onboarding/steps/LoadSignalsStep.tsx": "frontend/src/components/OnboardingLoadSignals.tsx",
+    "frontend/src/components/crisis/CrisisSupportCard.tsx": "frontend/src/components/CrisisBar.tsx",
+    "frontend/src/features/chat/ChatPageContent.tsx": "frontend/src/pages/Chat.tsx",
+    "frontend/src/components/chat/ChatReusable.tsx": "frontend/src/components/ChatWindow.tsx",
+    "frontend/src/features/paths/components/PathDetailPopup.tsx": "frontend/src/pages/PathDetail.tsx",
+    "frontend/src/components/paths/PathDetailPopup.tsx": "frontend/src/pages/PathDetail.tsx",
+    "frontend/src/features/settings/SettingsSubscriptionTab.tsx": "frontend/src/pages/Subscription.tsx",
+    "frontend/src/components/settings/SettingsSubscriptionTab.tsx": "frontend/src/pages/Subscription.tsx",
+    "frontend/src/components/chat/ChatPanelMount.tsx": "frontend/src/components/ChatWindow.tsx"
+  },
+  "notes": "target_files use pages/, components/, lib/, hooks/ only. Run scripts/fix-decompose-target-files.mjs after decompose changes."
+}

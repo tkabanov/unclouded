@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 200 40% 98%;
+    --foreground: 195 18% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 195 18% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 195 18% 20%;
+
+    --primary: 202 92% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 195 45% 93%;
+    --secondary-foreground: 205 60% 25%;
+
+    --muted: 200 30% 94%;
+    --muted-foreground: 200 10% 45%;
+
+    --accent: 188 55% 90%;
+    --accent-foreground: 205 60% 25%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 25% 88%;
+    --input: 200 25% 88%;
+    --ring: 202 92% 40%;
+
+    --radius: 0.75rem;
+
+    --crisis: 202 92% 40%;
+    --crisis-foreground: 0 0% 100%;
+
+    /* Brand gradient sampled from the Uncloud360 logo (teal → blue) */
+    --brand-teal: 186 100% 38%;
+    --brand-blue: 210 95% 41%;
+    --gradient-brand: linear-gradient(135deg, hsl(186 100% 40%), hsl(210 95% 42%));
+
+    --shadow-card: 0 1px 2px 0 hsl(205 40% 20% / 0.04), 0 4px 16px -4px hsl(205 40% 20% / 0.10);
+    --shadow-card-hover: 0 2px 4px 0 hsl(205 40% 20% / 0.06), 0 12px 28px -6px hsl(205 40% 20% / 0.16);
+
+    --sidebar-background: 200 40% 98%;
+    --sidebar-foreground: 195 15% 30%;
+    --sidebar-primary: 202 92% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 190 50% 94%;
+    --sidebar-accent-foreground: 205 60% 25%;
+    --sidebar-border: 200 25% 88%;
+    --sidebar-ring: 202 92% 40%;
+  }
+
+  .dark {
+    --background: 205 35% 8%;
+    --foreground: 195 20% 95%;
+
+    --card: 205 32% 12%;
+    --card-foreground: 195 20% 95%;
+
+    --popover: 205 32% 12%;
+    --popover-foreground: 195 20% 95%;
+
+    --primary: 200 88% 52%;
+    --primary-foreground: 205 40% 8%;
+
+    --secondary: 205 25% 18%;
+    --secondary-foreground: 195 20% 95%;
+
+    --muted: 205 22% 18%;
+    --muted-foreground: 200 12% 62%;
+
+    --accent: 205 25% 18%;
+    --accent-foreground: 195 20% 95%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 205 22% 22%;
+    --input: 205 22% 22%;
+    --ring: 200 88% 52%;
+
+    --crisis: 200 88% 52%;
+    --crisis-foreground: 205 40% 8%;
+
+    --brand-teal: 186 85% 45%;
+    --brand-blue: 208 90% 55%;
+    --gradient-brand: linear-gradient(135deg, hsl(186 85% 46%), hsl(208 90% 56%));
+
+    --shadow-card: 0 1px 2px 0 hsl(0 0% 0% / 0.3), 0 4px 16px -4px hsl(0 0% 0% / 0.4);
+    --shadow-card-hover: 0 2px 4px 0 hsl(0 0% 0% / 0.35), 0 12px 28px -6px hsl(0 0% 0% / 0.5);
+    --sidebar-background: 205 35% 10%;
+    --sidebar-foreground: 195 20% 95%;
+    --sidebar-primary: 200 88% 52%;
+    --sidebar-primary-foreground: 205 40% 8%;
+    --sidebar-accent: 205 25% 16%;
+    --sidebar-accent-foreground: 195 20% 95%;
+    --sidebar-border: 205 22% 22%;
+    --sidebar-ring: 200 88% 52%;
+  }
+}
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

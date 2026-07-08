@@ -11,17 +11,25 @@
         "AC-2: dashboard-grid uses fluid multi-column layout matching Bubble fit_width semantics — left column hosts G - daily check in (ai_RNbBHXRX), right column hosts path/chat/journal/crisis card slots",
         "AC-3: current_user data binding from IR flows through a dashboard composable supplying user display fields to child widget slots without re-implementing header/sidebar chrome"
       ],
-      "ir_refs": ["bTHDT"],
-      "ui_refs": ["bTHDT", "ai_RNbBHXRD", "ai_RNbBHXRE", "ai_RNbBHXRF", "ai_RNbBHXRW", "ai_RNbBHXRX"],
+      "ir_refs": [
+        "bTHDT"
+      ],
+      "ui_refs": [
+        "bTHDT",
+        "ai_RNbBHXRD",
+        "ai_RNbBHXRE",
+        "ai_RNbBHXRF",
+        "ai_RNbBHXRW",
+        "ai_RNbBHXRX"
+      ],
       "layout_notes": "SHELL-06 owns page chrome; this item only fills dashboard-main. Grid is two-column on desktop with stacked cards on narrow viewports per Bubble container_layout on ai_RNbBHXRW.",
       "depends_on": [
         "SHELL-06-dashboard-page-shell",
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/dashboard/DashboardMain.vue",
-        "frontend/src/pages/DashboardPage.vue",
-        "frontend/src/features/dashboard/useDashboardUser.ts"
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/hooks/useDashboardUser.ts"
       ]
     },
     {
@@ -33,7 +41,9 @@
         "AC-2: Coaching mode dropdown bTIVQ renders ai_coaching_mode_os options from ENUM-03 with style_ref:bTIVE and InputChanged workflow parity (bTIVW) updating user coaching preference via Supabase client",
         "AC-3: DashboardQuickActions.vue renders ai_RNbBHXRP with dashboard-qa-plan (ai_RNbBHXRQ, Button_accent_) and dashboard-qa-reflect (ai_RNbBHXRS, Button_outline_) routing to /paths and /journal respectively"
       ],
-      "ir_refs": ["bTHDT"],
+      "ir_refs": [
+        "bTHDT"
+      ],
       "ui_refs": [
         "ai_RNbBHXRG",
         "ai_RNbBHXRH",
@@ -59,9 +69,9 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/dashboard/DashboardGreetingCard.vue",
-        "frontend/src/features/dashboard/DashboardQuickActions.vue",
-        "frontend/src/features/dashboard/coachingModeApi.ts"
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "frontend/src/components/dashboard/DashboardQuickActions.tsx",
+        "frontend/src/lib/dashboard/coachingModeApi.ts"
       ]
     },
     {
@@ -73,7 +83,9 @@
         "AC-2: Repeating group cells (bTJGS/bTJGY) display path session titles and completion indicators matching IR text nodes and Group_transparent_ presentation",
         "AC-3: Row visibility and data source mirror Bubble element_ref binding to custom.pathsession under active pathenrollment — read via Supabase client, no adapter passthrough"
       ],
-      "ir_refs": ["bTHDT"],
+      "ir_refs": [
+        "bTHDT"
+      ],
       "ui_refs": [
         "bTJFv",
         "bTJGH",
@@ -91,8 +103,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/dashboard/DashboardMicroCommitments.vue",
-        "frontend/src/features/dashboard/microCommitmentsApi.ts"
+        "frontend/src/components/dashboard/DashboardMicroCommitments.tsx",
+        "frontend/src/lib/dashboard/microCommitmentsApi.ts"
       ]
     },
     {
@@ -104,7 +116,10 @@
         "AC-2: Mood slider (ai_RNbBHXRk) and energy slider (ai_RNbBHXRo) bind to checkin-mood-value and checkin-energy-value text nodes with IR style_ref tokens — no placeholder slider styling",
         "AC-3: checkin-submit-btn (ai_RNbBHXRw) triggers workflow bTIqQ parity: insert dailycheckin record for current user and refresh streak badge from user.daily_check_in_streak_number"
       ],
-      "ir_refs": ["bTHDT", "dailycheckin"],
+      "ir_refs": [
+        "bTHDT",
+        "dailycheckin"
+      ],
       "ui_refs": [
         "ai_RNbBHXRX",
         "ai_RNbBHXRY",
@@ -133,8 +148,8 @@
         "DS-01-design-tokens-and-bubble-styles"
       ],
       "target_files": [
-        "frontend/src/features/dashboard/DashboardCheckinCard.vue",
-        "frontend/src/features/dashboard/checkinApi.ts"
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+        "frontend/src/lib/dashboard/checkinApi.ts"
       ]
     },
     {
@@ -146,7 +161,9 @@
         "AC-2: DashboardCurrentPathCard.vue renders ai_RNbBHXSf with path-card-header (ai_RNbBHXSg), path-name (ai_RNbBHXSm), ProgressBar (DS-02) in path-progress-bar-wrap (ai_RNbBHXSn), and path-next-step (ai_RNbBHXSt) fed by pathenrollment search binding from IR",
         "AC-3: path-card-link (ai_RNbBHXSk) routes to /paths per Bubble Link navigation; insights-list (ai_RNbBHXSB) renders insight-item groups ai_RNbBHXSC (icon ai_RNbBHXSD, text ai_RNbBHXSE) and ai_RNbBHXSF with data-bubble-id markers preserving IR hierarchy"
       ],
-      "ir_refs": ["bTHDT"],
+      "ir_refs": [
+        "bTHDT"
+      ],
       "ui_refs": [
         "ai_RNbBHXRx",
         "ai_RNbBHXRy",
@@ -184,9 +201,9 @@
         "ENUM-03-path-coaching-and-state-enums"
       ],
       "target_files": [
-        "frontend/src/features/dashboard/DashboardInsightsCard.vue",
-        "frontend/src/features/dashboard/DashboardCurrentPathCard.vue",
-        "frontend/src/features/dashboard/pathEnrollmentApi.ts"
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx",
+        "frontend/src/components/dashboard/DashboardInsightsCard.tsx",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts"
       ]
     },
     {
@@ -198,7 +215,9 @@
         "AC-2: DashboardJournalPreviewCard.vue renders ai_RNbBHXSx with journal-card-header (ai_RNbBHXSy), journal-card-link (ai_RNbBHXTC), and RG - recent journal (ai_RNbBHXTD) cells showing journal-entry-title (ai_RNbBHXTG), preview (ai_RNbBHXTH), mood (ai_RNbBHXTJ), and date (ai_RNbBHXTK)",
         "AC-3: Chat preview loads last message text into chat-preview-last-msg (ai_RNbBHXSY) via Supabase read; journal RG lists recent JournalEntry rows for current user ordered by date"
       ],
-      "ir_refs": ["bTHDT"],
+      "ir_refs": [
+        "bTHDT"
+      ],
       "ui_refs": [
         "ai_RNbBHXSM",
         "ai_RNbBHXSN",
@@ -241,10 +260,10 @@
         "ENUM-01-navigation-and-onboarding-labels"
       ],
       "target_files": [
-        "frontend/src/features/dashboard/DashboardChatPreviewCard.vue",
-        "frontend/src/features/dashboard/DashboardJournalPreviewCard.vue",
-        "frontend/src/features/dashboard/chatPreviewApi.ts",
-        "frontend/src/features/dashboard/journalPreviewApi.ts"
+        "frontend/src/components/dashboard/DashboardChatPreviewCard.tsx",
+        "frontend/src/components/dashboard/DashboardJournalPreviewCard.tsx",
+        "frontend/src/lib/dashboard/chatPreviewApi.ts",
+        "frontend/src/lib/dashboard/journalPreviewApi.ts"
       ]
     },
     {
@@ -256,7 +275,10 @@
         "AC-2: ContinueOnboardingBanner.vue renders bTIpm with icon (bTIps), title/subtitle text (bTIpy/bTIqE), and continue button (bTIqK) visible when onboarding incomplete per AUTH-05 signals; button routes to /onboarding",
         "AC-3: ServicesFloatingPanel.vue renders page-level bTJEO with RG - PathEnrollment (bTJEQ) listing pathenrollment1 search results; panel uses fixed/floating positioning from Bubble FG semantics without altering SHELL header/sidebar"
       ],
-      "ir_refs": ["bTHDT", "bTIdW"],
+      "ir_refs": [
+        "bTHDT",
+        "bTIdW"
+      ],
       "ui_refs": [
         "bTIfU",
         "bTIdW",
@@ -289,9 +311,9 @@
         "ENUM-03-path-coaching-and-state-enums"
       ],
       "target_files": [
-        "frontend/src/features/dashboard/CrisisSupportCard.vue",
-        "frontend/src/features/dashboard/ContinueOnboardingBanner.vue",
-        "frontend/src/features/dashboard/ServicesFloatingPanel.vue"
+        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx",
+        "frontend/src/components/dashboard/CrisisSupportCard.tsx",
+        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx"
       ]
     }
   ]

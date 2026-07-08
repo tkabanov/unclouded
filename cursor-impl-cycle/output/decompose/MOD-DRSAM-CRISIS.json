@@ -11,7 +11,9 @@
         "AC-2: Header row bTIdg shows heart icon bTIdi on primary circle bTIdh, title bTIdm (\"Crisis Resources\"), and disclaimer bTIdn using Text_caption_ with IR copy; hotline list bTIdo is a wrapping row of three resource groups with 8px row gaps and fit_width fluid semantics",
         "AC-3: Hotline groups bTIds (988), bTIeA (Crisis Text Line), and bTIeL (SAMHSA) preserve icon+title+subtitle hierarchy with IR static text (bTIdy/bTIdz, bTIeG/bTIeK, bTIeR/bTIeS) and phosphor icons bTIdt/bTIeE/bTIeM; rows expose tel:988, sms:741741?body=HOME, and tel:18006624357 anchors without altering visible copy"
       ],
-      "ir_refs": ["bTIdW"],
+      "ir_refs": [
+        "bTIdW"
+      ],
       "ui_refs": [
         "bTIdW",
         "bTIdb",
@@ -39,11 +41,13 @@
         "Text_caption_"
       ],
       "layout_notes": "Tiny reusable (~22 entities): vertical card stack — header row (icon circle + title/disclaimer column) above horizontal/wrapping hotline row. Each hotline group is icon column + title/subtitle text stack. Exported from frontend/src/components/crisis for CustomElement mounts bTIfU (dashboard), bTIwu (paths FG-services), bTIfw (bTGNJ), and bTIfa (sidebar def); DASH-07 and MOD-DRSAM-SETTINGS import this shared component rather than duplicating markup.",
-      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "depends_on": [
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
       "target_files": [
-        "frontend/src/components/crisis/CrisisSupportCard.vue",
-        "frontend/src/components/crisis/CrisisHotlineRow.vue",
-        "frontend/src/components/crisis/index.ts"
+        "frontend/src/components/crisis/CrisisHotlineRow.tsx",
+        "frontend/src/components/crisis/index.ts",
+        "frontend/src/components/CrisisBar.tsx"
       ]
     }
   ]

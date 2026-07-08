@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "SHELL-06-dashboard-page-shell",
+  "assessed_at": "2026-07-07T20:18:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-SHELL-06-dashboard-page-shell.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read (bTHDU____root.json) confirms bTHDT siblings ai_RNbBKLUh, ai_RNbBKLUi, and ai_RNbBHXRD should be full-width header above a sidebar+main row. DashboardLayout still nests Header in the right column for shadcn SidebarProvider + mobile SidebarTrigger — same structural gap deferred at SHELL-05 C-1. SHELL-06 scope requires mounting page-instance bubble ids and dashboard-main boundary, not layout restructure; all four named ui_refs pass ui_evidence and AC-1/AC-2/AC-3 pass. Downstream DASH-01 (MOD-DRSAM-DASHBOARD) depends_on SHELL-06 for the ai_RNbBHXRD content slot and ownership marker, not full-width header span. Reconcile layout in a shell layout polish pass or when SHELL-07+ page shells force consistent chrome structure."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Brownfield retention of prototype dashboard widgets inside ai_RNbBHXRD is intentional and satisfies SHELL-06 AC-3: the content slot is bounded by data-bubble-id ai_RNbBHXRD with data-module-owner MOD-DRSAM-DASHBOARD, documenting ownership. Decompose scope 'no dashboard feature widgets' means this item must not implement the dashboard-main IR subtree — that work is explicitly assigned to MOD-DRSAM-DASHBOARD (DASH-01+). Coverage preflight already records prototype widget retention. Replacing with a minimal placeholder would regress working brownfield UI without blocking downstream gates."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "DASHBOARD_ROUTE in frontend/src/lib/dashboard/routes.ts is not yet imported by authenticatedRoutes.tsx, which hardcodes '/dashboard'. Routing works correctly (AC-1 pass, FV-1 pass); this is single-source-of-truth hygiene only, analogous to SHELL-05 C-2 (toAuthenticatedRouteObjects DRY) deferred as routing polish. No downstream depends_on gate requires the constant import before advance. Consolidate when touching shell routing for SHELL-07+ page routes."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and ui_evidence pass. Deferred: C-1 full-width header sibling layout vs shadcn column nesting (inherited SHELL-05 gap, shell layout polish); C-3 DASHBOARD_ROUTE import DRY (routing hygiene, batch with SHELL-07+). Accepted: C-2 brownfield prototype widgets inside ai_RNbBHXRD with MOD-DRSAM-DASHBOARD ownership marker per scope boundary."
+}

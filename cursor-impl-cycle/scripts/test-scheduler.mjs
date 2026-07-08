@@ -184,10 +184,10 @@ async function main() {
         id: "MOD-D",
         decompose_passes: true,
         items: [
-          mkItem("I1", ["frontend/a.vue"]),
-          mkItem("I2", ["frontend/b.vue"]),
-          mkItem("I3", ["frontend/a.vue", "frontend/c.vue"]),
-          mkItem("I4", ["frontend/d.vue"]),
+          mkItem("I1", ["frontend/src/a.tsx"]),
+          mkItem("I2", ["frontend/src/b.tsx"]),
+          mkItem("I3", ["frontend/src/a.tsx", "frontend/src/c.tsx"]),
+          mkItem("I4", ["frontend/src/d.tsx"]),
         ],
       },
     ],
@@ -199,7 +199,7 @@ async function main() {
     ["I1", "I2", "I4"].every((id) => djIds.includes(id)),
     `disjoint-files should pick I1,I2,I4; got ${djIds.join(",")}`,
   );
-  check(!djIds.includes("I3"), "disjoint-files must skip I3 (overlaps I1 on a.vue)");
+  check(!djIds.includes("I3"), "disjoint-files must skip I3 (overlaps I1 on a.tsx)");
 
   if (errors.length) {
     console.error("FAIL:");

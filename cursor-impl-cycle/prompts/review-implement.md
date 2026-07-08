@@ -1,4 +1,4 @@
-# Review implement — independent IR audit (DrSam)
+# Review implement — independent IR audit (DrSam brownfield)
 
 **Role:** Reviewer (generalPurpose, **readonly: true**)  
 **Phase:** `implement`  
@@ -27,18 +27,32 @@ Write **only**: `cursor-impl-cycle/output/reports/implement-{{target_id}}.review
 ## Mandatory read order (re-gather context — do not trust implement coverage alone)
 
 1. `cursor-impl-cycle/prompts/implementation-constraints.md`
-2. `cursor-impl-cycle/prompts/ui-fidelity-rubric.md`
-3. `cursor-impl-cycle/prompts/functional-review-rubric.md`
-4. `cursor-impl-cycle/state/wave-2-manifest.json` — if `{{target_id}}` is in `reopen[]`, verify every `reviewer_checks[]` entry
-5. Decompose item in `output/decompose/MOD-DRSAM-*.json` for `{{target_id}}` — copy `acceptance_criteria[]`, `functional_verification[]`, `ir_refs[]`, `ui_refs[]`, `layout_notes`, `scope`
-6. Implementer's `output/coverage/{{target_id}}.json` — **suspect until verified**; treat as a claim, not proof
-7. **Every** `ir_refs[]` / `ui_refs[]` entity:
-   - `ir/slices/reusable-*.json`, `ir/slices/ui-page-*.json`, or `ir/inventory.json` lookup
-   - `ir/slices/styles.json` for each in-scope `style_ref`
-   - `drsam-99657.bubble` via `source_path` when presentation is missing or workflows matter
-8. **All** changed files listed in coverage `files_changed` and brief `target_files` — read the actual Vue/TS/CSS/adapter code
+2. `cursor-impl-cycle/prompts/brownfield-preflight.md`
+3. `cursor-impl-cycle/config/prototype-inventory.json` — baseline before this item
+4. `cursor-impl-cycle/prompts/ui-fidelity-rubric.md`
+5. `cursor-impl-cycle/prompts/functional-review-rubric.md`
+6. `cursor-impl-cycle/state/wave-2-manifest.json` — if `{{target_id}}` is in `reopen[]`, verify every `reviewer_checks[]` entry
+7. Decompose item in `output/decompose/MOD-DRSAM-*.json` for `{{target_id}}` — copy `acceptance_criteria[]`, `functional_verification[]`, `ir_refs[]`, `ui_refs[]`, `layout_notes`, `scope`
+8. Implementer's `output/coverage/{{target_id}}.json` — **suspect until verified**; treat as a claim, not proof
+9. **Verify `preflight` block:** implementer must have read existing prototype files; `reuse_decision` must match actual code changes
+10. **Every** `ir_refs[]` / `ui_refs[]` entity:
+    - `ir/slices/reusable-*.json`, `ir/slices/ui-page-*.json`, or `ir/inventory.json` lookup
+    - `ir/slices/styles.json` for each in-scope `style_ref`
+    - `drsam-99657.bubble` via `source_path` when presentation is missing or workflows matter
+11. **All** changed files listed in coverage `files_changed` and brief `target_files` — read the actual React/TS/CSS code
 
 You are re-doing the implementer's IR homework. Skimming coverage JSON or decompose AC titles is not a review.
+
+## Brownfield checks
+
+| Check | Fail → |
+|-------|--------|
+| Missing `preflight` block | `blockers[]` |
+| `preflight.existing_files_found` empty but prototype has related files | `blockers[]` — implementer skipped preflight |
+| `reuse_decision: skip` but ACs not satisfied | `blockers[]` |
+| `reuse_decision: new` but equivalent file already existed in prototype | `critiques[]` with `priority: high` |
+| Created `.vue` or `provider-app/` paths | `blockers[]` |
+| Deleted working prototype code without AC justification | `critiques[]` or `blockers[]` |
 
 ## Independent coverage audit
 
@@ -50,7 +64,7 @@ Fill `criteria_audit[]` — one row per decompose AC:
 {
   "id": "AC-1",
   "status": "pass",
-  "evidence": ["frontend/src/..."],
+  "evidence": ["frontend/src/pages/Index.tsx"],
   "gap": null
 }
 ```
@@ -62,7 +76,7 @@ Set `coverage_confidence_pct` (0–100) from how deeply you verified IR + code (
 
 `ok: true` only if **your** `coverage_pct ≥ 90`, **`functional_ok: true`** (see functional-review-rubric.md), and no blockers.
 
-Placeholder UI (`content mounts in downstream`, `Alternate applicant view mounts here`, in-scope `Coming Soon`, mailto-only where API is required) → `functional_ok: false` and `ok: false`.
+Placeholder UI (`content mounts in downstream`, `Coming Soon`, mailto-only where API is required) → `functional_ok: false` and `ok: false`.
 
 ## UI / IR fidelity audit
 
@@ -70,8 +84,8 @@ For **each** `ui_refs[]` id from decompose (and nested children visible in the I
 
 ```json
 {
-  "bubble_id": "bUseY",
-  "vue_selector": "[data-bubble-id='bUseY']",
+  "bubble_id": "bTGYf",
+  "selector": "[data-bubble-id='bTGYf']",
   "status": "pass",
   "notes": "optional — layout/presentation delta"
 }
@@ -94,16 +108,11 @@ Use `layout_notes` from decompose as binding context.
 
 - Any `criteria_audit` row `fail` on an in-scope AC
 - `files_changed` or evidence under forbidden `project/`
-- Supabase schema/RLS writes instead of read-only + adapter
-- Work outside DrSam scope
+- Supabase schema/RLS writes under `project/`
+- Missing required `preflight` block in brownfield mode
 - Missing required `data-bubble-id` on in-scope roots
 - IR hierarchy clearly wrong for in-scope ui_refs (not a minor polish delta)
-- **Unnecessary adapter** (see `cursor-impl-cycle/docs/ADAPTER-POLICY.md`):
-  - New/changed `adapter/` route that only proxies one Supabase edge function, RPC, or RLS REST call with user JWT
-  - `frontend` requires `VITE_ADAPTER_URL` for an operation that could use direct Supabase client calls
-  - Same item/module mixes direct Supabase client calls with redundant adapter passthrough for the same backend surface
-
-When filing adapter blockers, cite the equivalent direct-client path the implementer should use instead.
+- Created parallel Vue/provider-app instead of extending `frontend/`
 
 **Do not** hide checklist failures inside `critiques[]`. Blockers stop the item; critiques are for judgment calls.
 

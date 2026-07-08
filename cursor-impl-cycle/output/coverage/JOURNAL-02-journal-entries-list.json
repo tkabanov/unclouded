@@ -1,0 +1,81 @@
+{
+  "item_id": "JOURNAL-02-journal-entries-list",
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-08T08:22:00.000Z",
+  "coverage_pct": 100,
+  "rewrite_pass": true,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/components/journal/JournalPageContent.tsx",
+      "frontend/src/lib/journal/routes.ts",
+      "frontend/src/lib/dashboard/journalPreviewApi.ts"
+    ],
+    "gaps": [
+      "AC-1: Brownfield Journal.tsx used inline shadcn entries markup without ai_RNbBHXin actions row, ai_RNbBHXiu grid, or ai_RNbBHXiv card template bubble ids",
+      "AC-2: List fetch was inline in Journal.tsx rather than journalEntriesApi.ts with uds field-name mapping",
+      "AC-3: new-entry-btn and view-entry-btn lacked callback props for JOURNAL-03/04 wiring; entry count was a separate Badge instead of label text"
+    ],
+    "reuse_decision": "extend",
+    "c1_resolution": "Removed duplicate data-bubble-id ai_RNbBHXir from empty-state CTA button in JournalEntriesTab.tsx; IR bubble id retained only on actions-row new-entry button under ai_RNbBHXin.",
+    "mapped_target_files": {
+      "frontend/src/components/journal/JournalEntriesTab.vue": "frontend/src/components/journal/JournalEntriesTab.tsx",
+      "frontend/src/components/journal/JournalEntryCard.vue": "frontend/src/components/journal/JournalEntryCard.tsx",
+      "frontend/src/lib/journal/journalEntriesApi.ts": "frontend/src/lib/journal/journalEntriesApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntriesTab.tsx — ai_RNbBHXin actions row with ai_RNbBHXio/iq count label and single ai_RNbBHXir new-entry-btn (actions row only)",
+        "frontend/src/components/journal/JournalEntriesTab.tsx — ai_RNbBHXiu journal-entries-grid RepeatingGroup_list_",
+        "frontend/src/components/journal/JournalEntryCard.tsx — ai_RNbBHXiv journal-entry-card-template with nested badge row ai_RNbBHXix and footer ai_RNbBHXjJ reflection indicator group",
+        "frontend/src/pages/Journal.tsx — mounts JournalEntriesTab inside JournalPageContent ai_RNbBHXim slot without duplicating wrapper bubble id"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts — fetchJournalEntries() queries journal_entries for current user (title→title_text, mood→mood_tag_text, body→content_text + preview)",
+        "frontend/src/pages/Journal.tsx — load() uses fetchJournalEntries via useAuth user id"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/JournalEntriesTab.tsx — onNewEntry wired to ai_RNbBHXir new-entry-btn",
+        "frontend/src/components/journal/JournalEntryCard.tsx — onViewEntry wired to ai_RNbBHXjN journal-view-entry-btn",
+        "frontend/src/pages/Journal.tsx — callbacks connect to existing openNew/openEdit Dialog CRUD handlers",
+        "frontend/src/components/journal/JournalEntriesTab.tsx — ai_RNbBHXiq entry count label shows Your Entries (N) from entries.length"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXin", "selector": "[data-bubble-id='ai_RNbBHXin']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXio", "selector": "[data-bubble-id='ai_RNbBHXio']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXip", "selector": "[data-bubble-id='ai_RNbBHXip']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXiq", "selector": "[data-bubble-id='ai_RNbBHXiq']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXir", "selector": "[data-bubble-id='ai_RNbBHXir']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXiu", "selector": "[data-bubble-id='ai_RNbBHXiu']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXiv", "selector": "[data-bubble-id='ai_RNbBHXiv']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXiw", "selector": "[data-bubble-id='ai_RNbBHXiw']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXix", "selector": "[data-bubble-id='ai_RNbBHXix']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXiy", "selector": "[data-bubble-id='ai_RNbBHXiy']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjB", "selector": "[data-bubble-id='ai_RNbBHXjB']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjH", "selector": "[data-bubble-id='ai_RNbBHXjH']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjI", "selector": "[data-bubble-id='ai_RNbBHXjI']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjJ", "selector": "[data-bubble-id='ai_RNbBHXjJ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjK", "selector": "[data-bubble-id='ai_RNbBHXjK']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjL", "selector": "[data-bubble-id='ai_RNbBHXjL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjM", "selector": "[data-bubble-id='ai_RNbBHXjM']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXjN", "selector": "[data-bubble-id='ai_RNbBHXjN']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/journal/JournalEntriesTab.tsx",
+    "cursor-impl-cycle/output/coverage/JOURNAL-02-journal-entries-list.json"
+  ]
+}

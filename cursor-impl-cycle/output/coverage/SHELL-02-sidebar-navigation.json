@@ -1,0 +1,120 @@
+{
+  "item_id": "SHELL-02-sidebar-navigation",
+  "module_id": "MOD-DRSAM-SHELL",
+  "assessed_at": "2026-07-07T15:20:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/components/NavLink.tsx",
+      "frontend/src/components/DashboardLayout.tsx",
+      "frontend/src/styles/index.ts",
+      "frontend/src/styles/bubble-styles.css",
+      "frontend/src/lib/enums/index.ts"
+    ],
+    "gaps": [
+      "AC-1: missing data-bubble-id on sidebar root ai_RNbBKLUe and sidebar-top ai_RNbBHWkU; Group_sidebar_ not applied via bubbleStyle()",
+      "AC-2: nav labels hardcoded; Subscription link outside IR scope; routes/labels not centralized in ENUM-01-style maps",
+      "AC-3: mode indicator missing data-bubble-id on ai_RNbBHWkV/kW/kX; label copy not wired to IR static text"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/shell/Sidebar.vue": "frontend/src/components/AppSidebar.tsx",
+      "frontend/src/components/shell/SidebarNavLink.vue": "frontend/src/components/NavLink.tsx"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AppSidebar.tsx — ai_RNbBKLUe root Sidebar with data-bubble-id and data-style-ref Group_sidebar_; bubbleStyle('Group_sidebar_') applied",
+        "frontend/src/components/AppSidebar.tsx — ai_RNbBHWkU sidebar-top group preserves IR nesting (mode indicator + nav siblings)"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/enums/navigation.ts — SIDEBAR_NAV_LABELS, SIDEBAR_NAV_ROUTES, SIDEBAR_NAV_BUBBLE_IDS for five IR nav links",
+        "frontend/src/components/AppSidebar.tsx — ai_RNbBHWkZ/kc/kf/ki/kl NavLinks route to /dashboard, /chat, /journal, /paths, /settings with ENUM-style label map; Link_nav_ + aria-current active highlighting"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/AppSidebar.tsx — ai_RNbBHWkV mode-indicator group with ai_RNbBHWkW label 'Current Mode' and ai_RNbBHWkX value (profile-derived or SIDEBAR_MODE_VALUE_PLACEHOLDER IR copy)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBKLUe",
+      "selector": "[data-bubble-id='ai_RNbBKLUe']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkU",
+      "selector": "[data-bubble-id='ai_RNbBHWkU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkV",
+      "selector": "[data-bubble-id='ai_RNbBHWkV']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkW",
+      "selector": "[data-bubble-id='ai_RNbBHWkW']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkX",
+      "selector": "[data-bubble-id='ai_RNbBHWkX']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkY",
+      "selector": "[data-bubble-id='ai_RNbBHWkY']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkZ",
+      "selector": "[data-bubble-id='ai_RNbBHWkZ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkc",
+      "selector": "[data-bubble-id='ai_RNbBHWkc']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkf",
+      "selector": "[data-bubble-id='ai_RNbBHWkf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWki",
+      "selector": "[data-bubble-id='ai_RNbBHWki']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHWkl",
+      "selector": "[data-bubble-id='ai_RNbBHWkl']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_sidebar_",
+      "selector": "[data-style-ref='Group_sidebar_']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/AppSidebar.tsx",
+    "frontend/src/lib/enums/navigation.ts",
+    "frontend/src/lib/enums/index.ts",
+    "frontend/src/styles/bubble-styles.css",
+    "cursor-impl-cycle/output/coverage/SHELL-02-sidebar-navigation.json"
+  ]
+}

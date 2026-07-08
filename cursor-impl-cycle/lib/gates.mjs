@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { validateArtifactFile } from "../scripts/validate.mjs";
 import { buildItemRegistry, validateDependsOn } from "./item-registry.mjs";
-import { coveragePath, decomposePath } from "./paths.mjs";
+import { coveragePath, decomposePath, loadImplementationPolicy, packRelPath } from "./paths.mjs";
 
 /** @param {unknown} blocker */
 export function formatBlockerEntry(blocker) {
@@ -61,7 +61,13 @@ export async function runScriptGate({ phase, paths, cycle, project, targetId }) 
     if (!result.ok) errors.push(...result.errors);
     else {
       const data = JSON.parse(fs.readFileSync(covPath, "utf8"));
-      const forbidden = project.forbidden_write_paths ?? ["project/"];
+      const policy = loadImplementationPolicy(paths.packRoot, paths.workspaceRoot);
+      const forbidden = policy.forbidden_write_paths ?? project.forbidden_write_paths ?? ["project/"];
+      const frontendAppDir = policy.frontend_app_dir ?? project.frontend_app_dir ?? "frontend";
+      const packRel = packRelPath(paths.packRoot, paths.workspaceRoot);
+      const allowed =
+        policy.allowed_write_paths ?? [`${frontendAppDir}/`, `${packRel}/`];
+
       for (const file of data.files_changed ?? []) {
         const normalized = file.replace(/^\//, "");
         for (const prefix of forbidden) {
@@ -69,6 +75,16 @@ export async function runScriptGate({ phase, paths, cycle, project, targetId }) 
             errors.push(`forbidden path in files_changed: ${file} (prefix ${prefix})`);
           }
         }
+        const isAllowed = allowed.some((prefix) =>
+          normalized.startsWith(prefix.replace(/^\//, "")),
+        );
+        if (!isAllowed) {
+          errors.push(`files_changed outside allowed_write_paths: ${file}`);
+        }
+      }
+
+      if (policy.development_mode === "brownfield" && !data.preflight?.reuse_decision) {
+        errors.push("brownfield implement requires coverage preflight.reuse_decision");
       }
     }
     return { ok: errors.length === 0, errors, metrics: {} };

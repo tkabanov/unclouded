@@ -45,9 +45,9 @@
       "layout_notes": "Styles are global primitives, not page regions. Map Bubble fit_width/fit_height semantics to fluid CSS where styles.json properties use width:0 or fit flags; preserve hover/state blocks from styles.json states objects.",
       "depends_on": [],
       "target_files": [
-        "frontend/src/styles/tokens.css",
         "frontend/src/styles/bubble-styles.css",
-        "frontend/src/styles/index.ts"
+        "frontend/src/styles/index.ts",
+        "frontend/src/styles/tokens.css"
       ]
     },
     {
@@ -59,13 +59,21 @@
         "AC-2: Inner track (bTIua) and HTML fill region (bTIuZ) preserve row layout, 8px min-height track, border-radius 4, and primary fill color from IR presentation (var(--color_primary_default))",
         "AC-3: Fill width scales proportionally to the value prop; bar uses DS-01 token/class references rather than inline hex colors"
       ],
-      "ir_refs": ["bTIuS"],
-      "ui_refs": ["bTIuS", "bTIuZ", "bTIua"],
+      "ir_refs": [
+        "bTIuS"
+      ],
+      "ui_refs": [
+        "bTIuS",
+        "bTIuZ",
+        "bTIua"
+      ],
       "layout_notes": "Tiny reusable (2 child elements): HTML element renders inline progress fill; parent Group bTIua is fit_height row track. Width is dynamic via HTML/CSS expression in Bubble — implement as percentage width on fill element.",
-      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "depends_on": [
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
       "target_files": [
-        "frontend/src/components/design-system/ProgressBar.vue",
-        "frontend/src/components/design-system/index.ts"
+        "frontend/src/components/design-system/index.ts",
+        "frontend/src/components/design-system/ProgressBar.tsx"
       ]
     },
     {
@@ -77,13 +85,25 @@
         "AC-2: Five segment groups (bTIHw, bTIIC, bTIII, bTIIO, bTIIU) each contain a Shape child; selected segment uses var(--color_primary_default) fill, unselected segments use var(--color_aiRNbAaxgr_default) per IR",
         "AC-3: HTML label region (bTIJL) preserves static copy and formatting from drsam-99657.bubble element_definitions/bTIHs; segment row uses flex row with 4px radius and 8px min-height track"
       ],
-      "ir_refs": ["bTIHr"],
-      "ui_refs": ["bTIHr", "bTIHw", "bTIIC", "bTIII", "bTIIO", "bTIIU", "bTIJL"],
+      "ir_refs": [
+        "bTIHr"
+      ],
+      "ui_refs": [
+        "bTIHr",
+        "bTIHw",
+        "bTIIC",
+        "bTIII",
+        "bTIIO",
+        "bTIIU",
+        "bTIJL"
+      ],
       "layout_notes": "Row of five equal segments inside muted track groups; each segment is a Group wrapping a Shape. Selection state toggles Shape bgcolor between primary and muted gray tokens. HTML element bTIJL sits below or beside bar for axis labels.",
-      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "depends_on": [
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
       "target_files": [
-        "frontend/src/components/design-system/ScoreBar.vue",
-        "frontend/src/components/design-system/index.ts"
+        "frontend/src/components/design-system/index.ts",
+        "frontend/src/components/design-system/ScoreBar.tsx"
       ]
     },
     {
@@ -95,7 +115,9 @@
         "AC-2: RepeatingGroup bTIzA lists path questions (custom.pathquestion search binding) with cell group bTIzF: question label bTIzG (Text_label_) and MultiLineInput bTIzK (MultiLineInput_default_); reflection group bTIzS includes labels bTIzX/bTIzY and Checkbox bTIzc (Checkbox_default_)",
         "AC-3: Submit Button bTIzk uses Button_primary_ styling and static label text from IR; plugin placeholder nodes bTJBC/bTJBI render as inert stubs preserving data-bubble-id markers for parity"
       ],
-      "ir_refs": ["bTIyi"],
+      "ir_refs": [
+        "bTIyi"
+      ],
       "ui_refs": [
         "bTIyi",
         "bTIyn",
@@ -115,9 +137,9 @@
         "ENUM-03-path-coaching-and-state-enums"
       ],
       "target_files": [
-        "frontend/src/components/design-system/SessionCompletionForm.vue",
-        "frontend/src/components/design-system/SessionQuestionCell.vue",
-        "frontend/src/components/design-system/index.ts"
+        "frontend/src/components/design-system/index.ts",
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/components/design-system/SessionQuestionCell.tsx"
       ]
     },
     {
@@ -129,7 +151,9 @@
         "AC-2: ChatMessagesList.vue renders data-bubble-id=\"bTISK\" with RepeatingGroup bTISM listing messages; user cells bTISQ show bubble text bTISS; assistant cells bTIUI nest icon groups bTIUK/bTIUP with texts bTIUQ/bTIUU preserving left/right alignment from IR",
         "AC-3: Message list region uses Group_transparent_ container layout and scroll overflow; all typography and badge colors resolve through DS-01 style classes"
       ],
-      "ir_refs": ["bTIRW"],
+      "ir_refs": [
+        "bTIRW"
+      ],
       "ui_refs": [
         "bTIRW",
         "bTIRb",
@@ -145,11 +169,13 @@
         "bTIUU"
       ],
       "layout_notes": "Header is horizontal flex (title left, badge right). Messages area is vertical RepeatingGroup with alternating user (right-aligned bubble) and assistant (left-aligned with avatar icon column) cell templates. Preserve fit_width fluid semantics on message groups.",
-      "depends_on": ["DS-01-design-tokens-and-bubble-styles"],
+      "depends_on": [
+        "DS-01-design-tokens-and-bubble-styles"
+      ],
       "target_files": [
-        "frontend/src/components/chat/ChatHeader.vue",
-        "frontend/src/components/chat/ChatMessagesList.vue",
-        "frontend/src/components/chat/ChatMessageCell.vue",
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "frontend/src/components/chat/ChatMessageCell.tsx",
+        "frontend/src/components/chat/ChatMessagesList.tsx",
         "frontend/src/components/chat/index.ts"
       ]
     },
@@ -162,7 +188,9 @@
         "AC-2: ChatFloatingDisclaimer.vue renders data-bubble-id=\"bTIUh\" FloatingGroup with HTML content region bTIne; positions as overlay/footer per IR z-index and collapse_when_hidden behavior",
         "AC-3: ChatReusable.vue root renders data-bubble-id=\"bTIRW\", accepts chatconversation prop, and composes ChatHeader, ChatMessagesList, ChatComposer, and ChatFloatingDisclaimer preserving vertical panel hierarchy from element_definitions/bTIRa"
       ],
-      "ir_refs": ["bTIRW"],
+      "ir_refs": [
+        "bTIRW"
+      ],
       "ui_refs": [
         "bTIRW",
         "bTITC",
@@ -180,10 +208,10 @@
         "DS-05-chat-header-and-messages"
       ],
       "target_files": [
-        "frontend/src/components/chat/ChatComposer.vue",
-        "frontend/src/components/chat/ChatFloatingDisclaimer.vue",
-        "frontend/src/components/chat/ChatReusable.vue",
-        "frontend/src/components/chat/index.ts"
+        "frontend/src/components/chat/ChatComposer.tsx",
+        "frontend/src/components/chat/ChatFloatingDisclaimer.tsx",
+        "frontend/src/components/chat/index.ts",
+        "frontend/src/components/ChatWindow.tsx"
       ]
     }
   ]

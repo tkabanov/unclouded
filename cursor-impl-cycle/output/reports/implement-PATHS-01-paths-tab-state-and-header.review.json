@@ -1,0 +1,226 @@
+{
+  "phase": "implement",
+  "target_id": "PATHS-01-paths-tab-state-and-header",
+  "assessed_at": "2026-07-08T07:04:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 92,
+  "functional_ok": true,
+  "rewrite_verification": {
+    "rewrite_pass": true,
+    "prior_blockers": ["B-1"],
+    "resolved": [
+      {
+        "id": "B-1",
+        "finding": "ai_RNbBHYGu subtitle copy mismatch",
+        "fix_evidence": [
+          "frontend/src/components/paths/PathsPageHeader.tsx — subtitle text matches drsam-99657.bubble: \"Guided coaching paths and curated resources tailored to your journey.\"",
+          "drsam-99657.bubble — /pages/bTHDg/.../ai_RNbBHYKc/properties/text entries confirm IR copy"
+        ]
+      }
+    ]
+  },
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — ai_RNbBHYGq root with data-module-owner MOD-DRSAM-PATHS; bTJDf content slot wraps header, tab bar, and panels",
+        "frontend/src/components/paths/PathsPageHeader.tsx — ai_RNbBHYGr header with ai_RNbBHYGs title group, ai_RNbBHYGt title, ai_RNbBHYGu subtitle",
+        "frontend/src/components/paths/PathsPageHeader.tsx — bubbleStyle(Text_heading_1_) and bubbleStyle(Text_body_muted_) per IR style_ref",
+        "drsam-99657.bubble — title \"Paths & Resources\"; subtitle \"Guided coaching paths and curated resources tailored to your journey.\""
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathsTabBar.tsx — ai_RNbBHYHB tab bar lists path_page_tab_os values with ai_RNbBHYHD buttons",
+        "frontend/src/lib/paths/pathsTabStore.ts — activeTab defaults to my_paths_ (bTIsz); setActiveTab on click",
+        "frontend/src/lib/enums/pathPageTabs.ts — PATH_PAGE_TAB_LABELS: My Paths / Paths Library",
+        "drsam-99657.bubble — path_page_tab_os_ default_val my_paths_; option displays bTIsz My Paths, bTItA Paths Library"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useSessionCompletionVisible.ts — stub returns false until PATHS-07 wires bTJAB overlay",
+        "frontend/src/pages/Paths.tsx — bTJDf subtree gated by !sessionCompletionVisible; panels do not render when hook returns true",
+        "drsam-99657.bubble — bTJDk (id bTJDf) references bTJAB for conditional visibility; collapse_when_hidden true"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-4",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — ai_RNbBHYHE/bTJDr guided panel visible when my_paths_; ai_RNbBHYIK/bTJDs resources panel when paths_library_",
+        "frontend/src/pages/Paths.tsx — mutual hidden attribute + className hidden on tabpanels",
+        "drsam-99657.bubble — bTJDr is_visible true, bTJDs is_visible false by default; collapse_when_hidden true on both"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "My Paths and Paths Library tab buttons toggle visible tabpanel (ai_RNbBHYHE vs ai_RNbBHYIK)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathsTabBar.tsx",
+        "frontend/src/lib/paths/pathsTabStore.ts",
+        "frontend/src/pages/Paths.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Default tab is my_paths_ (bTIsz) with guided panel content visible on load",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/paths/pathsTabStore.ts — defaultTab PATH_PAGE_TAB.MY_PATHS",
+        "frontend/src/pages/Paths.tsx — PathsGuidedGrid renders inside ai_RNbBHYHE when isMyPathsActive"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "bTJDf content shell hides when session-completion overlay is active (gating wired; full route deferred PATHS-07)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useSessionCompletionVisible.ts",
+        "frontend/src/pages/Paths.tsx — conditional render on PATHS_CONTENT_BUBBLE_ID wrapper"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Paths chrome composes inside SHELL-08 ai_RNbBHYGq content boundary",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx — header and tab bar nested inside ai_RNbBHYGq within DashboardLayout shell"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTHDf",
+      "selector": "[data-bubble-id='bTHDf']",
+      "status": "pass",
+      "notes": "Page root on DashboardLayout via SHELL-08 pathsShellProps; not re-owned by PATHS-01"
+    },
+    {
+      "bubble_id": "ai_RNbBHYGq",
+      "selector": "[data-bubble-id='ai_RNbBHYGq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTJDf",
+      "selector": "[data-bubble-id='bTJDf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYGr",
+      "selector": "[data-bubble-id='ai_RNbBHYGr']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYGs",
+      "selector": "[data-bubble-id='ai_RNbBHYGs']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYGt",
+      "selector": "[data-bubble-id='ai_RNbBHYGt']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYGu",
+      "selector": "[data-bubble-id='ai_RNbBHYGu']",
+      "status": "pass",
+      "notes": "B-1 rewrite fix confirmed — IR copy matches bubble source"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHB",
+      "selector": "[data-bubble-id='ai_RNbBHYHB']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKi",
+      "selector": "[data-bubble-id='ai_RNbBHYKi']",
+      "status": "pass",
+      "notes": "RG cell template collapsed into repeating ai_RNbBHYHD buttons — functionally equivalent; no separate cell wrapper marker"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHD",
+      "selector": "[data-bubble-id='ai_RNbBHYHD']",
+      "status": "pass",
+      "notes": "Both tab buttons share RG template id per Bubble repeating-group semantics"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHE",
+      "selector": "[data-bubble-id='ai_RNbBHYHE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTJDr",
+      "selector": "[data-bubble-id='bTJDr']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYIK",
+      "selector": "[data-bubble-id='ai_RNbBHYIK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTJDs",
+      "selector": "[data-bubble-id='bTJDs']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_tab_bar_",
+      "selector": ".Group_tab_bar_",
+      "status": "pass",
+      "notes": "Applied via bubbleStyle(Group_tab_bar_) on PathsTabBar root"
+    },
+    {
+      "bubble_id": "Button_tab_",
+      "selector": ".Button_tab_, .Button_tab_active_",
+      "status": "pass",
+      "notes": "Inactive/active tab styles toggled per selection state"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "ai_RNbBHYKi RG cell wrapper is not a separate DOM node — both tabs mount data-bubble-id ai_RNbBHYHD on the button elements only. Parity selectors keyed on ai_RNbBHYKi would not match.",
+      "alternative": "Wrap each tab button in a span with data-bubble-id ai_RNbBHYKi if automated RG-cell parity checks are required; otherwise acceptable as Bubble RG template collapse.",
+      "evidence": ["frontend/src/components/paths/PathsTabBar.tsx", "ai_RNbBHYKi"]
+    },
+    {
+      "id": "C-2",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "useSessionCompletionVisible is a stub returning false — AC-3 gating structure is correct but end-to-end bTJAB overlay behavior cannot be exercised until PATHS-07.",
+      "alternative": "PATHS-07 should replace the stub with URL session param + enrollment matching and add an integration test for bTJDf hide/show.",
+      "evidence": ["frontend/src/hooks/useSessionCompletionVisible.ts", "PATHS-07-session-completion-route-integration"]
+    },
+    {
+      "id": "C-3",
+      "area": "brownfield",
+      "priority": "low",
+      "finding": "My Paths guided panel renders brownfield ALL_PATHS prototype card grid rather than PATHS-02 enrollment grid (ai_RNbBHYHn RG). Functional for tab toggle but downstream PATHS-02 will replace inner bTJDr content.",
+      "alternative": "Retain prototype grid until PATHS-02 lands; document as intentional brownfield retention matching SHELL-08 disposition.",
+      "evidence": ["frontend/src/pages/Paths.tsx — PathsGuidedGrid", "PATHS-02-paths-grid-filters-and-cards"]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

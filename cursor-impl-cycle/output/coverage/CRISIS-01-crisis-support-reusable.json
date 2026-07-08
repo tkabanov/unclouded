@@ -1,0 +1,68 @@
+{
+  "item_id": "CRISIS-01-crisis-support-reusable",
+  "module_id": "MOD-DRSAM-CRISIS",
+  "assessed_at": "2026-07-08T07:05:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/dashboard/CrisisSupportCard.tsx",
+      "frontend/src/pages/Dashboard.tsx",
+      "frontend/src/components/CrisisBar.tsx",
+      "frontend/src/lib/dashboard/routes.ts"
+    ],
+    "gaps": [
+      "CrisisHotlineRow was inline in dashboard/CrisisSupportCard.tsx — extracted to components/crisis/",
+      "Disclaimer bTIdn was sibling of header row — moved inside bTIdg title column per AC-2 IR hierarchy"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/crisis/CrisisSupportCard.tsx": "frontend/src/components/crisis/CrisisSupportCard.tsx",
+      "frontend/src/components/crisis/CrisisHotlineRow.tsx": "frontend/src/components/crisis/CrisisHotlineRow.tsx",
+      "frontend/src/components/crisis/index.ts": "frontend/src/components/crisis/index.ts",
+      "frontend/src/components/CrisisBar.tsx": "frontend/src/components/CrisisBar.tsx (unchanged — separate marketing banner, not RE crisis card)"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/CrisisSupportCard.tsx — root data-bubble-id=bTIdW; card bTIdb with flex-col, rounded-xl (12px), border-[var(--color_primary_default)], p-5 (20px), bg-[var(--color_surface_default)]"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/CrisisSupportCard.tsx — header bTIdg with heart bTIdi on circle bTIdh, title bTIdm, disclaimer bTIdn (Text_caption_); hotline list bTIdo flex-wrap gap-2 (8px)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/crisis/CrisisHotlineRow.tsx — groups bTIds/bTIeA/bTIeL with icon+title+subtitle hierarchy and tel:988, sms:741741?body=HOME, tel:18006624357 anchors"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "bTIdW", "selector": "[data-bubble-id='bTIdW']", "status": "pass" },
+    { "bubble_id": "bTIdb", "selector": "[data-bubble-id='bTIdb']", "status": "pass" },
+    { "bubble_id": "bTIdg", "selector": "[data-bubble-id='bTIdg']", "status": "pass" },
+    { "bubble_id": "bTIdh", "selector": "[data-bubble-id='bTIdh']", "status": "pass" },
+    { "bubble_id": "bTIdi", "selector": "[data-bubble-id='bTIdi']", "status": "pass" },
+    { "bubble_id": "bTIdm", "selector": "[data-bubble-id='bTIdm']", "status": "pass" },
+    { "bubble_id": "bTIdn", "selector": "[data-bubble-id='bTIdn']", "status": "pass" },
+    { "bubble_id": "bTIdo", "selector": "[data-bubble-id='bTIdo']", "status": "pass" },
+    { "bubble_id": "bTIds", "selector": "[data-bubble-id='bTIds']", "status": "pass" },
+    { "bubble_id": "bTIeA", "selector": "[data-bubble-id='bTIeA']", "status": "pass" },
+    { "bubble_id": "bTIeL", "selector": "[data-bubble-id='bTIeL']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/crisis/CrisisSupportCard.tsx",
+    "frontend/src/components/crisis/CrisisHotlineRow.tsx",
+    "frontend/src/components/crisis/index.ts",
+    "frontend/src/components/dashboard/CrisisSupportCard.tsx",
+    "frontend/src/pages/Dashboard.tsx"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "item_id": "JOURNAL-03-new-entry-popup",
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-08T08:45:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/lib/journal/journalEntriesApi.ts",
+      "frontend/src/lib/journal/routes.ts",
+      "frontend/src/components/journal/JournalEntriesTab.tsx"
+    ],
+    "gaps": [
+      "AC-1: NewEntryPopup.tsx did not exist — brownfield Dialog hosted new-entry flow",
+      "AC-2: journalEntriesApi.ts had fetchJournalEntries only — no createJournalEntry mutation",
+      "AC-3: new-entry-cancel/close IR buttons and Bubble copy not wired for create flow"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/journal/NewEntryPopup.vue": "frontend/src/components/journal/NewEntryPopup.tsx",
+      "frontend/src/lib/journal/journalEntriesApi.ts": "frontend/src/lib/journal/journalEntriesApi.ts"
+    },
+    "data_fallback": "createJournalEntry tries uds_journalentry (title_text, mood_tag_text, content_text, user_user), then journal_entries (title, mood, body, user_id), then profiles.onboarding_data.journal_entries; fetchJournalEntries falls back to onboarding_data when table absent"
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/NewEntryPopup.tsx — ai_RNbBHXkK popup with header ai_RNbBHXkM and form ai_RNbBHXkS",
+        "frontend/src/components/journal/NewEntryPopup.tsx — inputs ai_RNbBHXkV (title), ai_RNbBHXkY (mood tag), ai_RNbBHXkb (content) with IR field groups",
+        "frontend/src/lib/journal/routes.ts — bubble id constants for all in-scope new-entry popup elements"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts — createJournalEntry inserts uds_journalentry or journal_entries row",
+        "frontend/src/components/journal/NewEntryPopup.tsx — ai_RNbBHXke new-entry-save-btn calls createJournalEntry then dismisses",
+        "frontend/src/pages/Journal.tsx — openNew opens NewEntryPopup; handleEntriesChanged refreshes JOURNAL-02 entries grid"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/NewEntryPopup.tsx — ai_RNbBHXkd cancel and ai_RNbBHXkQ close dismiss without API calls",
+        "frontend/src/components/journal/NewEntryPopup.tsx — static labels match Bubble IR text (New Journal Entry, Entry Title, Mood Tag, Your Reflection, Cancel, Save Entry)"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXkK", "selector": "[data-bubble-id='ai_RNbBHXkK']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXkM", "selector": "[data-bubble-id='ai_RNbBHXkM']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXkS", "selector": "[data-bubble-id='ai_RNbBHXkS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXkV", "selector": "[data-bubble-id='ai_RNbBHXkV']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXkY", "selector": "[data-bubble-id='ai_RNbBHXkY']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXkb", "selector": "[data-bubble-id='ai_RNbBHXkb']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXke", "selector": "[data-bubble-id='ai_RNbBHXke']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/lib/journal/routes.ts",
+    "frontend/src/lib/journal/journalEntriesApi.ts",
+    "frontend/src/components/journal/NewEntryPopup.tsx",
+    "frontend/src/pages/Journal.tsx",
+    "cursor-impl-cycle/output/coverage/JOURNAL-03-new-entry-popup.json"
+  ]
+}

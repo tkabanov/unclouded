@@ -1,0 +1,214 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-07-relapse-log-edit-popups",
+  "assessed_at": "2026-07-08T08:42:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — ai_RNbBHXma popup root; form ai_RNbBHXmi with DateInput ai_RNbBHXml and MultiLineInput ai_RNbBHXmp",
+        "frontend/src/components/journal/EditRelapsePopup.tsx — ai_RNbBHXnA popup root; form ai_RNbBHXnI with DateInput ai_RNbBHXnL and MultiLineInput ai_RNbBHXnO",
+        "frontend/src/lib/journal/routes.ts — bubble id constants for all in-scope relapse popup entities"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/relapseEventsApi.ts — createRelapseEvent inserts uds_relapseevent (event_date_date, notes_text, user_user) with onboarding_data fallback",
+        "frontend/src/lib/journal/relapseEventsApi.ts — updateRelapseEvent and deleteRelapseEvent with table-first / fallback pattern",
+        "frontend/src/components/journal/LogRelapsePopup.tsx — ai_RNbBHXmx save calls createRelapseEvent",
+        "frontend/src/components/journal/EditRelapsePopup.tsx — ai_RNbBHXnV save calls updateRelapseEvent; ai_RNbBHXnQ delete calls deleteRelapseEvent",
+        "frontend/src/pages/Journal.tsx — handleMilestonesChanged awaits refreshProfile() then loadMilestones() to refresh JOURNAL-05 relapse grid"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — disclaimer group ai_RNbBHXmq with icon ai_RNbBHXmr and text ai_RNbBHXms in flex icon+text layout",
+        "frontend/src/lib/journal/relapseEventsApi.ts — user_user scoping on table CRUD; onboarding_data keyed per profiles.id",
+        "frontend/src/components/journal/MilestonesTab.tsx — RELAPSE_PRIVATE_BADGE_BUBBLE_ID marks relapse section private"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "log-relapse-btn opens LogRelapsePopup and save CTA persists a relapse event row",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/MilestonesTab.tsx — LOG_RELAPSE_BTN_BUBBLE_ID onClick={onLogRelapse}",
+        "frontend/src/pages/Journal.tsx — handleLogRelapse sets logRelapseOpen; LogRelapsePopup mounted with onSaved",
+        "frontend/src/components/journal/LogRelapsePopup.tsx — handleSave calls createRelapseEvent then onSaved + dismiss"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Relapse card edit opens EditRelapsePopup prefilled with selected row",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Journal.tsx — handleEditRelapse sets editingRelapse + editRelapseOpen",
+        "frontend/src/components/journal/RelapseEventCard.tsx — edit button routes onEditRelapse(event)",
+        "frontend/src/components/journal/EditRelapsePopup.tsx — useEffect hydrates event_date_date and notes_text from event prop"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Edit save CTA updates relapse event via updateRelapseEvent (not dead handler)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EditRelapsePopup.tsx — handleSave calls updateRelapseEvent",
+        "frontend/src/lib/journal/relapseEventsApi.ts — updateRelapseEvent table + fallback paths"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Edit delete CTA removes relapse event and parent reloads relapse grid",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EditRelapsePopup.tsx — handleDelete calls deleteRelapseEvent then onSaved",
+        "frontend/src/pages/Journal.tsx — onSaved={handleMilestonesChanged} refreshes profile and reloads relapseEvents via fetchRelapseEvents"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Cancel and close buttons on both popups dismiss without mutation",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — dismiss on cancel ai_RNbBHXmw and close ai_RNbBHXmg",
+        "frontend/src/components/journal/EditRelapsePopup.tsx — dismiss on cancel ai_RNbBHXnU and close ai_RNbBHXnG"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHXma",
+      "selector": "[data-bubble-id='ai_RNbBHXma']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmi",
+      "selector": "[data-bubble-id='ai_RNbBHXmi']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXml",
+      "selector": "[data-bubble-id='ai_RNbBHXml']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmp",
+      "selector": "[data-bubble-id='ai_RNbBHXmp']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmq",
+      "selector": "[data-bubble-id='ai_RNbBHXmq']",
+      "status": "pass",
+      "notes": "Disclaimer row uses flex icon+text; Group_info_banner_ applied without explicit IR style_ref on group"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmr",
+      "selector": "[data-bubble-id='ai_RNbBHXmr']",
+      "status": "pass",
+      "notes": "IR style_ref Icon_primary_; implementation uses Icon_muted_ with Lock lucide icon"
+    },
+    {
+      "bubble_id": "ai_RNbBHXms",
+      "selector": "[data-bubble-id='ai_RNbBHXms']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXmx",
+      "selector": "[data-bubble-id='ai_RNbBHXmx']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXnA",
+      "selector": "[data-bubble-id='ai_RNbBHXnA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXnI",
+      "selector": "[data-bubble-id='ai_RNbBHXnI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXnL",
+      "selector": "[data-bubble-id='ai_RNbBHXnL']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXnO",
+      "selector": "[data-bubble-id='ai_RNbBHXnO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXnQ",
+      "selector": "[data-bubble-id='ai_RNbBHXnQ']",
+      "status": "pass"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Log and edit popup cancel buttons (ai_RNbBHXmw, ai_RNbBHXnU) use Button_ghost_ variant; IR style_ref maps both to Button_outline_.",
+      "alternative": "Apply bubbleStyle('Button_outline_') and matching shadcn outline variant on cancel CTAs to match Bubble button styling.",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — LOG_RELAPSE_CANCEL_BTN data-style-ref Button_ghost_",
+        "ir/inventory.json — style_ref:ai_RNbBHXmw style_target Button_outline_"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Disclaimer icon ai_RNbBHXmr resolves to Icon_primary_ in IR but renders with Icon_muted_ and a generic Lock lucide glyph.",
+      "alternative": "Resolve Bubble icon asset/name from drsam-99657.bubble and apply Icon_primary_ token for parity with the info-banner row.",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — LOG_RELAPSE_DISCLAIMER_ICON data-style-ref Icon_muted_",
+        "ir/inventory.json — style_ref:ai_RNbBHXmr style_target Icon_primary_"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "EditRelapsePopup delete (ai_RNbBHXnQ) fires immediately with no confirmation — destructive one-click removal, consistent with EditMilestonePopup but unlike journal entry delete AlertDialog.",
+      "alternative": "Add AlertDialog confirm before deleteRelapseEvent to reduce accidental data loss.",
+      "evidence": [
+        "frontend/src/components/journal/EditRelapsePopup.tsx — handleDelete",
+        "frontend/src/pages/Journal.tsx — AlertDialog for journal entry delete"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "grounding",
+      "priority": "low",
+      "finding": "Popup title/subtitle and disclaimer copy are React-authored; IR text_expressions on ai_RNbBHXme/ai_RNbBHXmf/ai_RNbBHXms are dynamic pointers — static Bubble strings were not extracted from drsam-99657.bubble for parity verification.",
+      "alternative": "Resolve text_expressions from bubble source and align strings when static literals exist in the export.",
+      "evidence": [
+        "frontend/src/components/journal/LogRelapsePopup.tsx — DialogTitle/DialogDescription and disclaimer text",
+        "ir/inventory.json — ai_RNbBHXme text_expressions host_class render_prop"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "item_id": "JOURNAL-04-entry-detail-and-ai-reflection",
+  "module_id": "MOD-DRSAM-JOURNAL",
+  "assessed_at": "2026-07-08T08:55:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Journal.tsx",
+      "frontend/src/lib/journal/journalEntriesApi.ts",
+      "frontend/src/lib/journal/routes.ts",
+      "frontend/src/components/journal/JournalEntryCard.tsx",
+      "frontend/src/components/journal/JournalEntriesTab.tsx",
+      "frontend/src/components/journal/NewEntryPopup.tsx",
+      "frontend/src/components/journal/EditMilestonePopup.tsx",
+      "frontend/supabase/functions/chat/index.ts"
+    ],
+    "gaps": [
+      "AC-1: EntryDetailPopup.tsx did not exist — brownfield Dialog + AlertDialog hosted edit/delete",
+      "AC-2: journalEntriesApi.ts lacked updateJournalEntry and deleteJournalEntry",
+      "AC-3: No journalReflectionApi; has_ai_reflection hardcoded false on list rows"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/journal/EntryDetailPopup.vue": "frontend/src/components/journal/EntryDetailPopup.tsx",
+      "frontend/src/lib/journal/journalReflectionApi.ts": "frontend/src/lib/journal/journalReflectionApi.ts",
+      "frontend/src/lib/journal/journalEntriesApi.ts": "frontend/src/lib/journal/journalEntriesApi.ts"
+    },
+    "data_fallback": "updateJournalEntry/deleteJournalEntry try uds_journalentry, then journal_entries, then profiles.onboarding_data.journal_entries; ai_reflection_text stored on uds row or onboarding_data.journal_entry_reflections keyed by entry id; generateJournalReflection calls functions/v1/chat then saveJournalEntryReflection"
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/journal/EntryDetailPopup.tsx — ai_RNbBHXkh popup bound to selected entry with form ai_RNbBHXkt, ai-reflection-section ai_RNbBHXlD, delete-confirm-section ai_RNbBHXla",
+        "frontend/src/lib/journal/routes.ts — bubble id constants for ~38 entry-detail popup elements including ai_RNbBHXkw, ai_RNbBHXkz, ai_RNbBHXlC, ai_RNbBHXlL, ai_RNbBHXlP, ai_RNbBHXle",
+        "frontend/src/pages/Journal.tsx — openEdit opens EntryDetailPopup; brownfield edit Dialog and AlertDialog removed"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalEntriesApi.ts — updateJournalEntry and deleteJournalEntry with table-first + onboarding_data fallback",
+        "frontend/src/components/journal/EntryDetailPopup.tsx — ai_RNbBHXlX entry-save-changes-btn, ai_RNbBHXle entry-delete-confirm-btn, ai_RNbBHXkr entry-detail-close-btn dismiss without persisting",
+        "frontend/src/pages/Journal.tsx — handleEntriesChanged refreshes JOURNAL-02 grid after save/delete/reflection"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/journal/journalReflectionApi.ts — generate-reflection-btn flow calls functions/v1/chat and persists ai_reflection_text",
+        "frontend/src/components/journal/EntryDetailPopup.tsx — ai_RNbBHXlL generate-reflection-btn renders ai_RNbBHXlP ai-reflection-text",
+        "frontend/src/lib/journal/journalEntriesApi.ts — fetchJournalEntries sets has_ai_reflection from ai_reflection_text; saveJournalEntryReflection updates list badge state"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXkh", "selector": "[data-bubble-id='ai_RNbBHXkh']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXkt", "selector": "[data-bubble-id='ai_RNbBHXkt']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlD", "selector": "[data-bubble-id='ai_RNbBHXlD']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXla", "selector": "[data-bubble-id='ai_RNbBHXla']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlL", "selector": "[data-bubble-id='ai_RNbBHXlL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlP", "selector": "[data-bubble-id='ai_RNbBHXlP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXlX", "selector": "[data-bubble-id='ai_RNbBHXlX']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXle", "selector": "[data-bubble-id='ai_RNbBHXle']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXkr", "selector": "[data-bubble-id='ai_RNbBHXkr']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/lib/journal/routes.ts",
+    "frontend/src/lib/journal/journalEntriesApi.ts",
+    "frontend/src/lib/journal/journalReflectionApi.ts",
+    "frontend/src/components/journal/EntryDetailPopup.tsx",
+    "frontend/src/pages/Journal.tsx",
+    "cursor-impl-cycle/output/coverage/JOURNAL-04-entry-detail-and-ai-reflection.json"
+  ]
+}

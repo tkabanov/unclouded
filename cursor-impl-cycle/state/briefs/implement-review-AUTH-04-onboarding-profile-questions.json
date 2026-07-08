@@ -1,0 +1,42 @@
+{
+  "role": "review",
+  "phase": "implement",
+  "target_id": "AUTH-04-onboarding-profile-questions",
+  "current_module_id": "MOD-DRSAM-AUTH",
+  "current_item_id": "AUTH-04-onboarding-profile-questions",
+  "template": "/Users/tim/projects/unclouded/cursor-impl-cycle/prompts/review-implement.md",
+  "inputs": {
+    "inventory_path": "ir/inventory.json",
+    "styles_slice_path": "ir/slices/styles.json",
+    "bubble_source_path": "drsam-99657.bubble",
+    "ui_fidelity_rubric_path": "Users/tim/projects/unclouded/cursor-impl-cycle/prompts/ui-fidelity-rubric.md",
+    "module_map_path": "cursor-impl-cycle/state/module-map.json",
+    "cycle_path": "cursor-impl-cycle/state/cycle.json",
+    "frontend_app_dir": "frontend",
+    "adapter_dir": null,
+    "supabase_context_dir": "frontend/supabase",
+    "implementation_policy_path": "Users/tim/projects/unclouded/cursor-impl-cycle/config/implementation-policy.json",
+    "prototype_inventory_path": "cursor-impl-cycle/config/prototype-inventory.json",
+    "path_conventions_path": "cursor-impl-cycle/config/path-conventions.json",
+    "provider_scope_seed_path": "Users/tim/projects/unclouded/cursor-impl-cycle/config/provider-scope-seed.json",
+    "scope_focus": "drsam_authenticated_spa",
+    "development_mode": "greenfield",
+    "frontend_stack": "react-vite-tsx",
+    "prototype_dir": "frontend",
+    "forbidden_write_paths": [
+      "project/"
+    ],
+    "allowed_write_paths": [
+      "frontend/",
+      "cursor-impl-cycle/"
+    ],
+    "read_only_context_paths": [],
+    "coverage_threshold_pct": 90
+  },
+  "outputs": [
+    "cursor-impl-cycle/output/reports/implement-AUTH-04-onboarding-profile-questions.review.json"
+  ],
+  "subagent_type": "generalPurpose",
+  "model": null,
+  "readonly": true
+}

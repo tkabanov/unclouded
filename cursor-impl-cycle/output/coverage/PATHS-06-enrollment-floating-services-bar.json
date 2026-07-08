@@ -1,0 +1,76 @@
+{
+  "item_id": "PATHS-06-enrollment-floating-services-bar",
+  "module_id": "MOD-DRSAM-PATHS",
+  "assessed_at": "2026-07-08T07:50:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+      "frontend/src/components/dashboard/ServicesFloatingPanel.tsx",
+      "frontend/src/components/paths/PathsGridPanel.tsx",
+      "frontend/src/pages/Paths.tsx",
+      "frontend/src/lib/paths/routes.ts"
+    ],
+    "gaps": [
+      "AC-1: EnrollmentFloatingBar with bTItS floating strip did not exist",
+      "AC-2: PathsGridPanel fetched enrollments directly; no shared pathsEnrollmentStore",
+      "AC-3: PathEnrollmentListItem lacked currentSessionId/currentSessionTitle for PATHS-07"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/paths/EnrollmentFloatingBar.tsx": "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+      "frontend/src/lib/paths/pathsEnrollmentApi.ts": "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+      "frontend/src/lib/paths/pathsEnrollmentStore.ts": "frontend/src/lib/paths/pathsEnrollmentStore.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+        "frontend/src/lib/paths/routes.ts",
+        "frontend/src/pages/Paths.tsx"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+        "frontend/src/components/paths/PathsGridPanel.tsx"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTItS",
+      "selector": "[data-bubble-id='bTItS']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTItY",
+      "selector": "[data-bubble-id='bTItY']",
+      "status": "pass"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+    "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+    "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+    "frontend/src/lib/paths/routes.ts",
+    "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+    "frontend/src/components/paths/PathsGridPanel.tsx",
+    "frontend/src/pages/Paths.tsx"
+  ]
+}

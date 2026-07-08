@@ -1,0 +1,25 @@
+{
+  "phase": "implement",
+  "target_id": "AUTH-04-onboarding-profile-questions",
+  "assessed_at": "2026-07-07T20:12:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-AUTH-04-onboarding-profile-questions.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Dimension caption 'PuP 360 Dimension 2 of 3 · Universal all roles' is hardcoded in OnboardingPerformance.tsx but matches Bubble static copy, uses Text_caption_ style_ref, and is universal (not role-keyed). Prior fix_now rewrite for role-keyed heading/caption via getPerformanceStepCopyForRole is verified resolved (rewrite_verification.resolved=true). Caption is not a named ui_ref in AUTH-04 decompose scope (ui_refs: bTGNP, 0b12b49e…); criteria_audit AC-1/AC-2 pass and all ui_evidence entries pass. Same hardcoded dimension-chrome pattern exists on Stability/Alignment steps — centralizing to onboardingQuestions.ts or a shared step-chrome helper is traceability polish, not an AC or downstream depends_on blocker."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Duplicate OnboardingScaleAnswer/OnboardingScaleQuestion interface blocks (lines 9–22 and 525–538) in onboardingQuestions.ts are harmless compile-time noise — TypeScript merges identical declarations. ENUM-02 triage already deferred this hygiene item (C-1). AUTH-04 scope is question-panel UI migration and persistence, not enum-file cleanup; all ACs pass, coverage 100%, no downstream gate requires deduplication before advance. Remove the second block on next edit to that file."
+    }
+  ],
+  "summary": "0 fix_now, 2 defer, 0 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs pass. Prior rewrite (role-keyed performance heading/caption) verified resolved. Deferred: C-1 dimension chrome caption IR sourcing (traceability polish, copy correct); C-2 duplicate interface blocks (ENUM-02-deferred file hygiene)."
+}

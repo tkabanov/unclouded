@@ -1,0 +1,25 @@
+{
+  "phase": "implement",
+  "target_id": "JOURNAL-03-new-entry-popup",
+  "assessed_at": "2026-07-08T07:00:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-JOURNAL-03-new-entry-popup.review.json",
+  "ok_to_advance": true,
+  "rewrite_required": false,
+  "decisions": [
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read and code confirm DialogContent's built-in Radix close (dialog.tsx L45–48) overlaps the in-scope ai_RNbBHXkQ new-entry-close-btn (NewEntryPopup.tsx L131–144). Valid ui-fidelity gap, but AC-3 functional requirement—close dismisses without persist—passes and criteria_audit/ui_evidence mark ai_RNbBHXkQ pass. The same duplicate-close pattern appears across all journal popups (NewEntryPopup, EntryDetailPopup, AddMilestonePopup, EditMilestonePopup, LogRelapsePopup, EditRelapsePopup) sharing shadcn DialogContent; fixing via hideClose is a module-wide dialog-primitive polish, not a JOURNAL-03-only regression. Medium priority; no downstream depends_on item blocks on single-close parity. Defer to a journal popup dialog-shell polish wave (hideClose on DialogContent or journal-specific shell)."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Finding is valid: NewEntryPopup accepts userId={user?.id ?? \"\"} (Journal.tsx L179) and handleSave does not short-circuit before setSaving(true). However Journal routes through ProtectedRoute/useRequireAuth, so an empty userId is unreachable in normal authenticated use; only a narrow auth-teardown race could surface the generic toast from createJournalEntry failure. Low priority; not in JOURNAL-03 ACs or ui_refs; same userId prop pattern is used for every journal popup on Journal.tsx. Disable-save when !userId is defensive hardening suitable for a later auth-edge-case polish wave, not a rewrite blocker for this gate."
+    }
+  ],
+  "summary": "Review passed at 100% coverage with 0 blockers. Triage: 0 fix_now, 2 defer, 0 accept. Deferred: C-1 → journal popup dialog-shell polish (hideClose / single IR close btn across module popups); C-2 → optional auth-edge-case guard on Save when !userId (ProtectedRoute makes empty userId unreachable in practice). ok_to_advance=true, rewrite_required=false."
+}

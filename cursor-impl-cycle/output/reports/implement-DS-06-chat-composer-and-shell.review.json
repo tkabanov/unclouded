@@ -1,0 +1,181 @@
+{
+  "phase": "implement",
+  "target_id": "DS-06-chat-composer-and-shell",
+  "assessed_at": "2026-07-07T20:45:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 91,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatComposer.tsx",
+        "frontend/src/components/chat/types.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatFloatingDisclaimer.tsx",
+        "frontend/src/components/chat/types.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatReusable.tsx",
+        "frontend/src/components/chat/ChatHeader.tsx",
+        "frontend/src/components/chat/ChatMessagesList.tsx"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-shell",
+      "check": "ChatComposer/ChatReusable expose controlled props (value, onChange, onSend, mode select) and real form submit \u2014 not placeholder stubs",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatComposer.tsx",
+        "frontend/src/components/chat/ChatReusable.tsx"
+      ]
+    },
+    {
+      "id": "FV-disclaimer",
+      "check": "ChatFloatingDisclaimer injects Bubble HTML behavior block and honors collapsed prop (collapse_when_hidden semantics)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatFloatingDisclaimer.tsx",
+        "frontend/src/components/chat/types.ts"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIRW",
+      "selector": "[data-bubble-id='bTIRW']",
+      "status": "pass",
+      "notes": "Root section; flex column stacks header \u2192 messages \u2192 composer wrapper"
+    },
+    {
+      "bubble_id": "bTITC",
+      "selector": "[data-bubble-id='bTITC']",
+      "status": "pass",
+      "notes": "Form root with border-t panel footer styling"
+    },
+    {
+      "bubble_id": "bTITH",
+      "selector": "[data-bubble-id='bTITH']",
+      "status": "pass",
+      "notes": "Mode button row above input group"
+    },
+    {
+      "bubble_id": "bTITI",
+      "selector": "[data-bubble-id='bTITI']",
+      "status": "pass",
+      "notes": "Copy matches Bubble: Plan my week ahead"
+    },
+    {
+      "bubble_id": "bTITM",
+      "selector": "[data-bubble-id='bTITM']",
+      "status": "pass",
+      "notes": "Copy matches Bubble: Reflect on a recent challenge"
+    },
+    {
+      "bubble_id": "bTITN",
+      "selector": "[data-bubble-id='bTITN']",
+      "status": "pass",
+      "notes": "Copy matches Bubble: Review my current goals"
+    },
+    {
+      "bubble_id": "bTITO",
+      "selector": "[data-bubble-id='bTITO']",
+      "status": "pass",
+      "notes": "Copy matches Bubble: Work through a stressful situation"
+    },
+    {
+      "bubble_id": "bTITS",
+      "selector": "[data-bubble-id='bTITS']",
+      "status": "pass",
+      "notes": "Input row group; bTITT intermediate group omitted but caption+input nesting preserved"
+    },
+    {
+      "bubble_id": "bTITU",
+      "selector": "[data-bubble-id='bTITU']",
+      "status": "pass",
+      "notes": "Text_caption_ via bubbleStyle; label Your message"
+    },
+    {
+      "bubble_id": "bTITY",
+      "selector": "[data-bubble-id='bTITY']",
+      "status": "pass",
+      "notes": "Input_default_ via bubbleStyle; placeholder Share what's on your mind..."
+    },
+    {
+      "bubble_id": "bTITZ",
+      "selector": "[data-bubble-id='bTITZ']",
+      "status": "pass",
+      "notes": "Button_primary_; Send label; lucide Send icon vs Bubble phosphor paper-plane-right"
+    },
+    {
+      "bubble_id": "bTIUh",
+      "selector": "[data-bubble-id='bTIUh']",
+      "status": "pass",
+      "notes": "z-[4] absolute bottom-full overlay; collapsed returns null per collapse_when_hidden"
+    },
+    {
+      "bubble_id": "bTIne",
+      "selector": "[data-bubble-id='bTIne']",
+      "status": "pass",
+      "notes": "HTML scroll-inversion styles match drsam-99657.bubble; injected via dangerouslySetInnerHTML"
+    }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "integration",
+      "priority": "high",
+      "finding": "Decompose target_files lists ChatWindow.tsx but implementer did not migrate the live chat page from ai-elements PromptInput to ChatReusable/ChatComposer; new shell components are exported but unused in runtime chat flow.",
+      "alternative": "Wire Chat.tsx/ChatWindow.tsx to ChatReusable in a follow-up item or extend this item so the brownfield chat route exercises the IR-faithful shell.",
+      "evidence": [
+        "frontend/src/components/ChatWindow.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DESIGN-SYSTEM.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "IR places bTIUh as a direct child of bTIRW (sibling to header/messages/composer); React nests disclaimer inside a composer-relative wrapper. Visual overlay intent is met but element tree parentage diverges from inventory.",
+      "alternative": "Render ChatFloatingDisclaimer as a bTIRW-level sibling with absolute positioning anchored to the composer region if strict IR parent_id parity is required.",
+      "evidence": [
+        "ir/inventory.json",
+        "frontend/src/components/chat/ChatReusable.tsx"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "Mode quick-prompt buttons expose onModeSelect callbacks but no Bubble workflow wiring (prefill/send on chip click); acceptable for design-system shell scope but behavior is inert until a consumer connects it.",
+      "alternative": "Document expected consumer contract or add optional onModeSelect default that sets composer value from mode label.",
+      "evidence": [
+        "frontend/src/components/chat/ChatComposer.tsx",
+        "drsam-99657.bubble"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 3
+  }
+}
