@@ -1015,10 +1015,10 @@
         },
         {
           "id": "SET-07-subscription-tab-and-billing",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "ENUM-04-tier-and-subscription-labels",
@@ -1032,10 +1032,10 @@
         },
         {
           "id": "SET-08-workplace-tab-and-link-flow",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "DS-01-design-tokens-and-bubble-styles"

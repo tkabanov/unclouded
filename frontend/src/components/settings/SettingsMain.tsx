@@ -5,6 +5,8 @@ import SettingsNotificationsTab from "@/components/settings/SettingsNotification
 import SettingsPrivacyTab from "@/components/settings/SettingsPrivacyTab";
 import SettingsProfileTab from "@/components/settings/SettingsProfileTab";
 import SettingsSecurityTab from "@/components/settings/SettingsSecurityTab";
+import SettingsSubscriptionTab from "@/components/settings/SettingsSubscriptionTab";
+import SettingsWorkplaceTab from "@/components/settings/SettingsWorkplaceTab";
 import {
   SETTINGS_CONTENT_WRAPPER_BUBBLE_ID,
   SETTINGS_MAIN_BUBBLE_ID,
@@ -30,6 +32,8 @@ const TAB_CONTENT: Partial<Record<SettingsTabSlug, ReactNode>> = {
   [SETTINGS_TAB.PRIVACY]: <SettingsPrivacyTab />,
   [SETTINGS_TAB.SECURITY]: <SettingsSecurityTab />,
   [SETTINGS_TAB.NOTIFICATIONS]: <SettingsNotificationsTab />,
+  [SETTINGS_TAB.SUBSCRIPTION]: <SettingsSubscriptionTab />,
+  [SETTINGS_TAB.WORKPLACE]: <SettingsWorkplaceTab />,
 };
 
 export default function SettingsMain() {

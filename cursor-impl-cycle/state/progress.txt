@@ -111,3 +111,4 @@
 2026-07-08T10:55:00.000Z WAVE implement x1: review/triage CHAT-03; implement CHAT-05-chat-messaging-and-create-flow
 2026-07-08T11:00:00.000Z WAVE implement x1: implement SET-02-profile-tab-and-save
 2026-07-08T11:07:00.000Z WAVE implement x4: implement SET-03..SET-06 settings tabs
+2026-07-08T11:11:40.610Z SET-07 subscription tab + SET-08 workplace tab implemented

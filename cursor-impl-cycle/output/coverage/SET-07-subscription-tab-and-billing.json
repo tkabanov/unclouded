@@ -1,0 +1,47 @@
+{
+  "item_id": "SET-07-subscription-tab-and-billing",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:15:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/pages/Subscription.tsx", "frontend/src/lib/plans.ts"],
+    "gaps": ["AC-1: Subscription panel empty", "AC-2: No plan grid", "AC-3: No billing actions"],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/pages/Subscription.tsx": "reference for plan select UX; settings tab is canonical consumer"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx — ai_RNbBHYYd current card, ai_RNbBHYYm plans grid, ai_RNbBHYYw billing card"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SubscriptionPlanCard.tsx — plan name/price/features from loadSubscriptionPlans",
+        "frontend/src/lib/settings/subscriptionApi.ts — ENUM-04 getTierSubscriptionLabel for tier badge"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts — selectSubscriptionPlan, requestBillingPortal, requestInvoices",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx — ai_RNbBHYYv select, ai_RNbBHYZB/ai_RNbBHYZC billing buttons"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/SettingsSubscriptionTab.tsx",
+    "frontend/src/components/settings/SubscriptionPlanCard.tsx",
+    "frontend/src/lib/settings/subscriptionApi.ts",
+    "frontend/src/lib/settings/routes.ts",
+    "frontend/src/components/settings/SettingsMain.tsx"
+  ],
+  "functional_ok": true
+}

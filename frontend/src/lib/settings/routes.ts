@@ -69,3 +69,47 @@ export const NOTIFICATIONS_CARD_HEADER_BUBBLE_ID = "ai_RNbBHYYA" as const;
 export const NOTIFICATIONS_FORM_BUBBLE_ID = "ai_RNbBHYYD" as const;
 export const NOTIFICATIONS_FREQ_SELECT_BUBBLE_ID = "ai_RNbBHYYG" as const;
 export const NOTIFICATIONS_SAVE_BTN_BUBBLE_ID = "ai_RNbBHYYL" as const;
+
+/** Subscription tab panel (SET-07). */
+export const SUBSCRIPTION_PANEL_BUBBLE_ID = "ai_RNbBHYYc" as const;
+export const SUBSCRIPTION_CURRENT_CARD_BUBBLE_ID = "ai_RNbBHYYd" as const;
+export const SUBSCRIPTION_CURRENT_HEADER_BUBBLE_ID = "ai_RNbBHYYe" as const;
+export const SUBSCRIPTION_CURRENT_TEXT_BUBBLE_ID = "ai_RNbBHYYf" as const;
+export const SUBSCRIPTION_CURRENT_TITLE_BUBBLE_ID = "ai_RNbBHYYg" as const;
+export const SUBSCRIPTION_CURRENT_SUBTITLE_BUBBLE_ID = "ai_RNbBHYYh" as const;
+export const SUBSCRIPTION_BADGE_WRAP_BUBBLE_ID = "ai_RNbBHYYi" as const;
+export const SUBSCRIPTION_CURRENT_TIER_BADGE_BUBBLE_ID = "ai_RNbBHYYj" as const;
+export const SUBSCRIPTION_TIER_TEXT_BUBBLE_ID = "ai_RNbBHYYl" as const;
+export const SUBSCRIPTION_PLANS_GRID_BUBBLE_ID = "ai_RNbBHYYm" as const;
+export const PLAN_CARD_BUBBLE_ID = "ai_RNbBHYYn" as const;
+export const PLAN_CARD_ICON_BUBBLE_ID = "ai_RNbBHYYo" as const;
+export const PLAN_CARD_INFO_BUBBLE_ID = "ai_RNbBHYYq" as const;
+export const PLAN_CARD_NAME_BUBBLE_ID = "ai_RNbBHYYr" as const;
+export const PLAN_CARD_PRICE_BUBBLE_ID = "ai_RNbBHYYs" as const;
+export const PLAN_CARD_DESC_BUBBLE_ID = "ai_RNbBHYYt" as const;
+export const PLAN_CARD_FEATURES_BUBBLE_ID = "ai_RNbBHYYu" as const;
+export const PLAN_SELECT_BTN_BUBBLE_ID = "ai_RNbBHYYv" as const;
+export const SUBSCRIPTION_BILLING_CARD_BUBBLE_ID = "ai_RNbBHYYw" as const;
+export const BILLING_CARD_HEADER_BUBBLE_ID = "ai_RNbBHYYx" as const;
+export const BILLING_CARD_TITLE_BUBBLE_ID = "ai_RNbBHYYy" as const;
+export const BILLING_CARD_SUBTITLE_BUBBLE_ID = "ai_RNbBHYYz" as const;
+export const BILLING_ACTIONS_ROW_BUBBLE_ID = "ai_RNbBHYZA" as const;
+export const BILLING_UPDATE_BTN_BUBBLE_ID = "ai_RNbBHYZB" as const;
+export const BILLING_INVOICES_BTN_BUBBLE_ID = "ai_RNbBHYZC" as const;
+
+/** Workplace tab panel (SET-08). */
+export const WORKPLACE_PANEL_BUBBLE_ID = "ai_RNbBHYYM" as const;
+export const WORKPLACE_INFO_CARD_BUBBLE_ID = "ai_RNbBHYYN" as const;
+export const WORKPLACE_CARD_HEADER_BUBBLE_ID = "ai_RNbBHYYO" as const;
+export const WORKPLACE_CARD_TITLE_BUBBLE_ID = "ai_RNbBHYYP" as const;
+export const WORKPLACE_CARD_SUBTITLE_BUBBLE_ID = "ai_RNbBHYYQ" as const;
+export const WORKPLACE_PRIVACY_NOTICE_BUBBLE_ID = "ai_RNbBHYYR" as const;
+export const WORKPLACE_PRIVACY_TEXT_BUBBLE_ID = "ai_RNbBHYYT" as const;
+export const WORKPLACE_FORM_BUBBLE_ID = "ai_RNbBHYYU" as const;
+export const WORKPLACE_NAME_GROUP_BUBBLE_ID = "ai_RNbBHYYV" as const;
+export const WORKPLACE_NAME_LABEL_BUBBLE_ID = "ai_RNbBHYYW" as const;
+export const WORKPLACE_NAME_INPUT_BUBBLE_ID = "ai_RNbBHYYX" as const;
+export const WORKPLACE_EMAIL_GROUP_BUBBLE_ID = "ai_RNbBHYYY" as const;
+export const WORKPLACE_EMAIL_LABEL_BUBBLE_ID = "ai_RNbBHYYZ" as const;
+export const WORKPLACE_EMAIL_INPUT_BUBBLE_ID = "ai_RNbBHYYa" as const;
+export const WORKPLACE_LINK_BTN_BUBBLE_ID = "ai_RNbBHYYb" as const;
