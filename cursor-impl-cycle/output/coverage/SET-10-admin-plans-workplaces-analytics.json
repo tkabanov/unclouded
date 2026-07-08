@@ -1,0 +1,55 @@
+{
+  "item_id": "SET-10-admin-plans-workplaces-analytics",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:38:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/components/settings/admin/SettingsAdminShell.tsx"],
+    "gaps": ["AC-1: Plans/workplaces/analytics stubs", "AC-2: No grids/stats", "AC-3: No add popups"],
+    "reuse_decision": "extend",
+    "mapped_target_files": {}
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx — ai_RNbBHYaP",
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx — ai_RNbBHYah",
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx — ai_RNbBHYay"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx — ai_RNbBHYaV grid, delete actions",
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx — ai_RNbBHYan grid",
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx — stat cards ai_RNbBHYbD–ai_RNbBHYbO"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AddPlanPopup.tsx — ai_RNbBHYdL",
+        "frontend/src/components/settings/admin/AddWorkplacePopup.tsx — ai_RNbBHYdf",
+        "frontend/src/lib/settings/admin/adminPlansApi.ts — createAdminPlan",
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts — createAdminWorkplace"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+    "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx",
+    "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx",
+    "frontend/src/components/settings/admin/AddPlanPopup.tsx",
+    "frontend/src/components/settings/admin/AddWorkplacePopup.tsx",
+    "frontend/src/lib/settings/admin/adminPlansApi.ts",
+    "frontend/src/lib/settings/admin/adminWorkplacesApi.ts",
+    "frontend/src/lib/settings/admin/adminAnalyticsApi.ts",
+    "frontend/src/lib/settings/routes.ts",
+    "frontend/src/components/settings/admin/SettingsAdminShell.tsx"
+  ],
+  "functional_ok": true
+}
