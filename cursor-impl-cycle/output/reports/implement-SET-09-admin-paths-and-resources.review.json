@@ -1,10 +1,10 @@
 {
   "phase": "implement",
   "target_id": "SET-09-admin-paths-and-resources",
-  "assessed_at": "2026-07-08T13:22:00.000Z",
+  "assessed_at": "2026-07-08T13:55:00.000Z",
   "wave": "re-review-after-fixes",
   "ok": true,
-  "coverage_pct": 92,
+  "coverage_pct": 100,
   "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
@@ -27,7 +27,9 @@
     { "bubble_id": "ai_RNbBHYZp", "status": "pass", "notes": "Resource card tag/flag/action bubble ids present" },
     { "bubble_id": "ai_RNbBHYaO", "status": "pass", "notes": "Crisis text indicator rendered with data-bubble-id" }
   ],
-  "gaps": [],
+  "gaps": [
+    "Could not locate/verify state/wave-2-manifest.json in the repository, so any potential reopen-specific reviewer_checks for SET-09 could not be independently validated from that manifest."
+  ],
   "blockers": [],
   "critiques": [
     { "id": "C-1", "area": "functional", "priority": "high", "finding": "Edit CRUD wired — prior placeholder toasts removed.", "alternative": "N/A — fixed." },

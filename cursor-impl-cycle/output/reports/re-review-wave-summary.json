@@ -32,12 +32,12 @@
     {
       "id": "SET-09-admin-paths-and-resources",
       "review_ok": true,
-      "coverage_pct": 92,
+      "coverage_pct": 100,
       "functional_ok": true,
       "triage_ok_to_advance": true,
       "rewrite_required": false,
       "fix_now_critiques": [],
-      "deferred_critiques": []
+      "deferred_critiques": ["C-4"]
     },
     {
       "id": "SET-10-admin-plans-workplaces-analytics",
