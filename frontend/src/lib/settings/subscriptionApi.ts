@@ -88,18 +88,58 @@ export async function selectSubscriptionPlan(
   if (error) throw error;
 }
 
-export async function requestBillingPortal(): Promise<void> {
-  const { error } = await supabase.rpc("open_billing_portal");
+export type BillingPortalResult = {
+  status?: string;
+  message?: string;
+  url?: string;
+  portal_url?: string;
+};
+
+export type BillingInvoice = {
+  id: string;
+  amount: string;
+  date: string;
+};
+
+function parseBillingPortalResult(data: unknown): BillingPortalResult {
+  if (!data || typeof data !== "object") {
+    throw new Error("Billing portal returned an invalid response.");
+  }
+  return data as BillingPortalResult;
+}
+
+function parseBillingInvoices(data: unknown): BillingInvoice[] {
+  if (!Array.isArray(data)) {
+    throw new Error("Invoice history returned an invalid response.");
+  }
+
+  return data.map((row, index) => {
+    if (!row || typeof row !== "object") {
+      throw new Error(`Invoice row ${index + 1} is invalid.`);
+    }
+    const record = row as Record<string, unknown>;
+    return {
+      id: String(record.id ?? ""),
+      amount: String(record.amount ?? ""),
+      date: String(record.date ?? ""),
+    };
+  });
+}
+
+export async function requestBillingPortal(): Promise<BillingPortalResult> {
+  const { data, error } = await supabase.rpc("open_billing_portal");
   if (error) {
     throw new Error("Billing portal is not connected yet.");
   }
+  return parseBillingPortalResult(data);
 }
 
-export async function requestInvoices(): Promise<void> {
-  const { error } = await supabase.rpc("list_billing_invoices");
+export async function requestInvoices(): Promise<BillingInvoice[]> {
+  const { data, error } = await supabase.rpc("list_billing_invoices");
   if (error) {
     throw new Error("Invoice history is not available yet.");
   }
+  return parseBillingInvoices(data);
 }
 
 export { PREMIUM_CONTACT_EMAIL };

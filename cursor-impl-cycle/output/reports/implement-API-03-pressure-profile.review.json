@@ -1,32 +1,27 @@
 {
   "phase": "implement",
   "target_id": "API-03-pressure-profile",
-  "assessed_at": "2026-07-08T11:53:00.000Z",
+  "assessed_at": "2026-07-08T13:10:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 85,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts — exports resolvePressureProfile(loadSignals, stateSignals) with LOAD_SEVERITY/STATE_SEVERITY maps and 4-tier thresholds", "frontend/src/lib/classification.ts — computePressureProfile uses identical severity maps and thresholds (brownfield source)", "ir/inventory.json — bTIAw CustomEvent pointer /api/bTIBB, parameter_count 2, 3 TerminateWorkflow branch actions", "ir/resolver.json — bTIBa/bTIBe/bTIBf/bTIBg nervous-system slugs; pressure_profile_os compound labels"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts — loadProfileRow → readSignalRecord → resolvePressureProfile → patchOnboardingAndResults", "frontend/src/lib/userProfile/profileFieldPatch.ts — Supabase profiles.onboarding_data + results patch", "ir/inventory.json — bTIBO APIEvent pointer /api/bTIBT; action bTIBU TriggerCustomEvent; action bTICJ ChangeThing (pressure_profile_text)"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts — await calculateUserClassification(userId) then await calculateUserPressureProfile(userId)", "frontend/src/lib/completeOnboarding.ts — await runOnboardingProfilePipeline(userId) after saveOnboarding", "ir/inventory.json — bTHpx workflow /pages/bTGNJ/workflows/bTHqE: action 1 bTICQ ScheduleAPIEvent"], "gap": null }
+    { "id": "AC-1", "status": "pass", "evidence": ["buildPressureProfile.ts — regulated:1 in STATE_SEVERITY", "classification.ts delegates to resolvePressureProfile"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["calculateUserPressureProfile.ts patches pressure_profile_text"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["onboardingProfilePipeline.ts order after classification"], "gap": null }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "resolvePressureProfile(loadSignals, stateSignals) returns a pressure bucket string from ENUM-02 load-signal slugs and AUTH-05 state-signal answers, matching bTIAw/bTIBB branch logic", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts", "frontend/src/lib/enums/onboardingQuestions.ts", "frontend/src/components/OnboardingStateSignals.tsx"] },
-    { "id": "FV-2", "check": "calculateUserPressureProfile(userId) reads persisted onboarding signals, computes profile, and patches pressure_profile_text mirroring bTIBO/bTICJ ChangeThing", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts", "frontend/src/lib/userProfile/profileFieldPatch.ts", "ir/inventory.json — bTICJ parent_id bTIBO, action_type ChangeThing"] },
-    { "id": "FV-3", "check": "onboardingProfilePipeline invokes calculateUserPressureProfile immediately after classification, matching bTGNJ workflow bTHqE ScheduleAPIEvent ordering", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts", "frontend/src/lib/completeOnboarding.ts", "ir/inventory.json — bTHqE action 1 bTICQ ScheduleAPIEvent"] }
+    { "id": "FV-1", "check": "resolvePressureProfile with regulated slug parity", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts"] },
+    { "id": "FV-2", "check": "calculateUserPressureProfile patches user row", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts"] },
+    { "id": "FV-3", "check": "Pipeline ordering matches bTHqE", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"] }
   ],
   "ui_evidence": [],
-  "gaps": [
-    { "id": "G-1", "area": "enum-parity", "finding": "STATE_SEVERITY maps grounded:1 but ENUM-03/AUTH-05 store regulated for bTIBe (Regulated); regulated falls through to default severity 2, skewing combined score for calm/stable respondents", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts", "frontend/src/lib/enums/wellnessState.ts — STATE_NERVOUS_SYSTEM.REGULATED = 'regulated'", "frontend/src/components/OnboardingStateSignals.tsx — value: 'regulated'"] }
-  ],
+  "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-1", "area": "enum-parity", "priority": "high", "finding": "buildPressureProfile STATE_SEVERITY uses grounded:1 but onboarding captures regulated (bTIBe) per ENUM-03; regulated users get default severity 2 instead of low-severity 1, potentially shifting pressure bucket vs Bubble intent", "alternative": "Add regulated:1 (alias grounded:1) to STATE_SEVERITY and deduplicate classification.ts computePressureProfile to import resolvePressureProfile", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts", "frontend/src/lib/enums/wellnessState.ts", "cursor-impl-cycle/output/reports/implement-ENUM-03-path-coaching-and-state-enums.review.json"] },
-    { "id": "C-2", "area": "brownfield-dedup", "priority": "medium", "finding": "classification.ts still embeds duplicate computePressureProfile logic instead of importing resolvePressureProfile from buildPressureProfile.ts; two copies can drift", "alternative": "Replace computePressureProfile in classification.ts with import { resolvePressureProfile } from './userProfile/buildPressureProfile'", "evidence": ["frontend/src/lib/classification.ts", "frontend/src/lib/userProfile/buildPressureProfile.ts"] },
-    { "id": "C-3", "area": "ir-fidelity", "priority": "medium", "finding": "Implementation returns 4 aggregate buckets while ir/resolver.json pressure_profile_os values are compound strings; matches brownfield prototype but may diverge from Bubble bTIBB return strings if AC bTIBG branch resolves to option_set display text", "alternative": "Confirm against drsam-99657.bubble /api/bTIBB condition tree whether bTIAw returns aggregate buckets or pressure_profile_os compound labels; align output or document intentional simplification", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts", "ir/resolver.json — bTIAk, bTIAo, bTIAp, bTIAq, bTIAu, bTIAv display_name entries", "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json — AC-1 references bTIBB return value bTIBG branch logic"] },
-    { "id": "C-4", "area": "code-quality", "priority": "low", "finding": "calculateUserPressureProfile lines 34–38 contain a no-op conditional (both branches return profile) left over from stub logic", "alternative": "Remove dead branch and return profile directly after patch", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts"] },
-    { "id": "C-5", "area": "testing", "priority": "low", "finding": "No unit tests cover resolvePressureProfile threshold boundaries or regulated vs grounded slug handling", "alternative": "Add focused tests for severity averaging edge cases and ENUM-03 slug coverage", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts"] }
+    { "id": "C-3", "area": "ir-fidelity", "priority": "medium", "finding": "Aggregate buckets vs compound pressure_profile_os labels — intentional brownfield simplification.", "alternative": "Document or align with Bubble option_set display text." },
+    { "id": "C-5", "area": "testing", "priority": "low", "finding": "No unit tests for regulated slug and thresholds.", "alternative": "Add vitest table-driven cases." }
   ],
-  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }

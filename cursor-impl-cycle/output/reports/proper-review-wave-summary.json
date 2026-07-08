@@ -97,5 +97,6 @@
     "SET-08: style_ref mismatches + workplace upsert error transparency",
     "API-03: regulated slug missing from STATE_SEVERITY",
     "API-05: profile refresh after onboarding pipeline before dashboard navigate"
-  ]
+  ],
+  "follow_up": "cursor-impl-cycle/output/reports/re-review-wave-summary.json"
 }

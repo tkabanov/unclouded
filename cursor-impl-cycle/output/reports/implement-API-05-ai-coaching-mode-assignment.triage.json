@@ -1,15 +1,16 @@
 {
   "phase": "implement",
   "target_id": "API-05-ai-coaching-mode-assignment",
-  "assessed_at": "2026-07-08T12:34:00.000Z",
+  "assessed_at": "2026-07-08T13:26:00.000Z",
+  "wave": "re-review-after-fixes",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-05-ai-coaching-mode-assignment.review.json",
-  "ok_to_advance": false,
-  "rewrite_required": true,
+  "ok_to_advance": true,
+  "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-1", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "saveOnboarding refreshes profile before pipeline; completeOnboarding never refreshes after runOnboardingProfilePipeline — DASH-02 coaching dropdown empty on first dashboard paint despite Supabase patch. AC-3/FV-4 partial." },
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "bTIEN per-action condition verification is grounding backlog; consolidated resolver matches decompose scope intent." },
-    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Missing vitest for resolveAiCoachingModes — testing backlog per API-01 precedent." },
-    { "critique_id": "C-4", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "Singular ai_coaching_mode_os mirror is intentional Bubble parity; DASH-02 reads list field correctly." }
+    { "critique_id": "C-1", "severity": "block", "resolution": "fixed", "action_required": false, "rationale": "completeOnboarding calls refreshProfile after runOnboardingProfilePipeline; Onboarding.tsx passes refresh from useUserProfile — FV-4 pass." },
+    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "bTIEN per-action condition verification is grounding backlog." },
+    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Missing vitest for resolveAiCoachingModes — testing backlog." },
+    { "critique_id": "C-4", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "Singular ai_coaching_mode_os mirror intentional Bubble parity." }
   ],
-  "summary": "1 fix_now (profile refresh after pipeline), 2 defer, 1 accept. rewrite_required true for AC-3 integration gap."
+  "summary": "C-1 fixed; profile refresh before dashboard navigate. ok_to_advance true."
 }

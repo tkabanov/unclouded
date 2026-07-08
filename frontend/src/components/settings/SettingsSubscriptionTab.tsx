@@ -38,6 +38,7 @@ import {
   requestInvoices,
   resolveCurrentTier,
   selectSubscriptionPlan,
+  type BillingInvoice,
   type SubscriptionPlanRow,
 } from "@/lib/settings/subscriptionApi";
 import type { PlanId } from "@/lib/plans";
@@ -53,6 +54,10 @@ export default function SettingsSubscriptionTab() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [portalOpen, setPortalOpen] = useState(false);
+  const [portalMessage, setPortalMessage] = useState("");
+  const [invoicesOpen, setInvoicesOpen] = useState(false);
+  const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
 
   const subscribed = !!profile?.subscribed;
   const currentTier = resolveCurrentTier(subscribed);
@@ -100,8 +105,20 @@ export default function SettingsSubscriptionTab() {
 
   const handleBillingUpdate = useCallback(async () => {
     try {
-      await requestBillingPortal();
-      toast.success("Billing portal opened.");
+      const result = await requestBillingPortal();
+      const portalUrl = result.url ?? result.portal_url;
+      if (portalUrl) {
+        window.open(portalUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      setPortalMessage(
+        result.message ??
+          (result.status === "demo"
+            ? "Billing portal stub — connect Stripe in production."
+            : "Billing portal is ready."),
+      );
+      setPortalOpen(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Couldn't open billing portal.";
       toast.error(message);
@@ -110,8 +127,9 @@ export default function SettingsSubscriptionTab() {
 
   const handleInvoices = useCallback(async () => {
     try {
-      await requestInvoices();
-      toast.success("Invoice history loaded.");
+      const rows = await requestInvoices();
+      setInvoices(rows);
+      setInvoicesOpen(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Couldn't load invoice history.";
       toast.error(message);
@@ -227,6 +245,52 @@ export default function SettingsSubscriptionTab() {
           Demo billing stubs return sample data until Stripe is connected in production.
         </p>
       </div>
+
+      <Dialog open={portalOpen} onOpenChange={setPortalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Billing portal</DialogTitle>
+            <DialogDescription className="pt-2 text-left">{portalMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPortalOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={invoicesOpen} onOpenChange={setInvoicesOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invoice history</DialogTitle>
+            <DialogDescription className="pt-2 text-left">
+              {invoices.length
+                ? "Download or review your past invoices."
+                : "No invoices are available yet."}
+            </DialogDescription>
+          </DialogHeader>
+          {invoices.length > 0 ? (
+            <ul className="divide-y rounded-md border text-sm">
+              {invoices.map((invoice) => (
+                <li
+                  key={invoice.id}
+                  className="flex items-center justify-between gap-4 px-4 py-3"
+                >
+                  <span className="font-medium">{invoice.id}</span>
+                  <span className="text-muted-foreground">{invoice.date}</span>
+                  <span>{invoice.amount}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInvoicesOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
         <DialogContent>

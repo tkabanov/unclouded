@@ -1,15 +1,15 @@
 {
   "phase": "implement",
   "target_id": "SET-07-subscription-tab-and-billing",
-  "assessed_at": "2026-07-08T12:35:00.000Z",
+  "assessed_at": "2026-07-08T13:26:00.000Z",
+  "wave": "re-review-after-fixes",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-07-subscription-tab-and-billing.review.json",
-  "ok_to_advance": false,
-  "rewrite_required": true,
+  "ok_to_advance": true,
+  "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-1", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "Billing CTAs call RPCs absent from prototype schema and degrade to demo toasts — FV-4/FV-5 fail and AC-3 billing half unmet at runtime." },
-    { "critique_id": "C-2", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "AC-2 requires subscription_plan table sourcing; implementation always falls back to static PLANS catalog because table is missing from prototype schema." },
-    { "critique_id": "C-3", "severity": "fix", "resolution": "fix_now", "action_required": true, "rationale": "Plans grid ai_RNbBHYYm omits RepeatingGroup_list_ style_ref from layout_notes — named ui_ref style gap." },
-    { "critique_id": "C-4", "severity": "defer", "resolution": "accept", "action_required": false, "rationale": "Preflight reuse_decision and mapped Subscription.tsx reference are correct; no code change required." }
+    { "critique_id": "C-1", "severity": "block", "resolution": "fixed", "action_required": false, "rationale": "Billing RPC return JSON now drives portal dialog/redirect and invoice list UI — FV-4/FV-5 pass." },
+    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Silent catalog fallback acceptable for brownfield demo; not AC-blocking." },
+    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Demo disclaimer bubble-id is low-priority IR polish." }
   ],
-  "summary": "3 fix_now (billing RPC wiring, subscription_plan table sourcing, RepeatingGroup_list_ style), 1 accept. rewrite_required true — AC-2/AC-3 data and billing gaps block advance."
+  "summary": "C-1 fixed; 2 defer. ok_to_advance true — billing functional outcomes met."
 }

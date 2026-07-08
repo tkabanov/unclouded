@@ -1,32 +1,29 @@
 {
   "phase": "implement",
   "target_id": "API-05-ai-coaching-mode-assignment",
-  "assessed_at": "2026-07-08T11:54:00.000Z",
-  "ok": false,
-  "coverage_pct": 83,
-  "coverage_confidence_pct": 84,
-  "functional_ok": false,
+  "assessed_at": "2026-07-08T13:09:30.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts — resolveAiCoachingModes(input) exported; modesForClassification covers all seven CLASSIFICATION_OS branches", "frontend/src/lib/userProfile/assignAiCoachingModes.ts — System Overload prepends protector; behavioral_fingerprint_text overwhelm substring prepends stabilizer", "frontend/src/lib/userProfile/assignAiCoachingModes.ts — empty deduped list falls back to [AI_COACHING_MODE.SIMPLIFIER]", "frontend/src/lib/enums/coachingMode.ts — five ai_coaching_mode_os slugs from ENUM-03", "ir/inventory.json — bTIEN /api/bTIES action_count 7"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts — loadProfileRow reads classification_option_classification_os, pressure_profile_text, behavioral_fingerprint_text from onboarding_data", "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts — resolveAiCoachingModes then patchOnboardingAndResults with COACHING_MODE_LIST_FIELD", "frontend/src/lib/dashboard/coachingModeApi.ts — COACHING_MODE_LIST_FIELD = ai_coaching_mode_list_list_option_ai_coaching_mode_os", "frontend/src/lib/userProfile/profileFieldPatch.ts — supabase.from('profiles').update merges onboarding_data patch"], "gap": null },
-    { "id": "AC-3", "status": "partial", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts — final awaited step is calculateUserAiCoachingMode after classification, pressure profile, behavioral fingerprint", "frontend/src/lib/completeOnboarding.ts — runOnboardingProfilePipeline(userId) invoked after AUTH-05 save before dashboard navigate", "frontend/src/hooks/useDashboardUser.ts — preferredCoachingMode via readPreferredCoachingMode(profile.onboardingData); no calculateUserAiCoachingMode import", "frontend/src/components/dashboard/DashboardGreetingCard.tsx — bTIVQ Select binds preferredCoachingMode from useDashboardUserContext", "ir/inventory.json — bTHtz workflow pointer /pages/bTGNJ/workflows/bTHuG with ScheduleAPIEvent actions bTIFI and bTJHV"], "gap": "saveOnboarding inside completeOnboarding calls loadProfile() before runOnboardingProfilePipeline patches coaching modes; first /dashboard render serves stale onboardingData so DASH-02 dropdown may be empty until explicit refresh" }
+    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["completeOnboarding.ts — refreshProfile after pipeline before navigate", "Onboarding.tsx passes refresh"], "gap": null }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "resolveAiCoachingModes returns ordered ai_coaching_mode_os slug list from classification, pressure profile, and behavioral fingerprint signals matching bTIEN branch intent", "status": "pass", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts", "frontend/src/lib/userProfile/classifyUser.ts — CLASSIFICATION_OS bubble ids bTHyq…bTHyy", "frontend/src/lib/userProfile/buildPressureProfile.ts — System Overload label", "frontend/src/lib/userProfile/buildBehavioralFingerprint.ts — Overwhelm shutdown fingerprint text", "ir/inventory.json — bTIEN seven ChangeThing children; bTIFD at actions/6"] },
-    { "id": "FV-2", "check": "calculateUserAiCoachingMode(userId) loads computed profile fields, resolves modes, and patches user coaching mode list on profiles row", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts", "frontend/src/lib/userProfile/calculateUserClassification.ts — CLASSIFICATION_OPTION_FIELD", "frontend/src/lib/userProfile/calculateUserPressureProfile.ts — PRESSURE_PROFILE_TEXT_FIELD", "frontend/src/lib/userProfile/calculateUserBehavioralFingerprint.ts — BEHAVIORAL_FINGERPRINT_TEXT_FIELD", "frontend/src/lib/userProfile/profileFieldPatch.ts"] },
-    { "id": "FV-3", "check": "Onboarding profile pipeline final step invokes calculateUserAiCoachingMode after upstream calculators (bTGNJ onboarding chain parity)", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts — stability→alignment→performance→classification→pressure→fingerprint→coaching modes", "frontend/src/lib/completeOnboarding.ts — await runOnboardingProfilePipeline(userId) after saveOnboarding", "ir/inventory.json — bTHtz (/pages/bTGNJ/workflows/bTHuG) onboarding workflow with ScheduleAPIEvent steps"] },
-    { "id": "FV-4", "check": "DASH-02 coaching mode UI reads patched list from profile without re-running calculateUserAiCoachingMode", "status": "partial", "evidence": ["frontend/src/hooks/useDashboardUser.ts — readCoachingModeList/readPreferredCoachingMode from onboarding_data only", "frontend/src/components/dashboard/DashboardGreetingCard.tsx — preferredCoachingMode Select value; handleCoachingModeChange uses updateCoachingModePreference + refresh", "frontend/src/lib/userProfile.tsx — saveOnboarding loadProfile() runs before pipeline in completeOnboarding; pipeline patches do not trigger second loadProfile"] }
+    { "id": "FV-1", "check": "resolveAiCoachingModes branch mapping", "status": "pass", "evidence": ["assignAiCoachingModes.ts"] },
+    { "id": "FV-2", "check": "calculateUserAiCoachingMode patches list field", "status": "pass", "evidence": ["calculateUserAiCoachingMode.ts"] },
+    { "id": "FV-3", "check": "Pipeline final step invokes calculator", "status": "pass", "evidence": ["onboardingProfilePipeline.ts"] },
+    { "id": "FV-4", "check": "DASH-02 reads patched list on first dashboard paint", "status": "pass", "evidence": ["completeOnboarding.ts", "useDashboardUser.ts"] }
   ],
   "ui_evidence": [],
-  "gaps": [
-    { "ac_id": "AC-3", "finding": "Post-onboarding dashboard first paint may not show auto-assigned coaching mode because profile context is refreshed after saveOnboarding but before pipeline patches coaching list", "evidence": ["frontend/src/lib/completeOnboarding.ts", "frontend/src/lib/userProfile.tsx — saveOnboarding awaits loadProfile", "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"] }
-  ],
+  "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-1", "area": "integration", "priority": "high", "finding": "completeOnboarding refreshes profile after initial save but not after runOnboardingProfilePipeline; DASH-02 preferredCoachingMode stays null on first dashboard visit despite Supabase row containing patched ai_coaching_mode_list_list_option_ai_coaching_mode_os.", "alternative": "Await useUserProfile().refresh() (or return merged onboarding_data from pipeline) after runOnboardingProfilePipeline in completeOnboarding.ts before navigate to /dashboard.", "evidence": ["frontend/src/lib/completeOnboarding.ts", "frontend/src/lib/userProfile.tsx", "frontend/src/hooks/useDashboardUser.ts"] },
-    { "id": "C-2", "area": "grounding", "priority": "medium", "finding": "bTIEN IR slice exposes seven ChangeThing action ids but not per-action conditions; React consolidates into resolveAiCoachingModes + single patchOnboardingAndResults — semantic parity assumed from classification/pressure/fingerprint mapping, not verified action-by-action against drsam-99657.bubble.", "alternative": "Add unit tests with fixture inputs per classification_os + pressure/fingerprint edge cases, or extract bTIES action conditions from bubble and document expected ordered list outputs.", "evidence": ["ir/inventory.json — bTIEm,bTIEw,bTIQw,bTIQy,bTIRD,bTIEy,bTIFD under bTIEN", "frontend/src/lib/userProfile/assignAiCoachingModes.ts", "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts"] },
-    { "id": "C-3", "area": "testing", "priority": "medium", "finding": "No tests cover resolveAiCoachingModes branch matrix (classification pairs, System Overload protector prepend, overwhelm stabilizer prepend, simplifier fallback).", "alternative": "Add focused vitest cases in frontend/src/test/ mirroring API-01/API-02 calculator test pattern when introduced.", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts", "frontend/src/test/example.test.ts"] },
-    { "id": "C-4", "area": "data-contract", "priority": "low", "finding": "calculateUserAiCoachingMode also patches ai_coaching_mode_os singular field to last list entry; DASH-02 readPreferredCoachingMode reads list field only — redundant but consistent with adminAnalyticsApi fallback.", "alternative": "Document singular field as legacy mirror or omit if list field is canonical per DASH-02.", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts", "frontend/src/lib/settings/admin/adminAnalyticsApi.ts"] }
+    { "id": "C-2", "area": "grounding", "priority": "medium", "finding": "bTIEN per-action conditions not byte-verified against Bubble.", "alternative": "Fixture tests per classification_os branch." },
+    { "id": "C-3", "area": "testing", "priority": "medium", "finding": "No unit tests for resolveAiCoachingModes matrix.", "alternative": "Add vitest cases." },
+    { "id": "C-4", "area": "data-contract", "priority": "low", "finding": "Singular ai_coaching_mode_os mirror redundant but consistent.", "alternative": "Document as legacy mirror." }
   ],
-  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }

@@ -1,53 +1,41 @@
 {
   "phase": "implement",
   "target_id": "SET-10-admin-plans-workplaces-analytics",
-  "assessed_at": "2026-07-08T11:45:00.000Z",
-  "ok": false,
-  "coverage_pct": 83,
-  "coverage_confidence_pct": 84,
-  "functional_ok": false,
+  "assessed_at": "2026-07-08T13:24:00.000Z",
+  "wave": "re-review-after-fixes",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/components/settings/admin/AdminPlansTab.tsx", "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx", "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx", "frontend/src/components/settings/admin/SettingsAdminShell.tsx"], "gap": null },
-    { "id": "AC-2", "status": "partial", "evidence": ["frontend/src/components/settings/admin/AdminPlansTab.tsx", "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx", "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx", "frontend/src/lib/settings/admin/adminPlansApi.ts", "frontend/src/lib/settings/admin/adminWorkplacesApi.ts", "frontend/src/lib/settings/admin/adminAnalyticsApi.ts"], "gap": "Plans and workplaces grids list rows and wire delete via Supabase (with onboarding_data fallback), but AC-2 requires edit/delete card actions — no edit buttons, no updateAdminPlan/updateAdminWorkplace, and missing IR action markers (ai_RNbBHYab/ai_RNbBHYac/ai_RNbBHYae, ai_RNbBHYat/ai_RNbBHYau/ai_RNbBHYaw). Analytics stat cards and read-only aggregates are implemented." },
-    { "id": "AC-3", "status": "pass", "evidence": ["frontend/src/components/settings/admin/AddPlanPopup.tsx", "frontend/src/components/settings/admin/AddWorkplacePopup.tsx", "frontend/src/lib/settings/admin/adminPlansApi.ts", "frontend/src/lib/settings/admin/adminWorkplacesApi.ts", "frontend/src/components/settings/admin/SettingsAdminShell.tsx"], "gap": null }
+    { "id": "AC-1", "status": "pass", "evidence": ["AdminPlansTab", "AdminWorkplacesTab", "AdminAnalyticsTab", "SettingsAdminShell"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["Edit/delete card actions on plans and workplaces", "IR markers ai_RNbBHYac/ae/at/au/aw on card templates", "Analytics read-only aggregates"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["AddPlanPopup/AddWorkplacePopup create + edit modes", "updateAdminPlan/updateAdminWorkplace APIs"], "gap": null }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "Plans, workplaces, and analytics sub-tabs render real toolbars/grids/stats under admin-sub-contents (not placeholder stubs)", "status": "pass", "evidence": ["frontend/src/components/settings/admin/AdminPlansTab.tsx", "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx", "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx"] },
-    { "id": "FV-2", "check": "Plans grid loads subscriptionplan rows via Supabase subscription_plan table with static/onboarding fallback", "status": "pass", "evidence": ["frontend/src/lib/settings/admin/adminPlansApi.ts"] },
-    { "id": "FV-3", "check": "Workplaces grid loads workplace rows via Supabase workplace table with onboarding fallback", "status": "pass", "evidence": ["frontend/src/lib/settings/admin/adminWorkplacesApi.ts"] },
-    { "id": "FV-4", "check": "Add-plan popup submit creates a plan record (table insert or onboarding_data persistence)", "status": "pass", "evidence": ["frontend/src/components/settings/admin/AddPlanPopup.tsx", "frontend/src/lib/settings/admin/adminPlansApi.ts"] },
-    { "id": "FV-5", "check": "Add-workplace popup submit creates a workplace record (table insert or onboarding_data persistence)", "status": "pass", "evidence": ["frontend/src/components/settings/admin/AddWorkplacePopup.tsx", "frontend/src/lib/settings/admin/adminWorkplacesApi.ts"] },
-    { "id": "FV-6", "check": "Plan delete removes non-static custom plans and refreshes grid", "status": "pass", "evidence": ["frontend/src/components/settings/admin/AdminPlansTab.tsx", "frontend/src/lib/settings/admin/adminPlansApi.ts"] },
-    { "id": "FV-7", "check": "Workplace delete removes rows and refreshes grid", "status": "pass", "evidence": ["frontend/src/components/settings/admin/AdminWorkplacesTab.tsx", "frontend/src/lib/settings/admin/adminWorkplacesApi.ts"] },
-    { "id": "FV-8", "check": "Analytics tab fetches read-only aggregates from profiles and journal_entries", "status": "pass", "evidence": ["frontend/src/lib/settings/admin/adminAnalyticsApi.ts"] },
-    { "id": "FV-9", "check": "Plans/workplaces/analytics sub-tab buttons toggle visibility without breaking paths/resources state", "status": "pass", "evidence": ["frontend/src/components/settings/admin/SettingsAdminShell.tsx"] },
-    { "id": "FV-10", "check": "Plan card edit action is present and updates an existing plan (AC-2 edit/delete parity)", "status": "fail", "evidence": ["frontend/src/components/settings/admin/AdminPlansTab.tsx", "ir/resolver.json"] },
-    { "id": "FV-11", "check": "Workplace card edit action is present and updates an existing workplace (AC-2 edit/delete parity)", "status": "fail", "evidence": ["frontend/src/components/settings/admin/AdminWorkplacesTab.tsx", "ir/resolver.json"] }
+    { "id": "FV-1", "check": "Plans/workplaces/analytics sub-tabs render real content", "status": "pass", "evidence": ["AdminPlansTab", "AdminWorkplacesTab", "AdminAnalyticsTab"] },
+    { "id": "FV-2", "check": "Plans grid loads subscription_plan rows", "status": "pass", "evidence": ["adminPlansApi.ts"] },
+    { "id": "FV-3", "check": "Workplaces grid loads workplace rows", "status": "pass", "evidence": ["adminWorkplacesApi.ts"] },
+    { "id": "FV-4", "check": "Add-plan popup creates plan record", "status": "pass", "evidence": ["AddPlanPopup", "adminPlansApi.ts"] },
+    { "id": "FV-5", "check": "Add-workplace popup creates workplace record", "status": "pass", "evidence": ["AddWorkplacePopup", "adminWorkplacesApi.ts"] },
+    { "id": "FV-6", "check": "Plan delete removes custom plans", "status": "pass", "evidence": ["AdminPlansTab", "adminPlansApi.ts"] },
+    { "id": "FV-7", "check": "Workplace delete removes rows", "status": "pass", "evidence": ["AdminWorkplacesTab", "adminWorkplacesApi.ts"] },
+    { "id": "FV-8", "check": "Analytics fetches read-only aggregates", "status": "pass", "evidence": ["adminAnalyticsApi.ts"] },
+    { "id": "FV-9", "check": "Sub-tab buttons toggle without breaking paths/resources", "status": "pass", "evidence": ["SettingsAdminShell.tsx"] },
+    { "id": "FV-10", "check": "Plan card edit updates existing plan", "status": "pass", "evidence": ["AdminPlansTab edit → AddPlanPopup edit mode → updateAdminPlan"] },
+    { "id": "FV-11", "check": "Workplace card edit updates existing workplace", "status": "pass", "evidence": ["AdminWorkplacesTab edit → AddWorkplacePopup edit mode → updateAdminWorkplace"] }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYZN", "selector": "[data-bubble-id='ai_RNbBHYZN']", "status": "pass", "notes": "Plans sub-tab button in SettingsAdminShell admin-sub-tab-bar" },
-    { "bubble_id": "ai_RNbBHYZO", "selector": "[data-bubble-id='ai_RNbBHYZO']", "status": "pass", "notes": "Workplaces sub-tab button" },
-    { "bubble_id": "ai_RNbBHYZP", "selector": "[data-bubble-id='ai_RNbBHYZP']", "status": "pass", "notes": "Analytics sub-tab button" },
-    { "bubble_id": "ai_RNbBHYaP", "selector": "[data-bubble-id='ai_RNbBHYaP']", "status": "pass", "notes": "AdminPlansTab root with toolbar and grid" },
-    { "bubble_id": "ai_RNbBHYah", "selector": "[data-bubble-id='ai_RNbBHYah']", "status": "pass", "notes": "AdminWorkplacesTab root with toolbar and grid" },
-    { "bubble_id": "ai_RNbBHYay", "selector": "[data-bubble-id='ai_RNbBHYay']", "status": "pass", "notes": "AdminAnalyticsTab root with notice and stat grid" },
-    { "bubble_id": "ai_RNbBHYdL", "selector": "[data-bubble-id='ai_RNbBHYdL']", "status": "pass", "notes": "AddPlanPopup DialogContent root" },
-    { "bubble_id": "ai_RNbBHYdf", "selector": "[data-bubble-id='ai_RNbBHYdf']", "status": "pass", "notes": "AddWorkplacePopup DialogContent root" },
-    { "bubble_id": "ai_RNbBHYaA", "selector": "[data-bubble-id='ai_RNbBHYaA']", "status": "fail", "notes": "Decompose ui_ref does not match IR: resolver maps ai_RNbBHYaA to admin-resource-tags-row, not plan edit. Plan edit is ai_RNbBHYac; neither is mounted on plan cards." }
+    { "bubble_id": "ai_RNbBHYac", "status": "pass", "notes": "Plan edit button on card" },
+    { "bubble_id": "ai_RNbBHYae", "status": "pass", "notes": "Plan delete button on card" },
+    { "bubble_id": "ai_RNbBHYau", "status": "pass", "notes": "Workplace edit button on card" },
+    { "bubble_id": "ai_RNbBHYaw", "status": "pass", "notes": "Workplace delete button on card" }
   ],
-  "gaps": [
-    "AC-2 edit card actions missing on plans and workplaces grids (no edit buttons, no update API, no card-action group markers)",
-    "Plan toolbar title lacks ai_RNbBHYaR marker (h3 uses copy without data-bubble-id)",
-    "Workplace grid cards lack ai_RNbBHYao template and nested name/email markers (ai_RNbBHYar, ai_RNbBHYas)",
-    "Delete buttons on plan/workplace cards lack IR bubble ids ai_RNbBHYae and ai_RNbBHYaw",
-    "Decompose ui_refs includes ai_RNbBHYaA but IR entity is admin-resource-tags-row; correct plan edit btn is ai_RNbBHYac"
-  ],
+  "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-1", "area": "behavior", "priority": "high", "finding": "AC-2 names edit/delete card actions; implementation delivers delete-only on plans and workplaces, below even SET-09 paths tab which stubs edit with a Pencil button and bubble id.", "alternative": "Add ai_RNbBHYab/ai_RNbBHYac edit buttons reusing AddPlanPopup/AddWorkplacePopup in edit mode with updateAdminPlan/updateAdminWorkplace APIs mirroring create/delete fallback pattern.", "evidence": ["frontend/src/components/settings/admin/AdminPlansTab.tsx", "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx", "frontend/src/components/settings/admin/AdminPathsTab.tsx", "ir/resolver.json"] },
-    { "id": "C-2", "area": "ui-fidelity", "priority": "medium", "finding": "Nested plan/workplace card IR nodes (actions row, delete btn, workplace card template, plans title ai_RNbBHYaR) are not marked with data-bubble-id despite routes.ts constants existing for sibling entities.", "alternative": "Extend routes.ts with ai_RNbBHYaR, ai_RNbBHYab, ai_RNbBHYac, ai_RNbBHYae, ai_RNbBHYao, ai_RNbBHYar, ai_RNbBHYas, ai_RNbBHYat, ai_RNbBHYau, ai_RNbBHYaw and mount on card templates matching AdminPathsTab action-row pattern.", "evidence": ["frontend/src/lib/settings/routes.ts", "frontend/src/components/settings/admin/AdminPlansTab.tsx", "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx", "ir/resolver.json"] },
-    { "id": "C-3", "area": "integration", "priority": "medium", "finding": "createAdminPlan/createAdminWorkplace fall back to profiles.onboarding_data JSON blobs when tables are absent — functional for demo but not shared admin persistence across users.", "alternative": "Document demo fallback explicitly in UI notice or gate admin CRUD behind subscription_plan/workplace table availability; align table name with Bubble subscriptionplan user type when migrations land.", "evidence": ["frontend/src/lib/settings/admin/adminPlansApi.ts", "frontend/src/lib/settings/admin/adminWorkplacesApi.ts"] },
-    { "id": "C-4", "area": "ui-fidelity", "priority": "low", "finding": "Analytics stat labels use prototype copy ('Journal entries', 'Pro subscribers') rather than verifying Bubble static text for ai_RNbBHYbH/ai_RNbBHYbN; notice text is rewritten vs IR.", "alternative": "Extract static strings from drsam-99657.bubble source_path for ai_RNbBHYbB and stat label nodes; match IR copy exactly.", "evidence": ["frontend/src/components/settings/admin/AdminAnalyticsTab.tsx", "ir/inventory.json"] }
+    { "id": "C-3", "area": "integration", "priority": "medium", "finding": "onboarding_data fallback for demo schema.", "alternative": "Document demo fallback in UI notice." },
+    { "id": "C-4", "area": "ui-fidelity", "priority": "low", "finding": "Analytics stat labels not byte-verified against Bubble.", "alternative": "Extract static strings from IR in polish wave." }
   ],
-  "scores": { "completeness": 3, "grounding": 4, "actionability": 4 }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }

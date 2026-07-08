@@ -1,16 +1,17 @@
 {
   "phase": "implement",
   "target_id": "API-03-pressure-profile",
-  "assessed_at": "2026-07-08T12:35:00.000Z",
+  "assessed_at": "2026-07-08T13:26:00.000Z",
+  "wave": "re-review-after-fixes",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-03-pressure-profile.review.json",
-  "ok_to_advance": false,
-  "rewrite_required": true,
+  "ok_to_advance": true,
+  "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-1", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "ENUM-03 captures regulated slug but STATE_SEVERITY only maps grounded:1; regulated users get default severity 2, skewing pressure bucket — enum-parity defect." },
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "classification.ts duplicate computePressureProfile — dedup is cleanup wave after C-1 fix; sync regulated mapping in classification.ts during C-1 rewrite." },
-    { "critique_id": "C-3", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "4-tier aggregate buckets match brownfield prototype; API-05 and dashboard consume aggregate strings intentionally." },
-    { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Dead no-op branch in calculateUserPressureProfile — zero behavioral impact." },
-    { "critique_id": "C-5", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Unit tests not in AC; defer after C-1 enum fix." }
+    { "critique_id": "C-1", "severity": "block", "resolution": "fixed", "action_required": false, "rationale": "regulated:1 added to STATE_SEVERITY; classification.ts delegates to resolvePressureProfile." },
+    { "critique_id": "C-2", "severity": "defer", "resolution": "fixed", "action_required": false, "rationale": "classification.ts dedup completed during C-1 fix." },
+    { "critique_id": "C-3", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "4-tier aggregate buckets intentional brownfield simplification." },
+    { "critique_id": "C-4", "severity": "defer", "resolution": "fixed", "action_required": false, "rationale": "Dead branch removed from calculateUserPressureProfile." },
+    { "critique_id": "C-5", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Unit tests deferred to testing wave." }
   ],
-  "summary": "1 fix_now (regulated slug in STATE_SEVERITY), 3 defer, 1 accept. rewrite_required true for enum-parity fix."
+  "summary": "C-1 fixed; enum parity restored. ok_to_advance true."
 }

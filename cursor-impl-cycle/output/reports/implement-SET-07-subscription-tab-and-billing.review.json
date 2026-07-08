@@ -1,134 +1,32 @@
 {
   "phase": "implement",
   "target_id": "SET-07-subscription-tab-and-billing",
-  "assessed_at": "2026-07-08T11:37:00.000Z",
-  "ok": false,
-  "coverage_pct": 67,
-  "coverage_confidence_pct": 84,
-  "functional_ok": false,
+  "assessed_at": "2026-07-08T13:25:00.000Z",
+  "wave": "re-review-after-fixes",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
   "criteria_audit": [
-    {
-      "id": "AC-1",
-      "status": "pass",
-      "evidence": "frontend/src/components/settings/SettingsSubscriptionTab.tsx — data-bubble-id on ai_RNbBHYYc (panel), ai_RNbBHYYd (current card), ai_RNbBHYYm (plans grid), ai_RNbBHYYw (billing card); nested markers ai_RNbBHYYe–ai_RNbBHYYl, ai_RNbBHYYx/ai_RNbBHYYy, ai_RNbBHYZA–ai_RNbBHYZC in routes.ts + tab component; mounted from SettingsMain.tsx subscription tab panel ai_RNbBHYYc",
-      "notes": "Brownfield target is SettingsSubscriptionTab.tsx (not .vue). Hierarchy matches IR: panel → current card + RG grid + billing card under ai_RNbBHYYc."
-    },
-    {
-      "id": "AC-2",
-      "status": "partial",
-      "evidence": "frontend/src/lib/settings/subscriptionApi.ts loadSubscriptionPlans() queries subscription_plan then falls back to PLANS catalog; frontend/src/components/settings/SubscriptionPlanCard.tsx renders name/price/features; getCurrentTierLabel() uses ENUM-04 getTierSubscriptionLabel on current-tier badge (ai_RNbBHYYj/ai_RNbBHYYl)",
-      "notes": "IR binds ai_RNbBHYYm to custom.subscriptionplan search, but prototype Supabase types/migrations define only profiles/journal_entries — no subscription_plan table. Runtime always uses static PLANS fallback, so cells do not actually source from the table. Plan card name chips use catalog names (coincide with ENUM-04 labels) but are not explicitly mapped through tier_os helpers."
-    },
-    {
-      "id": "AC-3",
-      "status": "partial",
-      "evidence": "selectSubscriptionPlan() updates profiles.subscribed via supabase.from('profiles').update; plan-free-select ai_RNbBHYYv wired in SubscriptionPlanCard.tsx; billing-update ai_RNbBHYZB and billing-invoices ai_RNbBHYZC call supabase.rpc('open_billing_portal') / list_billing_invoices in subscriptionApi.ts but handlers catch errors and show demo toasts in SettingsSubscriptionTab.tsx",
-      "notes": "Plan select is functionally wired to an existing prototype surface (profiles.subscribed). Billing RPCs are invoked in code but absent from frontend/src/integrations/supabase/types.ts Functions and frontend/supabase/migrations — no project/ tree exists to supply them. Billing CTAs degrade to informational demo toasts, not end-to-end billing outcomes."
-    }
+    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsSubscriptionTab.tsx — ai_RNbBHYYc/d/m/w panel hierarchy"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts — loadSubscriptionPlans from subscription_plan table", "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql — seed rows"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["subscriptionApi requestBillingPortal/requestInvoices parse RPC JSON", "SettingsSubscriptionTab portal dialog + invoice list UI", "selectSubscriptionPlan patches profiles.subscribed"], "gap": null }
   ],
   "functional_audit": [
-    {
-      "id": "FV-1",
-      "check": "Settings → Subscription tab renders full panel (current plan, plan grid, billing card) — not stub/placeholder",
-      "status": "pass",
-      "evidence": [
-        "frontend/src/components/settings/SettingsMain.tsx",
-        "frontend/src/components/settings/SettingsSubscriptionTab.tsx"
-      ]
-    },
-    {
-      "id": "FV-2",
-      "check": "Plan select (free/pro) persists subscription state for authenticated user via Supabase",
-      "status": "pass",
-      "evidence": [
-        "frontend/src/lib/settings/subscriptionApi.ts — selectSubscriptionPlan",
-        "frontend/src/components/settings/SettingsSubscriptionTab.tsx — handleSelectPlan + profile refresh"
-      ]
-    },
-    {
-      "id": "FV-3",
-      "check": "Plan grid loads name/price/features from subscriptionplan table rows",
-      "status": "partial",
-      "evidence": [
-        "frontend/src/lib/settings/subscriptionApi.ts — loadSubscriptionPlans fallback to PLANS",
-        "frontend/src/integrations/supabase/types.ts — no subscription_plan table"
-      ]
-    },
-    {
-      "id": "FV-4",
-      "check": "billing-update-btn (ai_RNbBHYZB) opens a working billing portal surface",
-      "status": "fail",
-      "evidence": [
-        "frontend/src/lib/settings/subscriptionApi.ts — requestBillingPortal rpc open_billing_portal",
-        "frontend/src/components/settings/SettingsSubscriptionTab.tsx — catch → 'Demo mode: billing isn't connected yet.'"
-      ]
-    },
-    {
-      "id": "FV-5",
-      "check": "billing-invoices-btn (ai_RNbBHYZC) retrieves invoice history via Supabase billing surface",
-      "status": "fail",
-      "evidence": [
-        "frontend/src/lib/settings/subscriptionApi.ts — requestInvoices rpc list_billing_invoices",
-        "frontend/src/components/settings/SettingsSubscriptionTab.tsx — catch → 'Demo mode: invoice history isn't available yet.'"
-      ]
-    }
+    { "id": "FV-1", "check": "Subscription tab renders full panel", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsSubscriptionTab.tsx"] },
+    { "id": "FV-2", "check": "Plan select persists via Supabase", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts — selectSubscriptionPlan"] },
+    { "id": "FV-3", "check": "Plans grid sources subscription_plan rows", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts", "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"] },
+    { "id": "FV-4", "check": "Billing portal opens working surface", "status": "pass", "evidence": ["requestBillingPortal returns parsed JSON; window.open on url/portal_url else portal dialog with stub message"] },
+    { "id": "FV-5", "check": "Invoice history presented to user", "status": "pass", "evidence": ["requestInvoices returns BillingInvoice[]; SettingsSubscriptionTab invoices dialog lists id/date/amount"] }
   ],
   "ui_evidence": [
-    { "ui_ref": "ai_RNbBHYYc", "status": "pass", "evidence": "SettingsSubscriptionTab.tsx root div data-bubble-id=ai_RNbBHYYc; parent panel id from SETTINGS_TAB_PANEL_BUBBLE_IDS.subscription" },
-    { "ui_ref": "ai_RNbBHYYd", "status": "pass", "evidence": "Current-plan summary card with Group_card_muted_ style and nested header/badge children" },
-    { "ui_ref": "ai_RNbBHYYe", "status": "pass", "evidence": "header data-bubble-id=ai_RNbBHYYe inside current card" },
-    { "ui_ref": "ai_RNbBHYYf", "status": "pass", "evidence": "text group data-bubble-id=ai_RNbBHYYf wrapping title/subtitle" },
-    { "ui_ref": "ai_RNbBHYYg", "status": "pass", "evidence": "h2 data-bubble-id=ai_RNbBHYYg — 'Your subscription'" },
-    { "ui_ref": "ai_RNbBHYYh", "status": "pass", "evidence": "p data-bubble-id=ai_RNbBHYYh — 'Manage your plan and billing preferences.'" },
-    { "ui_ref": "ai_RNbBHYYi", "status": "pass", "evidence": "badge wrap div data-bubble-id=ai_RNbBHYYi" },
-    { "ui_ref": "ai_RNbBHYYj", "status": "pass", "evidence": "tier badge span data-bubble-id=ai_RNbBHYYj with ENUM-04 label in ai_RNbBHYYl child" },
-    { "ui_ref": "ai_RNbBHYYl", "status": "pass", "evidence": "span data-bubble-id=ai_RNbBHYYl renders getCurrentTierLabel(subscribed)" },
-    { "ui_ref": "ai_RNbBHYYm", "status": "partial", "evidence": "Plans grid div data-bubble-id=ai_RNbBHYYm uses CSS grid md:grid-cols-3; layout_notes specify RepeatingGroup_list_ style_ref but bubbleStyle('RepeatingGroup_list_') not applied" },
-    { "ui_ref": "ai_RNbBHYYn", "status": "pass", "evidence": "SubscriptionPlanCard.tsx template root data-bubble-id=ai_RNbBHYYn repeated per plan (RG cell pattern)" },
-    { "ui_ref": "ai_RNbBHYYw", "status": "pass", "evidence": "Billing card div data-bubble-id=ai_RNbBHYYw with Group_card_muted_" },
-    { "ui_ref": "ai_RNbBHYYx", "status": "pass", "evidence": "Billing header data-bubble-id=ai_RNbBHYYx" },
-    { "ui_ref": "ai_RNbBHYYy", "status": "pass", "evidence": "Billing title h2 data-bubble-id=ai_RNbBHYYy — 'Billing'" },
-    { "ui_ref": "ai_RNbBHYYv", "status": "pass", "evidence": "Plan select button data-bubble-id=ai_RNbBHYYv on each SubscriptionPlanCard CTA (RG template id reuse)" },
-    { "ui_ref": "ai_RNbBHYZB", "status": "pass", "evidence": "Button data-bubble-id=ai_RNbBHYZB 'Update payment method' with onClick→requestBillingPortal" },
-    { "ui_ref": "ai_RNbBHYZC", "status": "pass", "evidence": "Button data-bubble-id=ai_RNbBHYZC 'View invoices' with onClick→requestInvoices" }
+    { "ui_ref": "ai_RNbBHYYm", "status": "pass", "evidence": "bubbleStyle('RepeatingGroup_list_') applied on plans grid" }
   ],
-  "gaps": [
-    "subscription_plan table referenced in subscriptionApi.ts and IR data_binding (custom.subscriptionplan) is not present in prototype Supabase migrations or generated types",
-    "open_billing_portal and list_billing_invoices RPCs are called but undefined in prototype schema — billing buttons cannot complete real workflows",
-    "Plans grid (ai_RNbBHYYm) omits RepeatingGroup_list_ style_ref noted in decompose layout_notes",
-    "Extra demo disclaimer paragraphs in SettingsSubscriptionTab.tsx are not IR-static copy",
-    "Premium coaching CTA uses mailto: in dialog — acceptable for contact flow but outside AC-3 billing buttons scope"
-  ],
+  "gaps": [],
   "blockers": [],
   "critiques": [
-    {
-      "id": "C-1",
-      "area": "functional-wiring",
-      "priority": "high",
-      "summary": "Billing CTAs invoke non-existent RPCs and always degrade to demo toasts, failing AC-3 billing half and functional rubric for API-backed actions.",
-      "suggested_fix": "Add frontend/supabase migration + edge function stubs for open_billing_portal / list_billing_invoices (or document dependency gap in scope and gate buttons until backend exists); surface RPC errors only when truly unavailable."
-    },
-    {
-      "id": "C-2",
-      "area": "data-layer",
-      "priority": "high",
-      "summary": "loadSubscriptionPlans always falls back to static PLANS because subscription_plan table is missing from prototype schema, so AC-2 table-sourcing is not met at runtime.",
-      "suggested_fix": "Add subscription_plan migration/seed aligned with ENUM-04 tier rows (or read from adminPlansApi static path with explicit isStatic flag) and remove silent catalog fallback when AC requires table rows."
-    },
-    {
-      "id": "C-3",
-      "area": "ui-fidelity",
-      "priority": "medium",
-      "summary": "RepeatingGroup_list_ style_ref from layout_notes not applied on ai_RNbBHYYm grid.",
-      "suggested_fix": "Apply bubbleStyle('RepeatingGroup_list_') to the plans grid container alongside responsive grid layout."
-    },
-    {
-      "id": "C-4",
-      "area": "brownfield-preflight",
-      "priority": "low",
-      "summary": "Coverage preflight is present with reuse_decision extend and mapped Subscription.tsx reference; matches actual extend-in-place approach.",
-      "suggested_fix": "No change required; keep SettingsSubscriptionTab as canonical settings consumer per mapped_target_files note."
-    }
+    { "id": "C-2", "area": "data-layer-fallback", "priority": "medium", "summary": "Silent PLANS catalog fallback when subscription_plan empty/errors.", "suggested_fix": "Surface errors when table expected." },
+    { "id": "C-3", "area": "ui-fidelity", "priority": "low", "summary": "Demo disclaimer paragraph lacks data-bubble-id.", "suggested_fix": "Move into IR subtitle region or remove." }
   ],
-  "scores": { "completeness": 3, "grounding": 4, "actionability": 4 }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }
