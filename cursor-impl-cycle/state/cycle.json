@@ -1,5 +1,5 @@
 {
-  "active": false,
+  "active": true,
   "phase": "implement",
   "gate_stage": "write",
   "current_module_id": "MOD-DRSAM-AUTH",
@@ -840,7 +840,7 @@
         },
         {
           "id": "CHAT-04-delete-conversation-popup",
-          "implement_passes": false,
+          "implement_passes": true,
           "implement_gate": "triage",
           "implement_iteration": 0,
           "coverage_pct": 100,
@@ -873,10 +873,10 @@
         },
         {
           "id": "CHAT-06-chat-welcome-empty-state",
-          "implement_passes": false,
-          "implement_gate": "review",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 2,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-01-chat-content-layout",
             "DS-01-design-tokens-and-bubble-styles"
@@ -919,8 +919,8 @@
       "items": [
         {
           "id": "SET-01-settings-tab-router-and-header",
-          "implement_passes": false,
-          "implement_gate": "review",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
@@ -1098,10 +1098,10 @@
       "items": [
         {
           "id": "API-01-pillar-score-engine",
-          "implement_passes": false,
-          "implement_gate": "review",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "AUTH-04-onboarding-profile-questions",
             "AUTH-05-onboarding-health-load-signals",
@@ -1207,5 +1207,5 @@
   "iteration": 104,
   "target_iteration": 0,
   "started_at": "2026-07-07T14:31:00.000Z",
-  "last_checked_at": "2026-07-08T10:08:02.911Z"
+  "last_checked_at": "2026-07-08T10:25:00.000Z"
 }

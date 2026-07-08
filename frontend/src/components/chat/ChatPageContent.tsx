@@ -6,7 +6,6 @@ import {
   CHAT_MODULE_ID,
   CHAT_PAGE_TITLE_BUBBLE_ID,
   CHAT_PAGE_TITLE_ROW_BUBBLE_ID,
-  CHAT_PANEL_MOUNT_BUBBLE_ID,
   CHAT_SIDEBAR_REGION_BUBBLE_ID,
   NEW_CONVERSATION_BTN_BUBBLE_ID,
 } from "@/lib/chat/routes";
@@ -62,10 +61,7 @@ export default function ChatPageContent({
         <div className="flex min-h-0 flex-1 flex-col">{sidebar}</div>
       </aside>
 
-      <div
-        data-bubble-id={CHAT_PANEL_MOUNT_BUBBLE_ID}
-        className="min-h-0 min-w-0 flex-1"
-      >
+      <div className="min-h-0 min-w-0 flex-1">
         {panel}
       </div>
     </div>

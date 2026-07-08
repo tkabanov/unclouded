@@ -1,3 +1,5 @@
+export { default as ChatPanelMount } from "./ChatPanelMount";
+export type { ChatPanelMountProps } from "./ChatPanelMount";
 export { ChatComposer } from "./ChatComposer";
 export type { ChatComposerProps } from "./ChatComposer";
 export { ChatFloatingDisclaimer } from "./ChatFloatingDisclaimer";

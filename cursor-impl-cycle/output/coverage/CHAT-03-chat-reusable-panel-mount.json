@@ -1,0 +1,77 @@
+{
+  "item_id": "CHAT-03-chat-reusable-panel-mount",
+  "module_id": "MOD-DRSAM-CHAT",
+  "assessed_at": "2026-07-08T10:25:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Chat.tsx",
+      "frontend/src/components/ChatWindow.tsx",
+      "frontend/src/components/chat/ChatReusable.tsx",
+      "frontend/src/components/chat/ChatPageContent.tsx",
+      "frontend/src/lib/chat/chatRouteStore.ts"
+    ],
+    "gaps": [
+      "AC-1: Chat.tsx mounted legacy ChatWindow instead of DS-06 ChatReusable at bTIUt",
+      "AC-2: No explicit bTIUt mount component; mutual exclusivity with welcome panel was inline in Chat.tsx",
+      "AC-3: No chatMessagesApi read path; ChatWindow used ai-sdk transport instead of Bubble chatmessage rows"
+    ],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {
+      "frontend/src/components/ChatWindow.tsx": "frontend/src/components/chat/ChatPanelMount.tsx",
+      "frontend/src/hooks/useChatConversationParam.ts": "frontend/src/hooks/useChatConversationParam.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPanelMount.tsx — root data-bubble-id bTIUt wraps ChatReusable (DS-06 bTIRW)",
+        "frontend/src/pages/Chat.tsx — ChatPanelMount receives conversationId from useChatConversationParam"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — conversationId ? ChatPanelMount : ChatWelcomePanel ternary in panel slot",
+        "frontend/src/hooks/useChatConversationParam.ts — bTInF GetParamFromUrl parity via ?conversation= search param",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — shown when param absent; bTIUt hidden with ChatReusable"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatMessagesApi.ts — fetchMessagesForConversation loads chatmessage rows for active conversation",
+        "frontend/src/components/chat/ChatPanelMount.tsx — passes messages from chatMessagesApi into ChatReusable",
+        "frontend/src/components/chat/ChatReusable.tsx — DS-06 header/messages/composer shell; composer send stub until CHAT-05"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "bTIUt",
+      "selector": "[data-bubble-id='bTIUt']",
+      "status": "pass",
+      "notes": "CustomElement mount on ChatPanelMount when conversation param present"
+    },
+    {
+      "bubble_id": "bTIRW",
+      "selector": "[data-bubble-id='bTIRW']",
+      "status": "pass",
+      "notes": "ChatReusable RE root nested inside bTIUt"
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/chat/ChatPanelMount.tsx",
+    "frontend/src/components/chat/ChatPageContent.tsx",
+    "frontend/src/components/chat/index.ts",
+    "frontend/src/hooks/useChatConversationParam.ts",
+    "frontend/src/lib/chat/chatMessagesApi.ts",
+    "frontend/src/pages/Chat.tsx"
+  ],
+  "functional_ok": true,
+  "notes": "Composer send uses optimistic local append; CHAT-05 owns Supabase insert + AI reply wiring."
+}
