@@ -49,7 +49,9 @@
     "frontend/src/lib/settings/admin/adminWorkplacesApi.ts",
     "frontend/src/lib/settings/admin/adminAnalyticsApi.ts",
     "frontend/src/lib/settings/routes.ts",
-    "frontend/src/components/settings/admin/SettingsAdminShell.tsx"
+    "frontend/src/components/settings/admin/SettingsAdminShell.tsx",
+    "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql",
+    "frontend/supabase/migrations/20260708160000_subscription_workplace_billing_rbac.sql"
   ],
   "functional_ok": true
 }

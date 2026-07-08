@@ -6,7 +6,7 @@
   "preflight": {
     "existing_files_found": ["frontend/src/components/settings/SettingsMain.tsx"],
     "gaps": ["AC-1: Workplace panel empty", "AC-2: No name/email inputs", "AC-3: No link workflow"],
-    "reuse_decision": "new",
+    "reuse_decision": "gap-fill",
     "mapped_target_files": {}
   },
   "criteria": [
@@ -37,7 +37,8 @@
     "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
     "frontend/src/lib/settings/workplaceApi.ts",
     "frontend/src/lib/settings/routes.ts",
-    "frontend/src/components/settings/SettingsMain.tsx"
+    "frontend/src/components/settings/SettingsMain.tsx",
+    "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"
   ],
   "functional_ok": true
 }
