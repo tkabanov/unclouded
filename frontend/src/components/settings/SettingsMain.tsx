@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import SettingsTabBar, { settingsTabPanelId } from "@/components/settings/SettingsTabBar";
+import SettingsProfileTab from "@/components/settings/SettingsProfileTab";
 import {
   SETTINGS_CONTENT_WRAPPER_BUBBLE_ID,
   SETTINGS_MAIN_BUBBLE_ID,
@@ -12,6 +13,7 @@ import {
   SETTINGS_TAB_ORDER,
   SETTINGS_TAB_PANEL_BUBBLE_IDS,
   SETTINGS_TAB_PANELS_BUBBLE_ID,
+  SETTINGS_TAB,
   type SettingsTabSlug,
 } from "@/lib/settings/settingsTabStub";
 import { useSettingsTabStore } from "@/lib/settings/settingsTabStore";
@@ -78,6 +80,8 @@ function SettingsTabPanel({ tab, active }: SettingsTabPanelProps) {
       aria-labelledby={`settings-tab-${tab}`}
       hidden={!active}
       className={cn(!active && "hidden")}
-    />
+    >
+      {active && tab === SETTINGS_TAB.PROFILE ? <SettingsProfileTab /> : null}
+    </div>
   );
 }

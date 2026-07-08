@@ -21,3 +21,14 @@ export const SETTINGS_PAGE_HEADER_BUBBLE_ID = "ai_RNbBHYUt" as const;
 export const SETTINGS_PAGE_TITLE_BUBBLE_ID = "ai_RNbBHYUu" as const;
 export const SETTINGS_PAGE_SUBTITLE_BUBBLE_ID = "ai_RNbBHYUv" as const;
 export const SETTINGS_TAB_BAR_BUBBLE_ID = "ai_RNbBHYUw" as const;
+
+/** Profile tab panel (SET-02). */
+export const PROFILE_PANEL_BUBBLE_ID = "ai_RNbBHYVG" as const;
+export const PROFILE_FORM_CARD_BUBBLE_ID = "ai_RNbBHYVH" as const;
+export const PROFILE_FORM_BUBBLE_ID = "ai_RNbBHYVL" as const;
+export const PROFILE_RECOVERY_SECTION_BUBBLE_ID = "ai_RNbBHYWA" as const;
+export const PROFILE_SOBRIETY_GROUP_BUBBLE_ID = "ai_RNbBHYWF" as const;
+export const PROFILE_FIRST_NAME_INPUT_BUBBLE_ID = "ai_RNbBHYVO" as const;
+export const PROFILE_EMAIL_INPUT_BUBBLE_ID = "ai_RNbBHYVR" as const;
+export const PROFILE_SOBRIETY_DATE_INPUT_BUBBLE_ID = "ai_RNbBHYWH" as const;
+export const PROFILE_SAVE_BTN_BUBBLE_ID = "ai_RNbBHYWT" as const;

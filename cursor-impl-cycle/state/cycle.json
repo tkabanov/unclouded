@@ -822,10 +822,10 @@
         },
         {
           "id": "CHAT-03-chat-reusable-panel-mount",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-01-chat-content-layout",
             "CHAT-02-conversation-thread-sidebar",
@@ -855,10 +855,10 @@
         },
         {
           "id": "CHAT-05-chat-messaging-and-create-flow",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-03-chat-reusable-panel-mount",
             "CHAT-04-delete-conversation-popup",

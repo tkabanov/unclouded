@@ -1,88 +1,112 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { ChatReusable } from "./ChatReusable";
-import type { ChatComposerMode } from "./types";
-import { CHAT_CONVERSATION_DEFAULTS, type ChatConversation, type ChatMessage } from "./types";
+import type { ChatConversation, ChatMessage } from "./types";
+import { CHAT_CONVERSATION_DEFAULTS } from "./types";
 import {
   fetchConversations,
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
-import { fetchMessagesForConversation } from "@/lib/chat/chatMessagesApi";
+import {
+  fetchMessagesForConversation,
+  sendMessageWithAiReply,
+} from "@/lib/chat/chatMessagesApi";
 import { CHAT_PANEL_MOUNT_BUBBLE_ID } from "@/lib/chat/routes";
+import { useCoachingModeUpdate } from "@/hooks/useCoachingModeUpdate";
 import { cn } from "@/lib/utils";
 
 export interface ChatPanelMountProps {
   conversationId: string;
   userId: string;
   onboardingData?: Record<string, unknown> | null;
-  /** Bump when sidebar list changes so title/metadata can refresh. */
+  context?: string;
   listVersion?: number;
+  onThreadUpdated?: () => void;
   className?: string;
 }
 
 /**
- * CHAT-03 — mount DS-06 ChatReusable at CustomElement bTIUt with conversation binding.
+ * CHAT-03/05 — mount DS-06 ChatReusable at bTIUt with messaging API wiring.
  */
 export default function ChatPanelMount({
   conversationId,
   userId,
   onboardingData,
+  context,
   listVersion = 0,
+  onThreadUpdated,
   className,
 }: ChatPanelMountProps) {
   const [conversationMeta, setConversationMeta] = useState<ConversationListItem | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [composerValue, setComposerValue] = useState("");
-  const [selectedMode, setSelectedMode] = useState<ChatComposerMode | undefined>();
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const { selectedMode, modeBadgeText, onModeSelect } = useCoachingModeUpdate();
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [conversations, nextMessages] = await Promise.all([
+        fetchConversations(userId, onboardingData),
+        fetchMessagesForConversation(conversationId, onboardingData),
+      ]);
+      setConversationMeta(conversations.find((row) => row.id === conversationId) ?? null);
+      setMessages(nextMessages);
+    } catch {
+      setConversationMeta(null);
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [conversationId, onboardingData, userId]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      try {
-        const [conversations, nextMessages] = await Promise.all([
-          fetchConversations(userId, onboardingData),
-          fetchMessagesForConversation(conversationId),
-        ]);
-        if (cancelled) return;
-        setConversationMeta(conversations.find((row) => row.id === conversationId) ?? null);
-        setMessages(nextMessages);
-      } catch {
-        if (!cancelled) {
-          setConversationMeta(null);
-          setMessages([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [conversationId, listVersion, onboardingData, userId]);
+    void reload();
+  }, [reload, listVersion]);
 
   const conversation: ChatConversation = useMemo(
     () => ({
       title: conversationMeta?.title_text ?? CHAT_CONVERSATION_DEFAULTS.title,
-      mode_badge_text: CHAT_CONVERSATION_DEFAULTS.mode_badge_text,
+      mode_badge_text: modeBadgeText,
       disclaimer_badge_text: CHAT_CONVERSATION_DEFAULTS.disclaimer_badge_text,
     }),
-    [conversationMeta?.title_text],
+    [conversationMeta?.title_text, modeBadgeText],
   );
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const text = composerValue.trim();
-    if (!text) return;
-    // CHAT-05 wires Supabase insert + AI reply; optimistic UI stub for panel mount.
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content_text: text },
-    ]);
+    if (!text || sending) return;
+
+    setSending(true);
     setComposerValue("");
-  }, [composerValue]);
+    try {
+      const nextMessages = await sendMessageWithAiReply({
+        conversationId,
+        userId,
+        content: text,
+        onboardingData,
+        context,
+        priorMessages: messages,
+      });
+      setMessages(nextMessages);
+      onThreadUpdated?.();
+    } catch {
+      toast.error("Couldn't send your message. Please try again.");
+      setComposerValue(text);
+    } finally {
+      setSending(false);
+    }
+  }, [
+    composerValue,
+    context,
+    conversationId,
+    messages,
+    onboardingData,
+    onThreadUpdated,
+    sending,
+    userId,
+  ]);
 
   return (
     <div
@@ -99,9 +123,10 @@ export default function ChatPanelMount({
           messages={messages}
           composerValue={composerValue}
           onComposerChange={setComposerValue}
-          onSend={handleSend}
+          onSend={() => void handleSend()}
           selectedMode={selectedMode}
-          onModeSelect={setSelectedMode}
+          onModeSelect={onModeSelect}
+          composerDisabled={sending}
           className="flex-1 min-h-0"
         />
       )}

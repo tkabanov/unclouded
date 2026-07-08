@@ -1,16 +1,14 @@
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ChatPageContent from "@/components/chat/ChatPageContent";
 import ChatPanelMount from "@/components/chat/ChatPanelMount";
 import ChatWelcomePanel from "@/components/chat/ChatWelcomePanel";
 import ConversationSidebar from "@/components/chat/ConversationSidebar";
 import DeleteConversationPopup from "@/components/chat/DeleteConversationPopup";
-import {
-  createConversation,
-  type ConversationListItem,
-} from "@/lib/chat/chatConversationsApi";
+import type { ConversationListItem } from "@/lib/chat/chatConversationsApi";
 import { useChatConversationParam } from "@/hooks/useChatConversationParam";
+import { useChatSignOutClear } from "@/hooks/useChatSignOutClear";
+import { useNewConversation } from "@/hooks/useNewConversation";
 import {
   CHAT_HEADER_INSTANCE_BUBBLE_ID,
   CHAT_PAGE_BUBBLE_ID,
@@ -29,18 +27,32 @@ export default function Chat() {
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { conversationId, setConversationId } = useChatConversationParam();
+  useChatSignOutClear();
+
   const [deleteTarget, setDeleteTarget] = useState<ConversationListItem | null>(null);
   const [sidebarListVersion, setSidebarListVersion] = useState(0);
 
-  const handleNew = useCallback(async () => {
-    if (!user) return;
-    try {
-      const created = await createConversation(user.id, profile?.onboardingData ?? null);
-      setConversationId(created.id);
-    } catch {
-      toast.error("Couldn't start a new conversation. Please try again.");
-    }
-  }, [profile?.onboardingData, setConversationId, user]);
+  const bumpSidebar = useCallback(() => {
+    setSidebarListVersion((version) => version + 1);
+  }, []);
+
+  const { createNew } = useNewConversation({
+    userId: user?.id,
+    onboardingData: profile?.onboardingData ?? null,
+    setConversationId,
+    onCreated: bumpSidebar,
+  });
+
+  const context = useMemo(() => {
+    if (!profile) return undefined;
+    const parts: string[] = [];
+    if (profile.firstName) parts.push(`Name: ${profile.firstName}`);
+    if (profile.roleType) parts.push(`Primary role: ${profile.roleType}`);
+    if (profile.primaryPillar) parts.push(`Focus area: ${profile.primaryPillar}`);
+    const cls = profile.results?.classification?.name;
+    if (cls) parts.push(`Current pattern: ${cls}`);
+    return parts.length ? parts.join(". ") : undefined;
+  }, [profile]);
 
   const handleRenameRequest = useCallback((_conversation: ConversationListItem) => {
     // Rename popup flow is out of scope for CHAT-02; wired for IR bS parity.
@@ -59,16 +71,16 @@ export default function Chat() {
       if (conversationId === deletedId) {
         setConversationId(null);
       }
-      setSidebarListVersion((version) => version + 1);
+      bumpSidebar();
       setDeleteTarget(null);
     },
-    [conversationId, setConversationId],
+    [bumpSidebar, conversationId, setConversationId],
   );
 
   return (
     <DashboardLayout {...chatShellProps}>
       <ChatPageContent
-        onNewConversation={handleNew}
+        onNewConversation={createNew}
         sidebar={
           <ConversationSidebar
             userId={user?.id}
@@ -85,7 +97,9 @@ export default function Chat() {
               conversationId={conversationId}
               userId={user.id}
               onboardingData={profile?.onboardingData ?? null}
+              context={context}
               listVersion={sidebarListVersion}
+              onThreadUpdated={bumpSidebar}
             />
           ) : (
             <ChatWelcomePanel />

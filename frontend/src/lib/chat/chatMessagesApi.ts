@@ -1,9 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage } from "@/components/chat/types";
+import { generateAiReplyStub } from "@/lib/chat/chatAiReplyStub";
 
 type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
+
+export const CHAT_MESSAGES_ONBOARDING_KEY = "chat_messages" as const;
 
 function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
   const message = error.message?.toLowerCase() ?? "";
@@ -39,12 +42,72 @@ function mapMessageRow(row: Record<string, unknown>): ChatMessage | null {
   };
 }
 
+function readOnboardingMessages(
+  onboardingData: Record<string, unknown> | null | undefined,
+): Record<string, ChatMessage[]> {
+  const raw = onboardingData?.[CHAT_MESSAGES_ONBOARDING_KEY];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+
+  const map: Record<string, ChatMessage[]> = {};
+  for (const [conversationId, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!Array.isArray(value)) continue;
+    map[conversationId] = value
+      .filter((entry): entry is Record<string, unknown> => Boolean(entry && typeof entry === "object"))
+      .map((entry) => mapMessageRow({ ...entry, id: entry.id ?? crypto.randomUUID() }))
+      .filter((message): message is ChatMessage => message !== null);
+  }
+  return map;
+}
+
+async function persistOnboardingMessages(
+  userId: string,
+  messagesByConversation: Record<string, ChatMessage[]>,
+  onboardingData?: Record<string, unknown> | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      onboarding_data: {
+        ...(onboardingData ?? {}),
+        [CHAT_MESSAGES_ONBOARDING_KEY]: messagesByConversation,
+      } as never,
+    })
+    .eq("id", userId);
+
+  if (error) throw error;
+}
+
+async function tryInsertMessageRow(
+  conversationId: string,
+  role: ChatMessage["role"],
+  content: string,
+): Promise<ChatMessage | null> {
+  const client = supabase as unknown as UntypedSupabase;
+  const sender = role === "assistant" ? "assistant" : "user";
+  const { data, error } = await client
+    .from("chatmessage")
+    .insert({
+      conversation_custom_chatconversation: conversationId,
+      content_text: content,
+      sender_text: sender,
+    })
+    .select("id, content_text, sender_text")
+    .single();
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return null;
+    throw error;
+  }
+
+  return mapMessageRow(data as Record<string, unknown>);
+}
+
 /**
- * Load chatmessage rows for a conversation — read path for CHAT-03 panel mount.
- * Send/insert flows are owned by CHAT-05.
+ * Load chatmessage rows for a conversation.
  */
 export async function fetchMessagesForConversation(
   conversationId: string,
+  onboardingData?: Record<string, unknown> | null,
 ): Promise<ChatMessage[]> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
@@ -53,12 +116,95 @@ export async function fetchMessagesForConversation(
     .eq("conversation_custom_chatconversation", conversationId)
     .order("id", { ascending: true });
 
-  if (error) {
-    if (isSchemaUnavailable(error)) return [];
-    throw error;
+  if (!error) {
+    return (data ?? [])
+      .map((row) => mapMessageRow(row as Record<string, unknown>))
+      .filter((message): message is ChatMessage => message !== null);
   }
 
-  return (data ?? [])
-    .map((row) => mapMessageRow(row as Record<string, unknown>))
-    .filter((message): message is ChatMessage => message !== null);
+  if (!isSchemaUnavailable(error)) throw error;
+  return readOnboardingMessages(onboardingData)[conversationId] ?? [];
+}
+
+/**
+ * Insert a user chatmessage row (table or onboarding_data fallback).
+ */
+export async function insertUserMessage(params: {
+  conversationId: string;
+  userId: string;
+  content: string;
+  onboardingData?: Record<string, unknown> | null;
+}): Promise<ChatMessage> {
+  const trimmed = params.content.trim();
+  if (!trimmed) throw new Error("Message content is required");
+
+  const fromTable = await tryInsertMessageRow(params.conversationId, "user", trimmed);
+  if (fromTable) return fromTable;
+
+  const store = readOnboardingMessages(params.onboardingData);
+  const nextMessage: ChatMessage = {
+    id: crypto.randomUUID(),
+    role: "user",
+    content_text: trimmed,
+  };
+  const conversationMessages = [...(store[params.conversationId] ?? []), nextMessage];
+  await persistOnboardingMessages(
+    params.userId,
+    { ...store, [params.conversationId]: conversationMessages },
+    params.onboardingData,
+  );
+  return nextMessage;
+}
+
+/**
+ * Insert an assistant chatmessage row (table or onboarding_data fallback).
+ */
+export async function insertAssistantMessage(params: {
+  conversationId: string;
+  userId: string;
+  content: string;
+  onboardingData?: Record<string, unknown> | null;
+}): Promise<ChatMessage> {
+  const trimmed = params.content.trim();
+  if (!trimmed) throw new Error("Assistant content is required");
+
+  const fromTable = await tryInsertMessageRow(params.conversationId, "assistant", trimmed);
+  if (fromTable) return fromTable;
+
+  const store = readOnboardingMessages(params.onboardingData);
+  const nextMessage: ChatMessage = {
+    id: crypto.randomUUID(),
+    role: "assistant",
+    content_text: trimmed,
+  };
+  const conversationMessages = [...(store[params.conversationId] ?? []), nextMessage];
+  await persistOnboardingMessages(
+    params.userId,
+    { ...store, [params.conversationId]: conversationMessages },
+    params.onboardingData,
+  );
+  return nextMessage;
+}
+
+/**
+ * bTITZ send parity — insert user message, request AI stub reply, insert assistant message.
+ */
+export async function sendMessageWithAiReply(params: {
+  conversationId: string;
+  userId: string;
+  content: string;
+  onboardingData?: Record<string, unknown> | null;
+  context?: string;
+  priorMessages?: ChatMessage[];
+}): Promise<ChatMessage[]> {
+  const userMessage = await insertUserMessage(params);
+  const thread = [...(params.priorMessages ?? []), userMessage];
+  const assistantText = await generateAiReplyStub(thread, params.context);
+  await insertAssistantMessage({
+    conversationId: params.conversationId,
+    userId: params.userId,
+    content: assistantText,
+    onboardingData: params.onboardingData,
+  });
+  return fetchMessagesForConversation(params.conversationId, params.onboardingData);
 }
