@@ -1,0 +1,54 @@
+{
+  "item_id": "SET-03-coaching-tab-and-save",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:05:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/lib/dashboard/coachingModeApi.ts",
+      "frontend/src/lib/enums/coachingMode.ts",
+      "frontend/src/components/settings/SettingsMain.tsx"
+    ],
+    "gaps": [
+      "AC-1: Coaching panel ai_RNbBHYWU was empty shell",
+      "AC-2: No ai_coaching_mode_os dropdown or disclaimer banner",
+      "AC-3: No coaching-save-btn workflow"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/features/settings/SettingsCoachingTab.vue": "frontend/src/components/settings/SettingsCoachingTab.tsx",
+      "frontend/src/features/settings/coachingPreferencesApi.ts": "frontend/src/lib/settings/coachingPreferencesApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx — ai_RNbBHYWV card, ai_RNbBHYWW header, ai_RNbBHYWZ form"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx — bTIiC select with ENUM-03 options; ai_RNbBHYWq disclaimer"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/coachingPreferencesApi.ts — saveCoachingPreference via updateCoachingModePreference",
+        "frontend/src/components/settings/SettingsCoachingTab.tsx — ai_RNbBHYWt save reloads preference"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/SettingsCoachingTab.tsx",
+    "frontend/src/lib/settings/coachingPreferencesApi.ts",
+    "frontend/src/lib/settings/routes.ts",
+    "frontend/src/components/settings/SettingsMain.tsx"
+  ],
+  "functional_ok": true
+}

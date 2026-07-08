@@ -1,0 +1,45 @@
+{
+  "item_id": "SET-04-privacy-tab-and-delete-flow",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:06:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/components/settings/SettingsMain.tsx"],
+    "gaps": [
+      "AC-1: Privacy panel empty",
+      "AC-2: No export/delete buttons",
+      "AC-3: No delete-confirm-popup"
+    ],
+    "reuse_decision": "new",
+    "mapped_target_files": {}
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": ["frontend/src/components/settings/SettingsPrivacyTab.tsx — ai_RNbBHYWv card, ai_RNbBHYWz sections"]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/privacyApi.ts — exportUserData JSON download",
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx — ai_RNbBHYXS export, ai_RNbBHYXV opens popup"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/DeleteConfirmPopup.tsx — ai_RNbBHYXY with confirm/cancel",
+        "frontend/src/lib/settings/privacyApi.ts — requestAccountDeletion"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/SettingsPrivacyTab.tsx",
+    "frontend/src/components/settings/DeleteConfirmPopup.tsx",
+    "frontend/src/lib/settings/privacyApi.ts"
+  ],
+  "functional_ok": true
+}

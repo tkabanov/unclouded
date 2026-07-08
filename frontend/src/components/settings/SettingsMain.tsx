@@ -1,6 +1,10 @@
 import { cn } from "@/lib/utils";
 import SettingsTabBar, { settingsTabPanelId } from "@/components/settings/SettingsTabBar";
+import SettingsCoachingTab from "@/components/settings/SettingsCoachingTab";
+import SettingsNotificationsTab from "@/components/settings/SettingsNotificationsTab";
+import SettingsPrivacyTab from "@/components/settings/SettingsPrivacyTab";
 import SettingsProfileTab from "@/components/settings/SettingsProfileTab";
+import SettingsSecurityTab from "@/components/settings/SettingsSecurityTab";
 import {
   SETTINGS_CONTENT_WRAPPER_BUBBLE_ID,
   SETTINGS_MAIN_BUBBLE_ID,
@@ -10,14 +14,23 @@ import {
   SETTINGS_PAGE_TITLE_BUBBLE_ID,
 } from "@/lib/settings/routes";
 import {
+  SETTINGS_TAB,
   SETTINGS_TAB_ORDER,
   SETTINGS_TAB_PANEL_BUBBLE_IDS,
   SETTINGS_TAB_PANELS_BUBBLE_ID,
-  SETTINGS_TAB,
   type SettingsTabSlug,
 } from "@/lib/settings/settingsTabStub";
 import { useSettingsTabStore } from "@/lib/settings/settingsTabStore";
 import { bubbleStyle } from "@/styles";
+import type { ReactNode } from "react";
+
+const TAB_CONTENT: Partial<Record<SettingsTabSlug, ReactNode>> = {
+  [SETTINGS_TAB.PROFILE]: <SettingsProfileTab />,
+  [SETTINGS_TAB.COACHING_PREFERENCES]: <SettingsCoachingTab />,
+  [SETTINGS_TAB.PRIVACY]: <SettingsPrivacyTab />,
+  [SETTINGS_TAB.SECURITY]: <SettingsSecurityTab />,
+  [SETTINGS_TAB.NOTIFICATIONS]: <SettingsNotificationsTab />,
+};
 
 export default function SettingsMain() {
   const { activeTab, setActiveTab, isTabActive } = useSettingsTabStore();
@@ -54,11 +67,7 @@ export default function SettingsMain() {
 
         <div data-bubble-id={SETTINGS_TAB_PANELS_BUBBLE_ID} className="w-full">
           {SETTINGS_TAB_ORDER.map((tab) => (
-            <SettingsTabPanel
-              key={tab}
-              tab={tab}
-              active={isTabActive(tab)}
-            />
+            <SettingsTabPanel key={tab} tab={tab} active={isTabActive(tab)} />
           ))}
         </div>
       </div>
@@ -81,7 +90,7 @@ function SettingsTabPanel({ tab, active }: SettingsTabPanelProps) {
       hidden={!active}
       className={cn(!active && "hidden")}
     >
-      {active && tab === SETTINGS_TAB.PROFILE ? <SettingsProfileTab /> : null}
+      {active ? TAB_CONTENT[tab] ?? null : null}
     </div>
   );
 }
