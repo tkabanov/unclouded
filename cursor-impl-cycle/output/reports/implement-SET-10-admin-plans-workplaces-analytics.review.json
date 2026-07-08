@@ -1,41 +1,45 @@
 {
   "phase": "implement",
   "target_id": "SET-10-admin-plans-workplaces-analytics",
-  "assessed_at": "2026-07-08T13:24:00.000Z",
+  "assessed_at": "2026-07-08T14:32:00.000Z",
   "wave": "re-review-after-fixes",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 88,
+  "coverage_confidence_pct": 90,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["AdminPlansTab", "AdminWorkplacesTab", "AdminAnalyticsTab", "SettingsAdminShell"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["Edit/delete card actions on plans and workplaces", "IR markers ai_RNbBHYac/ae/at/au/aw on card templates", "Analytics read-only aggregates"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["AddPlanPopup/AddWorkplacePopup create + edit modes", "updateAdminPlan/updateAdminWorkplace APIs"], "gap": null }
+    { "id": "AC-1", "status": "pass", "evidence": ["AdminPlansTab ai_RNbBHYaP", "AdminWorkplacesTab ai_RNbBHYah", "AdminAnalyticsTab ai_RNbBHYay", "SettingsAdminShell ai_RNbBHYZQ"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["AdminPlansTab/AdminWorkplacesTab edit+delete with ai_RNbBHYac/ae/au/aw", "AdminAnalyticsTab read-only aggregates", "frontend/supabase/migrations/20260708160000_subscription_workplace_billing_rbac.sql — subscription_plan INSERT/UPDATE/DELETE + workplace DELETE RLS"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["AddPlanPopup/AddWorkplacePopup create+edit modes", "adminPlansApi/adminWorkplacesApi create/update/delete"], "gap": null }
   ],
   "functional_audit": [
     { "id": "FV-1", "check": "Plans/workplaces/analytics sub-tabs render real content", "status": "pass", "evidence": ["AdminPlansTab", "AdminWorkplacesTab", "AdminAnalyticsTab"] },
     { "id": "FV-2", "check": "Plans grid loads subscription_plan rows", "status": "pass", "evidence": ["adminPlansApi.ts"] },
     { "id": "FV-3", "check": "Workplaces grid loads workplace rows", "status": "pass", "evidence": ["adminWorkplacesApi.ts"] },
-    { "id": "FV-4", "check": "Add-plan popup creates plan record", "status": "pass", "evidence": ["AddPlanPopup", "adminPlansApi.ts"] },
+    { "id": "FV-4", "check": "Add-plan popup creates plan record", "status": "pass", "evidence": ["AddPlanPopup", "adminPlansApi.ts", "20260708160000_subscription_workplace_billing_rbac.sql INSERT policy"] },
     { "id": "FV-5", "check": "Add-workplace popup creates workplace record", "status": "pass", "evidence": ["AddWorkplacePopup", "adminWorkplacesApi.ts"] },
-    { "id": "FV-6", "check": "Plan delete removes custom plans", "status": "pass", "evidence": ["AdminPlansTab", "adminPlansApi.ts"] },
-    { "id": "FV-7", "check": "Workplace delete removes rows", "status": "pass", "evidence": ["AdminWorkplacesTab", "adminWorkplacesApi.ts"] },
+    { "id": "FV-6", "check": "Plan delete removes custom plans", "status": "pass", "evidence": ["AdminPlansTab", "adminPlansApi.ts", "20260708160000_subscription_workplace_billing_rbac.sql DELETE policy"] },
+    { "id": "FV-7", "check": "Workplace delete removes rows", "status": "pass", "evidence": ["AdminWorkplacesTab", "adminWorkplacesApi.ts", "20260708160000_subscription_workplace_billing_rbac.sql workplace DELETE policy"] },
     { "id": "FV-8", "check": "Analytics fetches read-only aggregates", "status": "pass", "evidence": ["adminAnalyticsApi.ts"] },
     { "id": "FV-9", "check": "Sub-tab buttons toggle without breaking paths/resources", "status": "pass", "evidence": ["SettingsAdminShell.tsx"] },
-    { "id": "FV-10", "check": "Plan card edit updates existing plan", "status": "pass", "evidence": ["AdminPlansTab edit → AddPlanPopup edit mode → updateAdminPlan"] },
-    { "id": "FV-11", "check": "Workplace card edit updates existing workplace", "status": "pass", "evidence": ["AdminWorkplacesTab edit → AddWorkplacePopup edit mode → updateAdminWorkplace"] }
+    { "id": "FV-10", "check": "Plan card edit updates existing plan", "status": "pass", "evidence": ["AdminPlansTab → updateAdminPlan", "20260708160000_subscription_workplace_billing_rbac.sql UPDATE policy"] },
+    { "id": "FV-11", "check": "Workplace card edit updates existing workplace", "status": "pass", "evidence": ["AdminWorkplacesTab → updateAdminWorkplace"] }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYac", "status": "pass", "notes": "Plan edit button on card" },
-    { "bubble_id": "ai_RNbBHYae", "status": "pass", "notes": "Plan delete button on card" },
-    { "bubble_id": "ai_RNbBHYau", "status": "pass", "notes": "Workplace edit button on card" },
-    { "bubble_id": "ai_RNbBHYaw", "status": "pass", "notes": "Workplace delete button on card" }
+    { "bubble_id": "ai_RNbBHYac", "status": "pass", "notes": "Plan edit button" },
+    { "bubble_id": "ai_RNbBHYae", "status": "pass", "notes": "Plan delete button" },
+    { "bubble_id": "ai_RNbBHYau", "status": "pass", "notes": "Workplace edit button" },
+    { "bubble_id": "ai_RNbBHYaw", "status": "pass", "notes": "Workplace delete button" },
+    { "bubble_id": "ai_RNbBHYdL", "status": "pass", "notes": "Add/edit plan popup" },
+    { "bubble_id": "ai_RNbBHYdf", "status": "pass", "notes": "Add/edit workplace popup" }
   ],
   "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-3", "area": "integration", "priority": "medium", "finding": "onboarding_data fallback for demo schema.", "alternative": "Document demo fallback in UI notice." },
-    { "id": "C-4", "area": "ui-fidelity", "priority": "low", "finding": "Analytics stat labels not byte-verified against Bubble.", "alternative": "Extract static strings from IR in polish wave." }
+    { "id": "C-2", "area": "security", "priority": "medium", "finding": "subscription_plan and workplace write/delete RLS policies grant all authenticated users USING (true) — no admin-role gate.", "alternative": "Restrict writes to admin role_type or SECURITY DEFINER RPC before production." },
+    { "id": "C-3", "area": "integration", "priority": "medium", "finding": "adminPlansApi/adminWorkplacesApi still fall back to profiles.onboarding_data when tables missing.", "alternative": "Surface UI notice when fallback path is active." },
+    { "id": "C-4", "area": "functional", "priority": "low", "finding": "fetchAdminAnalytics counts only RLS-visible rows (demo-scoped, not tenant-wide).", "alternative": "Add admin aggregate RPC or document demo scope in stat labels." },
+    { "id": "C-5", "area": "ui-fidelity", "priority": "low", "finding": "Seeded subscription_plan rows from DB not marked isStatic; edit/delete enabled on tier plans.", "alternative": "Mark free/pro/premium seed ids as non-editable when loaded from table." }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": { "completeness": 5, "grounding": 5, "actionability": 4 }
 }

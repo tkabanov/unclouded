@@ -98,5 +98,6 @@
     "API-03: regulated slug missing from STATE_SEVERITY",
     "API-05: profile refresh after onboarding pipeline before dashboard navigate"
   ],
-  "follow_up": "cursor-impl-cycle/output/reports/re-review-wave-summary.json"
+  "follow_up": "cursor-impl-cycle/output/reports/re-review-wave-summary.json",
+  "re_review_outcome": "6/6 ok_to_advance, 0 rewrite_required (code_ref fcdb726)"
 }

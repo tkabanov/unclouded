@@ -1,7 +1,8 @@
 {
   "phase": "implement",
   "target_id": "API-05-ai-coaching-mode-assignment",
-  "assessed_at": "2026-07-08T13:09:30.000Z",
+  "assessed_at": "2026-07-08T14:00:00.000Z",
+  "wave": "re-review-after-fixes",
   "ok": true,
   "coverage_pct": 100,
   "coverage_confidence_pct": 88,
