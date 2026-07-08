@@ -25,7 +25,11 @@ function plansFromCatalog(): SubscriptionPlanRow[] {
 export async function loadSubscriptionPlans(): Promise<SubscriptionPlanRow[]> {
   const { data, error } = await supabase.from("subscription_plan").select("*");
 
-  if (error || !data?.length) {
+  if (error) {
+    throw new Error("Couldn't load subscription plans from database.");
+  }
+
+  if (!data?.length) {
     return plansFromCatalog();
   }
 
