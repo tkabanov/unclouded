@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
+import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
 
 export const ADMIN_WORKPLACES_ONBOARDING_KEY = "admin_workplaces" as const;
 
@@ -23,16 +25,10 @@ type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
 
-function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
-  const message = error.message?.toLowerCase() ?? "";
-  return (
-    error.code === "42P01" ||
-    error.code === "PGRST205" ||
-    message.includes("relation") ||
-    message.includes("does not exist") ||
-    message.includes("could not find the table")
-  );
-}
+export type AdminWorkplacesLoadResult = {
+  workplaces: AdminWorkplaceRecord[];
+  dataSource: AdminDataSource;
+};
 
 function toAdminWorkplace(row: WorkplaceRow): AdminWorkplaceRecord | null {
   const name = row.name_text?.trim();
@@ -108,10 +104,20 @@ async function tryFetchWorkplacesFromTable(): Promise<AdminWorkplaceRecord[] | n
     .filter((item): item is AdminWorkplaceRecord => item !== null);
 }
 
-export async function fetchAdminWorkplaces(userId: string): Promise<AdminWorkplaceRecord[]> {
+export async function fetchAdminWorkplaces(userId: string): Promise<AdminWorkplacesLoadResult> {
   const fromTable = await tryFetchWorkplacesFromTable();
-  if (fromTable !== null) return fromTable;
-  return readOnboardingWorkplaces(userId);
+  if (fromTable !== null) {
+    return {
+      workplaces: fromTable,
+      dataSource: "table",
+    };
+  }
+
+  const workplaces = await readOnboardingWorkplaces(userId);
+  return {
+    workplaces,
+    dataSource: workplaces.length > 0 ? "onboarding" : "static",
+  };
 }
 
 function validateWorkplaceForm(form: AdminWorkplaceFormState): void {

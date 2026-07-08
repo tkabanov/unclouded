@@ -69,7 +69,8 @@ export default function AdminAnalyticsTab() {
         className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground"
       >
         <p data-bubble-id={ADMIN_ANALYTICS_NOTICE_TEXT_BUBBLE_ID}>
-          Read-only aggregates from profiles and journal entries. Demo mode may show low counts.
+          Read-only aggregates scoped to rows visible under your session (RLS demo) — not
+          tenant-wide totals.
         </p>
       </div>
 
@@ -81,14 +82,14 @@ export default function AdminAnalyticsTab() {
           bubbleId={ADMIN_STAT_TOTAL_USERS_BUBBLE_ID}
           labelBubbleId={ADMIN_STAT_TOTAL_USERS_LABEL_BUBBLE_ID}
           valueBubbleId={ADMIN_STAT_TOTAL_USERS_VAL_BUBBLE_ID}
-          label="Total users"
+          label="Total users (session scope)"
           value={String(stats.totalUsers)}
         />
         <StatCard
           bubbleId={ADMIN_STAT_CHECKINS_BUBBLE_ID}
           labelBubbleId={ADMIN_STAT_CHECKINS_LABEL_BUBBLE_ID}
           valueBubbleId={ADMIN_STAT_CHECKINS_VAL_BUBBLE_ID}
-          label="Journal entries"
+          label="Journal entries (session scope)"
           value={String(stats.checkins)}
         />
         <StatCard

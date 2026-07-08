@@ -3,6 +3,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AddWorkplacePopup from "@/components/settings/admin/AddWorkplacePopup";
+import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import {
   ADMIN_ADD_WORKPLACE_BTN_BUBBLE_ID,
   ADMIN_TAB_WORKPLACES_BUBBLE_ID,
@@ -23,6 +24,7 @@ import {
   updateAdminWorkplace,
   type AdminWorkplaceRecord,
 } from "@/lib/settings/admin/adminWorkplacesApi";
+import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,7 @@ import { cn } from "@/lib/utils";
 export default function AdminWorkplacesTab() {
   const { user } = useAuth();
   const [workplaces, setWorkplaces] = useState<AdminWorkplaceRecord[]>([]);
+  const [dataSource, setDataSource] = useState<AdminDataSource>("table");
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editWorkplace, setEditWorkplace] = useState<AdminWorkplaceRecord | null>(null);
@@ -44,7 +47,9 @@ export default function AdminWorkplacesTab() {
 
   const reload = useCallback(async () => {
     if (!user) return;
-    setWorkplaces(await fetchAdminWorkplaces(user.id));
+    const result = await fetchAdminWorkplaces(user.id);
+    setWorkplaces(result.workplaces);
+    setDataSource(result.dataSource);
   }, [user]);
 
   useEffect(() => {
@@ -129,6 +134,8 @@ export default function AdminWorkplacesTab() {
           Add workplace
         </Button>
       </div>
+
+      <AdminDataSourceNotice source={dataSource} entityLabel="workplaces" />
 
       <div data-bubble-id={ADMIN_WORKPLACES_GRID_BUBBLE_ID} className="grid gap-4 md:grid-cols-2">
         {workplaces.length === 0 ? (
