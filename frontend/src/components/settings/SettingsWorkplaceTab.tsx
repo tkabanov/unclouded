@@ -127,8 +127,8 @@ export default function SettingsWorkplaceTab() {
             data-bubble-id={WORKPLACE_PRIVACY_TEXT_BUBBLE_ID}
             className="text-sm text-muted-foreground"
           >
-            Your employer only receives aggregated, anonymized wellness trends — never individual
-            journal entries, chat transcripts, or personal health details.
+            Your chats, journals, check-ins, and all personal entries remain 100% private. Your employer
+            only receives anonymized, group-level trends — no individual data is ever shared.
           </p>
         </div>
 
