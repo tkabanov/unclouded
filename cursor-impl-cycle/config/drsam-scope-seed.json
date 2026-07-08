@@ -1,0 +1,108 @@
+{
+  "description": "Suggested DrSam authenticated SPA modules. Use as scope hints; refine against IR.",
+  "modules": [
+    {
+      "id": "MOD-DRSAM-AUTH",
+      "title": "Auth and onboarding entry",
+      "purpose": "Password reset (reset_pw), multi-step onboarding wizard (onboarding page), and index login/signup entry paths that gate access to the authenticated SPA.",
+      "ir_roots": ["AAL", "bTGNI", "bTGYf"],
+      "ir_slices": [
+        "ir/slices/AAW____root.json",
+        "ir/slices/bTGNJ____root.json",
+        "ir/slices/bTGbC____root.json"
+      ],
+      "estimated_size": "large",
+      "priority": 1
+    },
+    {
+      "id": "MOD-DRSAM-SHELL",
+      "title": "App shell and navigation",
+      "purpose": "Shared header, sidebar, offline banner, and cross-page chrome mounted on dashboard, journal, paths, settings, and chat.",
+      "ir_roots": ["ai_RNbBKLUc", "ai_RNbBKLUe", "bTHvM0", "bTHDT", "bTHDa", "bTHDf", "bTHDh", "bTHDV"],
+      "ir_slices": ["ir/slices/bTHDU____root.json", "ir/slices/styles.json"],
+      "estimated_size": "medium",
+      "priority": 2
+    },
+    {
+      "id": "MOD-DRSAM-ENUMS",
+      "title": "App enums and option sets",
+      "purpose": "Option sets driving onboarding questions, path tabs, settings tabs, coaching modes, load/health signals, and tier/state labels.",
+      "ir_roots": ["onboarding_step_os", "path_page_tab_os", "settings_tab_os", "ai_coaching_mode_os"],
+      "ir_slices": ["ir/inventory.json", "ir/slices/styles.json"],
+      "estimated_size": "medium",
+      "priority": 3
+    },
+    {
+      "id": "MOD-DRSAM-DESIGN-SYSTEM",
+      "title": "Shared UI primitives",
+      "purpose": "Bubble styles to frontend design tokens; shared reusables (progress bar, score bar, session completion form).",
+      "ir_roots": ["bTIHr", "bTIRW", "bTIuS", "bTIyi"],
+      "ir_slices": ["ir/slices/styles.json"],
+      "estimated_size": "medium",
+      "priority": 4
+    },
+    {
+      "id": "MOD-DRSAM-DASHBOARD",
+      "title": "Dashboard home",
+      "purpose": "Main dashboard page after onboarding: daily overview, check-in entry points, and navigation hub.",
+      "ir_roots": ["bTHDT"],
+      "ir_slices": ["ir/slices/bTHDU____root.json", "ir/slices/styles.json"],
+      "estimated_size": "medium",
+      "priority": 5
+    },
+    {
+      "id": "MOD-DRSAM-JOURNAL",
+      "title": "Journal and check-ins",
+      "purpose": "Journal page for daily check-ins, journal entries, milestones, and relapse tracking.",
+      "ir_roots": ["bTHDa"],
+      "ir_slices": ["ir/slices/bTHDb____root.json", "ir/slices/styles.json"],
+      "estimated_size": "large",
+      "priority": 6
+    },
+    {
+      "id": "MOD-DRSAM-PATHS",
+      "title": "Guided paths",
+      "purpose": "Paths page for guided path enrollment, path sessions, and session completion flows.",
+      "ir_roots": ["bTHDf", "bTIyi"],
+      "ir_slices": ["ir/slices/bTHDg____root.json", "ir/slices/styles.json"],
+      "estimated_size": "large",
+      "priority": 7
+    },
+    {
+      "id": "MOD-DRSAM-CHAT",
+      "title": "AI chat and messaging",
+      "purpose": "Chat page and RE-chat reusable: conversation UI, message threads, and chat workflows.",
+      "ir_roots": ["bTHDV", "bTIRW"],
+      "ir_slices": ["ir/slices/bTHDZ____root.json", "ir/slices/styles.json"],
+      "estimated_size": "medium",
+      "priority": 8
+    },
+    {
+      "id": "MOD-DRSAM-CRISIS",
+      "title": "Crisis support surfaces",
+      "purpose": "Crisis support reusable embedded in settings and other flows.",
+      "ir_roots": ["bTIdW"],
+      "ir_slices": ["ir/slices/bTHDl____root.json", "ir/slices/styles.json"],
+      "estimated_size": "small",
+      "priority": 9
+    },
+    {
+      "id": "MOD-DRSAM-SETTINGS",
+      "title": "Settings and account",
+      "purpose": "Settings page: profile, subscription, notifications, privacy, workplace, and admin tabs.",
+      "ir_roots": ["bTHDh"],
+      "ir_slices": ["ir/slices/bTHDl____root.json", "ir/slices/styles.json"],
+      "estimated_size": "large",
+      "priority": 10
+    },
+    {
+      "id": "MOD-DRSAM-API",
+      "title": "Backend API surface",
+      "purpose": "Incoming API events and external HTTP calls from IR mapped to Supabase edge functions or frontend fetch patterns.",
+      "ir_roots": ["bTHxu", "bTIAw", "bTIFU"],
+      "ir_slices": ["ir/inventory.json", "ir/refs.json"],
+      "estimated_size": "medium",
+      "priority": 11
+    }
+  ]
+}

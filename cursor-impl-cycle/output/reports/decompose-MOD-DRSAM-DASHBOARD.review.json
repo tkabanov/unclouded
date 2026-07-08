@@ -72,7 +72,7 @@
       "id": "C-5",
       "area": "scope",
       "priority": "low",
-      "finding": "Dashboard item scopes state frontend migration but omit explicit out-of-scope lines for project/ writes and provider-adapter passthrough routes per implementation-constraints checklist.",
+      "finding": "Dashboard item scopes state frontend migration but omit explicit out-of-scope lines for project/ writes and adapter passthrough routes per implementation-constraints checklist.",
       "alternative": "Append one-line out-of-scope clause per item: no project/supabase schema changes; Supabase client reads/writes only via existing APIs; no adapter unless server secret required.",
       "evidence": [
         "cursor-impl-cycle/prompts/implementation-constraints.md",

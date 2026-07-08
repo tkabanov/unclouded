@@ -4,7 +4,7 @@
   "bubble_source": "drsam-99657.bubble",
   "styles_slice": "ir/slices/styles.json",
   "frontend_app_dir": "frontend",
-  "adapter_dir": "provider-adapter",
+  "adapter_dir": "adapter",
   "supabase_context_dir": "project/supabase",
   "coverage_threshold_pct": 90,
   "stale_hours": 4,

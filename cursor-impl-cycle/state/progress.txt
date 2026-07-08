@@ -27,3 +27,5 @@
 2026-07-06T16:19:18.850Z WAVE decompose x1: triage:MOD-DRSAM-API
 2026-07-06T16:20:36.232Z PAUSE decompose complete (auto_start_implement: false)
 2026-07-06T16:21:04.955Z WAVE implement x1: implement:AUTH-01-index-login-entry
+2026-07-06T19:18:58.240Z ACTIVATE implement manually (active=true, first=AUTH-01-index-login-entry)
+2026-07-06T19:25:35.562Z WAVE implement x1: implement:AUTH-01-index-login-entry

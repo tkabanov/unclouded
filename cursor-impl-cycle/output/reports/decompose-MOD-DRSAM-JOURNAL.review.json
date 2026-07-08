@@ -51,7 +51,7 @@
       "id": "C-5",
       "area": "scope",
       "priority": "low",
-      "finding": "All seven items state frontend migration but omit explicit out-of-scope lines for project/ writes and provider-adapter routes per implementation-constraints checklist; only JOURNAL-02 AC-2 mentions no project/ schema edits.",
+      "finding": "All seven items state frontend migration but omit explicit out-of-scope lines for project/ writes and adapter routes per implementation-constraints checklist; only JOURNAL-02 AC-2 mentions no project/ schema edits.",
       "alternative": "Append one-line out-of-scope clause per item: no project/supabase mutations; adapter only if server secret required (journal CRUD should use Supabase client from frontend).",
       "evidence": ["cursor-impl-cycle/prompts/implementation-constraints.md", "cursor-impl-cycle/output/decompose/MOD-DRSAM-JOURNAL.json"]
     }

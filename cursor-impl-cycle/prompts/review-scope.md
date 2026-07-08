@@ -1,4 +1,4 @@
-# Review scope — module map (provider)
+# Review scope — module map (DrSam)
 
 **Role:** Reviewer (generalPurpose, **readonly: true**)  
 **Phase:** `scope`  
@@ -6,15 +6,15 @@
 
 ## Goal
 
-Assess `cursor-packs/cursor-impl-cycle/state/module-map.json`. Write **only**:
+Assess `cursor-impl-cycle/state/module-map.json`. Write **only**:
 
-`cursor-packs/cursor-impl-cycle/output/reports/scope-scope.review.json`
+`cursor-impl-cycle/output/reports/scope-scope.review.json`
 
 ## Checklist
 
-- **Provider scope only** — no candidate/public-only modules unless explicitly provider-facing embed
-- Provider page `1760622098050x765884846369063400` and `RE-provider-*` reusables represented
-- No plans to modify `project/supabase` — modules should target `provider-app/` and optional `provider-adapter/`
+- **DrSam authenticated SPA scope only** — no public-only surfaces unless explicitly in scope
+- Authenticated pages (`index`, `onboarding`, `reset_pw`, `dashboard`, `journal`, `paths`, `chat`, `settings`) and shared reusables represented
+- No plans to modify `project/supabase` — modules should target `frontend/` and optional `adapter/`
 - No duplicate module ids
 - `estimated_size` plausible relative to `ir_roots` count and IR slice bulk (`entity_count`); decompose will choose item count freely — reviewer judges adequacy later
 - Priorities: auth/shell/enums → design system → domain features

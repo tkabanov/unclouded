@@ -1,13 +1,13 @@
-# UI fidelity rubric (mandatory for provider migration)
+# UI fidelity rubric (mandatory for DrSam migration)
 
-Bubble IR and `source/app.bubble` contain the visual design of the provider portal. The implementer must **preserve layout, structure, and styling** — not redesign screens.
+Bubble IR and `drsam-99657.bubble` contain the visual design of the authenticated user SPA. The implementer must **preserve layout, structure, and styling** — not redesign screens.
 
 ## Source hierarchy (read in this order)
 
-1. **Module slice** — `ir/slices/reusable-<id>.json` or `ir/slices/ui-page-<id>.json` for the current module
+1. **Module slice** — `ir/slices/*____root.json` or per-page slices for the current module
 2. **Styles catalog** — `ir/slices/styles.json` — Bubble style definitions (`display`, `presentation.*`)
 3. **Element tree** — each `element` entity: `element_type`, `name`, `parent_element_id`, `presentation`
-4. **Raw fallback** — `source/app.bubble` via `source_path` on any entity when IR `presentation` is missing or dynamic
+4. **Raw fallback** — `drsam-99657.bubble` via `source_path` on any entity when IR `presentation` is missing or dynamic
 
 ## What to preserve
 
@@ -16,17 +16,17 @@ Bubble IR and `source/app.bubble` contain the visual design of the provider port
 | Structure | `parent_element_id`, `element_type`, `name` | Same component hierarchy and regions |
 | Layout | `width`, `height`, `left`, `top`, `fit_width`, `fit_height`, `horiz_alignment`, gaps | CSS flex/grid; respect Bubble `fit_*` semantics |
 | Typography | `font_family`, `font_size`, `font_weight`, `font_color` | CSS variables or utility classes |
-| Colors | `bgcolor`, `border_*`, `icon_color` | Map `var(--color_*)` tokens to design tokens in `provider-app` |
+| Colors | `bgcolor`, `border_*`, `icon_color` | Map `var(--color_*)` tokens to design tokens in `frontend` |
 | Spacing | `padding_*`, `margin_*` | Same spacing scale |
 | Styles | `presentation.style_ref` → style entity in `styles.json` | Reusable CSS classes / Vue components |
 | Copy | `presentation.text` (static labels) | Same visible strings unless i18n is explicitly in scope |
 
 ## Design system module first
 
-`MOD-PROVIDER-DESIGN-SYSTEM` should land before feature modules when possible:
+`MOD-DRSAM-DESIGN-SYSTEM` should land before feature modules when possible:
 
-- Extract shared Bubble styles (`styles.json`) into `provider-app` tokens (colors, fonts, radii, shadows)
-- Map reusables (`RE-provider-*` dropdown, checkbox, loader, uploader) to shared Vue components
+- Extract shared Bubble styles (`styles.json`) into `frontend` tokens (colors, fonts, radii, shadows)
+- Map reusables to shared Vue components
 - Later modules **compose** these primitives — do not invent new visual language per screen
 
 ## Decompose expectations

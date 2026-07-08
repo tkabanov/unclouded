@@ -4,7 +4,7 @@
 **Phase:** `decompose`  
 **Target:** `{{target_id}}`
 
-Write **only**: `cursor-packs/cursor-impl-cycle/output/reports/decompose-{{target_id}}.review.json`
+Write **only**: `cursor-impl-cycle/output/reports/decompose-{{target_id}}.review.json`
 
 ```json
 {
@@ -23,8 +23,8 @@ Write **only**: `cursor-packs/cursor-impl-cycle/output/reports/decompose-{{targe
 
 ## Read first
 
-- `cursor-packs/cursor-impl-cycle/state/module-map.json` — module `estimated_size`, `ir_roots[]`, `ir_slices[]`
-- `cursor-packs/cursor-impl-cycle/state/item-registry.json` — canonical item ids for cross-module `depends_on[]` validation
+- `cursor-impl-cycle/state/module-map.json` — module `estimated_size`, `ir_roots[]`, `ir_slices[]`
+- `cursor-impl-cycle/state/item-registry.json` — canonical item ids for cross-module `depends_on[]` validation
 - Matching `ir/slices/*` — use `entity_count` and entity classes to judge IR bulk
 - Decompose artifact under review
 
@@ -39,7 +39,7 @@ Write **only**: `cursor-packs/cursor-impl-cycle/output/reports/decompose-{{targe
 - UI items include `ui_refs[]` and `layout_notes` when layout is non-trivial; `ui_refs` depth should match subtree scope (not only 2–3 anchor ids on a 100+ entity reusable)
 - **Over-specification check** (symmetric to under-decomposition): flag as a `critique` (area `ac-quality`) any item whose AC count is disproportionate to its `entity_count` — e.g. a tiny leaf reusable (≤~10 entities) padded with duplicate/restating ACs, Storybook-demo ACs, or a unit-test AC that merely repeats `data-bubble-id` clauses. Detail should be proportional to IR bulk.
 - UI acceptance criteria reference element/style IDs and visual parity (`data-bubble-id`, hierarchy)
-- Grounding is IR + `styles.json` + `source/app.bubble` via `source_path` — no external product-doc artifacts
+- Grounding is IR + `styles.json` + `drsam-99657.bubble` via `source_path` — no external product-doc artifacts
 - Each item has non-empty `scope` with explicit out-of-scope boundaries
 - Each item has testable acceptance criteria
 - No overlapping duplicate items

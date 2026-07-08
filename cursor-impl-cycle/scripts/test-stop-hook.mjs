@@ -134,7 +134,7 @@ function writeTriage(phase, targetId, extra = {}) {
     phase,
     target_id: targetId,
     assessed_at: new Date().toISOString(),
-    review_ref: `cursor-packs/cursor-impl-cycle/output/reports/${phase}-${targetId}.review.json`,
+    review_ref: `cursor-impl-cycle/output/reports/${phase}-${targetId}.review.json`,
     ok_to_advance: true,
     rewrite_required: false,
     decisions: [],

@@ -1,9 +1,9 @@
 {
-  "active": false,
+  "active": true,
   "phase": "implement",
   "gate_stage": "write",
   "current_module_id": "MOD-DRSAM-AUTH",
-  "current_item_id": null,
+  "current_item_id": "AUTH-01-index-login-entry",
   "modules": [
     {
       "id": "MOD-DRSAM-AUTH",
@@ -1204,8 +1204,8 @@
       "decompose_iteration": 0
     }
   ],
-  "iteration": 25,
+  "iteration": 26,
   "target_iteration": 0,
-  "started_at": null,
-  "last_checked_at": "2026-07-06T16:21:04.955Z"
+  "started_at": "2026-07-06T19:18:28.138Z",
+  "last_checked_at": "2026-07-06T19:25:35.562Z"
 }

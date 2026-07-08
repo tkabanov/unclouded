@@ -55,7 +55,7 @@ Add to implement review output:
       "id": "FV-1",
       "check": "Edit profile Stories tab shows CRUD UI, not placeholder",
       "status": "pass",
-      "evidence": ["provider-app/src/components/profile/steps/EditProfileStoriesStep.vue"]
+      "evidence": ["frontend/src/components/profile/steps/EditProfileStoriesStep.vue"]
     }
   ],
   "functional_ok": true
