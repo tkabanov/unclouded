@@ -1,10 +1,15 @@
 {
   "phase": "implement",
   "target_id": "SET-10-admin-plans-workplaces-analytics",
-  "assessed_at": "2026-07-08T11:38:00.000Z",
+  "assessed_at": "2026-07-08T12:45:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-10-admin-plans-workplaces-analytics.review.json",
-  "ok_to_advance": true,
-  "rewrite_required": false,
-  "decisions": [],
-  "summary": "Review passed at 100%. SETTINGS module complete; API-02 next."
+  "ok_to_advance": false,
+  "rewrite_required": true,
+  "decisions": [
+    { "critique_id": "C-1", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "AC-2 edit/delete card actions missing on plans and workplaces — only delete implemented; FV-10/FV-11 fail." },
+    { "critique_id": "C-2", "severity": "fix", "resolution": "fix_now", "action_required": true, "rationale": "Missing data-bubble-id on plan/workplace card action nodes (ai_RNbBHYaR, ai_RNbBHYac, ai_RNbBHYae, ai_RNbBHYau, ai_RNbBHYaw, workplace card template)." },
+    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "onboarding_data fallback for demo schema is acceptable per brownfield constraints; document in later wave." },
+    { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Analytics static copy fidelity is low-priority polish after AC-2 edit/delete parity." }
+  ],
+  "summary": "2 fix_now (edit CRUD + IR markers), 2 defer. rewrite_required true — AC-2 edit/delete parity blocking."
 }

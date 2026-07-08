@@ -1,1 +1,15 @@
-{"phase":"implement","target_id":"API-05-ai-coaching-mode-assignment","assessed_at":"2026-07-08T11:45:00.000Z","review_ref":"cursor-impl-cycle/output/reports/implement-API-05-ai-coaching-mode-assignment.review.json","ok_to_advance":true,"rewrite_required":false,"decisions":[],"summary":"Review passed at 100%."}
+{
+  "phase": "implement",
+  "target_id": "API-05-ai-coaching-mode-assignment",
+  "assessed_at": "2026-07-08T12:34:00.000Z",
+  "review_ref": "cursor-impl-cycle/output/reports/implement-API-05-ai-coaching-mode-assignment.review.json",
+  "ok_to_advance": false,
+  "rewrite_required": true,
+  "decisions": [
+    { "critique_id": "C-1", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "saveOnboarding refreshes profile before pipeline; completeOnboarding never refreshes after runOnboardingProfilePipeline — DASH-02 coaching dropdown empty on first dashboard paint despite Supabase patch. AC-3/FV-4 partial." },
+    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "bTIEN per-action condition verification is grounding backlog; consolidated resolver matches decompose scope intent." },
+    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Missing vitest for resolveAiCoachingModes — testing backlog per API-01 precedent." },
+    { "critique_id": "C-4", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "Singular ai_coaching_mode_os mirror is intentional Bubble parity; DASH-02 reads list field correctly." }
+  ],
+  "summary": "1 fix_now (profile refresh after pipeline), 2 defer, 1 accept. rewrite_required true for AC-3 integration gap."
+}

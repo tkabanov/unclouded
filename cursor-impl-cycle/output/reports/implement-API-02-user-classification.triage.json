@@ -1,10 +1,16 @@
 {
   "phase": "implement",
   "target_id": "API-02-user-classification",
-  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "assessed_at": "2026-07-08T12:35:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-02-user-classification.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
-  "decisions": [],
-  "summary": "Review passed at 100%."
+  "decisions": [
+    { "critique_id": "C-1", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "orientation_score in contract but branch matrix mirrors brownfield computeClassification which also ignores orientation; AC-1 branch output passes." },
+    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "orientation_score_number key mismatch vs orientationScore; results.orientation_score fallback works on onboarding path; orientation does not affect branches." },
+    { "critique_id": "C-3", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "Pipeline order matches decompose; results.pressure_profile from computeResults at save is correct source at classification time." },
+    { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "DRY refactor between classifyUser.ts and classification.ts — maintainability debt, not blocker." },
+    { "critique_id": "C-5", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Unit tests not in AC; defer to testing backlog." }
+  ],
+  "summary": "0 fix_now, 3 defer, 2 accept. Review passed at 100% coverage; advance allowed."
 }

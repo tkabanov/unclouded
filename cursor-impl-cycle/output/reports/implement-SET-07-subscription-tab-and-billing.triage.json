@@ -1,10 +1,15 @@
 {
   "phase": "implement",
   "target_id": "SET-07-subscription-tab-and-billing",
-  "assessed_at": "2026-07-08T11:15:00.000Z",
+  "assessed_at": "2026-07-08T12:35:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-07-subscription-tab-and-billing.review.json",
-  "ok_to_advance": true,
-  "rewrite_required": false,
-  "decisions": [],
-  "summary": "Review passed at 100%. subscription_plan table fallback to PLANS catalog is acceptable for demo billing."
+  "ok_to_advance": false,
+  "rewrite_required": true,
+  "decisions": [
+    { "critique_id": "C-1", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "Billing CTAs call RPCs absent from prototype schema and degrade to demo toasts — FV-4/FV-5 fail and AC-3 billing half unmet at runtime." },
+    { "critique_id": "C-2", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "AC-2 requires subscription_plan table sourcing; implementation always falls back to static PLANS catalog because table is missing from prototype schema." },
+    { "critique_id": "C-3", "severity": "fix", "resolution": "fix_now", "action_required": true, "rationale": "Plans grid ai_RNbBHYYm omits RepeatingGroup_list_ style_ref from layout_notes — named ui_ref style gap." },
+    { "critique_id": "C-4", "severity": "defer", "resolution": "accept", "action_required": false, "rationale": "Preflight reuse_decision and mapped Subscription.tsx reference are correct; no code change required." }
+  ],
+  "summary": "3 fix_now (billing RPC wiring, subscription_plan table sourcing, RepeatingGroup_list_ style), 1 accept. rewrite_required true — AC-2/AC-3 data and billing gaps block advance."
 }

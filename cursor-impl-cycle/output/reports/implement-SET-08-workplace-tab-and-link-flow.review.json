@@ -1,16 +1,82 @@
 {
   "phase": "implement",
   "target_id": "SET-08-workplace-tab-and-link-flow",
-  "assessed_at": "2026-07-08T11:22:00.000Z",
+  "assessed_at": "2026-07-08T11:45:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 86,
+  "coverage_confidence_pct": 84,
   "functional_ok": true,
-  "criteria_audit": [],
-  "functional_audit": [],
-  "ui_evidence": [],
-  "gaps": [],
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYM panel root",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYN info card, ai_RNbBHYYU form, ai_RNbBHYYR privacy notice",
+        "frontend/src/components/settings/SettingsMain.tsx — mounts SettingsWorkplaceTab in workplace tabpanel (ai_RNbBHYYM via SETTINGS_TAB_PANEL_BUBBLE_IDS)"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYW label 'Workplace name', ai_RNbBHYYZ label 'HR / benefits contact email'",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYT privacy copy on anonymized employer data",
+        "ir/inventory.json — style_ref:ai_RNbBHYYW → Text_label_, style_ref:ai_RNbBHYYZ → Text_label_"
+      ],
+      "gap": "Static privacy paragraph not independently verified against drsam-99657.bubble encoded text expressions; labels match IR element naming conventions."
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — validateWorkplaceForm, linkWorkplace updates profiles.onboarding_data",
+        "frontend/src/lib/settings/workplaceApi.ts — supabase.from('workplace').upsert({ name_text, contact_email_text })",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYb onClick → linkWorkplace + toast + reload",
+        "ir/inventory.json — workplace user_type fields name_text, contact_email_text; user field workplace_custom_workplace",
+        "output/drsam-99657/phase6/agent/manifest.json — bTIja workflow action_type SetCustomState (button-click parity)"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    { "id": "FV-1", "check": "Workplace settings tab renders info card, privacy callout, name/email inputs, and link button (not placeholder shell)", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsWorkplaceTab.tsx", "frontend/src/components/settings/SettingsMain.tsx"] },
+    { "id": "FV-2", "check": "Link button validates required name/email and rejects invalid email before persist", "status": "pass", "evidence": ["frontend/src/lib/settings/workplaceApi.ts — validateWorkplaceForm"] },
+    { "id": "FV-3", "check": "Successful link persists workplace data for current user and reloads form state (linkedAt)", "status": "pass", "evidence": ["frontend/src/lib/settings/workplaceApi.ts — linkWorkplace + loadWorkplaceLink", "frontend/src/components/settings/SettingsWorkplaceTab.tsx — handleLink refreshes state after success"] },
+    { "id": "FV-4", "check": "Supabase client associates user with workplace via profiles.onboarding_data keys and attempts workplace table upsert", "status": "pass", "evidence": ["frontend/src/lib/settings/workplaceApi.ts — workplace_name_text, workplace_contact_email_text, workplace_linked_at, workplace_custom_workplace in onboarding_data", "frontend/src/lib/settings/workplaceApi.ts — workplace table upsert with graceful no-op when demo schema lacks table"] }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYYM", "selector": "[data-bubble-id='ai_RNbBHYYM']", "status": "pass", "notes": "Panel root wraps full workplace tab content." },
+    { "bubble_id": "ai_RNbBHYYN", "selector": "[data-bubble-id='ai_RNbBHYYN']", "status": "partial", "notes": "IR style_ref Group_card_; implementation uses Group_card_muted_." },
+    { "bubble_id": "ai_RNbBHYYO", "selector": "[data-bubble-id='ai_RNbBHYYO']", "status": "pass", "notes": "Card header with Building2 icon stand-in for IR icon group." },
+    { "bubble_id": "ai_RNbBHYYP", "selector": "[data-bubble-id='ai_RNbBHYYP']", "status": "partial", "notes": "IR style_ref Text_heading_2_; implementation uses Text_heading_3_." },
+    { "bubble_id": "ai_RNbBHYYQ", "selector": "[data-bubble-id='ai_RNbBHYYQ']", "status": "partial", "notes": "IR style_ref Text_small_; implementation uses Text_body_muted_." },
+    { "bubble_id": "ai_RNbBHYYR", "selector": "[data-bubble-id='ai_RNbBHYYR']", "status": "pass", "notes": "Privacy notice container with border/muted background." },
+    { "bubble_id": "ai_RNbBHYYS", "selector": "[data-bubble-id='ai_RNbBHYYS']", "status": "partial", "notes": "IR Icon child of privacy notice; Shield lucide used but no data-bubble-id marker." },
+    { "bubble_id": "ai_RNbBHYYT", "selector": "[data-bubble-id='ai_RNbBHYYT']", "status": "pass", "notes": "Privacy static copy present; bubble source text not re-extracted in this review." },
+    { "bubble_id": "ai_RNbBHYYU", "selector": "[data-bubble-id='ai_RNbBHYYU']", "status": "pass", "notes": "Two-column form grid for name and email groups." },
+    { "bubble_id": "ai_RNbBHYYV", "selector": "[data-bubble-id='ai_RNbBHYYV']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYYW", "selector": "[data-bubble-id='ai_RNbBHYYW']", "status": "partial", "notes": "Label text correct; bubbleStyle(Text_label_) not applied on Label." },
+    { "bubble_id": "ai_RNbBHYYX", "selector": "[data-bubble-id='ai_RNbBHYYX']", "status": "pass", "notes": "bubbleStyle(Input_default_) applied." },
+    { "bubble_id": "ai_RNbBHYYY", "selector": "[data-bubble-id='ai_RNbBHYYY']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYYZ", "selector": "[data-bubble-id='ai_RNbBHYYZ']", "status": "partial", "notes": "Label text correct; bubbleStyle(Text_label_) not applied on Label." },
+    { "bubble_id": "ai_RNbBHYYa", "selector": "[data-bubble-id='ai_RNbBHYYa']", "status": "pass", "notes": "bubbleStyle(Input_default_) applied; type=email." },
+    { "bubble_id": "ai_RNbBHYYb", "selector": "[data-bubble-id='ai_RNbBHYYb']", "status": "partial", "notes": "IR parent ai_RNbBHYYU; button rendered outside form div. Dynamic label 'Update workplace link' when already linked." }
+  ],
+  "gaps": [
+    "AC-2 privacy static copy (ai_RNbBHYYT) not byte-verified against drsam-99657.bubble text expressions in readonly review environment.",
+    "workplace-link-btn (ai_RNbBHYYb) DOM parent does not match IR hierarchy (child of ai_RNbBHYYU workplace-form).",
+    "frontend/src/integrations/supabase/types.ts has no workplace table — upsert relies on runtime graceful degradation."
+  ],
   "blockers": [],
-  "critiques": [],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "critiques": [
+    { "id": "C-1", "area": "brownfield-preflight", "priority": "medium", "finding": "Coverage preflight reuse_decision is 'new' but SettingsMain.tsx already owned the workplace tabpanel shell; this item is gap-fill on existing settings router.", "alternative": "Record reuse_decision: 'gap-fill' with existing_files_found including settingsTabStub panel id ai_RNbBHYYM mapping.", "evidence": ["cursor-impl-cycle/output/coverage/SET-08-workplace-tab-and-link-flow.json", "frontend/src/components/settings/SettingsMain.tsx"] },
+    { "id": "C-2", "area": "ui-fidelity", "priority": "high", "finding": "workplace-info-card (ai_RNbBHYYN) uses Group_card_muted_ but IR style_ref resolves to Group_card_.", "alternative": "Apply bubbleStyle('Group_card_') on ai_RNbBHYYN or document intentional DS deviation.", "evidence": ["ir/inventory.json — style_ref:ai_RNbBHYYN", "frontend/src/components/settings/SettingsWorkplaceTab.tsx:99"] },
+    { "id": "C-3", "area": "ui-fidelity", "priority": "medium", "finding": "Card title (ai_RNbBHYYP) and subtitle (ai_RNbBHYYQ) use heading_3/body_muted instead of IR Text_heading_2_/Text_small_.", "alternative": "Match IR style_ref targets for typography parity with Bubble settings workplace card.", "evidence": ["ir/inventory.json — style_ref:ai_RNbBHYYP, style_ref:ai_RNbBHYYQ", "frontend/src/components/settings/SettingsWorkplaceTab.tsx:106-111"] },
+    { "id": "C-4", "area": "ui-fidelity", "priority": "medium", "finding": "Privacy icon entity ai_RNbBHYYS (IR element_type Icon) has no data-bubble-id; Lucide Shield used without IR marker.", "alternative": "Wrap Shield in span data-bubble-id='ai_RNbBHYYS' inside ai_RNbBHYYR.", "evidence": ["frontend/src/components/settings/SettingsWorkplaceTab.tsx:122", "ir/inventory.json — ai_RNbBHYYS parent ai_RNbBHYYR"] },
+    { "id": "C-5", "area": "functional", "priority": "blocker_candidate", "finding": "workplace table upsert errors are swallowed silently; user sees success toast even when only onboarding_data persisted.", "alternative": "Surface non-fatal workplace upsert failure via toast.warning or log when table missing, matching adminWorkplacesApi transparency.", "evidence": ["frontend/src/lib/settings/workplaceApi.ts:103-106", "frontend/src/integrations/supabase/types.ts"] },
+    { "id": "C-6", "area": "ui-fidelity", "priority": "low", "finding": "workplace-link-btn sits outside workplace-form group, flattening IR tree where ai_RNbBHYYb parent_id is ai_RNbBHYYU.", "alternative": "Move button inside data-bubble-id ai_RNbBHYYU container to preserve Bubble hierarchy.", "evidence": ["ir/inventory.json — ai_RNbBHYYb parent_id ai_RNbBHYYU", "frontend/src/components/settings/SettingsWorkplaceTab.tsx:132-179"] }
+  ],
+  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
 }

@@ -1,10 +1,16 @@
 {
   "phase": "implement",
   "target_id": "SET-09-admin-paths-and-resources",
-  "assessed_at": "2026-07-08T11:30:00.000Z",
+  "assessed_at": "2026-07-08T12:24:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-09-admin-paths-and-resources.review.json",
-  "ok_to_advance": true,
-  "rewrite_required": false,
-  "decisions": [],
-  "summary": "Review passed at 100%. Plans/workplaces/analytics sub-tabs stubbed for SET-10."
+  "ok_to_advance": false,
+  "rewrite_required": true,
+  "decisions": [
+    { "critique_id": "C-1", "severity": "block", "resolution": "fix_now", "action_required": true, "rationale": "Edit handlers are placeholder toasts — FV-8 fail; decompose scope promises CRUD workflows. Wire update popups/APIs." },
+    { "critique_id": "C-2", "severity": "fix", "resolution": "fix_now", "action_required": true, "rationale": "AdminResourcesTab lacks IR bubble-id depth on tag/flag/action rows vs AdminPathsTab; AC-2 partial." },
+    { "critique_id": "C-3", "severity": "fix", "resolution": "fix_now", "action_required": true, "rationale": "Admin sub-tab buttons ignore Button_tab_/Button_tab_active_ style_refs already used elsewhere in app." },
+    { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "adminResourcesApi vs pathsResourcesApi duplication is drift risk but not an AC blocker for SET-09." },
+    { "critique_id": "C-5", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Coverage artifact hygiene (empty mapped_target_files, overstated 100%) — process fix, not feature rewrite." }
+  ],
+  "summary": "3 fix_now (edit CRUD, resource card IR markers, sub-tab styles), 2 defer. rewrite_required true before SET-10 advance."
 }
