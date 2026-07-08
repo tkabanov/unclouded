@@ -1,0 +1,53 @@
+{
+  "wave": "final-closeout",
+  "assessed_at": "2026-07-08T17:05:00.000Z",
+  "code_ref": "51c13f2",
+  "cycle_status": "complete",
+  "implement_items": 53,
+  "modules": 11,
+  "summary": {
+    "all_items_coverage_100": true,
+    "rewrite_required_open": 0,
+    "merged_prs": [4, 5, 6, 7]
+  },
+  "post_implement_waves": [
+    {
+      "pr": 4,
+      "branch": "cursor/fix-rewrite-backlog-6064",
+      "focus": "rewrite backlog SET-07..10 + API-03/05, re-review artifacts"
+    },
+    {
+      "pr": 5,
+      "branch": "cursor/deferred-polish-6064",
+      "focus": "lint clean, SET-07/10 deferred, API unit tests"
+    },
+    {
+      "pr": 6,
+      "branch": "cursor/admin-hardening-6064",
+      "focus": "admin RLS is_settings_admin(), data-source notices, demoResourceSeed"
+    },
+    {
+      "pr": 7,
+      "branch": "cursor/auth-index-ir-polish-6064",
+      "focus": "AUTH-01 index IR markers 100%, coverage metadata hygiene"
+    }
+  ],
+  "migrations_apply_order": [
+    "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql",
+    "frontend/supabase/migrations/20260708160000_subscription_workplace_billing_rbac.sql",
+    "frontend/supabase/migrations/20260708170000_settings_admin_rls.sql"
+  ],
+  "manual_qa_checklist": [
+    "Apply Supabase migrations in order (billing → rbac → admin RLS)",
+    "Settings → Subscription: billing portal dialog + invoice list",
+    "Settings → Workplace: link flow + privacy text ai_RNbBHYYT",
+    "Settings → Admin: plans/workplaces/resources edit; crisis badge ai_RNbBHYaO",
+    "Set profiles.role_type = 'admin' to lock down admin writes after bootstrap"
+  ],
+  "verification": {
+    "npm_run_test": "13/13 pass",
+    "npm_run_lint": "0 errors (18 warnings)",
+    "npm_run_build": "pass"
+  },
+  "outcome": "DrSam SPA implement cycle closed. All module items implement_passes with coverage_pct 100. CI workflow added for frontend test/lint/build."
+}
