@@ -215,7 +215,8 @@ export default function SettingsSubscriptionTab() {
             data-bubble-id={BILLING_CARD_SUBTITLE_BUBBLE_ID}
             className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
           >
-            Update payment method or download past invoices.
+            Update payment method or download past invoices. Demo billing stubs return sample data
+            until Stripe is connected in production.
           </p>
         </header>
 
@@ -241,9 +242,6 @@ export default function SettingsSubscriptionTab() {
           </Button>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          Demo billing stubs return sample data until Stripe is connected in production.
-        </p>
       </div>
 
       <Dialog open={portalOpen} onOpenChange={setPortalOpen}>

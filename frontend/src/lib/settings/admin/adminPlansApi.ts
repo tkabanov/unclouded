@@ -4,6 +4,8 @@ import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
 
 export const ADMIN_PLANS_ONBOARDING_KEY = "admin_plans" as const;
 
+const SEEDED_PLAN_IDS = new Set<PlanId>(["free", "pro", "premium"]);
+
 export interface AdminPlanRecord {
   planId: string;
   name: string;
@@ -59,13 +61,15 @@ function toAdminPlan(row: PlanRow, isStatic = false): AdminPlanRecord | null {
       ? row.features_text.split("\n").map((line) => line.trim()).filter(Boolean)
       : [];
 
+  const planId = row.id ?? name.toLowerCase().replace(/\s+/g, "-");
+
   return {
-    planId: row.id ?? name.toLowerCase().replace(/\s+/g, "-"),
+    planId,
     name,
     price: Number.isFinite(price) ? price : 0,
     description: row.description_text?.trim() ?? "",
     features,
-    isStatic,
+    isStatic: isStatic || SEEDED_PLAN_IDS.has(planId as PlanId),
   };
 }
 
