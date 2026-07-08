@@ -4,6 +4,10 @@ const WORKPLACE_NAME_KEY = "workplace_name_text";
 const WORKPLACE_EMAIL_KEY = "workplace_contact_email_text";
 const WORKPLACE_LINKED_AT_KEY = "workplace_linked_at";
 
+/** IR input placeholders for workplace link form (ai_RNbBHYYX / ai_RNbBHYYa). */
+export const WORKPLACE_NAME_PLACEHOLDER = "Your company name";
+export const WORKPLACE_EMAIL_PLACEHOLDER = "HR contact email";
+
 export type WorkplaceFormState = {
   name: string;
   email: string;

@@ -26,6 +26,8 @@ import {
   emptyWorkplaceForm,
   linkWorkplace,
   loadWorkplaceLink,
+  WORKPLACE_EMAIL_PLACEHOLDER,
+  WORKPLACE_NAME_PLACEHOLDER,
   type WorkplaceFormState,
 } from "@/lib/settings/workplaceApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -148,7 +150,7 @@ export default function SettingsWorkplaceTab() {
               className={bubbleStyle("Input_default_")}
               value={form.name}
               onChange={(event) => updateField("name", event.target.value)}
-              placeholder="Acme Corp"
+              placeholder={WORKPLACE_NAME_PLACEHOLDER}
             />
           </div>
 
@@ -167,16 +169,10 @@ export default function SettingsWorkplaceTab() {
               className={bubbleStyle("Input_default_")}
               value={form.email}
               onChange={(event) => updateField("email", event.target.value)}
-              placeholder="benefits@company.com"
+              placeholder={WORKPLACE_EMAIL_PLACEHOLDER}
             />
             </div>
           </div>
-
-          {linkedAt && (
-            <p className="text-xs text-muted-foreground">
-              Linked on {new Date(linkedAt).toLocaleDateString()}.
-            </p>
-          )}
 
           <div className="flex justify-end">
             <Button
