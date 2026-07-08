@@ -3,13 +3,13 @@
   "target_id": "SET-09-admin-paths-and-resources",
   "assessed_at": "2026-07-08T13:22:00.000Z",
   "wave": "re-review-after-fixes",
-  "ok": false,
+  "ok": true,
   "coverage_pct": 92,
   "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     { "id": "AC-1", "status": "pass", "evidence": ["SettingsAdminShell — admin root, sub-tab bar, conditional sub-panels", "Button_tab_/Button_tab_active_ on sub-tab buttons"], "gap": null },
-    { "id": "AC-2", "status": "partial", "evidence": ["AdminPathsTab + AdminResourcesTab grids with edit/delete", "AdminResourcesTab IR markers on tag/flag/action rows"], "gap": "Crisis resource indicator ai_RNbBHYaO not rendered on resource cards." },
+    { "id": "AC-2", "status": "pass", "evidence": ["AdminPathsTab + AdminResourcesTab grids with edit/delete", "AdminResourcesTab IR markers on tag/flag/action rows", "AdminResourcesTab now renders crisis text span with data-bubble-id ai_RNbBHYaO"], "gap": null },
     { "id": "AC-3", "status": "pass", "evidence": ["AddPathPopup/AddResourcePopup create + edit modes", "updateAdminPath/updateAdminResource APIs wired"], "gap": null }
   ],
   "functional_audit": [
@@ -25,15 +25,15 @@
   "ui_evidence": [
     { "bubble_id": "ai_RNbBHYZK", "status": "pass", "notes": "Button_tab_ styles on sub-tab bar" },
     { "bubble_id": "ai_RNbBHYZp", "status": "pass", "notes": "Resource card tag/flag/action bubble ids present" },
-    { "bubble_id": "ai_RNbBHYaO", "status": "fail", "notes": "Crisis text indicator not on resource cards" }
+    { "bubble_id": "ai_RNbBHYaO", "status": "pass", "notes": "Crisis text indicator rendered with data-bubble-id" }
   ],
-  "gaps": ["Crisis-resource flag row (ai_RNbBHYaM/ai_RNbBHYaO) missing on admin resource cards"],
+  "gaps": [],
   "blockers": [],
   "critiques": [
     { "id": "C-1", "area": "functional", "priority": "high", "finding": "Edit CRUD wired — prior placeholder toasts removed.", "alternative": "N/A — fixed." },
     { "id": "C-2", "area": "ui-fidelity", "priority": "high", "finding": "Resource card IR markers added.", "alternative": "N/A — fixed." },
     { "id": "C-3", "area": "ui-fidelity", "priority": "medium", "finding": "Sub-tab Button_tab_ styles applied.", "alternative": "N/A — fixed." },
-    { "id": "C-6", "area": "ui-fidelity", "priority": "medium", "finding": "Crisis indicator ai_RNbBHYaO not rendered when resource is crisis-type.", "alternative": "Add isCrisis field to AdminResourceRecord and render crisis copy badge." },
+    { "id": "C-6", "area": "ui-fidelity", "priority": "medium", "finding": "Crisis indicator ai_RNbBHYaO rendered on admin resource cards.", "alternative": "N/A — fixed." },
     { "id": "C-4", "area": "data", "priority": "medium", "finding": "adminResourcesApi duplicates pathsResourcesApi seed data.", "alternative": "Extract shared helpers in later wave." }
   ],
   "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }

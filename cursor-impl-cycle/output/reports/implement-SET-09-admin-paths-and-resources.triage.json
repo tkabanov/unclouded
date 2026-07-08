@@ -10,9 +10,9 @@
     { "critique_id": "C-1", "severity": "block", "resolution": "fixed", "action_required": false, "rationale": "Edit popups + update APIs wired — FV-8 pass." },
     { "critique_id": "C-2", "severity": "block", "resolution": "fixed", "action_required": false, "rationale": "Resource card IR markers on tag/flag/action rows." },
     { "critique_id": "C-3", "severity": "block", "resolution": "fixed", "action_required": false, "rationale": "Button_tab_ styles on admin sub-tabs." },
-    { "critique_id": "C-6", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Crisis indicator ai_RNbBHYaO is IR polish; functional CRUD complete." },
+    { "critique_id": "C-6", "severity": "block", "resolution": "fixed", "action_required": false, "rationale": "Crisis indicator ai_RNbBHYaO now rendered with data-bubble-id; FV-10/FV-11 remain pass." },
     { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "API duplication drift risk — non-blocking." },
     { "critique_id": "C-5", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Coverage artifact hygiene only." }
   ],
-  "summary": "3 fix_now resolved; crisis text deferred. ok_to_advance true — functional CRUD and primary IR markers met."
+  "summary": "All fix_now resolved including crisis badge text. ok_to_advance true."
 }

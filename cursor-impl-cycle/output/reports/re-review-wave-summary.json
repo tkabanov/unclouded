@@ -5,8 +5,8 @@
   "items_audited": 6,
   "method": "Independent readonly subagents per review-implement.md and triage-review.md (orchestrator-compliant); SET-07 billing fix applied before final SET-07 re-review",
   "summary": {
-    "reviews_ok": 5,
-    "reviews_failed": 1,
+    "reviews_ok": 6,
+    "reviews_failed": 0,
     "triage_ok_to_advance": 6,
     "triage_rewrite_required": 0
   },
@@ -31,13 +31,13 @@
     },
     {
       "id": "SET-09-admin-paths-and-resources",
-      "review_ok": false,
+      "review_ok": true,
       "coverage_pct": 92,
       "functional_ok": true,
       "triage_ok_to_advance": true,
       "rewrite_required": false,
       "fix_now_critiques": [],
-      "deferred_critiques": ["C-6 crisis indicator ai_RNbBHYaO"]
+      "deferred_critiques": []
     },
     {
       "id": "SET-10-admin-plans-workplaces-analytics",
@@ -67,5 +67,5 @@
       "fix_now_critiques": []
     }
   ],
-  "outcome": "All 6 rewrite_required items from proper-review-audit wave cleared. SET-09 review ok false due to deferred crisis text IR marker only; triage ok_to_advance true."
+  "outcome": "All 6 rewrite_required items from proper-review-audit wave cleared; all SET-09 items now pass, including crisis text marker ai_RNbBHYaO."
 }
