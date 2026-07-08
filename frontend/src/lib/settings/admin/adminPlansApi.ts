@@ -228,6 +228,69 @@ export async function deleteAdminPlan(userId: string, planId: string): Promise<v
   await writeOnboardingPlans(userId, next);
 }
 
+function planRowFromForm(form: AdminPlanFormState, planId: string): PlanRow {
+  const name = form.name.trim();
+  return {
+    id: planId,
+    name_text: name,
+    price_number: form.price,
+    description_text: form.description.trim(),
+    features_text: form.features
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .join("\n"),
+  };
+}
+
+function planRowFromRecord(plan: AdminPlanRecord): PlanRow {
+  return planRowFromForm(
+    {
+      name: plan.name,
+      price: plan.price,
+      description: plan.description,
+      features: plan.features.join("\n"),
+    },
+    plan.planId,
+  );
+}
+
+export async function updateAdminPlan(
+  userId: string,
+  planId: string,
+  form: AdminPlanFormState,
+): Promise<AdminPlanRecord> {
+  const name = form.name.trim();
+  if (!name) throw new Error("Plan name is required.");
+
+  const row = planRowFromForm(form, planId);
+
+  const client = supabase as unknown as UntypedSupabase;
+  const { error: tableError } = await client.from("subscription_plan").update(row as never).eq("id", planId);
+  if (!tableError) {
+    const updated = toAdminPlan(row);
+    if (!updated) throw new Error("Failed to update plan.");
+    return updated;
+  }
+
+  if (!isSchemaUnavailable(tableError)) throw tableError;
+
+  const existing = await readOnboardingPlans(userId);
+  let found = false;
+  const next = existing.map((plan) => {
+    if (plan.planId !== planId) return planRowFromRecord(plan);
+    found = true;
+    return row;
+  });
+
+  if (!found) throw new Error("Plan not found.");
+  await writeOnboardingPlans(userId, next);
+
+  const updated = toAdminPlan(row);
+  if (!updated) throw new Error("Failed to update plan.");
+  return updated;
+}
+
 export function emptyAdminPlanForm(): AdminPlanFormState {
   return {
     name: "",

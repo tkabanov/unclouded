@@ -45,6 +45,8 @@ export interface AddPathPopupProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (form: AdminPathFormState) => Promise<void>;
   busy?: boolean;
+  editPathId?: string | null;
+  initialForm?: AdminPathFormState | null;
 }
 
 export default function AddPathPopup({
@@ -52,18 +54,23 @@ export default function AddPathPopup({
   onOpenChange,
   onSubmit,
   busy = false,
+  editPathId = null,
+  initialForm = null,
 }: AddPathPopupProps) {
   const [form, setForm] = useState<AdminPathFormState>(emptyAdminPathForm());
+  const isEdit = Boolean(editPathId);
 
   useEffect(() => {
-    if (open) setForm(emptyAdminPathForm());
-  }, [open]);
+    if (open) setForm(initialForm ?? emptyAdminPathForm());
+  }, [open, initialForm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-bubble-id={ADD_PATH_POPUP_BUBBLE_ID}>
         <DialogHeader>
-          <DialogTitle data-bubble-id={ADD_PATH_POPUP_TITLE_BUBBLE_ID}>Add guided path</DialogTitle>
+          <DialogTitle data-bubble-id={ADD_PATH_POPUP_TITLE_BUBBLE_ID}>
+            {isEdit ? "Edit guided path" : "Add guided path"}
+          </DialogTitle>
         </DialogHeader>
 
         <div data-bubble-id={ADD_PATH_FORM_BUBBLE_ID} className="grid gap-4">
@@ -190,7 +197,7 @@ export default function AddPathPopup({
             disabled={busy}
             onClick={() => void onSubmit(form)}
           >
-            {busy ? "Saving…" : "Create path"}
+            {busy ? "Saving…" : isEdit ? "Save changes" : "Create path"}
           </Button>
         </DialogFooter>
       </DialogContent>

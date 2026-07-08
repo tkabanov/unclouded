@@ -29,6 +29,8 @@ export interface AddPlanPopupProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (form: AdminPlanFormState) => Promise<void>;
   busy?: boolean;
+  editPlanId?: string | null;
+  initialForm?: AdminPlanFormState | null;
 }
 
 export default function AddPlanPopup({
@@ -36,18 +38,23 @@ export default function AddPlanPopup({
   onOpenChange,
   onSubmit,
   busy = false,
+  editPlanId = null,
+  initialForm = null,
 }: AddPlanPopupProps) {
   const [form, setForm] = useState<AdminPlanFormState>(emptyAdminPlanForm());
+  const isEdit = Boolean(editPlanId);
 
   useEffect(() => {
-    if (open) setForm(emptyAdminPlanForm());
-  }, [open]);
+    if (open) setForm(initialForm ?? emptyAdminPlanForm());
+  }, [open, initialForm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-bubble-id={ADD_PLAN_POPUP_BUBBLE_ID}>
         <DialogHeader>
-          <DialogTitle data-bubble-id={ADD_PLAN_POPUP_TITLE_BUBBLE_ID}>Add subscription plan</DialogTitle>
+          <DialogTitle data-bubble-id={ADD_PLAN_POPUP_TITLE_BUBBLE_ID}>
+            {isEdit ? "Edit subscription plan" : "Add subscription plan"}
+          </DialogTitle>
         </DialogHeader>
 
         <div data-bubble-id={ADD_PLAN_FORM_BUBBLE_ID} className="grid gap-4">
@@ -115,7 +122,7 @@ export default function AddPlanPopup({
             disabled={busy}
             onClick={() => void onSubmit(form)}
           >
-            {busy ? "Saving…" : "Create plan"}
+            {busy ? "Saving…" : isEdit ? "Save changes" : "Create plan"}
           </Button>
         </DialogFooter>
       </DialogContent>

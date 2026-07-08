@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AddPlanPopup from "@/components/settings/admin/AddPlanPopup";
 import {
   ADMIN_ADD_PLAN_BTN_BUBBLE_ID,
+  ADMIN_PLAN_CARD_ACTIONS_BUBBLE_ID,
   ADMIN_PLAN_CARD_NAME_BUBBLE_ID,
   ADMIN_PLAN_CARD_TEMPLATE_BUBBLE_ID,
+  ADMIN_PLAN_DELETE_BTN_BUBBLE_ID,
+  ADMIN_PLAN_EDIT_BTN_BUBBLE_ID,
   ADMIN_PLANS_GRID_BUBBLE_ID,
+  ADMIN_PLANS_TITLE_BUBBLE_ID,
   ADMIN_PLANS_TOOLBAR_BUBBLE_ID,
   ADMIN_TAB_PLANS_BUBBLE_ID,
 } from "@/lib/settings/routes";
@@ -18,6 +22,7 @@ import {
   fetchAdminPlans,
   formatPlanPrice,
   getPlanTierLabel,
+  updateAdminPlan,
   type AdminPlanRecord,
 } from "@/lib/settings/admin/adminPlansApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,7 +34,15 @@ export default function AdminPlansTab() {
   const [plans, setPlans] = useState<AdminPlanRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [editPlan, setEditPlan] = useState<AdminPlanRecord | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const popupOpen = addOpen || editPlan !== null;
+
+  const closePopup = useCallback(() => {
+    setAddOpen(false);
+    setEditPlan(null);
+  }, []);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -52,22 +65,27 @@ export default function AdminPlansTab() {
     };
   }, [reload, user]);
 
-  const handleCreate = useCallback(
+  const handleSave = useCallback(
     async (form: Parameters<typeof createAdminPlan>[1]) => {
       if (!user || busy) return;
       setBusy(true);
       try {
-        await createAdminPlan(user.id, form);
+        if (editPlan) {
+          await updateAdminPlan(user.id, editPlan.planId, form);
+          toast.success("Plan updated.");
+        } else {
+          await createAdminPlan(user.id, form);
+          toast.success("Plan created.");
+        }
         await reload();
-        setAddOpen(false);
-        toast.success("Plan created.");
+        closePopup();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Couldn't create plan.");
+        toast.error(err instanceof Error ? err.message : "Couldn't save plan.");
       } finally {
         setBusy(false);
       }
     },
-    [busy, reload, user],
+    [busy, closePopup, editPlan, reload, user],
   );
 
   const handleDelete = useCallback(
@@ -101,7 +119,9 @@ export default function AdminPlansTab() {
         data-bubble-id={ADMIN_PLANS_TOOLBAR_BUBBLE_ID}
         className="flex flex-wrap items-center justify-between gap-3"
       >
-        <h3 className={bubbleStyle("Text_heading_3_")}>Subscription plans</h3>
+        <h3 data-bubble-id={ADMIN_PLANS_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_3_")}>
+          Subscription plans
+        </h3>
         <Button
           type="button"
           data-bubble-id={ADMIN_ADD_PLAN_BTN_BUBBLE_ID}
@@ -134,11 +154,25 @@ export default function AdminPlansTab() {
                 <li key={feature}>• {feature}</li>
               ))}
             </ul>
-            <div className="flex justify-end">
+            <div
+              data-bubble-id={ADMIN_PLAN_CARD_ACTIONS_BUBBLE_ID}
+              className="flex justify-end gap-2"
+            >
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
+                data-bubble-id={ADMIN_PLAN_EDIT_BTN_BUBBLE_ID}
+                disabled={plan.isStatic || busy}
+                onClick={() => setEditPlan(plan)}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-bubble-id={ADMIN_PLAN_DELETE_BTN_BUBBLE_ID}
                 disabled={plan.isStatic || busy}
                 onClick={() => void handleDelete(plan)}
               >
@@ -149,7 +183,25 @@ export default function AdminPlansTab() {
         ))}
       </div>
 
-      <AddPlanPopup open={addOpen} onOpenChange={setAddOpen} onSubmit={handleCreate} busy={busy} />
+      <AddPlanPopup
+        open={popupOpen}
+        onOpenChange={(open) => {
+          if (!open) closePopup();
+        }}
+        onSubmit={handleSave}
+        busy={busy}
+        editPlanId={editPlan?.planId ?? null}
+        initialForm={
+          editPlan
+            ? {
+                name: editPlan.name,
+                price: editPlan.price,
+                description: editPlan.description,
+                features: editPlan.features.join("\n"),
+              }
+            : null
+        }
+      />
     </div>
   );
 }

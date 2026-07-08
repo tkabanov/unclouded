@@ -18,7 +18,7 @@ function readSignalRecord(
 
 /** Bubble API event calculate_user_pressure_profile (bTIBO). */
 export async function calculateUserPressureProfile(userId: string): Promise<string> {
-  const { onboarding_data, results } = await loadProfileRow(userId);
+  const { onboarding_data } = await loadProfileRow(userId);
 
   const loadSignals = readSignalRecord(onboarding_data, "loadSignals");
   const stateSignals = readSignalRecord(onboarding_data, "stateSignals");
@@ -30,10 +30,6 @@ export async function calculateUserPressureProfile(userId: string): Promise<stri
     { [PRESSURE_PROFILE_TEXT_FIELD]: profile },
     { pressure_profile: profile },
   );
-
-  if (!results && !loadSignals.cognitive_load_signal) {
-    return profile;
-  }
 
   return profile;
 }

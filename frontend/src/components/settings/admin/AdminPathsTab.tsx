@@ -28,6 +28,7 @@ import {
   getPathModeLabel,
   getPathTierLabel,
   getSensitivityLabel,
+  updateAdminPath,
   type AdminPathRecord,
 } from "@/lib/settings/admin/adminPathsApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,7 +40,15 @@ export default function AdminPathsTab() {
   const [paths, setPaths] = useState<AdminPathRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [editPath, setEditPath] = useState<AdminPathRecord | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const popupOpen = addOpen || editPath !== null;
+
+  const closePopup = useCallback(() => {
+    setAddOpen(false);
+    setEditPath(null);
+  }, []);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -63,23 +72,28 @@ export default function AdminPathsTab() {
     };
   }, [reload, user]);
 
-  const handleCreate = useCallback(
+  const handleSave = useCallback(
     async (form: Parameters<typeof createAdminPath>[1]) => {
       if (!user || busy) return;
       setBusy(true);
       try {
-        await createAdminPath(user.id, form);
+        if (editPath) {
+          await updateAdminPath(user.id, editPath.pathId, { ...form, slug: editPath.slug });
+          toast.success("Path updated.");
+        } else {
+          await createAdminPath(user.id, form);
+          toast.success("Path created.");
+        }
         await reload();
-        setAddOpen(false);
-        toast.success("Path created.");
+        closePopup();
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Couldn't create path.";
+        const message = err instanceof Error ? err.message : "Couldn't save path.";
         toast.error(message);
       } finally {
         setBusy(false);
       }
     },
-    [busy, reload, user],
+    [busy, closePopup, editPath, reload, user],
   );
 
   const handleDelete = useCallback(
@@ -180,8 +194,12 @@ export default function AdminPathsTab() {
                 size="sm"
                 variant="outline"
                 data-bubble-id={ADMIN_PATH_EDIT_BTN_BUBBLE_ID}
-                disabled={path.isStatic}
-                onClick={() => toast.info("Edit opens the add form in a future iteration.")}
+                disabled={path.isStatic || busy}
+                onClick={() =>
+                  setEditPath({
+                    ...path,
+                  })
+                }
               >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
@@ -200,7 +218,28 @@ export default function AdminPathsTab() {
         ))}
       </div>
 
-      <AddPathPopup open={addOpen} onOpenChange={setAddOpen} onSubmit={handleCreate} busy={busy} />
+      <AddPathPopup
+        open={popupOpen}
+        onOpenChange={(open) => {
+          if (!open) closePopup();
+        }}
+        onSubmit={handleSave}
+        busy={busy}
+        editPathId={editPath?.pathId ?? null}
+        initialForm={
+          editPath
+            ? {
+                slug: editPath.slug,
+                name: editPath.name,
+                description: editPath.description,
+                tier: editPath.tier,
+                coachingMode: editPath.coachingMode,
+                subMode: editPath.subMode,
+                sensitivity: editPath.sensitivity,
+              }
+            : null
+        }
+      />
     </div>
   );
 }

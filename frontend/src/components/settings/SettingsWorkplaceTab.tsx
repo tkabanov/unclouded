@@ -18,6 +18,7 @@ import {
   WORKPLACE_NAME_INPUT_BUBBLE_ID,
   WORKPLACE_NAME_LABEL_BUBBLE_ID,
   WORKPLACE_PANEL_BUBBLE_ID,
+  WORKPLACE_PRIVACY_ICON_BUBBLE_ID,
   WORKPLACE_PRIVACY_NOTICE_BUBBLE_ID,
   WORKPLACE_PRIVACY_TEXT_BUBBLE_ID,
 } from "@/lib/settings/routes";
@@ -96,19 +97,19 @@ export default function SettingsWorkplaceTab() {
     <div data-bubble-id={WORKPLACE_PANEL_BUBBLE_ID} className="flex flex-col gap-6">
       <div
         data-bubble-id={WORKPLACE_INFO_CARD_BUBBLE_ID}
-        className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-6 p-6")}
+        className={cn(bubbleStyle("Group_card_"), "flex flex-col gap-6 p-6")}
       >
         <header data-bubble-id={WORKPLACE_CARD_HEADER_BUBBLE_ID} className="flex items-start gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Building2 className="h-5 w-5" />
           </span>
           <div className="space-y-1">
-            <h2 data-bubble-id={WORKPLACE_CARD_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_3_")}>
+            <h2 data-bubble-id={WORKPLACE_CARD_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_2_")}>
               Workplace benefits
             </h2>
             <p
               data-bubble-id={WORKPLACE_CARD_SUBTITLE_BUBBLE_ID}
-              className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
+              className={cn(bubbleStyle("Text_small_"), "text-sm")}
             >
               Link your employer to unlock team coaching programs and aggregated insights.
             </p>
@@ -119,7 +120,9 @@ export default function SettingsWorkplaceTab() {
           data-bubble-id={WORKPLACE_PRIVACY_NOTICE_BUBBLE_ID}
           className="flex gap-3 rounded-lg border border-border bg-muted/40 p-4"
         >
-          <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <span data-bubble-id={WORKPLACE_PRIVACY_ICON_BUBBLE_ID} className="shrink-0 text-primary">
+            <Shield className="mt-0.5 h-4 w-4" />
+          </span>
           <p
             data-bubble-id={WORKPLACE_PRIVACY_TEXT_BUBBLE_ID}
             className="text-sm text-muted-foreground"
@@ -129,11 +132,16 @@ export default function SettingsWorkplaceTab() {
           </p>
         </div>
 
-        <div data-bubble-id={WORKPLACE_FORM_BUBBLE_ID} className="grid gap-4 md:grid-cols-2">
-          <div data-bubble-id={WORKPLACE_NAME_GROUP_BUBBLE_ID} className="flex flex-col gap-2">
-            <Label htmlFor="workplace-name" data-bubble-id={WORKPLACE_NAME_LABEL_BUBBLE_ID}>
-              Workplace name
-            </Label>
+        <div data-bubble-id={WORKPLACE_FORM_BUBBLE_ID} className="flex flex-col gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div data-bubble-id={WORKPLACE_NAME_GROUP_BUBBLE_ID} className="flex flex-col gap-2">
+              <Label
+                htmlFor="workplace-name"
+                data-bubble-id={WORKPLACE_NAME_LABEL_BUBBLE_ID}
+                className={bubbleStyle("Text_label_")}
+              >
+                Workplace name
+              </Label>
             <Input
               id="workplace-name"
               data-bubble-id={WORKPLACE_NAME_INPUT_BUBBLE_ID}
@@ -144,10 +152,14 @@ export default function SettingsWorkplaceTab() {
             />
           </div>
 
-          <div data-bubble-id={WORKPLACE_EMAIL_GROUP_BUBBLE_ID} className="flex flex-col gap-2">
-            <Label htmlFor="workplace-email" data-bubble-id={WORKPLACE_EMAIL_LABEL_BUBBLE_ID}>
-              HR / benefits contact email
-            </Label>
+            <div data-bubble-id={WORKPLACE_EMAIL_GROUP_BUBBLE_ID} className="flex flex-col gap-2">
+              <Label
+                htmlFor="workplace-email"
+                data-bubble-id={WORKPLACE_EMAIL_LABEL_BUBBLE_ID}
+                className={bubbleStyle("Text_label_")}
+              >
+                HR / benefits contact email
+              </Label>
             <Input
               id="workplace-email"
               type="email"
@@ -157,25 +169,26 @@ export default function SettingsWorkplaceTab() {
               onChange={(event) => updateField("email", event.target.value)}
               placeholder="benefits@company.com"
             />
+            </div>
           </div>
-        </div>
 
-        {linkedAt && (
-          <p className="text-xs text-muted-foreground">
-            Linked on {new Date(linkedAt).toLocaleDateString()}.
-          </p>
-        )}
+          {linkedAt && (
+            <p className="text-xs text-muted-foreground">
+              Linked on {new Date(linkedAt).toLocaleDateString()}.
+            </p>
+          )}
 
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            data-bubble-id={WORKPLACE_LINK_BTN_BUBBLE_ID}
-            className={bubbleStyle("Button_primary_")}
-            disabled={linking}
-            onClick={() => void handleLink()}
-          >
-            {linking ? "Linking…" : linkedAt ? "Update workplace link" : "Link workplace"}
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              data-bubble-id={WORKPLACE_LINK_BTN_BUBBLE_ID}
+              className={bubbleStyle("Button_primary_")}
+              disabled={linking}
+              onClick={() => void handleLink()}
+            >
+              {linking ? "Linking…" : linkedAt ? "Update workplace link" : "Link workplace"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

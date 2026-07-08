@@ -59,6 +59,17 @@ function validateWorkplaceForm(form: WorkplaceFormState): void {
   }
 }
 
+function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
+  const message = error.message?.toLowerCase() ?? "";
+  return (
+    error.code === "42P01" ||
+    error.code === "PGRST205" ||
+    message.includes("relation") ||
+    message.includes("does not exist") ||
+    message.includes("could not find the table")
+  );
+}
+
 export async function linkWorkplace(userId: string, form: WorkplaceFormState): Promise<void> {
   validateWorkplaceForm(form);
 
@@ -101,8 +112,12 @@ export async function linkWorkplace(userId: string, form: WorkplaceFormState): P
   );
 
   if (workplaceError) {
-    // Demo schema may not expose workplace table yet — profile link is authoritative.
-    return;
+    if (isSchemaUnavailable(workplaceError)) {
+      return;
+    }
+    throw new Error(
+      "Your workplace link was saved to your profile, but the shared workplace directory could not be updated.",
+    );
   }
 }
 

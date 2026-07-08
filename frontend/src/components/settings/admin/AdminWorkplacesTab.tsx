@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AddWorkplacePopup from "@/components/settings/admin/AddWorkplacePopup";
 import {
   ADMIN_ADD_WORKPLACE_BTN_BUBBLE_ID,
   ADMIN_TAB_WORKPLACES_BUBBLE_ID,
+  ADMIN_WORKPLACE_CARD_ACTIONS_BUBBLE_ID,
+  ADMIN_WORKPLACE_CARD_TEMPLATE_BUBBLE_ID,
+  ADMIN_WORKPLACE_DELETE_BTN_BUBBLE_ID,
+  ADMIN_WORKPLACE_EDIT_BTN_BUBBLE_ID,
+  ADMIN_WORKPLACE_EMAIL_BUBBLE_ID,
+  ADMIN_WORKPLACE_NAME_BUBBLE_ID,
   ADMIN_WORKPLACES_GRID_BUBBLE_ID,
   ADMIN_WORKPLACES_TITLE_BUBBLE_ID,
   ADMIN_WORKPLACES_TOOLBAR_BUBBLE_ID,
@@ -14,6 +20,7 @@ import {
   createAdminWorkplace,
   deleteAdminWorkplace,
   fetchAdminWorkplaces,
+  updateAdminWorkplace,
   type AdminWorkplaceRecord,
 } from "@/lib/settings/admin/adminWorkplacesApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,7 +32,15 @@ export default function AdminWorkplacesTab() {
   const [workplaces, setWorkplaces] = useState<AdminWorkplaceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [editWorkplace, setEditWorkplace] = useState<AdminWorkplaceRecord | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const popupOpen = addOpen || editWorkplace !== null;
+
+  const closePopup = useCallback(() => {
+    setAddOpen(false);
+    setEditWorkplace(null);
+  }, []);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -48,22 +63,27 @@ export default function AdminWorkplacesTab() {
     };
   }, [reload, user]);
 
-  const handleCreate = useCallback(
+  const handleSave = useCallback(
     async (form: Parameters<typeof createAdminWorkplace>[1]) => {
       if (!user || busy) return;
       setBusy(true);
       try {
-        await createAdminWorkplace(user.id, form);
+        if (editWorkplace) {
+          await updateAdminWorkplace(user.id, editWorkplace.workplaceId, form);
+          toast.success("Workplace updated.");
+        } else {
+          await createAdminWorkplace(user.id, form);
+          toast.success("Workplace created.");
+        }
         await reload();
-        setAddOpen(false);
-        toast.success("Workplace created.");
+        closePopup();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Couldn't create workplace.");
+        toast.error(err instanceof Error ? err.message : "Couldn't save workplace.");
       } finally {
         setBusy(false);
       }
     },
-    [busy, reload, user],
+    [busy, closePopup, editWorkplace, reload, user],
   );
 
   const handleDelete = useCallback(
@@ -117,31 +137,63 @@ export default function AdminWorkplacesTab() {
           workplaces.map((workplace) => (
             <div
               key={workplace.workplaceId}
-              className={cn(bubbleStyle("Group_card_muted_"), "flex items-center justify-between gap-3 p-4")}
+              data-bubble-id={ADMIN_WORKPLACE_CARD_TEMPLATE_BUBBLE_ID}
+              className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-4")}
             >
               <div>
-                <h4 className="font-semibold">{workplace.name}</h4>
-                <p className="text-sm text-muted-foreground">{workplace.contactEmail}</p>
+                <h4 data-bubble-id={ADMIN_WORKPLACE_NAME_BUBBLE_ID} className="font-semibold">
+                  {workplace.name}
+                </h4>
+                <p
+                  data-bubble-id={ADMIN_WORKPLACE_EMAIL_BUBBLE_ID}
+                  className="text-sm text-muted-foreground"
+                >
+                  {workplace.contactEmail}
+                </p>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={() => void handleDelete(workplace)}
+              <div
+                data-bubble-id={ADMIN_WORKPLACE_CARD_ACTIONS_BUBBLE_ID}
+                className="flex justify-end gap-2"
               >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-bubble-id={ADMIN_WORKPLACE_EDIT_BTN_BUBBLE_ID}
+                  disabled={busy}
+                  onClick={() => setEditWorkplace(workplace)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-bubble-id={ADMIN_WORKPLACE_DELETE_BTN_BUBBLE_ID}
+                  disabled={busy}
+                  onClick={() => void handleDelete(workplace)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           ))
         )}
       </div>
 
       <AddWorkplacePopup
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onSubmit={handleCreate}
+        open={popupOpen}
+        onOpenChange={(open) => {
+          if (!open) closePopup();
+        }}
+        onSubmit={handleSave}
         busy={busy}
+        editWorkplaceId={editWorkplace?.workplaceId ?? null}
+        initialForm={
+          editWorkplace
+            ? { name: editWorkplace.name, contactEmail: editWorkplace.contactEmail }
+            : null
+        }
       />
     </div>
   );

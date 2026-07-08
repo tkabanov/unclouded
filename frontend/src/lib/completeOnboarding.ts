@@ -33,6 +33,8 @@ export interface OnboardingCompletionData {
 export interface CompleteOnboardingDeps {
   userId: string;
   saveOnboarding: (payload: OnboardingPayload) => Promise<void>;
+  /** Reload profile context after pipeline patches coaching modes (API-05 / DASH-02). */
+  refreshProfile?: () => Promise<void>;
   navigate: (path: string) => void;
 }
 
@@ -48,7 +50,7 @@ export function canCompleteOnboarding(data: OnboardingCompletionData): boolean {
  */
 export async function completeOnboarding(
   data: OnboardingCompletionData,
-  { userId, saveOnboarding, navigate }: CompleteOnboardingDeps
+  { userId, saveOnboarding, refreshProfile, navigate }: CompleteOnboardingDeps
 ): Promise<void> {
   if (!canCompleteOnboarding(data)) {
     throw new Error("Required onboarding signals are not complete");
@@ -83,6 +85,10 @@ export async function completeOnboarding(
   });
 
   await runOnboardingProfilePipeline(userId);
+
+  if (refreshProfile) {
+    await refreshProfile();
+  }
 
   navigate(ONBOARDING_COMPLETE_ROUTE);
 }

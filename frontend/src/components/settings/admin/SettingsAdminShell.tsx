@@ -81,8 +81,12 @@ export default function SettingsAdminShell() {
               role="tab"
               aria-selected={active}
               data-bubble-id={SUB_TAB_BUTTON_IDS[tab]}
-              variant={active ? "default" : "outline"}
+              className={cn(
+                bubbleStyle(active ? "Button_tab_active_" : "Button_tab_"),
+                "h-9",
+              )}
               size="sm"
+              variant="ghost"
               onClick={() => setActiveSubTab(tab)}
             >
               {ADMIN_SUB_TAB_LABELS[tab]}

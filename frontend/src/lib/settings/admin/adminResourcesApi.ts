@@ -264,6 +264,75 @@ export async function deleteAdminResource(userId: string, resourceId: string): P
   await writeOnboardingResources(userId, next);
 }
 
+function resourceRowFromForm(form: AdminResourceFormState, resourceId: string): ResourceRow {
+  const title = form.title.trim();
+  const sensitivityLabel =
+    SENSITIVITY_OPTIONS.find((option) => option.value === form.sensitivity)?.label ??
+    "Low sensitivity";
+
+  return {
+    id: resourceId,
+    title_text: title,
+    content_text: form.content.trim(),
+    primary_mode_tag_text: form.primaryMode,
+    sub_mode_tag_text: form.subMode.trim(),
+    sensitivity_flag_text: sensitivityLabel,
+    is_free_boolean: form.isFree,
+    external_link_text: form.externalLink?.trim() || undefined,
+  };
+}
+
+function resourceRowFromRecord(resource: AdminResourceRecord): ResourceRow {
+  return resourceRowFromForm(
+    {
+      title: resource.title,
+      content: resource.content,
+      primaryMode: resource.primaryMode,
+      subMode: resource.subMode,
+      sensitivity: resource.sensitivity,
+      isFree: resource.isFree,
+      externalLink: resource.externalLink ?? "",
+    },
+    resource.resourceId,
+  );
+}
+
+export async function updateAdminResource(
+  userId: string,
+  resourceId: string,
+  form: AdminResourceFormState,
+): Promise<AdminResourceRecord> {
+  const title = form.title.trim();
+  if (!title) throw new Error("Resource title is required.");
+
+  const row = resourceRowFromForm(form, resourceId);
+
+  const client = supabase as unknown as UntypedSupabase;
+  const { error: tableError } = await client.from("resource").update(row as never).eq("id", resourceId);
+  if (!tableError) {
+    const updated = toAdminResource(row);
+    if (!updated) throw new Error("Failed to update resource.");
+    return updated;
+  }
+
+  if (!isSchemaUnavailable(tableError)) throw tableError;
+
+  const existing = await readOnboardingResources(userId);
+  let found = false;
+  const next = existing.map((resource) => {
+    if (resource.resourceId !== resourceId) return resourceRowFromRecord(resource);
+    found = true;
+    return row;
+  });
+
+  if (!found) throw new Error("Resource not found.");
+  await writeOnboardingResources(userId, next);
+
+  const updated = toAdminResource(row);
+  if (!updated) throw new Error("Failed to update resource.");
+  return updated;
+}
+
 export function emptyAdminResourceForm(): AdminResourceFormState {
   return {
     title: "",

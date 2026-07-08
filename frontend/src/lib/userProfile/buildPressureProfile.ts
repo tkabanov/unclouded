@@ -33,6 +33,7 @@ const LOAD_SEVERITY: Record<string, number> = {
 
 const STATE_SEVERITY: Record<string, number> = {
   grounded: 1,
+  regulated: 1,
   wired: 3,
   depleted: 4,
   shut_down: 4,

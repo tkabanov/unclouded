@@ -6,7 +6,16 @@ import { Button } from "@/components/ui/button";
 import AddResourcePopup from "@/components/settings/admin/AddResourcePopup";
 import {
   ADMIN_ADD_RESOURCE_BTN_BUBBLE_ID,
+  ADMIN_RESOURCE_CARD_ACTIONS_BUBBLE_ID,
   ADMIN_RESOURCE_CARD_TEMPLATE_BUBBLE_ID,
+  ADMIN_RESOURCE_DELETE_BTN_BUBBLE_ID,
+  ADMIN_RESOURCE_EDIT_BTN_BUBBLE_ID,
+  ADMIN_RESOURCE_FLAGS_ROW_BUBBLE_ID,
+  ADMIN_RESOURCE_FREE_BADGE_BUBBLE_ID,
+  ADMIN_RESOURCE_MODE_BADGE_BUBBLE_ID,
+  ADMIN_RESOURCE_SENSITIVITY_BADGE_BUBBLE_ID,
+  ADMIN_RESOURCE_SUBMODE_BADGE_BUBBLE_ID,
+  ADMIN_RESOURCE_TAGS_ROW_BUBBLE_ID,
   ADMIN_RESOURCES_GRID_BUBBLE_ID,
   ADMIN_RESOURCES_TITLE_BUBBLE_ID,
   ADMIN_RESOURCES_TOOLBAR_BUBBLE_ID,
@@ -19,6 +28,7 @@ import {
   createAdminResource,
   deleteAdminResource,
   fetchAdminResources,
+  updateAdminResource,
   type AdminResourceRecord,
 } from "@/lib/settings/admin/adminResourcesApi";
 import { getSensitivityLabel } from "@/lib/settings/admin/adminPathsApi";
@@ -31,7 +41,15 @@ export default function AdminResourcesTab() {
   const [resources, setResources] = useState<AdminResourceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [editResource, setEditResource] = useState<AdminResourceRecord | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const popupOpen = addOpen || editResource !== null;
+
+  const closePopup = useCallback(() => {
+    setAddOpen(false);
+    setEditResource(null);
+  }, []);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -55,23 +73,28 @@ export default function AdminResourcesTab() {
     };
   }, [reload, user]);
 
-  const handleCreate = useCallback(
+  const handleSave = useCallback(
     async (form: Parameters<typeof createAdminResource>[1]) => {
       if (!user || busy) return;
       setBusy(true);
       try {
-        await createAdminResource(user.id, form);
+        if (editResource) {
+          await updateAdminResource(user.id, editResource.resourceId, form);
+          toast.success("Resource updated.");
+        } else {
+          await createAdminResource(user.id, form);
+          toast.success("Resource created.");
+        }
         await reload();
-        setAddOpen(false);
-        toast.success("Resource created.");
+        closePopup();
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Couldn't create resource.";
+        const message = err instanceof Error ? err.message : "Couldn't save resource.";
         toast.error(message);
       } finally {
         setBusy(false);
       }
     },
-    [busy, reload, user],
+    [busy, closePopup, editResource, reload, user],
   );
 
   const handleDelete = useCallback(
@@ -137,24 +160,41 @@ export default function AdminResourcesTab() {
                 <h4 className="font-semibold">{resource.title}</h4>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{resource.content}</p>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                <Badge variant="secondary">
+              <div data-bubble-id={ADMIN_RESOURCE_TAGS_ROW_BUBBLE_ID} className="flex flex-wrap gap-1.5">
+                <Badge data-bubble-id={ADMIN_RESOURCE_MODE_BADGE_BUBBLE_ID} variant="secondary">
                   {AI_COACHING_MODE_LABELS[resource.primaryMode]}
                 </Badge>
-                {resource.subMode && <Badge variant="outline">{resource.subMode}</Badge>}
-                <Badge variant="outline">{getSensitivityLabel(resource.sensitivity)}</Badge>
-                <Badge variant={resource.isFree ? "default" : "secondary"}>
-                  {resource.isFree ? "Free" : "Pro"}
-                </Badge>
+                {resource.subMode && (
+                  <Badge data-bubble-id={ADMIN_RESOURCE_SUBMODE_BADGE_BUBBLE_ID} variant="outline">
+                    {resource.subMode}
+                  </Badge>
+                )}
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div data-bubble-id={ADMIN_RESOURCE_FLAGS_ROW_BUBBLE_ID} className="flex flex-wrap gap-1.5">
+              <Badge data-bubble-id={ADMIN_RESOURCE_SENSITIVITY_BADGE_BUBBLE_ID} variant="outline">
+                {getSensitivityLabel(resource.sensitivity)}
+              </Badge>
+              <Badge
+                data-bubble-id={ADMIN_RESOURCE_FREE_BADGE_BUBBLE_ID}
+                variant={resource.isFree ? "default" : "secondary"}
+              >
+                {resource.isFree ? "Free" : "Pro"}
+              </Badge>
+            </div>
+
+            <div
+              data-bubble-id={ADMIN_RESOURCE_CARD_ACTIONS_BUBBLE_ID}
+              className="flex justify-end gap-2"
+            >
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => toast.info("Edit opens the add form in a future iteration.")}
+                data-bubble-id={ADMIN_RESOURCE_EDIT_BTN_BUBBLE_ID}
+                disabled={busy}
+                onClick={() => setEditResource(resource)}
               >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
@@ -162,6 +202,7 @@ export default function AdminResourcesTab() {
                 type="button"
                 size="sm"
                 variant="outline"
+                data-bubble-id={ADMIN_RESOURCE_DELETE_BTN_BUBBLE_ID}
                 disabled={busy}
                 onClick={() => void handleDelete(resource)}
               >
@@ -173,10 +214,26 @@ export default function AdminResourcesTab() {
       </div>
 
       <AddResourcePopup
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onSubmit={handleCreate}
+        open={popupOpen}
+        onOpenChange={(open) => {
+          if (!open) closePopup();
+        }}
+        onSubmit={handleSave}
         busy={busy}
+        editResourceId={editResource?.resourceId ?? null}
+        initialForm={
+          editResource
+            ? {
+                title: editResource.title,
+                content: editResource.content,
+                primaryMode: editResource.primaryMode,
+                subMode: editResource.subMode,
+                sensitivity: editResource.sensitivity,
+                isFree: editResource.isFree,
+                externalLink: editResource.externalLink ?? "",
+              }
+            : null
+        }
       />
     </div>
   );

@@ -28,6 +28,8 @@ export interface AddWorkplacePopupProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (form: AdminWorkplaceFormState) => Promise<void>;
   busy?: boolean;
+  editWorkplaceId?: string | null;
+  initialForm?: AdminWorkplaceFormState | null;
 }
 
 export default function AddWorkplacePopup({
@@ -35,19 +37,22 @@ export default function AddWorkplacePopup({
   onOpenChange,
   onSubmit,
   busy = false,
+  editWorkplaceId = null,
+  initialForm = null,
 }: AddWorkplacePopupProps) {
   const [form, setForm] = useState<AdminWorkplaceFormState>(emptyAdminWorkplaceForm());
+  const isEdit = Boolean(editWorkplaceId);
 
   useEffect(() => {
-    if (open) setForm(emptyAdminWorkplaceForm());
-  }, [open]);
+    if (open) setForm(initialForm ?? emptyAdminWorkplaceForm());
+  }, [open, initialForm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-bubble-id={ADD_WORKPLACE_POPUP_BUBBLE_ID}>
         <DialogHeader>
           <DialogTitle data-bubble-id={ADD_WORKPLACE_POPUP_TITLE_BUBBLE_ID}>
-            Add workplace
+            {isEdit ? "Edit workplace" : "Add workplace"}
           </DialogTitle>
         </DialogHeader>
 
@@ -93,7 +98,7 @@ export default function AddWorkplacePopup({
             disabled={busy}
             onClick={() => void onSubmit(form)}
           >
-            {busy ? "Saving…" : "Create workplace"}
+            {busy ? "Saving…" : isEdit ? "Save changes" : "Create workplace"}
           </Button>
         </DialogFooter>
       </DialogContent>

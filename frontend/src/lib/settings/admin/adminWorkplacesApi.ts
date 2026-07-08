@@ -175,6 +175,56 @@ export async function deleteAdminWorkplace(userId: string, workplaceId: string):
   await writeOnboardingWorkplaces(userId, next);
 }
 
+function workplaceRowFromForm(form: AdminWorkplaceFormState, workplaceId: string): WorkplaceRow {
+  return {
+    id: workplaceId,
+    name_text: form.name.trim(),
+    contact_email_text: form.contactEmail.trim(),
+  };
+}
+
+function workplaceRowFromRecord(workplace: AdminWorkplaceRecord): WorkplaceRow {
+  return workplaceRowFromForm(
+    { name: workplace.name, contactEmail: workplace.contactEmail },
+    workplace.workplaceId,
+  );
+}
+
+export async function updateAdminWorkplace(
+  userId: string,
+  workplaceId: string,
+  form: AdminWorkplaceFormState,
+): Promise<AdminWorkplaceRecord> {
+  validateWorkplaceForm(form);
+
+  const row = workplaceRowFromForm(form, workplaceId);
+
+  const client = supabase as unknown as UntypedSupabase;
+  const { error: tableError } = await client.from("workplace").update(row as never).eq("id", workplaceId);
+  if (!tableError) {
+    const updated = toAdminWorkplace(row);
+    if (!updated) throw new Error("Failed to update workplace.");
+    return updated;
+  }
+
+  if (!isSchemaUnavailable(tableError)) throw tableError;
+
+  const existing = await readOnboardingWorkplaces(userId);
+  let found = false;
+  const next = existing.map((workplace) => {
+    if (workplace.workplaceId !== workplaceId) return workplaceRowFromRecord(workplace);
+    found = true;
+    return row;
+  });
+
+  if (!found) throw new Error("Workplace not found.");
+  await writeOnboardingWorkplaces(userId, next);
+
+  const updated = toAdminWorkplace(row);
+  if (!updated) throw new Error("Failed to update workplace.");
+  return updated;
+}
+
 export function emptyAdminWorkplaceForm(): AdminWorkplaceFormState {
   return { name: "", contactEmail: "" };
 }

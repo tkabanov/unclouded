@@ -270,6 +270,72 @@ export async function deleteAdminPath(userId: string, pathId: string): Promise<v
   await writeOnboardingPaths(userId, next);
 }
 
+function pathRowFromForm(form: AdminPathFormState, pathId: string, slug?: string): PathRow {
+  const name = form.name.trim();
+  return {
+    id: pathId,
+    slug: slug ?? slugify(name),
+    name_text: name,
+    description_text: form.description.trim(),
+    tier_option_tier_os: form.tier,
+    ai_coaching_mode_option_ai_coaching_mode_os: form.coachingMode,
+    sub_mode_text: form.subMode.trim(),
+    sensitivity_text: form.sensitivity,
+  };
+}
+
+function pathRowFromRecord(path: AdminPathRecord): PathRow {
+  return pathRowFromForm(
+    {
+      slug: path.slug,
+      name: path.name,
+      description: path.description,
+      tier: path.tier,
+      coachingMode: path.coachingMode,
+      subMode: path.subMode,
+      sensitivity: path.sensitivity,
+    },
+    path.pathId,
+    path.slug,
+  );
+}
+
+export async function updateAdminPath(
+  userId: string,
+  pathId: string,
+  form: AdminPathFormState,
+): Promise<AdminPathRecord> {
+  const name = form.name.trim();
+  if (!name) throw new Error("Path title is required.");
+
+  const row = pathRowFromForm(form, pathId, form.slug.trim() || slugify(name));
+
+  const client = supabase as unknown as UntypedSupabase;
+  const { error: tableError } = await client.from("path").update(row as never).eq("id", pathId);
+  if (!tableError) {
+    const updated = toAdminPath(row);
+    if (!updated) throw new Error("Failed to update path.");
+    return updated;
+  }
+
+  if (!isSchemaUnavailable(tableError)) throw tableError;
+
+  const existing = await readOnboardingPaths(userId);
+  let found = false;
+  const next = existing.map((path) => {
+    if (path.pathId !== pathId) return pathRowFromRecord(path);
+    found = true;
+    return row;
+  });
+
+  if (!found) throw new Error("Path not found.");
+  await writeOnboardingPaths(userId, next);
+
+  const updated = toAdminPath(row);
+  if (!updated) throw new Error("Failed to update path.");
+  return updated;
+}
+
 export function emptyAdminPathForm(): AdminPathFormState {
   return {
     slug: "",

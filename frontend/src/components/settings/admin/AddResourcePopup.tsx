@@ -44,6 +44,8 @@ export interface AddResourcePopupProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (form: AdminResourceFormState) => Promise<void>;
   busy?: boolean;
+  editResourceId?: string | null;
+  initialForm?: AdminResourceFormState | null;
 }
 
 export default function AddResourcePopup({
@@ -51,19 +53,22 @@ export default function AddResourcePopup({
   onOpenChange,
   onSubmit,
   busy = false,
+  editResourceId = null,
+  initialForm = null,
 }: AddResourcePopupProps) {
   const [form, setForm] = useState<AdminResourceFormState>(emptyAdminResourceForm());
+  const isEdit = Boolean(editResourceId);
 
   useEffect(() => {
-    if (open) setForm(emptyAdminResourceForm());
-  }, [open]);
+    if (open) setForm(initialForm ?? emptyAdminResourceForm());
+  }, [open, initialForm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-bubble-id={ADD_RESOURCE_POPUP_BUBBLE_ID}>
         <DialogHeader>
           <DialogTitle data-bubble-id={ADD_RESOURCE_POPUP_TITLE_BUBBLE_ID}>
-            Add resource
+            {isEdit ? "Edit resource" : "Add resource"}
           </DialogTitle>
         </DialogHeader>
 
@@ -185,7 +190,7 @@ export default function AddResourcePopup({
             disabled={busy}
             onClick={() => void onSubmit(form)}
           >
-            {busy ? "Saving…" : "Create resource"}
+            {busy ? "Saving…" : isEdit ? "Save changes" : "Create resource"}
           </Button>
         </DialogFooter>
       </DialogContent>

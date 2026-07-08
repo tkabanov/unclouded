@@ -102,8 +102,9 @@ export default function SettingsSubscriptionTab() {
     try {
       await requestBillingPortal();
       toast.success("Billing portal opened.");
-    } catch {
-      toast.info("Demo mode: billing isn't connected yet.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Couldn't open billing portal.";
+      toast.error(message);
     }
   }, []);
 
@@ -111,8 +112,9 @@ export default function SettingsSubscriptionTab() {
     try {
       await requestInvoices();
       toast.success("Invoice history loaded.");
-    } catch {
-      toast.info("Demo mode: invoice history isn't available yet.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Couldn't load invoice history.";
+      toast.error(message);
     }
   }, []);
 
@@ -169,7 +171,7 @@ export default function SettingsSubscriptionTab() {
 
       <div
         data-bubble-id={SUBSCRIPTION_PLANS_GRID_BUBBLE_ID}
-        className="grid items-start gap-4 md:grid-cols-3"
+        className={cn(bubbleStyle("RepeatingGroup_list_"), "grid items-start gap-4 md:grid-cols-3")}
       >
         {plans.map((plan) => (
           <SubscriptionPlanCard
@@ -222,7 +224,7 @@ export default function SettingsSubscriptionTab() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Demo mode: upgrades don&apos;t charge a card. Billing isn&apos;t connected yet.
+          Demo billing stubs return sample data until Stripe is connected in production.
         </p>
       </div>
 
