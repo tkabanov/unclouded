@@ -1118,10 +1118,10 @@
         },
         {
           "id": "API-02-user-classification",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "API-01-pillar-score-engine",
             "ENUM-03-path-coaching-and-state-enums"
@@ -1134,10 +1134,10 @@
         },
         {
           "id": "API-03-pressure-profile",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "AUTH-05-onboarding-health-load-signals",
             "ENUM-02-onboarding-question-enums",
@@ -1151,10 +1151,10 @@
         },
         {
           "id": "API-04-behavioral-fingerprint",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "API-03-pressure-profile",
             "ENUM-02-onboarding-question-enums"
@@ -1167,10 +1167,10 @@
         },
         {
           "id": "API-05-ai-coaching-mode-assignment",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "API-04-behavioral-fingerprint",
             "ENUM-03-path-coaching-and-state-enums",
@@ -1184,10 +1184,10 @@
         },
         {
           "id": "API-06-ai-confidence-level-trigger",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-07-session-completion-route-integration",
             "ENUM-03-path-coaching-and-state-enums",

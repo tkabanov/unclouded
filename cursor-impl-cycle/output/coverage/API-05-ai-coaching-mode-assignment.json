@@ -1,0 +1,23 @@
+{
+  "item_id": "API-05-ai-coaching-mode-assignment",
+  "module_id": "MOD-DRSAM-API",
+  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/lib/dashboard/coachingModeApi.ts"],
+    "gaps": ["AC-1: No auto-assignment from profile signals"],
+    "reuse_decision": "extend",
+    "mapped_target_files": {}
+  },
+  "criteria": [
+    {"id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts"]},
+    {"id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts"]},
+    {"id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"]}
+  ],
+  "files_changed": [
+    "frontend/src/lib/userProfile/assignAiCoachingModes.ts",
+    "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
+    "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+  ],
+  "functional_ok": true
+}

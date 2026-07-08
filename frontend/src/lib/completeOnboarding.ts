@@ -1,7 +1,7 @@
 import { computeResults } from "@/lib/classification";
 import { SIDEBAR_NAV_ROUTES } from "@/lib/enums/navigation";
 import type { HealthFlagsPayload } from "@/lib/enums/onboardingQuestions";
-import { runPillarScoreCalculators } from "@/lib/userProfile/onboardingProfilePipeline";
+import { runOnboardingProfilePipeline } from "@/lib/userProfile/onboardingProfilePipeline";
 import type { OnboardingPayload } from "@/lib/userProfile";
 
 /** Bubble dashboard page id — post-onboarding destination (bTHDT) */
@@ -82,7 +82,7 @@ export async function completeOnboarding(
     },
   });
 
-  await runPillarScoreCalculators(userId);
+  await runOnboardingProfilePipeline(userId);
 
   navigate(ONBOARDING_COMPLETE_ROUTE);
 }

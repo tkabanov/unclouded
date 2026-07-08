@@ -5,6 +5,7 @@
 import type { PathSessionFormData } from "@/components/design-system/SessionCompletionForm";
 import { supabase } from "@/integrations/supabase/client";
 import { getPathBySlug, HARD_SEASONS_PATH, type PathSession } from "@/lib/paths";
+import { incrementModulesCompletedCount } from "@/lib/userProfile/userProfileHooks";
 
 type PathsessionRow = {
   id?: string;
@@ -120,10 +121,18 @@ export async function schedulePathSessionCompletion(
   sessionId: string,
   enrollmentId: string,
 ): Promise<void> {
-  await Promise.resolve();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    await incrementModulesCompletedCount(user.id);
+  }
+
   console.info("[pathsSessionApi] scheduled path session completion", {
     sessionId,
     enrollmentId,
     handler: "bTJCM",
+    confidenceTrigger: "bTIFU",
   });
 }
