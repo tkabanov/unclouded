@@ -19,6 +19,7 @@ export interface AdminResourceRecord {
   subMode: string;
   sensitivity: SensitivitySlug;
   isFree: boolean;
+  isCrisis: boolean;
   externalLink?: string;
 }
 
@@ -32,6 +33,7 @@ type ResourceRow = {
   sub_mode_tag_text?: string;
   sensitivity_flag_text?: string;
   is_free_boolean?: boolean | string | null;
+  is_crisis_boolean?: boolean | string | null;
   external_link_text?: string;
 };
 
@@ -49,6 +51,7 @@ const STATIC_FALLBACK: AdminResourceRecord[] = [
     subMode: "Anxiety",
     sensitivity: "low",
     isFree: true,
+    isCrisis: false,
   },
   {
     resourceId: "res-sleep-hygiene",
@@ -59,6 +62,7 @@ const STATIC_FALLBACK: AdminResourceRecord[] = [
     subMode: "Sleep",
     sensitivity: "low",
     isFree: true,
+    isCrisis: false,
   },
 ];
 
@@ -67,6 +71,7 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
   return (
     error.code === "42P01" ||
     error.code === "PGRST205" ||
+    (error.code === "42703" && message.includes("column")) ||
     message.includes("relation") ||
     message.includes("does not exist") ||
     message.includes("could not find the table")
@@ -106,6 +111,7 @@ function toAdminResource(row: ResourceRow): AdminResourceRecord | null {
     subMode: row.sub_mode_tag_text?.trim() ?? "",
     sensitivity: isSensitivityFromLabel(row.sensitivity_flag_text),
     isFree: parseBoolean(row.is_free_boolean),
+    isCrisis: parseBoolean(row.is_crisis_boolean),
     externalLink: row.external_link_text?.trim() || undefined,
   };
 }
@@ -161,7 +167,7 @@ async function tryFetchResourcesFromTable(): Promise<AdminResourceRecord[] | nul
   const { data, error } = await client
     .from("resource")
     .select(
-      "id, title_text, content_text, primary_mode_tag_text, sub_mode_tag_text, sensitivity_flag_text, is_free_boolean, external_link_text",
+      "id, title_text, content_text, primary_mode_tag_text, sub_mode_tag_text, sensitivity_flag_text, is_free_boolean, is_crisis_boolean, external_link_text",
     );
 
   if (error) {
@@ -206,6 +212,7 @@ export async function createAdminResource(
     sub_mode_tag_text: form.subMode.trim(),
     sensitivity_flag_text: sensitivityLabel,
     is_free_boolean: form.isFree,
+    is_crisis_boolean: form.isCrisis,
     external_link_text: form.externalLink?.trim() || undefined,
   };
 
@@ -230,6 +237,7 @@ export async function createAdminResource(
       SENSITIVITY_OPTIONS.find((option) => option.value === resource.sensitivity)?.label ??
       "Low sensitivity",
     is_free_boolean: resource.isFree,
+    is_crisis_boolean: resource.isCrisis,
     external_link_text: resource.externalLink,
   }));
 
@@ -258,6 +266,7 @@ export async function deleteAdminResource(userId: string, resourceId: string): P
         SENSITIVITY_OPTIONS.find((option) => option.value === resource.sensitivity)?.label ??
         "Low sensitivity",
       is_free_boolean: resource.isFree,
+      is_crisis_boolean: resource.isCrisis,
       external_link_text: resource.externalLink,
     }));
 
@@ -278,6 +287,7 @@ function resourceRowFromForm(form: AdminResourceFormState, resourceId: string): 
     sub_mode_tag_text: form.subMode.trim(),
     sensitivity_flag_text: sensitivityLabel,
     is_free_boolean: form.isFree,
+    is_crisis_boolean: form.isCrisis,
     external_link_text: form.externalLink?.trim() || undefined,
   };
 }
@@ -291,6 +301,7 @@ function resourceRowFromRecord(resource: AdminResourceRecord): ResourceRow {
       subMode: resource.subMode,
       sensitivity: resource.sensitivity,
       isFree: resource.isFree,
+      isCrisis: resource.isCrisis,
       externalLink: resource.externalLink ?? "",
     },
     resource.resourceId,
@@ -341,6 +352,7 @@ export function emptyAdminResourceForm(): AdminResourceFormState {
     subMode: "",
     sensitivity: "low",
     isFree: true,
+    isCrisis: false,
     externalLink: "",
   };
 }

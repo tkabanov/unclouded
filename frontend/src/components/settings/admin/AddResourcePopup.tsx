@@ -171,6 +171,15 @@ export default function AddResourcePopup({
               onCheckedChange={(checked) => setForm((prev) => ({ ...prev, isFree: checked }))}
             />
           </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="add-resource-crisis">Crisis resource</Label>
+            <Switch
+              id="add-resource-crisis"
+              checked={form.isCrisis}
+              onCheckedChange={(checked) => setForm((prev) => ({ ...prev, isCrisis: checked }))}
+            />
+          </div>
         </div>
 
         <DialogFooter className="gap-2">

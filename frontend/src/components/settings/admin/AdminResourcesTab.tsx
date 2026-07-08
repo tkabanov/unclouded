@@ -12,6 +12,7 @@ import {
   ADMIN_RESOURCE_EDIT_BTN_BUBBLE_ID,
   ADMIN_RESOURCE_FLAGS_ROW_BUBBLE_ID,
   ADMIN_RESOURCE_FREE_BADGE_BUBBLE_ID,
+  ADMIN_RESOURCE_IS_CRISIS_TEXT_BUBBLE_ID,
   ADMIN_RESOURCE_MODE_BADGE_BUBBLE_ID,
   ADMIN_RESOURCE_SENSITIVITY_BADGE_BUBBLE_ID,
   ADMIN_RESOURCE_SUBMODE_BADGE_BUBBLE_ID,
@@ -180,7 +181,13 @@ export default function AdminResourcesTab() {
                 data-bubble-id={ADMIN_RESOURCE_FREE_BADGE_BUBBLE_ID}
                 variant={resource.isFree ? "default" : "secondary"}
               >
-                {resource.isFree ? "Free" : "Pro"}
+                <span data-bubble-id={ADMIN_RESOURCE_IS_CRISIS_TEXT_BUBBLE_ID}>
+                  {resource.isCrisis
+                    ? "Crisis resources always available"
+                    : resource.isFree
+                      ? "Free"
+                      : "Pro"}
+                </span>
               </Badge>
             </div>
 
@@ -230,6 +237,7 @@ export default function AdminResourcesTab() {
                 subMode: editResource.subMode,
                 sensitivity: editResource.sensitivity,
                 isFree: editResource.isFree,
+                isCrisis: editResource.isCrisis,
                 externalLink: editResource.externalLink ?? "",
               }
             : null

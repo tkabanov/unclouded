@@ -156,6 +156,7 @@ export const ADMIN_RESOURCE_SUBMODE_BADGE_BUBBLE_ID = "ai_RNbBHYaC" as const;
 export const ADMIN_RESOURCE_FLAGS_ROW_BUBBLE_ID = "ai_RNbBHYaI" as const;
 export const ADMIN_RESOURCE_SENSITIVITY_BADGE_BUBBLE_ID = "ai_RNbBHYaL" as const;
 export const ADMIN_RESOURCE_FREE_BADGE_BUBBLE_ID = "ai_RNbBHYaM" as const;
+export const ADMIN_RESOURCE_IS_CRISIS_TEXT_BUBBLE_ID = "ai_RNbBHYaO" as const;
 export const ADMIN_RESOURCE_CARD_ACTIONS_BUBBLE_ID = "ai_RNbBHYaD" as const;
 export const ADMIN_RESOURCE_EDIT_BTN_BUBBLE_ID = "ai_RNbBHYaE" as const;
 export const ADMIN_RESOURCE_DELETE_BTN_BUBBLE_ID = "ai_RNbBHYaG" as const;
