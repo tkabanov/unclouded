@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AddResourcePopup from "@/components/settings/admin/AddResourcePopup";
+import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import {
   ADMIN_ADD_RESOURCE_BTN_BUBBLE_ID,
   ADMIN_RESOURCE_CARD_ACTIONS_BUBBLE_ID,
@@ -32,6 +33,7 @@ import {
   updateAdminResource,
   type AdminResourceRecord,
 } from "@/lib/settings/admin/adminResourcesApi";
+import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import { getSensitivityLabel } from "@/lib/settings/admin/adminPathsApi";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/styles";
@@ -40,6 +42,7 @@ import { cn } from "@/lib/utils";
 export default function AdminResourcesTab() {
   const { user } = useAuth();
   const [resources, setResources] = useState<AdminResourceRecord[]>([]);
+  const [dataSource, setDataSource] = useState<AdminDataSource>("table");
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editResource, setEditResource] = useState<AdminResourceRecord | null>(null);
@@ -54,8 +57,9 @@ export default function AdminResourcesTab() {
 
   const reload = useCallback(async () => {
     if (!user) return;
-    const rows = await fetchAdminResources(user.id);
-    setResources(rows);
+    const result = await fetchAdminResources(user.id);
+    setResources(result.resources);
+    setDataSource(result.dataSource);
   }, [user]);
 
   useEffect(() => {
@@ -144,6 +148,8 @@ export default function AdminResourcesTab() {
           Add resource
         </Button>
       </div>
+
+      <AdminDataSourceNotice source={dataSource} entityLabel="resources" />
 
       <div
         data-bubble-id={ADMIN_RESOURCES_GRID_BUBBLE_ID}

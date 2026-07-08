@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AddPlanPopup from "@/components/settings/admin/AddPlanPopup";
+import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import {
   ADMIN_ADD_PLAN_BTN_BUBBLE_ID,
   ADMIN_PLAN_CARD_ACTIONS_BUBBLE_ID,
@@ -25,6 +26,7 @@ import {
   updateAdminPlan,
   type AdminPlanRecord,
 } from "@/lib/settings/admin/adminPlansApi";
+import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,7 @@ import { cn } from "@/lib/utils";
 export default function AdminPlansTab() {
   const { user } = useAuth();
   const [plans, setPlans] = useState<AdminPlanRecord[]>([]);
+  const [dataSource, setDataSource] = useState<AdminDataSource>("table");
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editPlan, setEditPlan] = useState<AdminPlanRecord | null>(null);
@@ -46,7 +49,9 @@ export default function AdminPlansTab() {
 
   const reload = useCallback(async () => {
     if (!user) return;
-    setPlans(await fetchAdminPlans(user.id));
+    const result = await fetchAdminPlans(user.id);
+    setPlans(result.plans);
+    setDataSource(result.dataSource);
   }, [user]);
 
   useEffect(() => {
@@ -131,6 +136,8 @@ export default function AdminPlansTab() {
           Add plan
         </Button>
       </div>
+
+      <AdminDataSourceNotice source={dataSource} entityLabel="subscription plans" />
 
       <div data-bubble-id={ADMIN_PLANS_GRID_BUBBLE_ID} className="grid gap-4 md:grid-cols-3">
         {plans.map((plan) => (

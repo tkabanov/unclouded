@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_RESOURCE_SEED } from "@/lib/resources/demoResourceSeed";
+import { isSchemaUnavailable, parseBoolean } from "@/lib/supabase/schemaFallback";
 
 /** Stored in profiles.onboarding_data when resource / uds_resource tables are absent. */
 export const RESOURCES_ONBOARDING_KEY = "resources" as const;
@@ -32,54 +34,17 @@ type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
 
-const STATIC_FALLBACK_RESOURCES: ResourceListItem[] = [
-  {
-    resourceId: "res-grounding-54321",
-    title: "5-4-3-2-1 Grounding Exercise",
-    content:
-      "A simple sensory grounding technique to help you stay present during moments of stress or anxiety.",
-    primaryModeTag: "Mindfulness",
-    subModeTag: "Anxiety",
-    isFree: true,
-    sensitivityFlag: "Low sensitivity",
-  },
-  {
-    resourceId: "res-sleep-hygiene",
-    title: "Sleep Hygiene Checklist",
-    content:
-      "Evidence-based habits to improve sleep quality — consistent schedule, wind-down routine, and environment tips.",
-    primaryModeTag: "Wellness",
-    subModeTag: "Sleep",
-    isFree: true,
-    sensitivityFlag: "Low sensitivity",
-  },
-  {
-    resourceId: "res-boundary-scripts",
-    title: "Healthy Boundary Scripts",
-    content:
-      "Conversation starters and phrases for setting boundaries with family, work, and relationships.",
-    primaryModeTag: "Relationships",
-    subModeTag: "Communication",
-    isFree: false,
-    sensitivityFlag: "Moderate sensitivity",
-  },
-];
-
-function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
-  const message = error.message?.toLowerCase() ?? "";
-  return (
-    error.code === "42P01" ||
-    error.code === "PGRST205" ||
-    message.includes("relation") ||
-    message.includes("does not exist") ||
-    message.includes("could not find the table")
-  );
-}
-
-function parseBoolean(value: unknown): boolean {
-  if (value === true || value === "true" || value === "yes") return true;
-  return false;
-}
+const STATIC_FALLBACK_RESOURCES: ResourceListItem[] = DEMO_RESOURCE_SEED.map((seed) => ({
+  resourceId: seed.resourceId,
+  title: seed.title,
+  content: seed.content,
+  primaryModeTag: seed.primaryModeTag,
+  subModeTag: seed.subModeTag,
+  isFree: seed.isFree,
+  sensitivityFlag: seed.sensitivityFlag,
+  externalLink: seed.externalLink,
+  isCrisisResource: seed.isCrisis,
+}));
 
 function toListItem(row: ResourceRow): ResourceListItem | null {
   if (!row.id) return null;

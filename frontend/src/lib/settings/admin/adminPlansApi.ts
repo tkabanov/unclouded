@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
+import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
+import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
 
 export const ADMIN_PLANS_ONBOARDING_KEY = "admin_plans" as const;
 
@@ -34,16 +36,10 @@ type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
 
-function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
-  const message = error.message?.toLowerCase() ?? "";
-  return (
-    error.code === "42P01" ||
-    error.code === "PGRST205" ||
-    message.includes("relation") ||
-    message.includes("does not exist") ||
-    message.includes("could not find the table")
-  );
-}
+export type AdminPlansLoadResult = {
+  plans: AdminPlanRecord[];
+  dataSource: AdminDataSource;
+};
 
 function toAdminPlan(row: PlanRow, isStatic = false): AdminPlanRecord | null {
   const name = row.name_text?.trim();
@@ -146,13 +142,18 @@ async function tryFetchPlansFromTable(): Promise<AdminPlanRecord[] | null> {
     .filter((item): item is AdminPlanRecord => item !== null);
 }
 
-export async function fetchAdminPlans(userId: string): Promise<AdminPlanRecord[]> {
+export async function fetchAdminPlans(userId: string): Promise<AdminPlansLoadResult> {
   const fromTable = await tryFetchPlansFromTable();
-  if (fromTable !== null && fromTable.length > 0) return fromTable;
+  if (fromTable !== null && fromTable.length > 0) {
+    return { plans: fromTable, dataSource: "table" };
+  }
 
   const custom = await readOnboardingPlans(userId);
-  if (custom.length > 0) return [...staticPlans(), ...custom];
-  return staticPlans();
+  if (custom.length > 0) {
+    return { plans: [...staticPlans(), ...custom], dataSource: "onboarding" };
+  }
+
+  return { plans: staticPlans(), dataSource: "static" };
 }
 
 export function formatPlanPrice(plan: AdminPlanRecord): string {

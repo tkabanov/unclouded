@@ -4,10 +4,13 @@ import {
   AI_COACHING_MODE_ORDER,
   type AiCoachingModeSlug,
 } from "@/lib/enums/coachingMode";
+import { DEMO_RESOURCE_SEED } from "@/lib/resources/demoResourceSeed";
+import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import {
   SENSITIVITY_OPTIONS,
   type SensitivitySlug,
 } from "@/lib/settings/admin/adminPathsApi";
+import { isSchemaUnavailable, parseBoolean } from "@/lib/supabase/schemaFallback";
 
 export const ADMIN_RESOURCES_ONBOARDING_KEY = "admin_resources" as const;
 
@@ -41,46 +44,22 @@ type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
 
-const STATIC_FALLBACK: AdminResourceRecord[] = [
-  {
-    resourceId: "res-grounding-54321",
-    title: "5-4-3-2-1 Grounding Exercise",
-    content:
-      "A simple sensory grounding technique to help you stay present during moments of stress or anxiety.",
-    primaryMode: AI_COACHING_MODE.STABILIZER,
-    subMode: "Anxiety",
-    sensitivity: "low",
-    isFree: true,
-    isCrisis: false,
-  },
-  {
-    resourceId: "res-sleep-hygiene",
-    title: "Sleep Hygiene Checklist",
-    content:
-      "Evidence-based habits to improve sleep quality — consistent schedule, wind-down routine, and environment tips.",
-    primaryMode: AI_COACHING_MODE.SIMPLIFIER,
-    subMode: "Sleep",
-    sensitivity: "low",
-    isFree: true,
-    isCrisis: false,
-  },
-];
+export type AdminResourcesLoadResult = {
+  resources: AdminResourceRecord[];
+  dataSource: AdminDataSource;
+};
 
-function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
-  const message = error.message?.toLowerCase() ?? "";
-  return (
-    error.code === "42P01" ||
-    error.code === "PGRST205" ||
-    (error.code === "42703" && message.includes("column")) ||
-    message.includes("relation") ||
-    message.includes("does not exist") ||
-    message.includes("could not find the table")
-  );
-}
-
-function parseBoolean(value: unknown): boolean {
-  return value === true || value === "true" || value === "yes";
-}
+const STATIC_FALLBACK: AdminResourceRecord[] = DEMO_RESOURCE_SEED.map((seed) => ({
+  resourceId: seed.resourceId,
+  title: seed.title,
+  content: seed.content,
+  primaryMode: seed.coachingMode,
+  subMode: seed.subModeTag,
+  sensitivity: seed.sensitivity,
+  isFree: seed.isFree,
+  isCrisis: seed.isCrisis,
+  externalLink: seed.externalLink,
+}));
 
 function isCoachingModeSlug(value: string | undefined): value is AiCoachingModeSlug {
   return AI_COACHING_MODE_ORDER.includes(value as AiCoachingModeSlug);
@@ -182,13 +161,18 @@ async function tryFetchResourcesFromTable(): Promise<AdminResourceRecord[] | nul
     .filter((item): item is AdminResourceRecord => item !== null);
 }
 
-export async function fetchAdminResources(userId: string): Promise<AdminResourceRecord[]> {
+export async function fetchAdminResources(userId: string): Promise<AdminResourcesLoadResult> {
   const fromTable = await tryFetchResourcesFromTable();
-  if (fromTable !== null && fromTable.length > 0) return fromTable;
+  if (fromTable !== null && fromTable.length > 0) {
+    return { resources: fromTable, dataSource: "table" };
+  }
 
   const custom = await readOnboardingResources(userId);
-  if (custom.length > 0) return custom;
-  return STATIC_FALLBACK;
+  if (custom.length > 0) {
+    return { resources: custom, dataSource: "onboarding" };
+  }
+
+  return { resources: STATIC_FALLBACK, dataSource: "static" };
 }
 
 export { SENSITIVITY_OPTIONS };
