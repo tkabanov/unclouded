@@ -31,12 +31,40 @@ import SignupPopup from "@/components/shell/SignupPopup";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/lib/bubbleStyles";
 import { useUserProfile } from "@/lib/userProfile";
+import {
+  INDEX_HEADER_BUBBLE_ID,
+  INDEX_LOGIN_BTN_BUBBLE_ID,
+  INDEX_MAIN_BUBBLE_ID,
+  INDEX_PAGE_BUBBLE_ID,
+  INDEX_SIGNUP_BTN_BUBBLE_ID,
+  INDEX_HERO_SECTION_BUBBLE_ID,
+  PRICING_FREE_CTA_BUBBLE_ID,
+  PRICING_PREMIUM_CTA_BUBBLE_ID,
+  PRICING_PRO_CTA_BUBBLE_ID,
+  WORKPLACE_CONTACT_CTA_BUBBLE_ID,
+  WORKPLACE_DEMO_CTA_BUBBLE_ID,
+} from "@/lib/pages/indexBubbleIds";
 
 /* ── shared bits ─────────────────────────────────────── */
 
-function SectionTag({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+function SectionTag({
+  icon: Icon,
+  children,
+  className,
+  ...props
+}: {
+  icon: React.ElementType;
+  children: React.ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-secondary-foreground">
+    <div
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-secondary-foreground",
+        className,
+      )}
+      {...props}
+    >
       <Icon className="h-4 w-4 text-primary" />
       {children}
     </div>
@@ -114,16 +142,19 @@ const Index = () => {
   }, [redirecting, user, profileLoading, profile]);
 
   return (
-    <div data-bubble-id="bTGYf" className="min-h-screen flex flex-col bg-background">
+    <div data-bubble-id={INDEX_PAGE_BUBBLE_ID} className="min-h-screen flex flex-col bg-background">
       <CrisisBar />
 
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
+      <header
+        data-bubble-id={INDEX_HEADER_BUBBLE_ID}
+        className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md"
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
           <BrandLogo />
           <div className="flex items-center gap-2">
             <Button
-              data-bubble-id="ai_RNbBHWbF"
+              data-bubble-id={INDEX_LOGIN_BTN_BUBBLE_ID}
               data-style-ref="Button_outline_"
               variant="outline"
               size="sm"
@@ -133,7 +164,7 @@ const Index = () => {
               Log In
             </Button>
             <Button
-              data-bubble-id="ai_RNbBHWbG"
+              data-bubble-id={INDEX_SIGNUP_BTN_BUBBLE_ID}
               data-style-ref="Button_primary_"
               variant="cta"
               size="sm"
@@ -146,10 +177,10 @@ const Index = () => {
         </div>
       </header>
 
-      <main data-bubble-id="ai_RNbBHWoL" className="flex-1">
+      <main data-bubble-id={INDEX_MAIN_BUBBLE_ID} className="flex-1">
         {/* Hero */}
         <section
-          data-bubble-id="ai_RNbBHWoM"
+          data-bubble-id={INDEX_HERO_SECTION_BUBBLE_ID}
           data-style-ref="Group_hero_"
           className={cn("relative overflow-hidden", bubbleStyle("Group_hero_"))}
         >
@@ -161,13 +192,19 @@ const Index = () => {
             data-bubble-id="ai_RNbBHWoN"
             className="mx-auto max-w-4xl px-4 py-20 text-center md:py-28 md:px-8"
           >
-            <div data-bubble-id="ai_RNbBHWoO" data-style-ref="Group_badge_" className="mb-8 flex justify-center">
-              <SectionTag icon={ShieldCheck}>Private · AI-Powered · Coaching Only</SectionTag>
+            <div data-bubble-id="ai_RNbBHWoO" className="mb-8 flex justify-center">
+              <SectionTag
+                icon={ShieldCheck}
+                data-style-ref="Group_badge_"
+                className={bubbleStyle("Group_badge_")}
+              >
+                Private · AI-Powered · Coaching Only
+              </SectionTag>
             </div>
             <h1
               data-bubble-id="ai_RNbBHWoR"
               data-style-ref="Text_heading_1_"
-              className={cn(bubbleStyle("Text_heading_1_"), "md:text-7xl")}
+              className={bubbleStyle("Text_heading_1_")}
             >
               Find clarity.
               <br />
@@ -359,7 +396,13 @@ const Index = () => {
                       )
                     )}
                   </ul>
-                  <Button variant="outline" className="w-full" onClick={() => start("signup")}>
+                  <Button
+                    data-bubble-id={PRICING_FREE_CTA_BUBBLE_ID}
+                    data-style-ref="Button_outline_"
+                    variant="outline"
+                    className={cn("w-full", bubbleStyle("Button_outline_"))}
+                    onClick={() => start("signup")}
+                  >
                     Get Started Free
                   </Button>
                 </CardContent>
@@ -390,7 +433,12 @@ const Index = () => {
                     )}
                   </ul>
                   <Button
-                    className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                    data-bubble-id={PRICING_PRO_CTA_BUBBLE_ID}
+                    data-style-ref="Button_primary_"
+                    className={cn(
+                      "w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90",
+                      bubbleStyle("Button_primary_"),
+                    )}
                     onClick={() => start("signup")}
                   >
                     Start Pro
@@ -419,7 +467,13 @@ const Index = () => {
                       )
                     )}
                   </ul>
-                  <Button variant="outline" className="w-full" onClick={() => start("signup")}>
+                  <Button
+                    data-bubble-id={PRICING_PREMIUM_CTA_BUBBLE_ID}
+                    data-style-ref="Button_outline_"
+                    variant="outline"
+                    className={cn("w-full", bubbleStyle("Button_outline_"))}
+                    onClick={() => start("signup")}
+                  >
                     Start Premium
                   </Button>
                 </CardContent>
@@ -457,10 +511,22 @@ const Index = () => {
           </div>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button variant="cta" onClick={() => start("signup")}>
+            <Button
+              data-bubble-id={WORKPLACE_CONTACT_CTA_BUBBLE_ID}
+              data-style-ref="Button_primary_"
+              variant="cta"
+              className={bubbleStyle("Button_primary_")}
+              onClick={() => start("signup")}
+            >
               Contact Us About Workplace
             </Button>
-            <Button variant="outline" onClick={() => start("signup")}>
+            <Button
+              data-bubble-id={WORKPLACE_DEMO_CTA_BUBBLE_ID}
+              data-style-ref="Button_outline_"
+              variant="outline"
+              className={bubbleStyle("Button_outline_")}
+              onClick={() => start("signup")}
+            >
               Request a Demo
             </Button>
           </div>

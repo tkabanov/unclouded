@@ -69,6 +69,12 @@
     "frontend/src/pages/Index.tsx",
     "frontend/src/components/AuthDialog.tsx",
     "frontend/src/lib/bubbleStyles.ts",
+    "frontend/src/lib/pages/indexBubbleIds.ts",
     "cursor-impl-cycle/output/coverage/AUTH-01-index-login-entry.json"
+  ],
+  "polish_notes": [
+    "Header ai_RNbBKLUg marker, pricing/workplace CTA bubble ids + style_ref",
+    "Hero h1 uses Text_heading_1_ without md:text-7xl override",
+    "Group_badge_ applied on hero SectionTag"
   ]
 }

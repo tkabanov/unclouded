@@ -40,5 +40,9 @@
     "frontend/src/components/settings/SettingsMain.tsx",
     "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"
   ],
+  "polish_notes": [
+    "reuse_decision gap-fill reflects SettingsMain shell extension",
+    "WORKPLACE_NAME_PLACEHOLDER / WORKPLACE_EMAIL_PLACEHOLDER exported from workplaceApi"
+  ],
   "functional_ok": true
 }

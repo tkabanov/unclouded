@@ -44,6 +44,8 @@
     "frontend/src/components/settings/admin/AddResourcePopup.tsx",
     "frontend/src/lib/settings/admin/adminPathsApi.ts",
     "frontend/src/lib/settings/admin/adminResourcesApi.ts",
+    "frontend/src/lib/resources/demoResourceSeed.ts",
+    "frontend/src/lib/supabase/schemaFallback.ts",
     "frontend/src/lib/settings/admin/adminTabStore.ts",
     "frontend/src/lib/settings/routes.ts",
     "frontend/src/components/settings/SettingsMain.tsx"

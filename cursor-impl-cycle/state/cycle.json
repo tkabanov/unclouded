@@ -14,7 +14,7 @@
           "implement_passes": true,
           "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 92,
+          "coverage_pct": 100,
           "depends_on": [],
           "target_files": [
             "frontend/src/pages/IndexPage.vue",
