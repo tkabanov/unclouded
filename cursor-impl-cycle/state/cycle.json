@@ -1,5 +1,5 @@
 {
-  "active": true,
+  "active": false,
   "phase": "implement",
   "gate_stage": "write",
   "current_module_id": "MOD-DRSAM-AUTH",
