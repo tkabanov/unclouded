@@ -1,0 +1,44 @@
+{
+  "item_id": "SET-08-workplace-tab-and-link-flow",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:22:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/components/settings/SettingsMain.tsx"],
+    "gaps": ["AC-1: Workplace panel empty", "AC-2: No name/email inputs", "AC-3: No link workflow"],
+    "reuse_decision": "gap-fill",
+    "mapped_target_files": {}
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYN info card, ai_RNbBHYYU form, ai_RNbBHYYR privacy notice"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYX name input, ai_RNbBHYYa email input, ai_RNbBHYYT privacy text"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — linkWorkplace validates and persists",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYb link button"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+    "frontend/src/lib/settings/workplaceApi.ts",
+    "frontend/src/lib/settings/routes.ts",
+    "frontend/src/components/settings/SettingsMain.tsx",
+    "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"
+  ],
+  "functional_ok": true
+}

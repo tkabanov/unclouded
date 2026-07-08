@@ -33,7 +33,7 @@ import { useUserProfile } from "@/lib/userProfile";
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { saveOnboarding, persistOnboardingDraft } = useUserProfile();
+  const { saveOnboarding, persistOnboardingDraft, refresh } = useUserProfile();
   const [step, setStep] = useState<OnboardingStepSlug>(ONBOARDING_STEP.WELCOME);
   const [firstName, setFirstName] = useState("");
   const [roleType, setRoleType] = useState("");
@@ -112,7 +112,7 @@ const Onboarding = () => {
           behavioralPatterns,
           healthFlags,
         },
-        { userId: user.id, saveOnboarding, navigate }
+        { userId: user.id, saveOnboarding, refreshProfile: refresh, navigate }
       );
     } catch (err) {
       console.error("Failed to complete onboarding", err);

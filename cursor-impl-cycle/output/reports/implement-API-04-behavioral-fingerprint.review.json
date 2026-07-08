@@ -1,0 +1,29 @@
+{
+  "phase": "implement",
+  "target_id": "API-04-behavioral-fingerprint",
+  "assessed_at": "2026-07-08T11:55:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 84,
+  "functional_ok": true,
+  "criteria_audit": [
+    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildBehavioralFingerprint.ts", "frontend/src/components/OnboardingBehavioral.tsx", "ir/inventory.json — bTICV entity id, pointer /api/bTICa, CustomEvent, parameter_count 2, 14 TerminateWorkflow branches", "output/drsam-99657/index/resolver.json — pressure_response_pattern_os slugs and followthrough slugs"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserBehavioralFingerprint.ts", "frontend/src/lib/userProfile/profileFieldPatch.ts", "ir/inventory.json — bTIDk (/api/bTIDp): action 0 bTIDq TriggerCustomEvent, action 1 bTIDv ChangeThing on behavioral_fingerprint_text", "output/drsam-99657/phase6/agent/schema/uds.json — user field behavioral_fingerprint_text"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts", "frontend/src/lib/completeOnboarding.ts", "ir/inventory.json — bTHrd workflow /pages/bTGNJ/workflows/bTHrk; bTIEA action 1 ScheduleAPIEvent"], "gap": null }
+  ],
+  "functional_audit": [
+    { "id": "FV-API-04-1", "check": "resolveBehavioralFingerprint(pressure_response, non_followthrough_reason) returns semicolon-joined fingerprint text from slug-keyed label maps (bTICV/bTICa custom event parity)", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildBehavioralFingerprint.ts", "frontend/src/components/OnboardingBehavioral.tsx"] },
+    { "id": "FV-API-04-2", "check": "calculateUserBehavioralFingerprint(userId) loads behavioralPatterns from profiles.onboarding_data, computes fingerprint, patches behavioral_fingerprint_text (bTIDk/bTIDv ChangeThing parity)", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserBehavioralFingerprint.ts", "frontend/src/lib/userProfile/profileFieldPatch.ts", "frontend/src/lib/completeOnboarding.ts"] },
+    { "id": "FV-API-04-3", "check": "runOnboardingProfilePipeline invokes calculateUserBehavioralFingerprint after calculateUserPressureProfile and before calculateUserAiCoachingMode (bTHrk ScheduleAPIEvent chain position)", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts", "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json — API-03 AC-3 (bTHqE) then API-04 AC-3 (bTHrk) then API-05 AC-3 (bTHuG)"] }
+  ],
+  "ui_evidence": [],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    { "id": "C-1", "area": "ir-grounding", "priority": "medium", "finding": "AC-1 requires fingerprint label strings to match bTICa return value bTICg from IR condition branches; PRESSURE_LABELS/FOLLOWTHROUGH_LABELS exist only in buildBehavioralFingerprint.ts and could not be independently cross-checked against drsam-99657.bubble /api/bTICa workflow return expressions.", "alternative": "Extract bTICa TerminateWorkflow branch return literals from drsam-99657.bubble and add a small unit test matrix (5×5 slug pairs) asserting exact bTICg strings, or centralize labels in an ENUM module traceable to Bubble option-set display metadata.", "evidence": ["frontend/src/lib/userProfile/buildBehavioralFingerprint.ts", "ir/inventory.json — bTICV", "drsam-99657.bubble — bTICg"] },
+    { "id": "C-2", "area": "brownfield-preflight", "priority": "medium", "finding": "Coverage preflight declares reuse_decision \"new\" with only OnboardingBehavioral.tsx listed, but behavioral capture UI already existed; actual work added lib calculators and extended onboardingProfilePipeline — gap-fill/extend, not greenfield.", "alternative": "Set reuse_decision to \"gap-fill\" and map cycle.json target_files from frontend/src/api/userProfile/* to frontend/src/lib/userProfile/*.", "evidence": ["cursor-impl-cycle/output/coverage/API-04-behavioral-fingerprint.json", "frontend/src/components/OnboardingBehavioral.tsx", "cursor-impl-cycle/state/cycle.json"] },
+    { "id": "C-3", "area": "data-contract", "priority": "medium", "finding": "Bubble bTIDv ChangeThing targets user.behavioral_fingerprint_text; prototype patches profiles.onboarding_data.behavioral_fingerprint_text via patchOnboardingAndResults (same JSONB contract as API-01/API-03). Downstream calculateUserAiCoachingMode reads onboarding_data — pipeline is internally consistent but diverges from Bubble flat user-field storage.", "alternative": "Document JSONB key contract in calculateUserBehavioralFingerprint.ts or add typed profile columns when project/supabase adopts flat user fields.", "evidence": ["frontend/src/lib/userProfile/calculateUserBehavioralFingerprint.ts", "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts", "frontend/src/lib/userProfile/profileFieldPatch.ts"] },
+    { "id": "C-4", "area": "testing", "priority": "low", "finding": "No unit tests cover resolveBehavioralFingerprint slug→label mapping, empty/unknown slug fallbacks, or calculateUserBehavioralFingerprint read/patch path.", "alternative": "Add focused tests for buildBehavioralFingerprint label matrix and calculator integration with mocked loadProfileRow/patchOnboardingAndResults.", "evidence": ["frontend/src/lib/userProfile/buildBehavioralFingerprint.ts", "frontend/src/lib/userProfile/calculateUserBehavioralFingerprint.ts"] }
+  ],
+  "scores": { "completeness": 5, "grounding": 3, "actionability": 4 }
+}

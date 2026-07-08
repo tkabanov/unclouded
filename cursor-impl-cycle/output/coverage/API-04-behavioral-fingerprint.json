@@ -1,0 +1,23 @@
+{
+  "item_id": "API-04-behavioral-fingerprint",
+  "module_id": "MOD-DRSAM-API",
+  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/components/OnboardingBehavioral.tsx"],
+    "gaps": ["AC-1: No fingerprint resolver"],
+    "reuse_decision": "new",
+    "mapped_target_files": {}
+  },
+  "criteria": [
+    {"id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildBehavioralFingerprint.ts"]},
+    {"id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserBehavioralFingerprint.ts"]},
+    {"id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"]}
+  ],
+  "files_changed": [
+    "frontend/src/lib/userProfile/buildBehavioralFingerprint.ts",
+    "frontend/src/lib/userProfile/calculateUserBehavioralFingerprint.ts",
+    "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+  ],
+  "functional_ok": true
+}

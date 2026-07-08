@@ -1,0 +1,120 @@
+{
+  "phase": "implement",
+  "target_id": "API-01-pillar-score-engine",
+  "assessed_at": "2026-07-08T10:15:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 87,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/aggregatePillarScore.ts",
+        "frontend/src/components/OnboardingStability.tsx",
+        "frontend/src/components/OnboardingAlignment.tsx",
+        "frontend/src/components/OnboardingPerformance.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserStability.ts",
+        "frontend/src/lib/userProfile/calculateUserAlignment.ts",
+        "frontend/src/lib/userProfile/calculateUserPerformance.ts",
+        "frontend/src/lib/userProfile/pillarScoreUserData.ts",
+        "output/drsam-99657/agent/schema/uds.types.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/pages/Onboarding.tsx"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "computePillarScore(q1..q5) returns one-decimal average matching onboarding step pillar math (bTHxW/bTHxo parity)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/aggregatePillarScore.ts",
+        "frontend/src/components/OnboardingStability.tsx",
+        "frontend/src/components/OnboardingAlignment.tsx",
+        "frontend/src/components/OnboardingPerformance.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "calculateUserStability/Alignment/Performance load onboarding answers, compute pillar score, and patch stability_score_number / alignment_score_number / performance_score_number via Supabase",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserStability.ts",
+        "frontend/src/lib/userProfile/calculateUserAlignment.ts",
+        "frontend/src/lib/userProfile/calculateUserPerformance.ts",
+        "frontend/src/lib/userProfile/pillarScoreUserData.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "completeOnboarding invokes runPillarScoreCalculators(userId) after saveOnboarding in stability → alignment → performance order (bTHVC/bTHja/bTHgY chain)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+        "frontend/src/pages/Onboarding.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "brownfield-preflight",
+      "priority": "medium",
+      "finding": "Coverage preflight lists eight related prototype files but declares reuse_decision \"new\"; actual work extended completeOnboarding and added lib modules under frontend/src/lib/userProfile/, which is gap-fill/extend not greenfield.",
+      "alternative": "Set reuse_decision to \"gap-fill\" or \"extend\" and note mapped_target_files from frontend/src/api/userProfile/ to frontend/src/lib/userProfile/.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/API-01-pillar-score-engine.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "data-contract",
+      "priority": "medium",
+      "finding": "Bubble user fields sq1_number..pq5_number and *_score_number are patched into profiles.onboarding_data JSONB (and results when present) because the prototype schema has no dedicated score columns; downstream API-02 may need to read the same JSONB keys.",
+      "alternative": "Document the JSONB key contract in pillarScoreUserData.ts or add typed profile columns in a future migration if project/supabase adopts flat user score fields.",
+      "evidence": [
+        "frontend/src/lib/userProfile/pillarScoreUserData.ts",
+        "frontend/supabase/migrations/20260702190431_61e67455-2f14-4775-93f0-a6407ef4fb79.sql"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "testing",
+      "priority": "low",
+      "finding": "No unit tests cover computePillarScore edge cases or readQuestionScores fallback between flat *_number keys and nested stabilityScores/alignmentScores/performanceScores objects.",
+      "alternative": "Add focused tests for aggregatePillarScore and pillarScoreUserData.readQuestionScores with both Bubble-flat and prototype-nested onboarding_data shapes.",
+      "evidence": [
+        "frontend/src/lib/userProfile/aggregatePillarScore.ts",
+        "frontend/src/lib/userProfile/pillarScoreUserData.ts"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

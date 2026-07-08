@@ -1,0 +1,75 @@
+{
+  "phase": "implement",
+  "target_id": "CHAT-03-chat-reusable-panel-mount",
+  "assessed_at": "2026-07-08T10:52:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPanelMount.tsx — data-bubble-id bTIUt root wraps ChatReusable (bTIRW)",
+        "frontend/src/pages/Chat.tsx — passes conversationId from useChatConversationParam into ChatPanelMount"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — conversationId ? ChatPanelMount : ChatWelcomePanel",
+        "frontend/src/hooks/useChatConversationParam.ts — ?conversation= search param binding"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatMessagesApi.ts — fetchMessagesForConversation",
+        "frontend/src/components/chat/ChatPanelMount.tsx — loads messages via API into ChatReusable"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "ChatReusable mounts when conversation param present",
+      "status": "pass",
+      "evidence": ["frontend/src/pages/Chat.tsx", "frontend/src/components/chat/ChatPanelMount.tsx"]
+    },
+    {
+      "id": "FV-2",
+      "check": "Welcome panel shown when param absent",
+      "status": "pass",
+      "evidence": ["frontend/src/pages/Chat.tsx", "frontend/src/components/chat/ChatWelcomePanel.tsx"]
+    },
+    {
+      "id": "FV-3",
+      "check": "Messages loaded from chatMessagesApi not hardcoded",
+      "status": "pass",
+      "evidence": ["frontend/src/lib/chat/chatMessagesApi.ts", "frontend/src/components/chat/ChatPanelMount.tsx"]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "bTIUt", "selector": "[data-bubble-id='bTIUt']", "status": "pass" },
+    { "bubble_id": "bTIRW", "selector": "[data-bubble-id='bTIRW']", "status": "pass" }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "handleSend in ChatPanelMount uses optimistic local append only; CHAT-05 must wire Supabase insert + AI reply.",
+      "alternative": "Delegate send to chatMessagesApi.sendMessageWithAiReply in CHAT-05.",
+      "evidence": ["frontend/src/components/chat/ChatPanelMount.tsx"]
+    }
+  ],
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+}

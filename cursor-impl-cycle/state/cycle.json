@@ -822,10 +822,10 @@
         },
         {
           "id": "CHAT-03-chat-reusable-panel-mount",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-01-chat-content-layout",
             "CHAT-02-conversation-thread-sidebar",
@@ -840,7 +840,7 @@
         },
         {
           "id": "CHAT-04-delete-conversation-popup",
-          "implement_passes": false,
+          "implement_passes": true,
           "implement_gate": "triage",
           "implement_iteration": 0,
           "coverage_pct": 100,
@@ -855,10 +855,10 @@
         },
         {
           "id": "CHAT-05-chat-messaging-and-create-flow",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-03-chat-reusable-panel-mount",
             "CHAT-04-delete-conversation-popup",
@@ -873,10 +873,10 @@
         },
         {
           "id": "CHAT-06-chat-welcome-empty-state",
-          "implement_passes": false,
-          "implement_gate": "review",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 2,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "CHAT-01-chat-content-layout",
             "DS-01-design-tokens-and-bubble-styles"
@@ -919,8 +919,8 @@
       "items": [
         {
           "id": "SET-01-settings-tab-router-and-header",
-          "implement_passes": false,
-          "implement_gate": "review",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
@@ -938,10 +938,10 @@
         },
         {
           "id": "SET-02-profile-tab-and-save",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "DS-01-design-tokens-and-bubble-styles"
@@ -953,10 +953,10 @@
         },
         {
           "id": "SET-03-coaching-tab-and-save",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "ENUM-03-path-coaching-and-state-enums",
@@ -969,10 +969,10 @@
         },
         {
           "id": "SET-04-privacy-tab-and-delete-flow",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "DS-01-design-tokens-and-bubble-styles"
@@ -985,10 +985,10 @@
         },
         {
           "id": "SET-05-security-tab-and-password-flow",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "DS-01-design-tokens-and-bubble-styles"
@@ -1000,10 +1000,10 @@
         },
         {
           "id": "SET-06-notifications-tab-and-save",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "DS-01-design-tokens-and-bubble-styles"
@@ -1015,10 +1015,10 @@
         },
         {
           "id": "SET-07-subscription-tab-and-billing",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "ENUM-04-tier-and-subscription-labels",
@@ -1032,10 +1032,10 @@
         },
         {
           "id": "SET-08-workplace-tab-and-link-flow",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "DS-01-design-tokens-and-bubble-styles"
@@ -1047,10 +1047,10 @@
         },
         {
           "id": "SET-09-admin-paths-and-resources",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
             "ENUM-03-path-coaching-and-state-enums",
@@ -1068,10 +1068,10 @@
         },
         {
           "id": "SET-10-admin-plans-workplaces-analytics",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "SET-09-admin-paths-and-resources",
             "ENUM-04-tier-and-subscription-labels",
@@ -1098,10 +1098,10 @@
       "items": [
         {
           "id": "API-01-pillar-score-engine",
-          "implement_passes": false,
-          "implement_gate": "review",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "AUTH-04-onboarding-profile-questions",
             "AUTH-05-onboarding-health-load-signals",
@@ -1118,10 +1118,10 @@
         },
         {
           "id": "API-02-user-classification",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "API-01-pillar-score-engine",
             "ENUM-03-path-coaching-and-state-enums"
@@ -1134,10 +1134,10 @@
         },
         {
           "id": "API-03-pressure-profile",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "AUTH-05-onboarding-health-load-signals",
             "ENUM-02-onboarding-question-enums",
@@ -1151,10 +1151,10 @@
         },
         {
           "id": "API-04-behavioral-fingerprint",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "API-03-pressure-profile",
             "ENUM-02-onboarding-question-enums"
@@ -1167,10 +1167,10 @@
         },
         {
           "id": "API-05-ai-coaching-mode-assignment",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "API-04-behavioral-fingerprint",
             "ENUM-03-path-coaching-and-state-enums",
@@ -1184,10 +1184,10 @@
         },
         {
           "id": "API-06-ai-confidence-level-trigger",
-          "implement_passes": false,
-          "implement_gate": "write",
+          "implement_passes": true,
+          "implement_gate": "triage",
           "implement_iteration": 0,
-          "coverage_pct": 0,
+          "coverage_pct": 100,
           "depends_on": [
             "PATHS-07-session-completion-route-integration",
             "ENUM-03-path-coaching-and-state-enums",
@@ -1207,5 +1207,5 @@
   "iteration": 104,
   "target_iteration": 0,
   "started_at": "2026-07-07T14:31:00.000Z",
-  "last_checked_at": "2026-07-08T10:08:02.911Z"
+  "last_checked_at": "2026-07-08T10:57:42.194Z"
 }

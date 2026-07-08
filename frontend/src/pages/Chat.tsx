@@ -1,17 +1,14 @@
 import { useCallback, useMemo, useState } from "react";
-import type { UIMessage } from "ai";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
-import ChatWindow from "@/components/ChatWindow";
 import ChatPageContent from "@/components/chat/ChatPageContent";
+import ChatPanelMount from "@/components/chat/ChatPanelMount";
 import ChatWelcomePanel from "@/components/chat/ChatWelcomePanel";
 import ConversationSidebar from "@/components/chat/ConversationSidebar";
 import DeleteConversationPopup from "@/components/chat/DeleteConversationPopup";
-import {
-  createConversation,
-  type ConversationListItem,
-} from "@/lib/chat/chatConversationsApi";
-import { useChatConversationParam } from "@/lib/chat/chatRouteStore";
+import type { ConversationListItem } from "@/lib/chat/chatConversationsApi";
+import { useChatConversationParam } from "@/hooks/useChatConversationParam";
+import { useChatSignOutClear } from "@/hooks/useChatSignOutClear";
+import { useNewConversation } from "@/hooks/useNewConversation";
 import {
   CHAT_HEADER_INSTANCE_BUBBLE_ID,
   CHAT_PAGE_BUBBLE_ID,
@@ -19,10 +16,6 @@ import {
 } from "@/lib/chat/routes";
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
-
-interface ThreadMessages {
-  messages: UIMessage[];
-}
 
 const chatShellProps = {
   pageBubbleId: CHAT_PAGE_BUBBLE_ID,
@@ -34,9 +27,21 @@ export default function Chat() {
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { conversationId, setConversationId } = useChatConversationParam();
-  const [threadMessages, setThreadMessages] = useState<Record<string, ThreadMessages>>({});
+  useChatSignOutClear();
+
   const [deleteTarget, setDeleteTarget] = useState<ConversationListItem | null>(null);
   const [sidebarListVersion, setSidebarListVersion] = useState(0);
+
+  const bumpSidebar = useCallback(() => {
+    setSidebarListVersion((version) => version + 1);
+  }, []);
+
+  const { createNew } = useNewConversation({
+    userId: user?.id,
+    onboardingData: profile?.onboardingData ?? null,
+    setConversationId,
+    onCreated: bumpSidebar,
+  });
 
   const context = useMemo(() => {
     if (!profile) return undefined;
@@ -48,20 +53,6 @@ export default function Chat() {
     if (cls) parts.push(`Current pattern: ${cls}`);
     return parts.length ? parts.join(". ") : undefined;
   }, [profile]);
-
-  const activeMessages = conversationId
-    ? (threadMessages[conversationId]?.messages ?? [])
-    : [];
-
-  const handleNew = useCallback(async () => {
-    if (!user) return;
-    try {
-      const created = await createConversation(user.id, profile?.onboardingData ?? null);
-      setConversationId(created.id);
-    } catch {
-      toast.error("Couldn't start a new conversation. Please try again.");
-    }
-  }, [profile?.onboardingData, setConversationId, user]);
 
   const handleRenameRequest = useCallback((_conversation: ConversationListItem) => {
     // Rename popup flow is out of scope for CHAT-02; wired for IR bS parity.
@@ -80,29 +71,16 @@ export default function Chat() {
       if (conversationId === deletedId) {
         setConversationId(null);
       }
-      setThreadMessages((prev) => {
-        if (!(deletedId in prev)) return prev;
-        const next = { ...prev };
-        delete next[deletedId];
-        return next;
-      });
-      setSidebarListVersion((version) => version + 1);
+      bumpSidebar();
       setDeleteTarget(null);
     },
-    [conversationId, setConversationId],
+    [bumpSidebar, conversationId, setConversationId],
   );
-
-  const handleMessagesChange = useCallback((id: string, messages: UIMessage[]) => {
-    setThreadMessages((prev) => ({
-      ...prev,
-      [id]: { messages },
-    }));
-  }, []);
 
   return (
     <DashboardLayout {...chatShellProps}>
       <ChatPageContent
-        onNewConversation={handleNew}
+        onNewConversation={createNew}
         sidebar={
           <ConversationSidebar
             userId={user?.id}
@@ -113,13 +91,15 @@ export default function Chat() {
           />
         }
         panel={
-          conversationId ? (
-            <ChatWindow
+          conversationId && user ? (
+            <ChatPanelMount
               key={conversationId}
-              threadId={conversationId}
-              initialMessages={activeMessages}
+              conversationId={conversationId}
+              userId={user.id}
+              onboardingData={profile?.onboardingData ?? null}
               context={context}
-              onMessagesChange={(messages) => handleMessagesChange(conversationId, messages)}
+              listVersion={sidebarListVersion}
+              onThreadUpdated={bumpSidebar}
             />
           ) : (
             <ChatWelcomePanel />

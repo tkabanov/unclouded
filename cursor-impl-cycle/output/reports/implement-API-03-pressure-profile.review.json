@@ -1,0 +1,28 @@
+{
+  "phase": "implement",
+  "target_id": "API-03-pressure-profile",
+  "assessed_at": "2026-07-08T14:00:00.000Z",
+  "wave": "re-review-after-fixes",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    { "id": "AC-1", "status": "pass", "evidence": ["buildPressureProfile.ts — regulated:1 in STATE_SEVERITY", "classification.ts delegates to resolvePressureProfile"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["calculateUserPressureProfile.ts patches pressure_profile_text"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["onboardingProfilePipeline.ts order after classification"], "gap": null }
+  ],
+  "functional_audit": [
+    { "id": "FV-1", "check": "resolvePressureProfile with regulated slug parity", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts"] },
+    { "id": "FV-2", "check": "calculateUserPressureProfile patches user row", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts"] },
+    { "id": "FV-3", "check": "Pipeline ordering matches bTHqE", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"] }
+  ],
+  "ui_evidence": [],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    { "id": "C-3", "area": "ir-fidelity", "priority": "medium", "finding": "Aggregate buckets vs compound pressure_profile_os labels — intentional brownfield simplification.", "alternative": "Document or align with Bubble option_set display text." },
+    { "id": "C-5", "area": "testing", "priority": "low", "finding": "No unit tests for regulated slug and thresholds.", "alternative": "Add vitest table-driven cases." }
+  ],
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+}

@@ -1,0 +1,156 @@
+{
+  "phase": "implement",
+  "target_id": "CHAT-06-chat-welcome-empty-state",
+  "assessed_at": "2026-07-08T10:17:00.000Z",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — root data-bubble-id ai_RNbBHXcE (CHAT_WELCOME_PANEL_BUBBLE_ID) with bubbleStyle(Group_panel_)",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — header ai_RNbBHXcF > title row ai_RNbBHXcG > icon group ai_RNbBHXcH/ai_RNbBHXcI + title ai_RNbBHXcJ; subtitle ai_RNbBHXcK sibling under header",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — suggestions region ai_RNbBHXcL nests three card groups ai_RNbBHXcM, ai_RNbBHXcS, ai_RNbBHXcY",
+        "ir/inventory.json — parent_id chain matches: cF/cL←cE; cG←cF; cH/cJ←cG; cI←cH; cK←cF; cM/cS/cY/ce←cL",
+        "frontend/src/pages/Chat.tsx — ChatWelcomePanel mounted in bTIUt panel slot via ChatPageContent when conversationId is null"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — ai_RNbBHXcJ uses bubbleStyle(Text_heading_3_); ai_RNbBHXcK uses bubbleStyle(Text_caption_)",
+        "frontend/src/components/chat/ChatSuggestionCard.tsx — label ai_RNbBHXcP/cV/cb use Text_label_; desc nodes use Text_caption_; action nodes use Text_body_ including ai_RNbBHXcd",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — static copy matches Bubble: 'Crisis Resources', 'Always available, always free', crisis card strings, disclaimer on ai_RNbBHXce",
+        "ir/slices/styles.json — Text_heading_3_, Text_caption_, Text_label_, Text_body_, Group_card_muted_ definitions",
+        "frontend/src/styles/bubble-styles.css — DS-01 token classes resolved via bubbleStyle()"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — ai_RNbBHXcL section renders three ChatSuggestionCard instances with full icon/text children per IR (cM–cR, cS–cX, cY–cd)",
+        "frontend/src/components/chat/ChatSuggestionCard.tsx — each card exposes card/header/icon/label/desc/action bubble ids",
+        "frontend/src/pages/Chat.tsx — panel ternary: conversationId ? ChatWindow : ChatWelcomePanel",
+        "frontend/src/lib/chat/chatRouteStore.ts — conversationId from ?conversation= search param; mutually exclusive with welcome empty state",
+        "frontend/src/components/chat/ChatPageContent.tsx — bTIUt panel mount wraps whichever panel child Chat.tsx supplies"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Welcome/crisis empty-state panel renders in right column when ?conversation= is absent",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — ChatWelcomePanel branch when conversationId is null",
+        "frontend/src/lib/chat/chatRouteStore.ts — useChatConversationParam reads CONVERSATION_SEARCH_PARAM"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Crisis resource cards perform real outbound actions (tel/sms), not dead buttons or placeholder copy",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatSuggestionCard.tsx — anchor href prop wired to tel:988, sms:741741?body=HOME, tel:18006624357",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — passes href to each ChatSuggestionCard"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Panel hidden when conversation param present — mutually exclusive with ChatReusable/ChatWindow mount",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx — ChatWindow rendered when conversationId is truthy",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json — CHAT-03 AC-2 mutual exclusivity contract"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHXcE", "selector": "[data-bubble-id='ai_RNbBHXcE']", "status": "pass", "notes": "Group_panel_ root; centered flex column in bTIUt slot" },
+    { "bubble_id": "ai_RNbBHXcF", "selector": "[data-bubble-id='ai_RNbBHXcF']", "status": "pass", "notes": "crisis-panel-header Group_transparent_" },
+    { "bubble_id": "ai_RNbBHXcG", "selector": "[data-bubble-id='ai_RNbBHXcG']", "status": "pass", "notes": "title row flex items-center gap-2" },
+    { "bubble_id": "ai_RNbBHXcH", "selector": "[data-bubble-id='ai_RNbBHXcH']", "status": "pass", "notes": "icon circle group; custom rounded-full bg-primary" },
+    { "bubble_id": "ai_RNbBHXcI", "selector": "[data-bubble-id='ai_RNbBHXcI']", "status": "pass", "notes": "Heart lucide Icon_primary_" },
+    { "bubble_id": "ai_RNbBHXcJ", "selector": "[data-bubble-id='ai_RNbBHXcJ']", "status": "pass", "notes": "Text_heading_3_ 'Crisis Resources'" },
+    { "bubble_id": "ai_RNbBHXcK", "selector": "[data-bubble-id='ai_RNbBHXcK']", "status": "pass", "notes": "Text_caption_ subtitle" },
+    { "bubble_id": "ai_RNbBHXcL", "selector": "[data-bubble-id='ai_RNbBHXcL']", "status": "pass", "notes": "crisis-panel-resources section; vertical card stack" },
+    { "bubble_id": "ai_RNbBHXcM", "selector": "[data-bubble-id='ai_RNbBHXcM']", "status": "pass", "notes": "988 card root Group_card_muted_ as anchor" },
+    { "bubble_id": "ai_RNbBHXcN", "selector": "[data-bubble-id='ai_RNbBHXcN']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcO", "selector": "[data-bubble-id='ai_RNbBHXcO']", "status": "pass", "notes": "Phone icon" },
+    { "bubble_id": "ai_RNbBHXcP", "selector": "[data-bubble-id='ai_RNbBHXcP']", "status": "pass", "notes": "988 Lifeline label Text_label_" },
+    { "bubble_id": "ai_RNbBHXcQ", "selector": "[data-bubble-id='ai_RNbBHXcQ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcR", "selector": "[data-bubble-id='ai_RNbBHXcR']", "status": "pass", "notes": "Call or text 988 action Text_body_" },
+    { "bubble_id": "ai_RNbBHXcS", "selector": "[data-bubble-id='ai_RNbBHXcS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcT", "selector": "[data-bubble-id='ai_RNbBHXcT']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcU", "selector": "[data-bubble-id='ai_RNbBHXcU']", "status": "pass", "notes": "MessageSquare icon" },
+    { "bubble_id": "ai_RNbBHXcV", "selector": "[data-bubble-id='ai_RNbBHXcV']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcW", "selector": "[data-bubble-id='ai_RNbBHXcW']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcX", "selector": "[data-bubble-id='ai_RNbBHXcX']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcY", "selector": "[data-bubble-id='ai_RNbBHXcY']", "status": "pass", "notes": "SAMHSA card root" },
+    { "bubble_id": "ai_RNbBHXcZ", "selector": "[data-bubble-id='ai_RNbBHXcZ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXca", "selector": "[data-bubble-id='ai_RNbBHXca']", "status": "pass", "notes": "Stethoscope icon" },
+    { "bubble_id": "ai_RNbBHXcb", "selector": "[data-bubble-id='ai_RNbBHXcb']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcc", "selector": "[data-bubble-id='ai_RNbBHXcc']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXcd", "selector": "[data-bubble-id='ai_RNbBHXcd']", "status": "pass", "notes": "1-800-662-4357 action Text_body_" }
+  ],
+  "gaps": [
+    {
+      "id": "G-1",
+      "area": "hierarchy",
+      "finding": "Disclaimer node ai_RNbBHXce is rendered as sibling after </section> for ai_RNbBHXcL; ir/inventory.json parent_id for ai_RNbBHXce is ai_RNbBHXcL (last child of resources group).",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — lines 87-139",
+        "ir/inventory.json — ai_RNbBHXce parent_id ai_RNbBHXcL"
+      ]
+    }
+  ],
+  "blockers": [],
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Disclaimer ai_RNbBHXce should nest inside ai_RNbBHXcL per IR parent_id; current DOM places it outside the resources section element, breaking strict hierarchy parity even though visual order is correct.",
+      "alternative": "Move disclaimer <p> inside the section with data-bubble-id ai_RNbBHXcL as final child after the three cards.",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "element-type",
+      "priority": "low",
+      "finding": "IR card roots ai_RNbBHXcM/cS/cY are Group elements; React maps them to <a> anchors for tel/sms navigation. Functionally correct for crisis hotlines but element_type differs from Bubble.",
+      "alternative": "Keep anchor behavior for accessibility; optionally wrap inner Group structure if strict type parity is required.",
+      "evidence": [
+        "frontend/src/components/chat/ChatSuggestionCard.tsx",
+        "ir/inventory.json — element_type Group for card ids"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "parity-tooling",
+      "priority": "low",
+      "finding": "Typography nodes use bubbleStyle() className but omit data-style-ref attributes used on some other migrated screens for automated parity selectors.",
+      "alternative": "Add data-style-ref on ai_RNbBHXcJ, ai_RNbBHXcK, and card text nodes matching resolved style_ref ids.",
+      "evidence": [
+        "frontend/src/components/chat/ChatWelcomePanel.tsx",
+        "frontend/src/components/chat/ChatSuggestionCard.tsx"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
+}

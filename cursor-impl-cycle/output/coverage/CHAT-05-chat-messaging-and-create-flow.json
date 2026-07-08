@@ -1,0 +1,69 @@
+{
+  "item_id": "CHAT-05-chat-messaging-and-create-flow",
+  "module_id": "MOD-DRSAM-CHAT",
+  "assessed_at": "2026-07-08T10:55:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/pages/Chat.tsx",
+      "frontend/src/lib/chat/chatMessagesApi.ts",
+      "frontend/src/components/chat/ChatPanelMount.tsx",
+      "frontend/src/lib/chat/chatConversationsApi.ts",
+      "frontend/supabase/functions/chat/index.ts"
+    ],
+    "gaps": [
+      "AC-1: ChatPanelMount handleSend used optimistic local append without Supabase chatmessage insert",
+      "AC-2: New conversation flow inline in Chat.tsx without useNewConversation hook",
+      "AC-3: No AI reply stub or sign-out conversation param clear (bTIma)"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/lib/chat/chatMessagesApi.ts": "frontend/src/lib/chat/chatMessagesApi.ts",
+      "frontend/src/hooks/useNewConversation.ts": "frontend/src/hooks/useNewConversation.ts",
+      "frontend/src/hooks/useCoachingModeUpdate.ts": "frontend/src/hooks/useCoachingModeUpdate.ts",
+      "frontend/src/lib/chat/chatAiReplyStub.ts": "frontend/src/lib/chat/chatAiReplyStub.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatMessagesApi.ts — insertUserMessage + sendMessageWithAiReply insert chatmessage rows (table or onboarding fallback)",
+        "frontend/src/components/chat/ChatPanelMount.tsx — handleSend calls sendMessageWithAiReply then refreshes ChatReusable messages",
+        "frontend/src/components/chat/ChatComposer.tsx — bTITZ submit triggers onSend wired from ChatPanelMount"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useNewConversation.ts — createConversation + setConversationId for bTImJ parity",
+        "frontend/src/pages/Chat.tsx — ChatPageContent onNewConversation={createNew} for ai_RNbBHXbH button"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatAiReplyStub.ts — tries frontend/supabase/functions/chat edge function with local fallback",
+        "frontend/src/hooks/useChatSignOutClear.ts — clears ?conversation= on sign-out (bTIma)",
+        "frontend/src/pages/Chat.tsx — useChatSignOutClear mounted on chat page"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "bTITZ", "selector": "[data-bubble-id='bTITZ']", "status": "pass", "notes": "Send button in ChatComposer triggers messaging API" },
+    { "bubble_id": "ai_RNbBHXbH", "selector": "[data-bubble-id='ai_RNbBHXbH']", "status": "pass", "notes": "New conversation via useNewConversation" }
+  ],
+  "files_changed": [
+    "frontend/src/lib/chat/chatMessagesApi.ts",
+    "frontend/src/lib/chat/chatAiReplyStub.ts",
+    "frontend/src/hooks/useNewConversation.ts",
+    "frontend/src/hooks/useCoachingModeUpdate.ts",
+    "frontend/src/hooks/useChatSignOutClear.ts",
+    "frontend/src/components/chat/ChatPanelMount.tsx",
+    "frontend/src/pages/Chat.tsx"
+  ],
+  "functional_ok": true
+}

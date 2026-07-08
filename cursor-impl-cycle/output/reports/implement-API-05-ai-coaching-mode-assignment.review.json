@@ -1,0 +1,30 @@
+{
+  "phase": "implement",
+  "target_id": "API-05-ai-coaching-mode-assignment",
+  "assessed_at": "2026-07-08T14:00:00.000Z",
+  "wave": "re-review-after-fixes",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["completeOnboarding.ts — refreshProfile after pipeline before navigate", "Onboarding.tsx passes refresh"], "gap": null }
+  ],
+  "functional_audit": [
+    { "id": "FV-1", "check": "resolveAiCoachingModes branch mapping", "status": "pass", "evidence": ["assignAiCoachingModes.ts"] },
+    { "id": "FV-2", "check": "calculateUserAiCoachingMode patches list field", "status": "pass", "evidence": ["calculateUserAiCoachingMode.ts"] },
+    { "id": "FV-3", "check": "Pipeline final step invokes calculator", "status": "pass", "evidence": ["onboardingProfilePipeline.ts"] },
+    { "id": "FV-4", "check": "DASH-02 reads patched list on first dashboard paint", "status": "pass", "evidence": ["completeOnboarding.ts", "useDashboardUser.ts"] }
+  ],
+  "ui_evidence": [],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    { "id": "C-2", "area": "grounding", "priority": "medium", "finding": "bTIEN per-action conditions not byte-verified against Bubble.", "alternative": "Fixture tests per classification_os branch." },
+    { "id": "C-3", "area": "testing", "priority": "medium", "finding": "No unit tests for resolveAiCoachingModes matrix.", "alternative": "Add vitest cases." },
+    { "id": "C-4", "area": "data-contract", "priority": "low", "finding": "Singular ai_coaching_mode_os mirror redundant but consistent.", "alternative": "Document as legacy mirror." }
+  ],
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+}

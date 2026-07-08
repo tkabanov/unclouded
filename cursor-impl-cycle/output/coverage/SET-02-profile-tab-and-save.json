@@ -1,0 +1,63 @@
+{
+  "item_id": "SET-02-profile-tab-and-save",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:00:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": [
+      "frontend/src/components/settings/SettingsMain.tsx",
+      "frontend/src/lib/userProfile.tsx",
+      "frontend/supabase/migrations/20260702190431_61e67455-2f14-4775-93f0-a6407ef4fb79.sql"
+    ],
+    "gaps": [
+      "AC-1: Profile panel ai_RNbBHYVG was empty marker shell without form entities",
+      "AC-2: No first name / email / sobriety date inputs with Bubble ids",
+      "AC-3: No profile-save-btn workflow persisting to Supabase"
+    ],
+    "reuse_decision": "new",
+    "mapped_target_files": {
+      "frontend/src/features/settings/SettingsProfileTab.vue": "frontend/src/components/settings/SettingsProfileTab.tsx",
+      "frontend/src/features/settings/profileApi.ts": "frontend/src/lib/settings/profileApi.ts"
+    }
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsProfileTab.tsx — ai_RNbBHYVG panel with ai_RNbBHYVH card, ai_RNbBHYVL form, ai_RNbBHYWA recovery section, ai_RNbBHYWF sobriety group",
+        "frontend/src/components/settings/SettingsMain.tsx — mounts SettingsProfileTab in profile tabpanel"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsProfileTab.tsx — ai_RNbBHYVO first name, ai_RNbBHYVR email, ai_RNbBHYWH sobriety date with bubbleStyle(Input_default_)"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/profileApi.ts — saveProfileForm updates profiles + onboarding_data",
+        "frontend/src/components/settings/SettingsProfileTab.tsx — ai_RNbBHYWT save button reloads form via loadProfileForm + useUserProfile.refresh"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYVG", "selector": "[data-bubble-id='ai_RNbBHYVG']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVH", "selector": "[data-bubble-id='ai_RNbBHYVH']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVO", "selector": "[data-bubble-id='ai_RNbBHYVO']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVR", "selector": "[data-bubble-id='ai_RNbBHYVR']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWH", "selector": "[data-bubble-id='ai_RNbBHYWH']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWT", "selector": "[data-bubble-id='ai_RNbBHYWT']", "status": "pass" }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/SettingsProfileTab.tsx",
+    "frontend/src/components/settings/SettingsMain.tsx",
+    "frontend/src/lib/settings/profileApi.ts",
+    "frontend/src/lib/settings/routes.ts"
+  ],
+  "functional_ok": true
+}

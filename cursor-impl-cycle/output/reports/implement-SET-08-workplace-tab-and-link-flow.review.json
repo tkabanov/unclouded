@@ -1,0 +1,45 @@
+{
+  "phase": "implement",
+  "target_id": "SET-08-workplace-tab-and-link-flow",
+  "assessed_at": "2026-07-08T14:30:00.000Z",
+  "wave": "re-review-after-fixes",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 93,
+  "functional_ok": true,
+  "criteria_audit": [
+    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYM panel root with info card, form, privacy notice"], "gap": null },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "SettingsWorkplaceTab.tsx — labels and inputs have bubble ids (ai_RNbBHYYW/ai_RNbBHYYZ and ai_RNbBHYYX/ai_RNbBHYYa)",
+        "Privacy notice: WORKPLACE_PRIVACY_TEXT_BUBBLE_ID ai_RNbBHYYT byte-match confirmed against drsam-99657.bubble literal",
+        "WORKPLACE_PRIVACY_ICON_BUBBLE_ID ai_RNbBHYYS icon marker present"
+      ],
+      "gap": null
+    },
+    { "id": "AC-3", "status": "pass", "evidence": ["workplaceApi linkWorkplace upserts workplace table + profiles.onboarding_data", "SettingsWorkplaceTab handleLink with toast + reload"], "gap": null }
+  ],
+  "functional_audit": [
+    { "id": "FV-1", "check": "Workplace tab renders info card, privacy, inputs, link button", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsWorkplaceTab.tsx"] },
+    { "id": "FV-2", "check": "Link validates name/email before persist", "status": "pass", "evidence": ["frontend/src/lib/settings/workplaceApi.ts — validateWorkplaceForm"] },
+    { "id": "FV-3", "check": "Successful link persists and reloads form state", "status": "pass", "evidence": ["workplaceApi linkWorkplace + loadWorkplaceLink"] },
+    { "id": "FV-4", "check": "Workplace upsert errors surfaced when schema present", "status": "pass", "evidence": ["workplaceApi isSchemaUnavailable + throw on real upsert errors"] }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYYN", "status": "pass", "notes": "Group_card_ applied" },
+    { "bubble_id": "ai_RNbBHYYP", "status": "pass", "notes": "Text_heading_2_" },
+    { "bubble_id": "ai_RNbBHYYQ", "status": "pass", "notes": "Text_small_" },
+    { "bubble_id": "ai_RNbBHYYS", "status": "pass", "notes": "Shield icon with data-bubble-id" },
+    { "bubble_id": "ai_RNbBHYYT", "status": "pass", "notes": "Privacy text byte-matches drsam-99657.bubble literal for ai_RNbBHYYT" },
+    { "bubble_id": "ai_RNbBHYYb", "status": "pass", "notes": "Link button inside form group ai_RNbBHYYU" }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    { "id": "C-1", "area": "brownfield-preflight", "priority": "low", "finding": "Coverage preflight reuse_decision remains 'new' though implementation gap-filled an existing SettingsMain shell.", "alternative": "Update coverage metadata to reflect extend/gap-fill reuse without changing runtime behavior." },
+    { "id": "C-2", "area": "ui-fidelity", "priority": "low", "finding": "Input placeholders and linked-on timestamp are UX additions not byte-verified against Bubble literals.", "alternative": "Extract placeholder strings from drsam-99657.bubble if strict parity is required." }
+  ],
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+}

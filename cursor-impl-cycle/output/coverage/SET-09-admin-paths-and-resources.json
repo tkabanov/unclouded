@@ -1,0 +1,52 @@
+{
+  "item_id": "SET-09-admin-paths-and-resources",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:30:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/lib/paths/pathsResourcesApi.ts", "frontend/src/lib/paths.ts"],
+    "gaps": ["AC-1: Admin panel empty", "AC-2: No paths/resources grids", "AC-3: No add popups"],
+    "reuse_decision": "extend",
+    "mapped_target_files": {}
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx — ai_RNbBHYZE header, ai_RNbBHYZK sub-tab bar, ai_RNbBHYZQ contents"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPathsTab.tsx — toolbar, ai_RNbBHYZX grid, tier/mode badges, edit/delete",
+        "frontend/src/components/settings/admin/AdminResourcesTab.tsx — toolbar, ai_RNbBHYZv grid, tag badges"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AddPathPopup.tsx — tier/mode/sensitivity ENUM-03 dropdowns",
+        "frontend/src/components/settings/admin/AddResourcePopup.tsx — sensitivity select",
+        "frontend/src/lib/settings/admin/adminPathsApi.ts — createAdminPath",
+        "frontend/src/lib/settings/admin/adminResourcesApi.ts — createAdminResource"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/admin/SettingsAdminShell.tsx",
+    "frontend/src/components/settings/admin/AdminPathsTab.tsx",
+    "frontend/src/components/settings/admin/AdminResourcesTab.tsx",
+    "frontend/src/components/settings/admin/AddPathPopup.tsx",
+    "frontend/src/components/settings/admin/AddResourcePopup.tsx",
+    "frontend/src/lib/settings/admin/adminPathsApi.ts",
+    "frontend/src/lib/settings/admin/adminResourcesApi.ts",
+    "frontend/src/lib/settings/admin/adminTabStore.ts",
+    "frontend/src/lib/settings/routes.ts",
+    "frontend/src/components/settings/SettingsMain.tsx"
+  ],
+  "functional_ok": true
+}

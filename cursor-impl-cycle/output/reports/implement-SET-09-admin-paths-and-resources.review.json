@@ -1,0 +1,42 @@
+{
+  "phase": "implement",
+  "target_id": "SET-09-admin-paths-and-resources",
+  "assessed_at": "2026-07-08T13:55:00.000Z",
+  "wave": "re-review-after-fixes",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 88,
+  "functional_ok": true,
+  "criteria_audit": [
+    { "id": "AC-1", "status": "pass", "evidence": ["SettingsAdminShell — admin root, sub-tab bar, conditional sub-panels", "Button_tab_/Button_tab_active_ on sub-tab buttons"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["AdminPathsTab + AdminResourcesTab grids with edit/delete", "AdminResourcesTab IR markers on tag/flag/action rows", "AdminResourcesTab now renders crisis text span with data-bubble-id ai_RNbBHYaO"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["AddPathPopup/AddResourcePopup create + edit modes", "updateAdminPath/updateAdminResource APIs wired"], "gap": null }
+  ],
+  "functional_audit": [
+    { "id": "FV-1", "check": "Admin sub-tab bar toggles paths vs resources panels", "status": "pass", "evidence": ["SettingsAdminShell.tsx"] },
+    { "id": "FV-2", "check": "Paths grid loads and renders path cards", "status": "pass", "evidence": ["AdminPathsTab.tsx", "adminPathsApi.ts"] },
+    { "id": "FV-3", "check": "Add path popup persists and refreshes grid", "status": "pass", "evidence": ["AdminPathsTab handleCreate"] },
+    { "id": "FV-4", "check": "Delete path removes user-created paths", "status": "pass", "evidence": ["AdminPathsTab handleDelete"] },
+    { "id": "FV-5", "check": "Resources grid loads and renders resource cards", "status": "pass", "evidence": ["AdminResourcesTab.tsx"] },
+    { "id": "FV-6", "check": "Add resource popup persists and refreshes grid", "status": "pass", "evidence": ["AdminResourcesTab handleCreate"] },
+    { "id": "FV-7", "check": "Delete resource removes row", "status": "pass", "evidence": ["AdminResourcesTab handleDelete"] },
+    { "id": "FV-8", "check": "Edit path/resource buttons perform update workflow", "status": "pass", "evidence": ["AdminPathsTab/AdminResourcesTab edit opens popup in edit mode with updateAdminPath/updateAdminResource"] }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYZK", "status": "pass", "notes": "Button_tab_ styles on sub-tab bar" },
+    { "bubble_id": "ai_RNbBHYZp", "status": "pass", "notes": "Resource card tag/flag/action bubble ids present" },
+    { "bubble_id": "ai_RNbBHYaO", "status": "pass", "notes": "Crisis text indicator rendered with data-bubble-id" }
+  ],
+  "gaps": [
+    "Could not locate/verify state/wave-2-manifest.json in the repository, so any potential reopen-specific reviewer_checks for SET-09 could not be independently validated from that manifest."
+  ],
+  "blockers": [],
+  "critiques": [
+    { "id": "C-1", "area": "functional", "priority": "high", "finding": "Edit CRUD wired — prior placeholder toasts removed.", "alternative": "N/A — fixed." },
+    { "id": "C-2", "area": "ui-fidelity", "priority": "high", "finding": "Resource card IR markers added.", "alternative": "N/A — fixed." },
+    { "id": "C-3", "area": "ui-fidelity", "priority": "medium", "finding": "Sub-tab Button_tab_ styles applied.", "alternative": "N/A — fixed." },
+    { "id": "C-6", "area": "ui-fidelity", "priority": "medium", "finding": "Crisis indicator ai_RNbBHYaO rendered on admin resource cards.", "alternative": "N/A — fixed." },
+    { "id": "C-4", "area": "data", "priority": "medium", "finding": "adminResourcesApi duplicates pathsResourcesApi seed data.", "alternative": "Extract shared helpers in later wave." }
+  ],
+  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
+}

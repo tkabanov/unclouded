@@ -1,0 +1,103 @@
+{
+  "wave": "proper-review-audit",
+  "assessed_at": "2026-07-08T12:50:00.000Z",
+  "items_audited": 9,
+  "method": "Independent readonly subagents per review-implement.md and triage-review.md (orchestrator-compliant)",
+  "summary": {
+    "reviews_ok": 4,
+    "reviews_failed": 5,
+    "triage_ok_to_advance": 4,
+    "triage_rewrite_required": 6
+  },
+  "items": [
+    {
+      "id": "SET-07-subscription-tab-and-billing",
+      "review_ok": false,
+      "coverage_pct": 67,
+      "functional_ok": false,
+      "triage_ok_to_advance": false,
+      "rewrite_required": true,
+      "fix_now_critiques": ["C-1", "C-2", "C-3"]
+    },
+    {
+      "id": "SET-08-workplace-tab-and-link-flow",
+      "review_ok": true,
+      "coverage_pct": 100,
+      "functional_ok": true,
+      "triage_ok_to_advance": false,
+      "rewrite_required": true,
+      "fix_now_critiques": ["C-2", "C-3", "C-5"]
+    },
+    {
+      "id": "SET-09-admin-paths-and-resources",
+      "review_ok": false,
+      "coverage_pct": 83,
+      "functional_ok": false,
+      "triage_ok_to_advance": false,
+      "rewrite_required": true,
+      "fix_now_critiques": ["C-1", "C-2", "C-3"]
+    },
+    {
+      "id": "SET-10-admin-plans-workplaces-analytics",
+      "review_ok": false,
+      "coverage_pct": 83,
+      "functional_ok": false,
+      "triage_ok_to_advance": false,
+      "rewrite_required": true,
+      "fix_now_critiques": ["C-1", "C-2"]
+    },
+    {
+      "id": "API-02-user-classification",
+      "review_ok": true,
+      "coverage_pct": 100,
+      "functional_ok": true,
+      "triage_ok_to_advance": true,
+      "rewrite_required": false,
+      "fix_now_critiques": []
+    },
+    {
+      "id": "API-03-pressure-profile",
+      "review_ok": true,
+      "coverage_pct": 100,
+      "functional_ok": true,
+      "triage_ok_to_advance": false,
+      "rewrite_required": true,
+      "fix_now_critiques": ["C-1"]
+    },
+    {
+      "id": "API-04-behavioral-fingerprint",
+      "review_ok": true,
+      "coverage_pct": 100,
+      "functional_ok": true,
+      "triage_ok_to_advance": true,
+      "rewrite_required": false,
+      "fix_now_critiques": []
+    },
+    {
+      "id": "API-05-ai-coaching-mode-assignment",
+      "review_ok": false,
+      "coverage_pct": 83,
+      "functional_ok": false,
+      "triage_ok_to_advance": false,
+      "rewrite_required": true,
+      "fix_now_critiques": ["C-1"]
+    },
+    {
+      "id": "API-06-ai-confidence-level-trigger",
+      "review_ok": true,
+      "coverage_pct": 100,
+      "functional_ok": true,
+      "triage_ok_to_advance": true,
+      "rewrite_required": false,
+      "fix_now_critiques": []
+    }
+  ],
+  "top_fix_now_themes": [
+    "SET-07/09/10: billing RPCs, subscription_plan table, admin edit CRUD stubs",
+    "SET-08: style_ref mismatches + workplace upsert error transparency",
+    "API-03: regulated slug missing from STATE_SEVERITY",
+    "API-05: profile refresh after onboarding pipeline before dashboard navigate"
+  ],
+  "follow_up": "cursor-impl-cycle/output/reports/re-review-wave-summary.json",
+  "re_review_outcome": "6/6 ok_to_advance, 0 rewrite_required (code_ref fcdb726)"
+}

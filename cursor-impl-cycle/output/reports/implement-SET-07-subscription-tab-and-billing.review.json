@@ -1,0 +1,32 @@
+{
+  "phase": "implement",
+  "target_id": "SET-07-subscription-tab-and-billing",
+  "assessed_at": "2026-07-08T13:25:00.000Z",
+  "wave": "re-review-after-fixes",
+  "ok": true,
+  "coverage_pct": 100,
+  "coverage_confidence_pct": 90,
+  "functional_ok": true,
+  "criteria_audit": [
+    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsSubscriptionTab.tsx — ai_RNbBHYYc/d/m/w panel hierarchy"], "gap": null },
+    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts — loadSubscriptionPlans from subscription_plan table", "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql — seed rows"], "gap": null },
+    { "id": "AC-3", "status": "pass", "evidence": ["subscriptionApi requestBillingPortal/requestInvoices parse RPC JSON", "SettingsSubscriptionTab portal dialog + invoice list UI", "selectSubscriptionPlan patches profiles.subscribed"], "gap": null }
+  ],
+  "functional_audit": [
+    { "id": "FV-1", "check": "Subscription tab renders full panel", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsSubscriptionTab.tsx"] },
+    { "id": "FV-2", "check": "Plan select persists via Supabase", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts — selectSubscriptionPlan"] },
+    { "id": "FV-3", "check": "Plans grid sources subscription_plan rows", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts", "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"] },
+    { "id": "FV-4", "check": "Billing portal opens working surface", "status": "pass", "evidence": ["requestBillingPortal returns parsed JSON; window.open on url/portal_url else portal dialog with stub message"] },
+    { "id": "FV-5", "check": "Invoice history presented to user", "status": "pass", "evidence": ["requestInvoices returns BillingInvoice[]; SettingsSubscriptionTab invoices dialog lists id/date/amount"] }
+  ],
+  "ui_evidence": [
+    { "ui_ref": "ai_RNbBHYYm", "status": "pass", "evidence": "bubbleStyle('RepeatingGroup_list_') applied on plans grid" }
+  ],
+  "gaps": [],
+  "blockers": [],
+  "critiques": [
+    { "id": "C-2", "area": "data-layer-fallback", "priority": "medium", "summary": "Silent PLANS catalog fallback when subscription_plan empty/errors.", "suggested_fix": "Surface errors when table expected." },
+    { "id": "C-3", "area": "ui-fidelity", "priority": "low", "summary": "Demo disclaimer paragraph lacks data-bubble-id.", "suggested_fix": "Move into IR subtitle region or remove." }
+  ],
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+}

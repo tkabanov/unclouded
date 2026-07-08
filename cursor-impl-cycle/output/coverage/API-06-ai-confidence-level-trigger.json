@@ -1,0 +1,25 @@
+{
+  "item_id": "API-06-ai-confidence-level-trigger",
+  "module_id": "MOD-DRSAM-API",
+  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/lib/paths/pathsSessionApi.ts"],
+    "gaps": ["AC-2: No modules_completed confidence trigger"],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/features/paths/pathsSessionApi.ts": "frontend/src/lib/paths/pathsSessionApi.ts"
+    }
+  },
+  "criteria": [
+    {"id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts"]},
+    {"id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/userProfileHooks.ts", "frontend/src/lib/paths/pathsSessionApi.ts"]},
+    {"id": "AC-3", "status": "pass", "evidence": ["Client-side patch after PATHS-07 session completion — no adapter route required"]}
+  ],
+  "files_changed": [
+    "frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts",
+    "frontend/src/lib/userProfile/userProfileHooks.ts",
+    "frontend/src/lib/paths/pathsSessionApi.ts"
+  ],
+  "functional_ok": true
+}

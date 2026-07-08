@@ -1,0 +1,25 @@
+{
+  "item_id": "API-03-pressure-profile",
+  "module_id": "MOD-DRSAM-API",
+  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/lib/classification.ts"],
+    "gaps": ["AC-1: Pressure profile logic embedded in classification.ts only"],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/api/userProfile/buildPressureProfile.ts": "frontend/src/lib/userProfile/buildPressureProfile.ts"
+    }
+  },
+  "criteria": [
+    {"id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts"]},
+    {"id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts"]},
+    {"id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"]}
+  ],
+  "files_changed": [
+    "frontend/src/lib/userProfile/buildPressureProfile.ts",
+    "frontend/src/lib/userProfile/calculateUserPressureProfile.ts",
+    "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+  ],
+  "functional_ok": true
+}

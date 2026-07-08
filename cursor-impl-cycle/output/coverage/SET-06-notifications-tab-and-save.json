@@ -1,0 +1,37 @@
+{
+  "item_id": "SET-06-notifications-tab-and-save",
+  "module_id": "MOD-DRSAM-SETTINGS",
+  "assessed_at": "2026-07-08T11:06:00.000Z",
+  "coverage_pct": 100,
+  "preflight": {
+    "existing_files_found": ["frontend/src/components/settings/SettingsMain.tsx"],
+    "gaps": ["AC-1: Notifications panel empty", "AC-2: No frequency dropdown", "AC-3: No save workflow"],
+    "reuse_decision": "new",
+    "mapped_target_files": {}
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": ["frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYXz card, ai_RNbBHYYA header, ai_RNbBHYYD form"]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": ["frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYYG frequency select"]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/notificationsApi.ts — saveNotificationFrequency",
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYYL save button"
+      ]
+    }
+  ],
+  "files_changed": [
+    "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+    "frontend/src/lib/settings/notificationsApi.ts"
+  ],
+  "functional_ok": true
+}
