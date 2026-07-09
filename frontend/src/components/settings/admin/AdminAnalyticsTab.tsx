@@ -19,6 +19,11 @@ import {
   ADMIN_TAB_ANALYTICS_BUBBLE_ID,
 } from "@/lib/settings/routes";
 import {
+  ADMIN_ANALYTICS_NOTICE_COPY,
+  ADMIN_STAT_CHECKINS_LABEL,
+  ADMIN_STAT_ENROLLED_LABEL,
+  ADMIN_STAT_MODE_DIST_LABEL,
+  ADMIN_STAT_TOTAL_USERS_LABEL,
   fetchAdminAnalytics,
   type AdminAnalyticsSnapshot,
 } from "@/lib/settings/admin/adminAnalyticsApi";
@@ -27,9 +32,9 @@ import { cn } from "@/lib/utils";
 
 const EMPTY_STATS: AdminAnalyticsSnapshot = {
   totalUsers: 0,
-  checkins: 0,
-  topCoachingMode: "N/A",
-  enrolledUsers: 0,
+  checkinsLast7Days: 0,
+  mostActiveMode: "N/A",
+  pathEnrollments: 0,
 };
 
 export default function AdminAnalyticsTab() {
@@ -68,10 +73,7 @@ export default function AdminAnalyticsTab() {
         data-bubble-id={ADMIN_ANALYTICS_NOTICE_BUBBLE_ID}
         className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground"
       >
-        <p data-bubble-id={ADMIN_ANALYTICS_NOTICE_TEXT_BUBBLE_ID}>
-          Read-only aggregates scoped to rows visible under your session (RLS demo) — not
-          tenant-wide totals.
-        </p>
+        <p data-bubble-id={ADMIN_ANALYTICS_NOTICE_TEXT_BUBBLE_ID}>{ADMIN_ANALYTICS_NOTICE_COPY}</p>
       </div>
 
       <div
@@ -82,29 +84,29 @@ export default function AdminAnalyticsTab() {
           bubbleId={ADMIN_STAT_TOTAL_USERS_BUBBLE_ID}
           labelBubbleId={ADMIN_STAT_TOTAL_USERS_LABEL_BUBBLE_ID}
           valueBubbleId={ADMIN_STAT_TOTAL_USERS_VAL_BUBBLE_ID}
-          label="Total users (session scope)"
+          label={ADMIN_STAT_TOTAL_USERS_LABEL}
           value={String(stats.totalUsers)}
         />
         <StatCard
           bubbleId={ADMIN_STAT_CHECKINS_BUBBLE_ID}
           labelBubbleId={ADMIN_STAT_CHECKINS_LABEL_BUBBLE_ID}
           valueBubbleId={ADMIN_STAT_CHECKINS_VAL_BUBBLE_ID}
-          label="Journal entries (session scope)"
-          value={String(stats.checkins)}
+          label={ADMIN_STAT_CHECKINS_LABEL}
+          value={String(stats.checkinsLast7Days)}
         />
         <StatCard
           bubbleId={ADMIN_STAT_MODE_DIST_BUBBLE_ID}
           labelBubbleId={ADMIN_STAT_MODE_DIST_LABEL_BUBBLE_ID}
           valueBubbleId={ADMIN_STAT_MODE_DIST_VAL_BUBBLE_ID}
-          label="Top coaching mode"
-          value={stats.topCoachingMode}
+          label={ADMIN_STAT_MODE_DIST_LABEL}
+          value={stats.mostActiveMode}
         />
         <StatCard
           bubbleId={ADMIN_STAT_ENROLLED_BUBBLE_ID}
           labelBubbleId={ADMIN_STAT_ENROLLED_LABEL_BUBBLE_ID}
           valueBubbleId={ADMIN_STAT_ENROLLED_VAL_BUBBLE_ID}
-          label="Pro subscribers"
-          value={String(stats.enrolledUsers)}
+          label={ADMIN_STAT_ENROLLED_LABEL}
+          value={String(stats.pathEnrollments)}
         />
       </div>
     </div>

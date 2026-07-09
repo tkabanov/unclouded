@@ -14,7 +14,7 @@
       "frontend/src/styles/index.ts"
     ],
     "gaps": [
-      "AC-3: chatmessage and chatconversation tables are absent from frontend/supabase migrations; chatPreviewApi attempts best-effort queries then falls back to profiles.onboarding_data.chat_preview / chat_messages",
+      "AC-3: chatmessage and chatconversation tables are absent from supabase migrations; chatPreviewApi attempts best-effort queries then falls back to profiles.onboarding_data.chat_preview / chat_messages",
       "AC-3: Chat page still uses session-local threads — dashboard preview cannot surface live chat until CHAT module persists messages to Supabase"
     ],
     "reuse_decision": "gap-fill",

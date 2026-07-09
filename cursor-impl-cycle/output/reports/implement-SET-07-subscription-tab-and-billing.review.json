@@ -1,32 +1,262 @@
 {
   "phase": "implement",
   "target_id": "SET-07-subscription-tab-and-billing",
-  "assessed_at": "2026-07-08T13:25:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T06:10:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 90,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsSubscriptionTab.tsx — ai_RNbBHYYc/d/m/w panel hierarchy"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts — loadSubscriptionPlans from subscription_plan table", "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql — seed rows"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["subscriptionApi requestBillingPortal/requestInvoices parse RPC JSON", "SettingsSubscriptionTab portal dialog + invoice list UI", "selectSubscriptionPlan patches profiles.subscribed"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx",
+        "frontend/src/lib/settings/routes.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "frontend/src/components/settings/SubscriptionPlanCard.tsx",
+        "frontend/src/lib/enums/subscription.ts",
+        "supabase/migrations/20260708130000_subscription_workplace_billing.sql"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx",
+        "supabase/migrations/20260708130000_subscription_workplace_billing.sql"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "Subscription tab renders full panel", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsSubscriptionTab.tsx"] },
-    { "id": "FV-2", "check": "Plan select persists via Supabase", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts — selectSubscriptionPlan"] },
-    { "id": "FV-3", "check": "Plans grid sources subscription_plan rows", "status": "pass", "evidence": ["frontend/src/lib/settings/subscriptionApi.ts", "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"] },
-    { "id": "FV-4", "check": "Billing portal opens working surface", "status": "pass", "evidence": ["requestBillingPortal returns parsed JSON; window.open on url/portal_url else portal dialog with stub message"] },
-    { "id": "FV-5", "check": "Invoice history presented to user", "status": "pass", "evidence": ["requestInvoices returns BillingInvoice[]; SettingsSubscriptionTab invoices dialog lists id/date/amount"] }
+    {
+      "id": "FV-1",
+      "check": "Settings subscription tab renders current card, plan grid, and billing card (not stub placeholder)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsMain.tsx",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "loadSubscriptionPlans reads subscription_plan rows with PLANS catalog fallback when empty",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Plan select persists subscription state via supabase profiles update",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Update payment method invokes open_billing_portal RPC and surfaces result",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "View invoices invokes list_billing_invoices RPC and renders returned rows",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-6",
+      "check": "Current tier badge uses ENUM-04 getTierSubscriptionLabel (tier_os labels)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx"
+      ]
+    }
   ],
   "ui_evidence": [
-    { "ui_ref": "ai_RNbBHYYm", "status": "pass", "evidence": "bubbleStyle('RepeatingGroup_list_') applied on plans grid" }
+    {
+      "bubble_id": "ai_RNbBHYYc",
+      "selector": "[data-bubble-id='ai_RNbBHYYc']",
+      "status": "pass",
+      "notes": "G - subscription panel root on SettingsSubscriptionTab"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYd",
+      "selector": "[data-bubble-id='ai_RNbBHYYd']",
+      "status": "pass",
+      "notes": "Group_card_muted_ on subscription-current-card"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYe",
+      "selector": "[data-bubble-id='ai_RNbBHYYe']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYf",
+      "selector": "[data-bubble-id='ai_RNbBHYYf']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYg",
+      "selector": "[data-bubble-id='ai_RNbBHYYg']",
+      "status": "pass",
+      "notes": "Text_heading_3_; copy Your subscription"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYh",
+      "selector": "[data-bubble-id='ai_RNbBHYYh']",
+      "status": "pass",
+      "notes": "Text_body_muted_ subtitle Manage your plan and billing preferences."
+    },
+    {
+      "bubble_id": "ai_RNbBHYYi",
+      "selector": "[data-bubble-id='ai_RNbBHYYi']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYj",
+      "selector": "[data-bubble-id='ai_RNbBHYYj']",
+      "status": "partial",
+      "notes": "Tier badge group present; child icon ai_RNbBHYYk not rendered"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYl",
+      "selector": "[data-bubble-id='ai_RNbBHYYl']",
+      "status": "pass",
+      "notes": "Dynamic tier text via getTierSubscriptionLabel"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYm",
+      "selector": "[data-bubble-id='ai_RNbBHYYm']",
+      "status": "pass",
+      "notes": "RepeatingGroup_list_ style_ref; md:grid-cols-3 plan grid"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYn",
+      "selector": "[data-bubble-id='ai_RNbBHYYn']",
+      "status": "partial",
+      "notes": "RG cell template id shared across three plan cards (expected); inner ai_RNbBHYYo–u partially marked"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYw",
+      "selector": "[data-bubble-id='ai_RNbBHYYw']",
+      "status": "pass",
+      "notes": "Group_card_muted_ subscription-billing-card"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYx",
+      "selector": "[data-bubble-id='ai_RNbBHYYx']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYy",
+      "selector": "[data-bubble-id='ai_RNbBHYYy']",
+      "status": "pass",
+      "notes": "Billing title with Text_heading_3_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYz",
+      "selector": "[data-bubble-id='ai_RNbBHYYz']",
+      "status": "partial",
+      "notes": "Subtitle present; appended demo Stripe disclaimer not in IR static copy"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYv",
+      "selector": "[data-bubble-id='ai_RNbBHYYv']",
+      "status": "pass",
+      "notes": "plan-select button on each SubscriptionPlanCard CTA"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZB",
+      "selector": "[data-bubble-id='ai_RNbBHYZB']",
+      "status": "pass",
+      "notes": "Button_primary_ Update payment method"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZC",
+      "selector": "[data-bubble-id='ai_RNbBHYZC']",
+      "status": "pass",
+      "notes": "Outline View invoices button"
+    }
   ],
-  "gaps": [],
+  "gaps": [
+    "Tier badge icon child ai_RNbBHYYk omitted under ai_RNbBHYYj",
+    "Extra Current tier explanatory paragraph on ai_RNbBHYYd not present in Bubble element tree",
+    "Billing subtitle ai_RNbBHYYz includes prototype demo disclaimer beyond IR copy",
+    "Premium plan price_number 0 in seeded subscription_plan rows renders $0 instead of Custom catalog label",
+    "RG cell inner text node ai_RNbBHYYp (plan-card-icon child) has no data-bubble-id",
+    "ai_RNbBHYZA billing-actions-row implemented and marked in code but omitted from decompose ui_refs"
+  ],
   "blockers": [],
   "critiques": [
-    { "id": "C-2", "area": "data-layer-fallback", "priority": "medium", "summary": "Silent PLANS catalog fallback when subscription_plan empty/errors.", "suggested_fix": "Surface errors when table expected." },
-    { "id": "C-3", "area": "ui-fidelity", "priority": "low", "summary": "Demo disclaimer paragraph lacks data-bubble-id.", "suggested_fix": "Move into IR subtitle region or remove." }
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "subscription-current-tier-badge (ai_RNbBHYYj) omits the Bubble icon child ai_RNbBHYYk; badge is text-only span.",
+      "alternative": "Render the IR icon node inside the badge wrap or map ai_RNbBHYYk to the Lucide tier indicator for parity.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "When migration-seeded subscription_plan rows load, premium price_number 0 formats as $0 rather than the Custom label used in @/lib/plans and Bubble plan cards.",
+      "alternative": "Treat premium tier_slug with price_number 0 as Custom in loadSubscriptionPlans or seed price_number null with catalog fallback for display.",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "supabase/migrations/20260708130000_subscription_workplace_billing.sql",
+        "frontend/src/lib/plans.ts"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "loadSubscriptionPlans throws on Supabase select error instead of falling back to PLANS catalog, leaving an empty grid if the table is unavailable.",
+      "alternative": "On select error log and return plansFromCatalog() so the tab remains usable in offline or unmigrated environments.",
+      "evidence": [
+        "frontend/src/lib/settings/subscriptionApi.ts",
+        "frontend/src/components/settings/SettingsSubscriptionTab.tsx"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "coverage-artifact",
+      "priority": "low",
+      "finding": "Coverage preflight.gaps still lists pre-implementation failures although the tab now satisfies AC-1–AC-3.",
+      "alternative": "Refresh preflight.gaps on the next coverage pass to reflect resolved state only.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/SET-07-subscription-tab-and-billing.json"
+      ]
+    }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

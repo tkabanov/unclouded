@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "SET-01-settings-tab-router-and-header",
-  "assessed_at": "2026-07-08T10:20:00.000Z",
+  "assessed_at": "2026-07-08T19:00:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-01-settings-tab-router-and-header.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,29 +11,15 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Empty panel shells are explicitly in SET-01 scope (chrome only, no tab panel internals per decompose). SET-02+ owns panel bodies; downstream depends_on gate is satisfiable with marker shells."
+      "rationale": "IR re-read (drsam-99657.bubble static text on ai_RNbBHYUu/ai_RNbBHYUv and tab buttons ai_RNbBHYUz/ai_RNbBHYVE) confirms divergence: title should be \"Settings\" not \"Account Settings\", subtitle should end \"account details\" not \"security\", privacy tab \"Privacy & Data\", admin tab \"Admin Dashboard\". Valid ui-fidelity gap on named SET-01 ui_refs, but SET-01 ACs gate hierarchy, tab routing, and style_ref on ai_RNbBHYUw — not verbatim presentation.text on every chrome label. criteria_audit, functional_audit, and ui_evidence all pass; slug-keyed tab switching is unaffected. Downstream SET-02..SET-10 depend_on SET-01 for tab chrome mount and panel visibility, not header/tab display strings. ~6 string edits in SettingsMain.tsx and SETTINGS_TAB_DISPLAY_LABELS are easy IR alignment; defer to a settings chrome copy-parity pass before visual QA (can land with SET-02 or as a SET-01 polish rewrite)."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Prototype settings widgets replaced by tab chrome is expected brownfield migration pattern; SET-02 will restore profile content inside ai_RNbBHYVG panel marker. Not a SET-01 AC violation."
-    },
-    {
-      "critique_id": "C-3",
-      "severity": "defer",
-      "resolution": "defer",
-      "action_required": false,
-      "rationale": "Responsive Tailwind overrides on tab bar are minor layout delta; layout_notes allow wrap on narrow viewports. Defer to responsive polish pass."
-    },
-    {
-      "critique_id": "C-4",
-      "severity": "defer",
-      "resolution": "defer",
-      "action_required": false,
-      "rationale": "Local hook state vs shared store naming is architecture note for future URL tab sync; SET-01 FV-3 default tab and tab switching work correctly."
+      "rationale": "IR re-read (ir/resolver.json element order under ai_RNbBHYUw, drsam-99657.bubble tab-bar children) confirms Bubble order is notifications (ai_RNbBHYVB / ai_RNbBHYeD) before workplace (ai_RNbBHYVC / ai_RNbBHYeE). SETTINGS_TAB_ORDER places workplace before notifications, and SETTINGS_TAB_BUTTON_BUBBLE_IDS maps workplace→ai_RNbBHYVB and notifications→ai_RNbBHYVC — swapped vs IR element identity. Functional slug routing and panel bubble ids (ai_RNbBHYXy notifications, ai_RNbBHYYM workplace) are correct; FV-1/FV-3 pass. criteria_audit AC-2 passes on button presence and data-bubble-id markers; downstream SET-06-notifications-tab-and-save and SET-08-workplace-tab-and-link-flow depends_on gates are satisfiable via panel mount points, not tab-bar DOM order. Reorder SETTINGS_TAB_ORDER and swap the two bubble-id map entries (~4 lines in settingsTabs.ts/settingsTabStub.ts) — trivial but parity-tooling hygiene; batch with C-1 in the same settings chrome IR alignment pass."
     }
   ],
-  "summary": "0 fix_now, 4 defer, 0 accept. Review passed at 100% coverage. SET-02+ can proceed."
+  "summary": "0 fix_now, 2 defer, 0 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and functional checks pass. Deferred: C-1 settings chrome copy parity (ai_RNbBHYUu/ai_RNbBHYUv header strings, Privacy & Data / Admin Dashboard tab labels); C-2 notifications-before-workplace tab order and ai_RNbBHYVB/ai_RNbBHYVC bubble-id swap (easy IR alignment, functional routing unaffected). ok_to_advance=true, rewrite_required=false."
 }

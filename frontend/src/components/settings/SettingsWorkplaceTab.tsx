@@ -26,8 +26,14 @@ import {
   emptyWorkplaceForm,
   linkWorkplace,
   loadWorkplaceLink,
+  WORKPLACE_CARD_SUBTITLE,
+  WORKPLACE_CARD_TITLE,
+  WORKPLACE_EMAIL_LABEL,
   WORKPLACE_EMAIL_PLACEHOLDER,
+  WORKPLACE_LINK_BTN_LABEL,
+  WORKPLACE_NAME_LABEL,
   WORKPLACE_NAME_PLACEHOLDER,
+  WORKPLACE_PRIVACY_TEXT,
   type WorkplaceFormState,
 } from "@/lib/settings/workplaceApi";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,7 +43,6 @@ import { cn } from "@/lib/utils";
 export default function SettingsWorkplaceTab() {
   const { user } = useAuth();
   const [form, setForm] = useState<WorkplaceFormState>(emptyWorkplaceForm());
-  const [linkedAt, setLinkedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [linking, setLinking] = useState(false);
 
@@ -49,7 +54,6 @@ export default function SettingsWorkplaceTab() {
       .then((state) => {
         if (!cancelled) {
           setForm({ name: state.name, email: state.email });
-          setLinkedAt(state.linkedAt);
         }
       })
       .catch(() => {
@@ -77,7 +81,6 @@ export default function SettingsWorkplaceTab() {
       await linkWorkplace(user.id, form);
       const refreshed = await loadWorkplaceLink(user.id);
       setForm({ name: refreshed.name, email: refreshed.email });
-      setLinkedAt(refreshed.linkedAt);
       toast.success("Workplace linked successfully.");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Couldn't link your workplace.";
@@ -107,13 +110,13 @@ export default function SettingsWorkplaceTab() {
           </span>
           <div className="space-y-1">
             <h2 data-bubble-id={WORKPLACE_CARD_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_2_")}>
-              Workplace benefits
+              {WORKPLACE_CARD_TITLE}
             </h2>
             <p
               data-bubble-id={WORKPLACE_CARD_SUBTITLE_BUBBLE_ID}
               className={cn(bubbleStyle("Text_small_"), "text-sm")}
             >
-              Link your employer to unlock team coaching programs and aggregated insights.
+              {WORKPLACE_CARD_SUBTITLE}
             </p>
           </div>
         </header>
@@ -129,8 +132,7 @@ export default function SettingsWorkplaceTab() {
             data-bubble-id={WORKPLACE_PRIVACY_TEXT_BUBBLE_ID}
             className="text-sm text-muted-foreground"
           >
-            Your chats, journals, check-ins, and all personal entries remain 100% private. Your employer
-            only receives anonymized, group-level trends — no individual data is ever shared.
+            {WORKPLACE_PRIVACY_TEXT}
           </p>
         </div>
 
@@ -142,17 +144,17 @@ export default function SettingsWorkplaceTab() {
                 data-bubble-id={WORKPLACE_NAME_LABEL_BUBBLE_ID}
                 className={bubbleStyle("Text_label_")}
               >
-                Workplace name
+                {WORKPLACE_NAME_LABEL}
               </Label>
-            <Input
-              id="workplace-name"
-              data-bubble-id={WORKPLACE_NAME_INPUT_BUBBLE_ID}
-              className={bubbleStyle("Input_default_")}
-              value={form.name}
-              onChange={(event) => updateField("name", event.target.value)}
-              placeholder={WORKPLACE_NAME_PLACEHOLDER}
-            />
-          </div>
+              <Input
+                id="workplace-name"
+                data-bubble-id={WORKPLACE_NAME_INPUT_BUBBLE_ID}
+                className={bubbleStyle("Input_default_")}
+                value={form.name}
+                onChange={(event) => updateField("name", event.target.value)}
+                placeholder={WORKPLACE_NAME_PLACEHOLDER}
+              />
+            </div>
 
             <div data-bubble-id={WORKPLACE_EMAIL_GROUP_BUBBLE_ID} className="flex flex-col gap-2">
               <Label
@@ -160,17 +162,17 @@ export default function SettingsWorkplaceTab() {
                 data-bubble-id={WORKPLACE_EMAIL_LABEL_BUBBLE_ID}
                 className={bubbleStyle("Text_label_")}
               >
-                HR / benefits contact email
+                {WORKPLACE_EMAIL_LABEL}
               </Label>
-            <Input
-              id="workplace-email"
-              type="email"
-              data-bubble-id={WORKPLACE_EMAIL_INPUT_BUBBLE_ID}
-              className={bubbleStyle("Input_default_")}
-              value={form.email}
-              onChange={(event) => updateField("email", event.target.value)}
-              placeholder={WORKPLACE_EMAIL_PLACEHOLDER}
-            />
+              <Input
+                id="workplace-email"
+                type="email"
+                data-bubble-id={WORKPLACE_EMAIL_INPUT_BUBBLE_ID}
+                className={bubbleStyle("Input_default_")}
+                value={form.email}
+                onChange={(event) => updateField("email", event.target.value)}
+                placeholder={WORKPLACE_EMAIL_PLACEHOLDER}
+              />
             </div>
           </div>
 
@@ -182,7 +184,7 @@ export default function SettingsWorkplaceTab() {
               disabled={linking}
               onClick={() => void handleLink()}
             >
-              {linking ? "Linking…" : linkedAt ? "Update workplace link" : "Link workplace"}
+              {linking ? "Linking…" : WORKPLACE_LINK_BTN_LABEL}
             </Button>
           </div>
         </div>

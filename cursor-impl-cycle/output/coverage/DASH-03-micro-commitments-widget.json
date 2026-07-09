@@ -17,7 +17,7 @@
       "frontend/src/lib/enums/pathEnrollment.ts"
     ],
     "gaps": [
-      "AC-3: pathenrollment1 and pathsession Supabase tables are not in frontend/supabase migrations; API attempts best-effort query then falls back to profiles.onboarding_data.path_enrollment1 with Bubble field keys (focused_m_commitment_custom_pathsession, completed_micro_commitment_session_list_list_custom_pathsession)",
+      "AC-3: pathenrollment1 and pathsession Supabase tables are not in supabase migrations; API attempts best-effort query then falls back to profiles.onboarding_data.path_enrollment1 with Bubble field keys (focused_m_commitment_custom_pathsession, completed_micro_commitment_session_list_list_custom_pathsession)",
       "AC-3: Widget collapses when focused session list is empty (Bubble bTJFv state parity); no automatic seed until PATHS enrollment writes onboarding_data"
     ],
     "reuse_decision": "extend",

@@ -1,14 +1,25 @@
 {
   "phase": "implement",
   "target_id": "SET-08-workplace-tab-and-link-flow",
-  "assessed_at": "2026-07-08T14:31:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T07:23:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-08-workplace-tab-and-link-flow.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-1", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Coverage preflight reuse_decision metadata hygiene only; review ok=true with all ACs pass." },
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Placeholder and linked-on timestamp parity is polish; privacy text byte-match (ai_RNbBHYYT) now passes AC-2." }
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read (ir/inventory.json) confirms ai_RNbBHYYO is a Group with only Text children ai_RNbBHYYP (title) and ai_RNbBHYYQ (subtitle) — no Icon entity under the workplace card header. SettingsWorkplaceTab.tsx adds a prototype Building2 icon in a rounded span beside the header, so ui_evidence for ai_RNbBHYYO is partial. Valid ui-fidelity polish on a named decompose ui_ref, but priority is low, all criteria_audit ACs pass, functional_ok=true, and no downstream item depends_on SET-08 header structure. Remove the invented icon (or map to an IR icon if one is added later) in a SET-08 IR parity polish pass before visual QA."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "IR re-read of SET-08 ui_refs (ai_RNbBHYYM through ai_RNbBHYYb) shows no Text or Group element for a linked-on timestamp; bTIja workflow parity in AC-3 gates validate/persist workplace link, not a read-only linked date line. workplaceApi.ts correctly persists workplace_linked_at in profiles.onboarding_data and loadWorkplaceLink returns linkedAt, but Bubble workplace tab has no corresponding static copy or ui_ref to render. FV-3 passes on persist-and-reload of name/email; hiding linkedAt in the form is consistent with IR scope, not a missing AC."
+    }
   ],
-  "summary": "0 fix_now, 2 defer, 0 accept. ok_to_advance true — privacy copy byte-verified, link flow functional."
+  "summary": "0 fix_now, 1 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass. Deferred: C-1 remove invented Building2 icon from ai_RNbBHYYO header (SET-08 IR parity polish). Accepted: C-2 workplace_linked_at persist without UI display matches Bubble workplace tab IR (no linked-timestamp ui_ref). ok_to_advance=true, rewrite_required=false."
 }

@@ -23,7 +23,7 @@ Extend the existing React prototype in `frontend/` until acceptance criteria for
 - `cursor-impl-cycle/config/prototype-inventory.json` — what already exists
 - `cursor-impl-cycle/config/path-conventions.json` — path mappings (Vue paths in decompose may be stale)
 - `frontend/**` — **read existing code before editing** (pages, components, `App.tsx`, hooks, lib)
-- `frontend/supabase/**` — read for edge function contracts used by the prototype
+- `supabase/**` — read for edge function contracts used by the prototype
 - `ir/slices/*` for module — element tree with `presentation`, `parent_element_id`, `element_type`
 - `ir/slices/styles.json` — resolve `presentation.style_ref` on elements
 - `drsam-99657.bubble` — fallback via `source_path` when IR presentation is incomplete

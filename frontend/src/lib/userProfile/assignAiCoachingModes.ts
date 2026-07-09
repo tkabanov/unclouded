@@ -2,48 +2,51 @@ import {
   AI_COACHING_MODE,
   type AiCoachingModeSlug,
 } from "@/lib/enums/coachingMode";
-import { CLASSIFICATION_OS, type ClassificationOsSlug } from "./classifyUser";
+import { getLoadSignalAnswerMeta } from "@/lib/enums/onboardingQuestions";
+
+const SCORE_LOW_THRESHOLD = 3.2;
+const SCORE_HIGH_THRESHOLD = 3.8;
 
 export interface AiCoachingModeInput {
-  classification_os?: string | null;
-  pressure_profile_text?: string | null;
-  behavioral_fingerprint_text?: string | null;
+  stability_score: number;
+  alignment_score: number;
+  performance_score: number;
+  recovery_mode_active: boolean;
+  grief_mode_active: boolean;
+  cognitive_load_signal_slug?: string | null;
 }
 
-function modesForClassification(classificationOs: ClassificationOsSlug | null): AiCoachingModeSlug[] {
-  switch (classificationOs) {
-    case CLASSIFICATION_OS.CAPACITY_EROSION:
-    case CLASSIFICATION_OS.HIGH_OUTPUT_HIDDEN_INSTABILITY:
-      return [AI_COACHING_MODE.STABILIZER, AI_COACHING_MODE.PROTECTOR];
-    case CLASSIFICATION_OS.PERFORMANCE_STAGNATION:
-      return [AI_COACHING_MODE.STRATEGIST, AI_COACHING_MODE.SIMPLIFIER];
-    case CLASSIFICATION_OS.ALIGNMENT_FRACTURE:
-      return [AI_COACHING_MODE.REBUILDER, AI_COACHING_MODE.SIMPLIFIER];
-    case CLASSIFICATION_OS.OPTIMIZATION_READY:
-    case CLASSIFICATION_OS.BUILDING_MOMENTUM:
-      return [AI_COACHING_MODE.STRATEGIST, AI_COACHING_MODE.REBUILDER];
-    case CLASSIFICATION_OS.COMFORTABLE_PLATEAU:
-      return [AI_COACHING_MODE.SIMPLIFIER, AI_COACHING_MODE.REBUILDER];
-    default:
-      return [AI_COACHING_MODE.STABILIZER, AI_COACHING_MODE.SIMPLIFIER];
-  }
-}
-
-/** Bubble API event calculate_user_ai_coaching_mode (bTIEN) branch resolver. */
+/** Bubble API event calculate_user_ai_coaching_mode (bTIEN) — seven-action ChangeThing chain. */
 export function resolveAiCoachingModes(input: AiCoachingModeInput): AiCoachingModeSlug[] {
-  const classificationOs = (input.classification_os ?? null) as ClassificationOsSlug | null;
-  let modes = modesForClassification(classificationOs);
+  let modes: AiCoachingModeSlug[] = [AI_COACHING_MODE.STABILIZER];
 
-  const pressure = input.pressure_profile_text ?? "";
-  if (pressure === "System Overload" && !modes.includes(AI_COACHING_MODE.PROTECTOR)) {
-    modes = [AI_COACHING_MODE.PROTECTOR, ...modes];
+  if (input.alignment_score < SCORE_LOW_THRESHOLD) {
+    modes = [AI_COACHING_MODE.REBUILDER];
+  }
+  if (input.stability_score < SCORE_LOW_THRESHOLD) {
+    modes = [AI_COACHING_MODE.STABILIZER];
+  }
+  if (input.performance_score < SCORE_LOW_THRESHOLD) {
+    modes = [AI_COACHING_MODE.SIMPLIFIER];
+  }
+  if (
+    input.stability_score >= SCORE_HIGH_THRESHOLD &&
+    input.alignment_score >= SCORE_HIGH_THRESHOLD &&
+    input.performance_score >= SCORE_HIGH_THRESHOLD
+  ) {
+    modes = [AI_COACHING_MODE.STRATEGIST];
+  }
+  if (input.recovery_mode_active || input.grief_mode_active) {
+    modes = [AI_COACHING_MODE.PROTECTOR];
   }
 
-  const fingerprint = (input.behavioral_fingerprint_text ?? "").toLowerCase();
-  if (fingerprint.includes("overwhelm") && !modes.includes(AI_COACHING_MODE.STABILIZER)) {
-    modes = [AI_COACHING_MODE.STABILIZER, ...modes];
+  const cognitiveSlug = input.cognitive_load_signal_slug;
+  if (cognitiveSlug) {
+    const meta = getLoadSignalAnswerMeta(cognitiveSlug);
+    if (meta?.intensity === "high" && !modes.includes(AI_COACHING_MODE.SIMPLIFIER)) {
+      modes = [...modes, AI_COACHING_MODE.SIMPLIFIER];
+    }
   }
 
-  const unique = [...new Set(modes)];
-  return unique.length > 0 ? unique : [AI_COACHING_MODE.SIMPLIFIER];
+  return modes;
 }

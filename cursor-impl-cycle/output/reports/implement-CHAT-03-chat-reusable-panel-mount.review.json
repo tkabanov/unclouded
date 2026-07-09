@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "CHAT-03-chat-reusable-panel-mount",
-  "assessed_at": "2026-07-08T10:52:00.000Z",
+  "assessed_at": "2026-07-09T04:22:30.000Z",
   "ok": true,
   "coverage_pct": 100,
   "coverage_confidence_pct": 88,
@@ -11,8 +11,11 @@
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/chat/ChatPanelMount.tsx — data-bubble-id bTIUt root wraps ChatReusable (bTIRW)",
-        "frontend/src/pages/Chat.tsx — passes conversationId from useChatConversationParam into ChatPanelMount"
+        "frontend/src/components/chat/ChatPanelMount.tsx — root data-bubble-id bTIUt (CHAT_PANEL_MOUNT_BUBBLE_ID) wraps DS-06 ChatReusable",
+        "frontend/src/components/chat/ChatReusable.tsx — nested section data-bubble-id bTIRW with header/messages/composer stack",
+        "frontend/src/lib/chat/chatRouteStore.ts — useChatConversationParam reads ?conversation= search param (bTInF GetParamFromUrl parity)",
+        "frontend/src/pages/Chat.tsx — passes conversationId from useChatConversationParam into ChatPanelMount",
+        "ir/inventory.json — bTIUt CustomElement parent ai_RNbBHXbD with url_param GetParamFromUrl binding"
       ],
       "gap": null
     },
@@ -20,8 +23,10 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Chat.tsx — conversationId ? ChatPanelMount : ChatWelcomePanel",
-        "frontend/src/hooks/useChatConversationParam.ts — ?conversation= search param binding"
+        "frontend/src/pages/Chat.tsx — conversationId && user ? ChatPanelMount : ChatWelcomePanel ternary in ChatPageContent panel slot",
+        "frontend/src/hooks/useChatConversationParam.ts — re-exports chatRouteStore hook for ?conversation= presence",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx — CHAT-06 welcome panel shown when param absent; bTIUt mount not rendered",
+        "ir/inventory.json — bTInF workflow trigger_condition_type GetParamFromUrl on bTHDV page"
       ],
       "gap": null
     },
@@ -29,8 +34,10 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/chat/chatMessagesApi.ts — fetchMessagesForConversation",
-        "frontend/src/components/chat/ChatPanelMount.tsx — loads messages via API into ChatReusable"
+        "frontend/src/lib/chat/chatMessagesApi.ts — fetchMessagesForConversation loads chatmessage rows (Supabase table with onboarding_data fallback)",
+        "frontend/src/components/chat/ChatPanelMount.tsx — reload() fetches messages and passes live messages[] into ChatReusable",
+        "frontend/src/pages/Chat.tsx — panel mutual exclusivity keeps thread-cell delete control ai_RNbBHXbU in sidebar only; no conflation with welcome empty state",
+        "cursor-impl-cycle/output/coverage/CHAT-03-chat-reusable-panel-mount.json — preflight reuse_decision gap-fill with existing_files_found verified"
       ],
       "gap": null
     }
@@ -38,38 +45,98 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "ChatReusable mounts when conversation param present",
+      "check": "ChatPanelMount (bTIUt) renders DS-06 ChatReusable shell when ?conversation= is set — not legacy ChatWindow or placeholder panel",
       "status": "pass",
-      "evidence": ["frontend/src/pages/Chat.tsx", "frontend/src/components/chat/ChatPanelMount.tsx"]
+      "evidence": [
+        "frontend/src/components/chat/ChatPanelMount.tsx",
+        "frontend/src/components/chat/ChatReusable.tsx",
+        "frontend/src/pages/Chat.tsx"
+      ]
     },
     {
       "id": "FV-2",
-      "check": "Welcome panel shown when param absent",
+      "check": "Active conversation message list loads from chatMessagesApi and displays in ChatMessagesList",
       "status": "pass",
-      "evidence": ["frontend/src/pages/Chat.tsx", "frontend/src/components/chat/ChatWelcomePanel.tsx"]
+      "evidence": [
+        "frontend/src/lib/chat/chatMessagesApi.ts",
+        "frontend/src/components/chat/ChatPanelMount.tsx",
+        "frontend/src/components/chat/ChatMessagesList.tsx"
+      ]
     },
     {
       "id": "FV-3",
-      "check": "Messages loaded from chatMessagesApi not hardcoded",
+      "check": "bTIUt ChatReusable mount and CHAT-06 welcome panel are mutually exclusive based on ?conversation= param",
       "status": "pass",
-      "evidence": ["frontend/src/lib/chat/chatMessagesApi.ts", "frontend/src/components/chat/ChatPanelMount.tsx"]
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/lib/chat/chatRouteStore.ts",
+        "frontend/src/components/chat/ChatWelcomePanel.tsx"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Composer send inserts user message and refreshes thread (not dead handler or Coming Soon stub)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ChatPanelMount.tsx — handleSend calls sendMessageWithAiReply",
+        "frontend/src/lib/chat/chatMessagesApi.ts — insertUserMessage + insertAssistantMessage + fetchMessagesForConversation"
+      ]
     }
   ],
   "ui_evidence": [
-    { "bubble_id": "bTIUt", "selector": "[data-bubble-id='bTIUt']", "status": "pass" },
-    { "bubble_id": "bTIRW", "selector": "[data-bubble-id='bTIRW']", "status": "pass" }
+    {
+      "bubble_id": "bTIUt",
+      "selector": "[data-bubble-id='bTIUt']",
+      "status": "pass",
+      "notes": "CustomElement mount on ChatPanelMount when conversation param present; flex h-full column fills right panel per layout_notes"
+    },
+    {
+      "bubble_id": "bTIRW",
+      "selector": "[data-bubble-id='bTIRW']",
+      "status": "pass",
+      "notes": "ChatReusable RE root nested inside bTIUt; header/messages/composer/disclaimer stack from DS-06"
+    }
   ],
   "gaps": [],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "integration",
+      "area": "functional",
       "priority": "medium",
-      "finding": "handleSend in ChatPanelMount uses optimistic local append only; CHAT-05 must wire Supabase insert + AI reply.",
-      "alternative": "Delegate send to chatMessagesApi.sendMessageWithAiReply in CHAT-05.",
-      "evidence": ["frontend/src/components/chat/ChatPanelMount.tsx"]
+      "finding": "useCoachingModeUpdate in ChatPanelMount updates local React state for mode badge text only; coaching mode is not persisted to chatconversation context field — decompose assigns full mode workflow wiring to CHAT-05.",
+      "alternative": "On mode select, call chatconversation update RPC or context-field patch and reload conversation meta so bTIRi badge reflects stored mode.",
+      "evidence": [
+        "frontend/src/hooks/useCoachingModeUpdate.ts",
+        "frontend/src/components/chat/ChatPanelMount.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json — CHAT-05 layout_notes"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "ChatPanelMount loading branch renders generic \"Loading conversation…\" text without data-bubble-id markers; bTIUt/bTIRW subtree is absent until load completes.",
+      "alternative": "Render bTIUt wrapper immediately with skeleton placeholders carrying DS-06 region markers, or reuse ChatReusable with loading prop per IR visibility semantics.",
+      "evidence": [
+        "frontend/src/components/chat/ChatPanelMount.tsx"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "grounding",
+      "priority": "low",
+      "finding": "ChatConversation title/mode metadata is derived from sidebar list fetch (conversations.find) rather than a direct chatconversation row read; deep-linked ?conversation= ids not yet in list show default title until sidebar reload.",
+      "alternative": "Fetch single chatconversation row by id in ChatPanelMount reload() alongside messages for accurate header binding.",
+      "evidence": [
+        "frontend/src/components/chat/ChatPanelMount.tsx",
+        "ir/inventory.json — bTIRW data_binding content_type custom.chatconversation"
+      ]
     }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

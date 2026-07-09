@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "PATHS-06-enrollment-floating-services-bar",
-  "assessed_at": "2026-07-08T09:56:00.000Z",
+  "assessed_at": "2026-07-08T23:30:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-06-enrollment-floating-services-bar.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,30 +11,29 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "IR defines a single bTItY RG under bTItS (FG-services); duplicate data-bubble-id on PathsGridPanel wrapper is a PATHS-02 GetElement-convention artifact superseded by shared pathsEnrollmentStore for ai_RNbBHYHn data parity. PATHS-06 scope owns canonical bTItY on EnrollmentFloatingBar; grid already carries ai_RNbBHYHn on the inner RG. criteria_audit AC-2, functional_audit FV-4, and ui_evidence for bTItY all pass; PATHS-07 depends_on needs store session fields, not unique DOM markers. Remove the grid wrapper bTItY marker (retain ai_RNbBHYHn or data-source attribute) as optional hierarchy polish in a later wave."
+      "rationale": "IR re-read via refs.json confirms bTItY (RG - PathEnrollment) lives under FG-services bTItS/bTItX floating-bar subtree (/pages/bTHDg/elements/bTItX/elements/bTItd), not the My Paths grid. EnrollmentFloatingBar correctly marks bTItY on the horizontal RepeatingGroup_list_ strip; PathsGridPanel outer wrapper also emits bTItY while the inner grid already carries ai_RNbBHYHn (PATHS_GRID_RG_BUBBLE_ID). Valid parity-tooling finding — duplicate selector prevents uniquely targeting the floating-bar RG — but PATHS-06 AC-2 is satisfied on EnrollmentFloatingBar, criteria_audit/ui_evidence for bTItS/bTItY/FG-services pass, and PATHS-07 depends_on store currentSessionId from pathsEnrollmentStore (FV-3/FV-5 pass), not unique DOM ids. One-line removal of bTItY from PathsGridPanel outer wrapper is optional PATHS-02/PATHS-06 marker cleanup mirroring DASH-06 C-1 duplicate slot-wrapper deferral; no rewrite gate required for advance."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "deferred_to_item": "PATHS-07-session-completion-route-integration",
-      "rationale": "AC-3 passes on the primary pathenrollment1 table path via resolveCurrentSessionFields in toListItem; criteria_audit and coverage cite currentSessionId/currentSessionTitle on table rows. deriveListFromOnboardingData omits session fields because PathEnrollmentOnboardingState lacks current_session_custom_pathsession — only focused_m_commitment and completed session lists. Onboarding-only fallback affects prototype/dev when pathenrollment1 is absent; PATHS-07 scope owns URL ?session= matching against enrollment current_session and can extend deriveListFromOnboardingData (e.g. map focused_m_commitment_custom_pathsession[0]) or document table dependency without blocking PATHS-06 store contract."
+      "rationale": "Empty-state label \"No enrolled paths yet\" in EnrollmentFloatingBar is ad-hoc compact-strip copy not resolved from bTHDg slice static text. IR-grounded empty copy bTJEI (\"You haven't enrolled in any path yet\") is already centralized in routes.ts and used on PathsGridPanel zero-enrollment grid state (PATHS-02). Floating-bar RG empty cell is a distinct compact chip placeholder with no enumerated static text id in PATHS-06 ui_refs[] or ACs; decompose scope focuses on pathenrollment1 listing, selection, and store contract for PATHS-07. Defer IR-sourced empty-cell copy to a polish pass when bTItX subtree text nodes are enumerated."
     },
     {
       "critique_id": "C-3",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "rationale": "PATHS-06 layout_notes explicitly specify \"horizontal repeating enrollment chips/cards\" for the floating FG-services strip — intentional SPA adaptation diverging from Bubble bTItd column container_layout. Review finding acknowledges this is by design; criteria_audit AC-1/AC-2 and ui_evidence pass. Column stacking with 232px min-height is pixel-parity optional, not a named ui_ref AC requirement."
+      "rationale": "Floating-bar enrollment cells use compact chip layout (Route icon + title + status) without per-cell Bubble ids from bTHDg slice. Decompose MOD-DRSAM-PATHS explicitly notes PATHS-06 cell layout ids deferred to IR slice enumeration; decompose review C-7 gap cites same deferral. Named ui_refs bTItS/bTItY/FG-services and ui_evidence pass; functional_audit FV-1/FV-2 pass for load and selection. Per-cell data-bubble-id markers are optional parity-tooling follow-up when cell ids are added to decompose ui_refs — does not block PATHS-07 session URL matching against store enrollment list."
     },
     {
       "critique_id": "C-4",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "rationale": "Bubble bTItY RG has no static empty-cell text in the extracted IR tree; \"No enrolled paths yet\" is React-authored prototype UX consistent with PATHS-02 triage accepting tier-filter empty copy where no IR bubble-id source exists. Grid zero-enrollment copy is IR-grounded via bTJEI (PATHS_GRID_EMPTY_TEXT); floating bar empty state has no canonical IR string to match. No criteria_audit or ui_evidence failure."
+      "rationale": "Valid coverage-artifact traceability gap: pathsEnrollmentApi.ts re-exports fetchPathEnrollments from dashboard pathEnrollmentApi while enrollInPath/unenrollFromPath helpers are primarily exercised by PATHS-03-path-detail-enrollment-popup; PATHS-06 coverage files_changed lists the module but does not document cross-item API surface split. criteria_audit AC-2/AC-3 and functional checks pass at 100%; shared list shape satisfies ai_RNbBHYHn GetElement parity. Defer documenting enroll/unenroll ownership in PATHS-03 coverage or expanding PATHS-06 files_changed notes on next coverage pass — artifact hygiene only, no source rewrite required."
     }
   ],
-  "summary": "0 fix_now, 2 defer, 2 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. C-1 deferred: remove duplicate bTItY marker on PathsGridPanel when polishing IR hierarchy (store satisfies GetElement parity). C-2 deferred to PATHS-07-session-completion-route-integration for onboarding-fallback currentSessionId mapping. C-3 accepted: horizontal chip row per PATHS-06 layout_notes. C-4 accepted: no IR empty-state copy for floating bar RG."
+  "summary": "0 fix_now, 4 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs and ui_evidence pass. Deferred: C-1 duplicate bTItY on PathsGridPanel outer wrapper (optional PATHS-02/PATHS-06 marker cleanup, ai_RNbBHYHn already correct); C-2 floating-bar empty-cell copy IR grounding; C-3 per-cell bubble-id markers when IR cell ids enumerated; C-4 pathsEnrollmentApi cross-item coverage traceability to PATHS-03."
 }

@@ -1,14 +1,25 @@
 {
   "phase": "implement",
   "target_id": "API-03-pressure-profile",
-  "assessed_at": "2026-07-08T14:00:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T08:02:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-03-pressure-profile.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-3", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "4-tier aggregate buckets are intentional brownfield simplification." },
-    { "critique_id": "C-5", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Unit tests deferred to testing wave." }
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Valid ir-fidelity gap: multi-high join permutation follows LOAD_SIGNAL_QUESTIONS field order (cognitive → relational → environmental → financial) rather than bTIBO plus_element chain order (cognitive → environmental → financial → relational). Branch selection, high_intensity_text labels, and nervous-system suffix all match bTIAw; only display-string ordering differs for three- and four-high cases. criteria_audit AC-1 passes on three-branch logic and label content; API-04-behavioral-fingerprint depends_on gate needs a computed pressure_profile_text, not list permutation parity. Localized fix in buildPressureProfile.ts + buildPressureProfile.test.ts can land in a follow-on parity patch without blocking API-04 advance."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Confirmed integration gap: classification.ts and assignAiCoachingModes.ts still gate on legacy prototype bucket literal \"System Overload\" while API-03 now writes Bubble-parity descriptive strings (e.g. \"Cognitive Overload + … + Wired Nervous System\"). API-03 AC-2 is satisfied — calculateUserPressureProfile patches pressure_profile_text with the new format. Decompose assigns bTIEN pressure/fingerprint branch wiring to API-05-ai-coaching-mode-assignment (target_files include assignAiCoachingModes.ts); prototype classification.ts tradeoff/classification heuristics are brownfield paths outside API-03 target_files and API-02 classifyUser.ts OS resolver scope. API-04 depends_on needs pressure profile step completion, not legacy string equality; Protector/Stabilizer branches should be keyed off high-intensity presence or shared helper in API-05."
+    }
   ],
-  "summary": "0 fix_now, 1 defer, 1 accept. ok_to_advance true."
+  "summary": "0 fix_now, 2 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, all ACs pass, no blockers. Deferred: C-1 multi-high join-order parity (buildPressureProfile follow-on patch); C-2 legacy \"System Overload\" consumer updates to API-05-ai-coaching-mode-assignment (assignAiCoachingModes.ts) and prototype classification.ts brownfield integration."
 }

@@ -610,10 +610,23 @@ export const STABILITY_QUESTIONS: readonly OnboardingScaleQuestion[] = [
 export const LOAD_SIGNAL_QUESTION_OPTION_SET_ID = "customers_load_signal_os" as const;
 export const LOAD_SIGNAL_ANSWER_OPTION_SET_ID = "customers_load_signal_question_os" as const;
 
+export type LoadSignalIntensity = "high" | "medium" | "low";
+
+/** Bubble load_type on customers_load_signal_os — typo evironmental preserved from Bubble */
+export type LoadSignalType = "cognitive" | "relational" | "evironmental" | "financial";
+
+export const LOAD_SIGNAL_HIGH_INTENSITY_TEXT: Record<LoadSignalType, string> = {
+  cognitive: "Cognitive Overload",
+  relational: "Relational Strain",
+  evironmental: "Logistical Overwhelm",
+  financial: "Financial Stress",
+};
+
 export interface LoadSignalAnswer {
   bubbleId: string;
   slug: string;
   label: string;
+  intensity: LoadSignalIntensity;
 }
 
 export interface LoadSignalQuestion {
@@ -621,6 +634,7 @@ export interface LoadSignalQuestion {
   bubbleId: string;
   slug: string;
   question: string;
+  loadType: LoadSignalType;
   answers: readonly LoadSignalAnswer[];
 }
 
@@ -630,10 +644,11 @@ export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
     bubbleId: "bTHlu",
     slug: "how_much_mental_noise_are_you_dealing_with___racing_thoughts__rumination__decision_fatigue_",
     question: "How much mental noise are you dealing with — racing thoughts, rumination, decision fatigue?",
+    loadType: "cognitive",
     answers: [
-      { bubbleId: "bTHmH", slug: "mind_feels_clear_most_of_the_time", label: "Mind feels clear most of the time" },
-      { bubbleId: "bTHmI", slug: "some_noise_but_manageable", label: "Some noise but manageable" },
-      { bubbleId: "bTHmM", slug: "head_rarely_feels_quiet___constant", label: "Head rarely feels quiet — constant" },
+      { bubbleId: "bTHmH", slug: "mind_feels_clear_most_of_the_time", label: "Mind feels clear most of the time", intensity: "low" },
+      { bubbleId: "bTHmI", slug: "some_noise_but_manageable", label: "Some noise but manageable", intensity: "medium" },
+      { bubbleId: "bTHmM", slug: "head_rarely_feels_quiet___constant", label: "Head rarely feels quiet — constant", intensity: "high" },
     ],
   },
   {
@@ -641,10 +656,11 @@ export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
     bubbleId: "bTHlv",
     slug: "how_much_are_your_relationships_adding_to_your_stress_right_now_",
     question: "How much are your relationships adding to your stress right now?",
+    loadType: "relational",
     answers: [
-      { bubbleId: "bTHmO", slug: "relationships_feel_mostly_supportive", label: "Relationships feel mostly supportive" },
-      { bubbleId: "bTHmS", slug: "some_friction_but_manageable", label: "Some friction but manageable" },
-      { bubbleId: "bTHmT", slug: "significant_conflict_or_strain_in_key_relationships", label: "Significant conflict or strain in key relationships" },
+      { bubbleId: "bTHmO", slug: "relationships_feel_mostly_supportive", label: "Relationships feel mostly supportive", intensity: "low" },
+      { bubbleId: "bTHmS", slug: "some_friction_but_manageable", label: "Some friction but manageable", intensity: "medium" },
+      { bubbleId: "bTHmT", slug: "significant_conflict_or_strain_in_key_relationships", label: "Significant conflict or strain in key relationships", intensity: "high" },
     ],
   },
   {
@@ -652,10 +668,11 @@ export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
     bubbleId: "bTHlw",
     slug: "how_much_pressure_are_logistics_and_time_creating___schedule__responsibilities__deadlines_",
     question: "How much pressure are logistics and time creating — schedule, responsibilities, deadlines?",
+    loadType: "evironmental",
     answers: [
-      { bubbleId: "bTHmY", slug: "life_feels_mostly_manageable", label: "Life feels mostly manageable" },
-      { bubbleId: "bTHmZ", slug: "stretched_but_coping", label: "Stretched but coping" },
-      { bubbleId: "bTHma", slug: "overwhelmed_by_practical_demands", label: "Overwhelmed by practical demands" },
+      { bubbleId: "bTHmY", slug: "life_feels_mostly_manageable", label: "Life feels mostly manageable", intensity: "low" },
+      { bubbleId: "bTHmZ", slug: "stretched_but_coping", label: "Stretched but coping", intensity: "medium" },
+      { bubbleId: "bTHma", slug: "overwhelmed_by_practical_demands", label: "Overwhelmed by practical demands", intensity: "high" },
     ],
   },
   {
@@ -663,13 +680,44 @@ export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
     bubbleId: "bTHmA",
     slug: "how_much_is_financial_stress_affecting_your_day_to_day_mental_state_",
     question: "How much is financial stress affecting your day-to-day mental state?",
+    loadType: "financial",
     answers: [
-      { bubbleId: "bTHmf", slug: "financial_situation_feels_stable", label: "Financial situation feels stable" },
-      { bubbleId: "bTHmg", slug: "some_financial_worry_but_not_consuming", label: "Some financial worry but not consuming" },
-      { bubbleId: "bTHmk", slug: "financial_stress_is_significant_daily_presence", label: "Financial stress is significant daily presence" },
+      { bubbleId: "bTHmf", slug: "financial_situation_feels_stable", label: "Financial situation feels stable", intensity: "low" },
+      { bubbleId: "bTHmg", slug: "some_financial_worry_but_not_consuming", label: "Some financial worry but not consuming", intensity: "medium" },
+      { bubbleId: "bTHmk", slug: "financial_stress_is_significant_daily_presence", label: "Financial stress is significant daily presence", intensity: "high" },
     ],
   },
 ] as const;
+
+export interface LoadSignalAnswerMeta {
+  intensity: LoadSignalIntensity;
+  loadType: LoadSignalType;
+  highIntensityText: string;
+}
+
+const LOAD_SIGNAL_ANSWER_META: Record<string, LoadSignalAnswerMeta> = Object.fromEntries(
+  LOAD_SIGNAL_QUESTIONS.flatMap((question) =>
+    question.answers.map((answer) => [
+      answer.slug,
+      {
+        intensity: answer.intensity,
+        loadType: question.loadType,
+        highIntensityText: LOAD_SIGNAL_HIGH_INTENSITY_TEXT[question.loadType],
+      },
+    ]),
+  ),
+);
+
+export function getLoadSignalAnswerMeta(slug: string): LoadSignalAnswerMeta | undefined {
+  return LOAD_SIGNAL_ANSWER_META[slug];
+}
+
+/** Ordered load signal slugs from onboarding_data.loadSignals (AUTH-05). */
+export function extractLoadSignalSlugs(loadSignals: Record<string, string>): string[] {
+  return LOAD_SIGNAL_QUESTIONS.map((question) => loadSignals[question.field]).filter(
+    (slug): slug is string => typeof slug === "string" && slug.length > 0,
+  );
+}
 
 /** Bubble option set: customer_health_question_os (multi-select health flags) */
 

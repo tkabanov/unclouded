@@ -1,16 +1,39 @@
 {
   "phase": "implement",
   "target_id": "SET-10-admin-plans-workplaces-analytics",
-  "assessed_at": "2026-07-08T14:33:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T07:33:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-10-admin-plans-workplaces-analytics.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Authenticated-wide RLS is acceptable for brownfield demo; tighten before production." },
-    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "onboarding_data fallback documented as demo pattern; not AC-blocking." },
-    { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Analytics demo-scoped counts acceptable for prototype admin tab." },
-    { "critique_id": "C-5", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "isStatic marking for seeded plans is polish; edit/delete APIs now functional with RLS." }
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read (bTHDl slice, drsam-99657.bubble) confirms named ui_ref static copy on ai_RNbBHYaR (admin-plans-title) and ai_RNbBHYZN (admin-tab-btn-plans) is Subscription Plans; AdminPlansTab renders Subscription plans and ADMIN_SUB_TAB_LABELS.plans is Plans. Valid ui-fidelity gap on in-scope ui_refs, but criteria_audit AC-1..AC-3, functional_audit FV-1..FV-11, and ui_evidence all pass with data-bubble-id markers present; SET-10 ACs gate panel mount, grids/stats, and popup submit — not verbatim presentation.text on every chrome label. ai_RNbBHYZN ui_evidence already passes with label note. No downstream items depend_on SET-10. ~2 string alignments (toolbar title + sub-tab label) defer to SET-10 IR copy polish batch (same pattern as SET-09 C-1 and SET-01 deferred settings chrome copy)."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR styles.json re-read confirms style_ref:ai_RNbBHYbF and style_ref:ai_RNbBHYbI resolve to Text_heading_1_ (36px/700) and style_ref:ai_RNbBHYbL to Text_heading_2_ (24px/600); AdminAnalyticsTab StatCard value spans use generic text-2xl font-bold despite correct data-bubble-id on value nodes. Valid typography gap on analytics stat value ui_refs, but criteria_audit and functional_audit pass; stat labels already use IR copy constants and notice text is byte-matched. Typography token mismatch is visual polish only and does not block module completion or functional gates. Apply bubbleStyle(Text_heading_1_) on total-users/check-ins/enrollments values and bubbleStyle(Text_heading_2_) on most-active-mode value in the same SET-10 visual-parity batch as C-1."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Confirmed: adminPlansApi/adminWorkplacesApi/adminAnalyticsApi fall back to profiles.onboarding_data when subscription_plan/workplace/aggregate tables are absent; analytics onboarding path counts per-profile blobs rather than tenant-wide aggregates. Brownfield fallback is intentional per decompose layout_notes (read-only stat cards, no adapter unless server secret). AdminDataSourceNotice surfaces on plans/workplaces tabs but not analytics — valid integration polish. FV-2/FV-3/FV-8 pass on handler wiring with fallbacks; table paths work when schema present. Does not block advance — SET-10 is terminal MOD-DRSAM-SETTINGS implement item with no downstream depends_on gates. Defer AdminDataSourceNotice on analytics tab and optional aggregate RPC to SET-10 admin API fallback hardening batch (aligned with SET-09 C-3 and SET-07 deferred catalog-fallback resilience)."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Code review: toAdminPlan already sets isStatic via SEEDED_PLAN_IDS.has(planId) for free/pro/premium ids; staticPlans() path marks all PLANS seed rows isStatic:true. Critique applies only when subscription_plan table returns tier rows whose id column does not match seeded PlanId slugs — edit/delete then remain enabled unlike static seed path. Valid functional edge case in table-loaded brownfield mode only; FV-6 passes on delete wiring and static/onboarding guards. Does not block module completion. Mirror AdminPathsTab isStatic guard by normalizing known tier ids on table fetch (~5 lines in tryFetchPlansFromTable) — defer to SET-10 admin API fallback hardening batch alongside C-3."
+    }
   ],
-  "summary": "0 fix_now, 4 defer, 0 accept. ok_to_advance true — RLS write policies unblock plan/workplace CRUD E2E."
+  "summary": "0 fix_now, 4 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs and functional checks pass. Deferred: C-1 Bubble static copy alignment on ai_RNbBHYaR/ai_RNbBHYZN (SET-10 IR copy polish); C-2 Text_heading_1_/Text_heading_2_ on analytics stat value nodes ai_RNbBHYbF/bI/bL (same visual-parity batch); C-3 onboarding_data fallback semantics and missing analytics AdminDataSourceNotice (SET-10 admin API fallback hardening); C-4 table-loaded tier plan isStatic guard when ids diverge from seeded slugs (same hardening batch). ok_to_advance=true, rewrite_required=false."
 }

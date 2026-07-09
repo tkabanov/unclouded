@@ -1,23 +1,54 @@
 {
   "item_id": "API-05-ai-coaching-mode-assignment",
   "module_id": "MOD-DRSAM-API",
-  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "assessed_at": "2026-07-09T10:20:00.000Z",
   "coverage_pct": 100,
+  "functional_ok": true,
   "preflight": {
-    "existing_files_found": ["frontend/src/lib/dashboard/coachingModeApi.ts"],
-    "gaps": ["AC-1: No auto-assignment from profile signals"],
+    "existing_files_found": [
+      "frontend/src/lib/userProfile/assignAiCoachingModes.ts",
+      "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
+      "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+      "frontend/src/lib/dashboard/coachingModeApi.ts"
+    ],
+    "gaps": [
+      "AC-1: Legacy classification_os two-mode matrix and pressure/fingerprint heuristics did not match bTIEN seven-action ChangeThing chain"
+    ],
     "reuse_decision": "extend",
-    "mapped_target_files": {}
+    "mapped_target_files": {
+      "frontend/src/lib/userProfile/assignAiCoachingModes.ts": "frontend/src/lib/userProfile/assignAiCoachingModes.ts",
+      "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts": "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
+      "frontend/src/lib/userProfile/onboardingProfilePipeline.ts": "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+    }
   },
   "criteria": [
-    {"id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts"]},
-    {"id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts"]},
-    {"id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"]}
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/assignAiCoachingModes.ts",
+        "frontend/src/lib/userProfile/assignAiCoachingModes.test.ts"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+      ]
+    }
   ],
   "files_changed": [
     "frontend/src/lib/userProfile/assignAiCoachingModes.ts",
+    "frontend/src/lib/userProfile/assignAiCoachingModes.test.ts",
     "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
-    "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
-  ],
-  "functional_ok": true
+    "cursor-impl-cycle/output/coverage/API-05-ai-coaching-mode-assignment.json"
+  ]
 }

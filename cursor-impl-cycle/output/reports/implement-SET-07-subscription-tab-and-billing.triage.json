@@ -1,14 +1,39 @@
 {
   "phase": "implement",
   "target_id": "SET-07-subscription-tab-and-billing",
-  "assessed_at": "2026-07-08T14:02:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T06:14:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-SET-07-subscription-tab-and-billing.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Silent PLANS catalog fallback is robustness UX; review ok=true with all ACs pass." },
-    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Demo disclaimer bubble-id is low-priority IR polish." }
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR re-read confirms ai_RNbBHYYj (Group_badge_primary_, named SET-07 ui_ref) is rendered with data-bubble-id and dynamic tier text ai_RNbBHYYl; missing child ai_RNbBHYYk is an Icon node not listed in decompose ui_refs. ui_evidence marks ai_RNbBHYYj partial (icon omitted) but criteria_audit AC-2 only requires tier badge ENUM-04 labels — not the Bubble icon leaf. Badge structure and copy satisfy AC-1/AC-2; icon parity is small SettingsSubscriptionTab.tsx polish (~1 Lucide icon + data-bubble-id on ai_RNbBHYYk) batchable with other settings visual-parity deferrals (SET-03 C-1 precedent). No downstream item depends on SET-07."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Code and migration confirm seeded premium row uses price_number 0; loadSubscriptionPlans maps numeric 0 to \"$0\" before catalog merge. AC-2 scopes plan-cell price to subscription_plan table rows — criteria_audit AC-2 and FV-2 pass (catalog fallback only when table is empty). Showing \"Custom\" for premium tier_slug with price_number 0 is display-mapping polish aligning DB seed with PLANS catalog semantics, not a gate failure; one-line guard in subscriptionApi.ts on a future pass. Does not block SET-08 or other module items."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "loadSubscriptionPlans correctly throws on Supabase select error; SettingsSubscriptionTab catches, toasts, and leaves an empty grid. FV-2 acceptance text covers PLANS catalog fallback when the table returns zero rows — not error-path resilience. Decompose scope and AC-3 do not require offline/unmigrated error fallback; fail-fast throw is consistent with other settings API modules. Optional log-and-return plansFromCatalog() is prototype resilience polish, not a blocker for advance."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Coverage JSON preflight.gaps still lists pre-implementation AC failures although criteria[] now pass at 100%. Valid audit-traceability gap on the coverage artifact only — review and implementation source already document resolved evidence. Low-priority cycle hygiene to refresh cursor-impl-cycle/output/coverage/SET-07-subscription-tab-and-billing.json on next coverage or re-review pass; does not affect subscription tab behavior or advance gates."
+    }
   ],
-  "summary": "0 fix_now, 2 defer, 0 accept. ok_to_advance true."
+  "summary": "0 fix_now, 4 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs and functional checks pass. Deferred: C-1 tier-badge icon child ai_RNbBHYYk (settings visual-parity batch); C-2 premium price_number 0 → Custom display mapping in loadSubscriptionPlans; C-3 select-error catalog fallback resilience; C-4 stale coverage preflight.gaps (artifact refresh on next pass). ok_to_advance=true, rewrite_required=false."
 }

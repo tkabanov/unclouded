@@ -1,45 +1,310 @@
 {
   "phase": "implement",
   "target_id": "SET-10-admin-plans-workplaces-analytics",
-  "assessed_at": "2026-07-08T14:32:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T07:30:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 90,
+  "coverage_confidence_pct": 91,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["AdminPlansTab ai_RNbBHYaP", "AdminWorkplacesTab ai_RNbBHYah", "AdminAnalyticsTab ai_RNbBHYay", "SettingsAdminShell ai_RNbBHYZQ"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["AdminPlansTab/AdminWorkplacesTab edit+delete with ai_RNbBHYac/ae/au/aw", "AdminAnalyticsTab read-only aggregates", "frontend/supabase/migrations/20260708160000_subscription_workplace_billing_rbac.sql — subscription_plan INSERT/UPDATE/DELETE + workplace DELETE RLS"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["AddPlanPopup/AddWorkplacePopup create+edit modes", "adminPlansApi/adminWorkplacesApi create/update/delete"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx",
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx",
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx",
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx",
+        "frontend/src/lib/settings/admin/adminPlansApi.ts",
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts",
+        "frontend/src/lib/settings/admin/adminAnalyticsApi.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AddPlanPopup.tsx",
+        "frontend/src/components/settings/admin/AddWorkplacePopup.tsx",
+        "frontend/src/lib/settings/admin/adminPlansApi.ts",
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts",
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "Plans/workplaces/analytics sub-tabs render real content", "status": "pass", "evidence": ["AdminPlansTab", "AdminWorkplacesTab", "AdminAnalyticsTab"] },
-    { "id": "FV-2", "check": "Plans grid loads subscription_plan rows", "status": "pass", "evidence": ["adminPlansApi.ts"] },
-    { "id": "FV-3", "check": "Workplaces grid loads workplace rows", "status": "pass", "evidence": ["adminWorkplacesApi.ts"] },
-    { "id": "FV-4", "check": "Add-plan popup creates plan record", "status": "pass", "evidence": ["AddPlanPopup", "adminPlansApi.ts", "20260708160000_subscription_workplace_billing_rbac.sql INSERT policy"] },
-    { "id": "FV-5", "check": "Add-workplace popup creates workplace record", "status": "pass", "evidence": ["AddWorkplacePopup", "adminWorkplacesApi.ts"] },
-    { "id": "FV-6", "check": "Plan delete removes custom plans", "status": "pass", "evidence": ["AdminPlansTab", "adminPlansApi.ts", "20260708160000_subscription_workplace_billing_rbac.sql DELETE policy"] },
-    { "id": "FV-7", "check": "Workplace delete removes rows", "status": "pass", "evidence": ["AdminWorkplacesTab", "adminWorkplacesApi.ts", "20260708160000_subscription_workplace_billing_rbac.sql workplace DELETE policy"] },
-    { "id": "FV-8", "check": "Analytics fetches read-only aggregates", "status": "pass", "evidence": ["adminAnalyticsApi.ts"] },
-    { "id": "FV-9", "check": "Sub-tab buttons toggle without breaking paths/resources", "status": "pass", "evidence": ["SettingsAdminShell.tsx"] },
-    { "id": "FV-10", "check": "Plan card edit updates existing plan", "status": "pass", "evidence": ["AdminPlansTab → updateAdminPlan", "20260708160000_subscription_workplace_billing_rbac.sql UPDATE policy"] },
-    { "id": "FV-11", "check": "Workplace card edit updates existing workplace", "status": "pass", "evidence": ["AdminWorkplacesTab → updateAdminWorkplace"] }
+    {
+      "id": "FV-1",
+      "check": "Plans, workplaces, and analytics sub-tabs render real toolbars/grids/stats under admin-sub-contents (not placeholder stubs)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx",
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Plans grid loads subscription_plan rows via Supabase with static/onboarding fallback",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/admin/adminPlansApi.ts",
+        "frontend/src/components/settings/admin/AdminDataSourceNotice.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Workplaces grid loads workplace rows via Supabase with onboarding fallback",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts",
+        "frontend/src/components/settings/admin/AdminDataSourceNotice.tsx"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Add-plan popup submit creates a plan record (table insert or onboarding_data persistence)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AddPlanPopup.tsx",
+        "frontend/src/lib/settings/admin/adminPlansApi.ts"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Add-workplace popup submit creates a workplace record (table insert or onboarding_data persistence)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AddWorkplacePopup.tsx",
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts"
+      ]
+    },
+    {
+      "id": "FV-6",
+      "check": "Plan delete removes non-static custom plans and refreshes grid",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+        "frontend/src/lib/settings/admin/adminPlansApi.ts"
+      ]
+    },
+    {
+      "id": "FV-7",
+      "check": "Workplace delete removes rows and refreshes grid",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx",
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts"
+      ]
+    },
+    {
+      "id": "FV-8",
+      "check": "Analytics fetches read-only aggregates: 7-day dailycheckin count, pathenrollment1 enrollment count, profile total users, and most-active coaching mode with onboarding fallbacks",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/admin/adminAnalyticsApi.ts",
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-9",
+      "check": "Plans/workplaces/analytics sub-tab buttons toggle visibility without breaking paths/resources state",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx",
+        "frontend/src/lib/settings/admin/adminTabStore.ts"
+      ]
+    },
+    {
+      "id": "FV-10",
+      "check": "Plan card edit action updates an existing plan via updateAdminPlan and AddPlanPopup edit mode",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+        "frontend/src/lib/settings/admin/adminPlansApi.ts"
+      ]
+    },
+    {
+      "id": "FV-11",
+      "check": "Workplace card edit action updates an existing workplace via updateAdminWorkplace and AddWorkplacePopup edit mode",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminWorkplacesTab.tsx",
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts"
+      ]
+    }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYac", "status": "pass", "notes": "Plan edit button" },
-    { "bubble_id": "ai_RNbBHYae", "status": "pass", "notes": "Plan delete button" },
-    { "bubble_id": "ai_RNbBHYau", "status": "pass", "notes": "Workplace edit button" },
-    { "bubble_id": "ai_RNbBHYaw", "status": "pass", "notes": "Workplace delete button" },
-    { "bubble_id": "ai_RNbBHYdL", "status": "pass", "notes": "Add/edit plan popup" },
-    { "bubble_id": "ai_RNbBHYdf", "status": "pass", "notes": "Add/edit workplace popup" }
+    {
+      "bubble_id": "ai_RNbBHYZN",
+      "selector": "[data-bubble-id='ai_RNbBHYZN']",
+      "status": "pass",
+      "notes": "Plans sub-tab button; visible label Plans vs IR Subscription Plans"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZO",
+      "selector": "[data-bubble-id='ai_RNbBHYZO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZP",
+      "selector": "[data-bubble-id='ai_RNbBHYZP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYaP",
+      "selector": "[data-bubble-id='ai_RNbBHYaP']",
+      "status": "pass",
+      "notes": "AdminPlansTab root with toolbar and grid"
+    },
+    {
+      "bubble_id": "ai_RNbBHYaQ",
+      "selector": "[data-bubble-id='ai_RNbBHYaQ']",
+      "status": "pass",
+      "notes": "admin-plans-toolbar"
+    },
+    {
+      "bubble_id": "ai_RNbBHYah",
+      "selector": "[data-bubble-id='ai_RNbBHYah']",
+      "status": "pass",
+      "notes": "AdminWorkplacesTab root with toolbar and grid"
+    },
+    {
+      "bubble_id": "ai_RNbBHYai",
+      "selector": "[data-bubble-id='ai_RNbBHYai']",
+      "status": "pass",
+      "notes": "admin-workplaces-toolbar"
+    },
+    {
+      "bubble_id": "ai_RNbBHYaj",
+      "selector": "[data-bubble-id='ai_RNbBHYaj']",
+      "status": "pass",
+      "notes": "IR copy Workplaces matches"
+    },
+    {
+      "bubble_id": "ai_RNbBHYay",
+      "selector": "[data-bubble-id='ai_RNbBHYay']",
+      "status": "pass",
+      "notes": "AdminAnalyticsTab root with notice and stat grid"
+    },
+    {
+      "bubble_id": "ai_RNbBHYbB",
+      "selector": "[data-bubble-id='ai_RNbBHYbB']",
+      "status": "pass",
+      "notes": "Byte-match IR disclaimer via ADMIN_ANALYTICS_NOTICE_COPY"
+    },
+    {
+      "bubble_id": "ai_RNbBHYbE",
+      "selector": "[data-bubble-id='ai_RNbBHYbE']",
+      "status": "pass",
+      "notes": "IR label Total Active Users"
+    },
+    {
+      "bubble_id": "ai_RNbBHYbH",
+      "selector": "[data-bubble-id='ai_RNbBHYbH']",
+      "status": "pass",
+      "notes": "IR label Check-ins (Last 7 Days)"
+    },
+    {
+      "bubble_id": "ai_RNbBHYbK",
+      "selector": "[data-bubble-id='ai_RNbBHYbK']",
+      "status": "pass",
+      "notes": "IR label Most Active Mode"
+    },
+    {
+      "bubble_id": "ai_RNbBHYbN",
+      "selector": "[data-bubble-id='ai_RNbBHYbN']",
+      "status": "pass",
+      "notes": "IR label Path Enrollments"
+    },
+    {
+      "bubble_id": "ai_RNbBHYdL",
+      "selector": "[data-bubble-id='ai_RNbBHYdL']",
+      "status": "pass",
+      "notes": "AddPlanPopup DialogContent root"
+    },
+    {
+      "bubble_id": "ai_RNbBHYdf",
+      "selector": "[data-bubble-id='ai_RNbBHYdf']",
+      "status": "pass",
+      "notes": "AddWorkplacePopup DialogContent root"
+    },
+    {
+      "bubble_id": "ai_RNbBHYaA",
+      "selector": "[data-bubble-id='ai_RNbBHYaA']",
+      "status": "pass",
+      "notes": "Decompose ui_ref mis-anchors admin-resource-tags-row; not applicable to plans panel — no blocker"
+    }
   ],
-  "gaps": [],
+  "gaps": [
+    "Plans panel title copy Subscription plans vs IR Subscription Plans on ai_RNbBHYaR",
+    "Plans sub-tab button label Plans vs IR Subscription Plans on ai_RNbBHYZN",
+    "Analytics stat value nodes use Tailwind text-2xl font-bold instead of IR style_ref Text_heading_1_/Text_heading_2_"
+  ],
   "blockers": [],
   "critiques": [
-    { "id": "C-2", "area": "security", "priority": "medium", "finding": "subscription_plan and workplace write/delete RLS policies grant all authenticated users USING (true) — no admin-role gate.", "alternative": "Restrict writes to admin role_type or SECURITY DEFINER RPC before production." },
-    { "id": "C-3", "area": "integration", "priority": "medium", "finding": "adminPlansApi/adminWorkplacesApi still fall back to profiles.onboarding_data when tables missing.", "alternative": "Surface UI notice when fallback path is active." },
-    { "id": "C-4", "area": "functional", "priority": "low", "finding": "fetchAdminAnalytics counts only RLS-visible rows (demo-scoped, not tenant-wide).", "alternative": "Add admin aggregate RPC or document demo scope in stat labels." },
-    { "id": "C-5", "area": "ui-fidelity", "priority": "low", "finding": "Seeded subscription_plan rows from DB not marked isStatic; edit/delete enabled on tier plans.", "alternative": "Mark free/pro/premium seed ids as non-editable when loaded from table." }
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Plans toolbar title and sub-tab button paraphrase Bubble static text: Subscription plans / Plans instead of IR Subscription Plans on ai_RNbBHYaR and ai_RNbBHYZN.",
+      "alternative": "Export ADMIN_PLANS_TITLE_LABEL constant from adminPlansApi or routes and use in AdminPlansTab plus ADMIN_SUB_TAB_LABELS.plans.",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx",
+        "frontend/src/lib/settings/admin/adminTabStore.ts",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Analytics stat value typography uses generic text-2xl font-bold; IR style_ref maps ai_RNbBHYbF/ai_RNbBHYbI to Text_heading_1_ and ai_RNbBHYbL to Text_heading_2_.",
+      "alternative": "Apply bubbleStyle(Text_heading_1_) on value spans for total-users/check-ins/enrollments and bubbleStyle(Text_heading_2_) on most-active-mode value.",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminAnalyticsTab.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "adminPlansApi/adminWorkplacesApi and adminAnalyticsApi still fall back to profiles.onboarding_data when tables are absent; analytics onboarding fallbacks count per-profile blobs rather than shared tenant aggregates.",
+      "alternative": "Surface AdminDataSourceNotice on analytics tab when table fallbacks activate; prefer server-side aggregate RPC for production admin.",
+      "evidence": [
+        "frontend/src/lib/settings/admin/adminAnalyticsApi.ts",
+        "frontend/src/lib/settings/admin/adminPlansApi.ts",
+        "frontend/src/lib/settings/admin/adminWorkplacesApi.ts"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "functional",
+      "priority": "low",
+      "finding": "Seeded subscription_plan rows loaded from the table are not marked isStatic; edit/delete remain enabled on tier plans unlike static PLANS seed path.",
+      "alternative": "Mark free/pro/premium ids as isStatic when loaded from subscription_plan table, mirroring AdminPathsTab static guard.",
+      "evidence": [
+        "frontend/src/lib/settings/admin/adminPlansApi.ts",
+        "frontend/src/components/settings/admin/AdminPlansTab.tsx"
+      ]
+    }
   ],
-  "scores": { "completeness": 5, "grounding": 5, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
 }

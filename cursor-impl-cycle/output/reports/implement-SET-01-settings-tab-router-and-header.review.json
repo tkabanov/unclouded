@@ -1,20 +1,18 @@
 {
   "phase": "implement",
   "target_id": "SET-01-settings-tab-router-and-header",
-  "assessed_at": "2026-07-08T10:16:00.000Z",
+  "assessed_at": "2026-07-08T18:50:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 90,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Settings.tsx — mounts SettingsMain inside DashboardLayout content slot",
-        "frontend/src/components/settings/SettingsMain.tsx — data-bubble-id ai_RNbBHYUr root with data-module-owner MOD-DRSAM-SETTINGS",
-        "frontend/src/components/settings/SettingsMain.tsx — ai_RNbBHYUs wrapper contains ai_RNbBHYUt header (ai_RNbBHYUu title, ai_RNbBHYUv subtitle) and ai_RNbBHYUw tab bar via SettingsTabBar",
-        "ir/inventory.json — parent_id chain ai_RNbBHYUr → ai_RNbBHYUs → (ai_RNbBHYUt | ai_RNbBHYUw | ai_RNbBHYVF) matches React DOM"
+        "frontend/src/components/settings/SettingsMain.tsx",
+        "frontend/src/pages/Settings.tsx"
       ],
       "gap": null
     },
@@ -22,10 +20,9 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/settings/settingsTabStore.ts — useSettingsTabStore holds activeTab SettingsTabSlug with setActiveTab / isTabActive",
-        "frontend/src/lib/settings/settingsTabStub.ts — SETTINGS_TAB_BUTTON_BUBBLE_IDS maps ENUM-01 slugs to ai_RNbBHYUx–ai_RNbBHYVE; SETTINGS_TAB_PANEL_BUBBLE_IDS maps eight G - * panel roots under ai_RNbBHYVF",
-        "frontend/src/components/settings/SettingsTabBar.tsx — eight tab buttons with data-tab-value slug keys, role=tablist/tab, aria-selected and aria-controls wiring",
-        "frontend/src/components/settings/SettingsMain.tsx — ai_RNbBHYVF panels container renders eight tabpanels; exactly one visible via hidden + className hidden per isTabActive"
+        "frontend/src/lib/settings/settingsTabStore.ts",
+        "frontend/src/components/settings/SettingsTabBar.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx"
       ],
       "gap": null
     },
@@ -33,11 +30,8 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/settings/SettingsTabBar.tsx — bubbleStyle('Group_tab_bar_') and data-style-ref on ai_RNbBHYUw",
-        "ir/inventory.json — style_ref:ai_RNbBHYUw meta.style_target Group_tab_bar_",
-        "ir/slices/styles.json — Group_tab_bar_ bgcolor/padding/border_roundness tokens",
-        "frontend/src/components/AppSidebar.tsx — crisis resources remain at data-bubble-id bTIfa in SidebarFooter; not present in SettingsMain",
-        "frontend/src/pages/Settings.tsx — uses DashboardLayout with settings shell instance ids only; no crisis reimplementation in settings-main"
+        "frontend/src/components/settings/SettingsTabBar.tsx",
+        "frontend/src/components/AppSidebar.tsx"
       ],
       "gap": null
     }
@@ -45,101 +39,69 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "Eight settings tab buttons toggle exactly one visible G - * panel under ai_RNbBHYVF via settings_tab_os_ slug state",
+      "check": "Tab click updates activeTab and reveals matching panel",
       "status": "pass",
       "evidence": [
         "frontend/src/components/settings/SettingsTabBar.tsx",
-        "frontend/src/components/settings/SettingsMain.tsx",
-        "frontend/src/lib/settings/settingsTabStore.ts"
+        "frontend/src/components/settings/SettingsMain.tsx"
       ]
     },
     {
       "id": "FV-2",
-      "check": "Settings tab chrome mounts inside SHELL-09 ai_RNbBHYUr content boundary within DashboardLayout",
+      "check": "Exactly one tab panel visible at a time",
       "status": "pass",
-      "evidence": [
-        "frontend/src/pages/Settings.tsx — DashboardLayout children is SettingsMain",
-        "frontend/src/components/settings/SettingsMain.tsx — ai_RNbBHYUr root with module ownership marker"
-      ]
+      "evidence": ["frontend/src/components/settings/SettingsMain.tsx"]
     },
     {
       "id": "FV-3",
-      "check": "Default active tab is profile (bTIiw / SETTINGS_TAB.PROFILE) with working tab bar interaction",
+      "check": "Tab state uses ENUM-01 slug keys",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/settings/settingsTabStub.ts — DEFAULT_SETTINGS_TAB = SETTINGS_TAB.PROFILE",
-        "frontend/src/lib/settings/settingsTabStore.ts — defaultTab profile on first render"
+        "frontend/src/lib/enums/settingsTabs.ts",
+        "frontend/src/lib/settings/settingsTabStore.ts"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Crisis support not duplicated inside settings-main",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsMain.tsx",
+        "frontend/src/components/AppSidebar.tsx"
       ]
     }
   ],
   "ui_evidence": [
-    { "bubble_id": "bTHDh", "selector": "[data-bubble-id='bTHDh']", "status": "pass", "notes": "SHELL-09 page root preserved via Settings.tsx → DashboardLayout; SET-01 does not re-own shell markers" },
     { "bubble_id": "ai_RNbBHYUr", "selector": "[data-bubble-id='ai_RNbBHYUr']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYUs", "selector": "[data-bubble-id='ai_RNbBHYUs']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYUt", "selector": "[data-bubble-id='ai_RNbBHYUt']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYUu", "selector": "[data-bubble-id='ai_RNbBHYUu']", "status": "pass", "notes": "bubbleStyle(Text_heading_1_) applied; static Account Settings copy" },
-    { "bubble_id": "ai_RNbBHYUv", "selector": "[data-bubble-id='ai_RNbBHYUv']", "status": "pass", "notes": "bubbleStyle(Text_body_muted_) applied" },
-    { "bubble_id": "ai_RNbBHYUw", "selector": "[data-bubble-id='ai_RNbBHYUw']", "status": "pass", "notes": "style_ref:ai_RNbBHYUw → Group_tab_bar_ via bubbleStyle" },
-    { "bubble_id": "ai_RNbBHYUx", "selector": "[data-bubble-id='ai_RNbBHYUx']", "status": "pass", "notes": "Profile tab; Button_tab_active_ / Button_tab_ swap on selection" },
-    { "bubble_id": "ai_RNbBHYUy", "selector": "[data-bubble-id='ai_RNbBHYUy']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYUz", "selector": "[data-bubble-id='ai_RNbBHYUz']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYVA", "selector": "[data-bubble-id='ai_RNbBHYVA']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYVB", "selector": "[data-bubble-id='ai_RNbBHYVB']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYVC", "selector": "[data-bubble-id='ai_RNbBHYVC']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYVD", "selector": "[data-bubble-id='ai_RNbBHYVD']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYVE", "selector": "[data-bubble-id='ai_RNbBHYVE']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYVF", "selector": "[data-bubble-id='ai_RNbBHYVF']", "status": "pass", "notes": "Panels container present; eight G - * child panel markers toggle visibility — inner entities deferred to SET-02+ per scope" }
+    { "bubble_id": "ai_RNbBHYUw", "selector": "[data-bubble-id='ai_RNbBHYUw']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVF", "selector": "[data-bubble-id='ai_RNbBHYVF']", "status": "pass" }
   ],
-  "gaps": [],
+  "gaps": [
+    "Header copy diverges from Bubble IR (Account Settings vs Settings)",
+    "Tab labels Privacy/Admin vs Privacy & Data/Admin Dashboard",
+    "Notifications/Workplace tab order swapped vs IR"
+  ],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
       "area": "ui-fidelity",
       "priority": "medium",
-      "finding": "Tab panel roots (ai_RNbBHYVG … ai_RNbBHYZD) render as empty hidden shells with no inner IR entities; acceptable for SET-01 chrome-only scope but users see blank content until SET-02+ lands panel bodies.",
-      "alternative": "Mount downstream tab components as children of each SettingsTabPanel or document explicit deferral in coverage when panels are toggled.",
+      "finding": "Header and tab labels use SETTINGS_TAB_DISPLAY_LABELS instead of IR-grounded strings.",
+      "alternative": "Align copy verbatim with Bubble IR text nodes.",
       "evidence": [
-        "frontend/src/components/settings/SettingsMain.tsx — SettingsTabPanel renders marker-only div",
-        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json — scope: no tab panel internals"
+        "frontend/src/lib/settings/settingsTabStub.ts",
+        "frontend/src/components/settings/SettingsMain.tsx"
       ]
     },
     {
       "id": "C-2",
-      "area": "brownfield",
-      "priority": "medium",
-      "finding": "SHELL-09 brownfield prototype settings widgets inside ai_RNbBHYUr were replaced by tab chrome and empty panels; working profile/subscription UI is gone until SET-02+ restores panel content.",
-      "alternative": "Retain prototype panel bodies inside respective panel bubble ids during SET-01 gap-fill, then migrate IR fidelity in SET-02+ without user-visible regression.",
-      "evidence": [
-        "cursor-impl-cycle/output/coverage/SHELL-09-settings-page-shell.json — AC-3 noted prototype UI inside ai_RNbBHYUr",
-        "frontend/src/pages/Settings.tsx — now mounts SettingsMain only"
-      ]
-    },
-    {
-      "id": "C-3",
       "area": "ui-fidelity",
-      "priority": "low",
-      "finding": "SettingsTabBar adds responsive Tailwind overrides (flex-wrap gap-1, border-0 on buttons) atop Group_tab_bar_ / Button_tab_* classes; minor layout delta from IR fixed tab bar though layout_notes allow wrap on narrow viewports.",
-      "alternative": "Reconcile fit_width fluid semantics from IR presentation when responsive polish pass is scheduled.",
-      "evidence": [
-        "frontend/src/components/settings/SettingsTabBar.tsx"
-      ]
-    },
-    {
-      "id": "C-4",
-      "area": "architecture",
-      "priority": "low",
-      "finding": "useSettingsTabStore is local React hook state per SettingsMain mount, not a shared store or explicit SETTINGS_TAB_CUSTOM_STATE_KEY binding; naming may mislead if URL/deep-link tab sync is needed later.",
-      "alternative": "Lift tab state to Settings.tsx context or sync slug to query param if navigation must preserve active tab across remounts.",
-      "evidence": [
-        "frontend/src/lib/settings/settingsTabStore.ts",
-        "frontend/src/lib/settings/settingsTabStub.ts — SETTINGS_TAB_CUSTOM_STATE_KEY exported but unused in store"
-      ]
+      "priority": "medium",
+      "finding": "Notifications and Workplace tabs swapped in SETTINGS_TAB_ORDER vs Bubble order.",
+      "alternative": "Reorder SETTINGS_TAB_ORDER to match IR.",
+      "evidence": ["frontend/src/lib/enums/settingsTabs.ts"]
     }
   ],
-  "scores": {
-    "completeness": 4,
-    "grounding": 5,
-    "actionability": 4
-  }
+  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
 }

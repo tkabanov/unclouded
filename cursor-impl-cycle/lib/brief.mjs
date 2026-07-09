@@ -117,6 +117,18 @@ export function subagentModelFor(project, role, phase) {
   return resolveSubagentModel(project.subagents?.[key]?.model);
 }
 
+/**
+ * Task `readonly: true` enables Cursor Ask mode and blocks ALL file writes — including
+ * output/reports/*.json. Review/triage subagents must write report artifacts, so default false.
+ * Source-code protection is enforced in review/triage prompts (write only brief.outputs).
+ */
+export function subagentReadonlyFor(project, role, phase) {
+  const key = subagentConfigKey(role, phase);
+  const configured = project.subagents?.[key]?.readonly;
+  if (configured !== undefined) return configured === true;
+  return false;
+}
+
 function formatModelInstruction(model) {
   if (!model) return "model: auto (omit Task `model` — router default)";
   return `model: \`${model}\` (set Task \`model\` parameter)`;
@@ -142,7 +154,7 @@ export function buildBrief({ cycle, paths, project, role }) {
     outputs: outputsFor(paths, role, phase, targetId),
     subagent_type: subagentTypeFor(project, role, phase),
     model: subagentModelFor(project, role, phase),
-    readonly: role === "review" || role === "triage",
+    readonly: subagentReadonlyFor(project, role, phase),
   };
 
   fs.mkdirSync(paths.stateDir, { recursive: true });
@@ -166,7 +178,7 @@ export function buildBriefFor({ paths, project, role, phase, targetId, moduleId 
     outputs: outputsFor(paths, role, phase, targetId),
     subagent_type: subagentTypeFor(project, role, phase),
     model: subagentModelFor(project, role, phase),
-    readonly: role === "review" || role === "triage",
+    readonly: subagentReadonlyFor(project, role, phase),
   };
 
   const briefsDir = path.join(paths.stateDir, "briefs");
@@ -245,6 +257,12 @@ export function buildWaveFollowup({ manifest, paths, project }) {
       brownfieldNote +
       ". Do NOT write review/triage JSON inline — only via the delegated subagent.",
   );
+  if (dispatches.some((d) => d.role === "review" || d.role === "triage")) {
+    lines.push(
+      "Review/triage subagents: **omit Task `readonly`** (or `readonly: false`). " +
+        "They must persist report JSON under each task's `outputs` paths only — do not edit application source.",
+    );
+  }
 
   return lines.join("\n");
 }
@@ -262,10 +280,10 @@ export function buildFollowupMessage({ brief, templatePath, reason, role, paths 
   let mandate;
   if (role === "review") {
     mandate =
-      `**Required:** Delegate to Task subagent (${taskFlags || "generalPurpose, readonly: true"}). Do NOT write review JSON inline.\n\n`;
+      `**Required:** Delegate to Task subagent (${taskFlags || "generalPurpose"}; omit \`readonly\`). Subagent writes only \`${brief.outputs.join(", ")}\`. Do NOT write review JSON inline.\n\n`;
   } else if (role === "triage") {
     mandate =
-      `**Required:** Delegate to Task subagent (${taskFlags || "generalPurpose, readonly: true"}). Do NOT write triage JSON inline.\n\n`;
+      `**Required:** Delegate to Task subagent (${taskFlags || "generalPurpose"}; omit \`readonly\`). Subagent writes only \`${brief.outputs.join(", ")}\`. Do NOT write triage JSON inline.\n\n`;
   } else {
     mandate = `**Required:** Delegate to Task subagent (${taskFlags}).\n\n`;
   }

@@ -78,6 +78,9 @@ export function resolvePaths(workspaceRoot, project, packRoot = PACK_ROOT) {
       project.path_conventions_path ??
         packDefault(workspaceRoot, packRoot, "config/path-conventions.json"),
     ),
+    providerScopeSeedPath: project.provider_scope_seed_path
+      ? path.join(workspaceRoot, project.provider_scope_seed_path)
+      : packDefault(workspaceRoot, packRoot, "config/drsam-scope-seed.json"),
     promptsDir: path.join(packRoot, "prompts"),
     schemasDir: path.join(packRoot, "schemas"),
   };

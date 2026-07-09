@@ -1,20 +1,18 @@
 {
   "phase": "implement",
   "target_id": "DASH-01-dashboard-content-scaffold",
-  "assessed_at": "2026-07-07T20:40:00.000Z",
+  "assessed_at": "2026-07-08T18:49:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 91,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardMain.tsx — root data-bubble-id ai_RNbBHXRD with data-module-owner MOD-DRSAM-DASHBOARD",
-        "frontend/src/components/dashboard/DashboardMain.tsx — child ai_RNbBHXRE (dashboard-content) nests ai_RNbBHXRF (greeting-row) and ai_RNbBHXRW (dashboard-grid)",
-        "frontend/src/pages/Dashboard.tsx — renders DashboardMain inside DashboardLayout content slot",
-        "ir/inventory.json — parent_id chain bTHDT → ai_RNbBHXRD → ai_RNbBHXRE → {ai_RNbBHXRF, ai_RNbBHXRW}"
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "gap": null
     },
@@ -22,10 +20,8 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardMain.tsx — dashboard-grid uses fluid w-full grid-cols-1 lg:grid-cols-2",
-        "frontend/src/components/dashboard/DashboardMain.tsx — left column data-bubble-id ai_RNbBHXRX; right column slots ai_RNbBHXSf, ai_RNbBHXSM, ai_RNbBHXSx, bTIfU in IR order",
-        "frontend/src/lib/dashboard/routes.ts — exports grid and slot bubble id constants",
-        "ir/inventory.json — ai_RNbBHXRX and right-column slot ids are direct children of ai_RNbBHXRW"
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/lib/dashboard/routes.ts"
       ],
       "gap": null
     },
@@ -33,10 +29,9 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/hooks/useDashboardUser.ts — mapProfileToDashboardUser maps useUserProfile to DashboardUserDisplay (firstName, classification, pressure profile, mode flags)",
-        "frontend/src/hooks/useDashboardUser.ts — DashboardUserProvider + useDashboardUserContext expose fields to widget subtree",
-        "frontend/src/components/dashboard/DashboardMain.tsx — wraps scaffold in DashboardUserProvider",
-        "ir/inventory.json — ai_RNbBHXRD data_binding kind current_user / content_type user"
+        "frontend/src/hooks/useDashboardUser.ts",
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
       ],
       "gap": null
     }
@@ -44,152 +39,66 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "DashboardMain scaffold mounts inside SHELL-06 DashboardLayout with page/header/sidebar bubble props unchanged",
+      "check": "DashboardMain mounts inside SHELL-06 DashboardLayout content slot with ai_RNbBHXRD boundary",
       "status": "pass",
       "evidence": [
         "frontend/src/pages/Dashboard.tsx",
         "frontend/src/components/DashboardLayout.tsx",
-        "frontend/src/lib/dashboard/routes.ts"
+        "frontend/src/components/dashboard/DashboardMain.tsx"
       ]
     },
     {
       "id": "FV-2",
-      "check": "useDashboardUser composable supplies current_user display fields via context without re-implementing header/sidebar chrome",
+      "check": "dashboard-grid uses fluid responsive two-column layout (stacked on narrow viewports)",
       "status": "pass",
-      "evidence": [
-        "frontend/src/hooks/useDashboardUser.ts",
-        "frontend/src/components/dashboard/DashboardMain.tsx"
-      ]
+      "evidence": ["frontend/src/components/dashboard/DashboardMain.tsx"]
     },
     {
       "id": "FV-3",
-      "check": "Dashboard renders complete-profile and incomplete-profile branches inside ai_RNbBHXRD boundary with two-column grid scaffold",
+      "check": "useDashboardUser composable supplies display fields to slot children via DashboardUserProvider",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/components/dashboard/DashboardMain.tsx"
+        "frontend/src/hooks/useDashboardUser.ts",
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
       ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Incomplete-profile branch preserves scaffold regions and slot bubble-id markers",
+      "status": "pass",
+      "evidence": ["frontend/src/pages/Dashboard.tsx"]
     }
   ],
   "ui_evidence": [
-    {
-      "bubble_id": "bTHDT",
-      "selector": "[data-bubble-id='bTHDT']",
-      "status": "pass",
-      "notes": "Page root on DashboardLayout via dashboardShellProps.pageBubbleId (SHELL-06 integration verified)"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRD",
-      "selector": "[data-bubble-id='ai_RNbBHXRD']",
-      "status": "pass",
-      "notes": "dashboard-main boundary on DashboardMain root; SHELL-06 wrapper div removed in favor of component-owned marker"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRE",
-      "selector": "[data-bubble-id='ai_RNbBHXRE']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRF",
-      "selector": "[data-bubble-id='ai_RNbBHXRF']",
-      "status": "pass",
-      "notes": "Greeting-row slot region; widget internals deferred to DASH-02+"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRW",
-      "selector": "[data-bubble-id='ai_RNbBHXRW']",
-      "status": "pass",
-      "notes": "Two-column responsive grid per layout_notes"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRX",
-      "selector": "[data-bubble-id='ai_RNbBHXRX']",
-      "status": "pass",
-      "notes": "Left column daily-check-in anchor"
-    },
-    {
-      "bubble_id": "ai_RNbBHXSf",
-      "selector": "[data-bubble-id='ai_RNbBHXSf']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXSM",
-      "selector": "[data-bubble-id='ai_RNbBHXSM']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXSx",
-      "selector": "[data-bubble-id='ai_RNbBHXSx']",
-      "status": "pass",
-      "notes": "Slot present; journal content deferred to DASH-06"
-    },
-    {
-      "bubble_id": "bTIfU",
-      "selector": "[data-bubble-id='bTIfU']",
-      "status": "pass",
-      "notes": "Crisis slot present; widget deferred to DASH-07"
-    }
+    { "bubble_id": "bTHDT", "selector": "[data-bubble-id='bTHDT']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRD", "selector": "[data-bubble-id='ai_RNbBHXRD']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRE", "selector": "[data-bubble-id='ai_RNbBHXRE']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRF", "selector": "[data-bubble-id='ai_RNbBHXRF']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRW", "selector": "[data-bubble-id='ai_RNbBHXRW']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHXRX", "selector": "[data-bubble-id='ai_RNbBHXRX']", "status": "pass" }
   ],
-  "gaps": [
-    {
-      "id": "G-1",
-      "area": "hierarchy",
-      "finding": "IR places bTIpm (upgrade/subscription banner group) as a sibling of ai_RNbBHXRE directly under ai_RNbBHXRD; brownfield beforeGrid banners render inside ai_RNbBHXRE between greeting-row and grid.",
-      "evidence": [
-        "ir/inventory.json",
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/components/dashboard/DashboardMain.tsx"
-      ]
-    }
-  ],
+  "gaps": [],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "data-binding",
+      "area": "scaffold-slot-population",
       "priority": "medium",
-      "finding": "Dashboard.tsx still reads useUserProfile directly for slot content instead of useDashboardUserContext, so the new composable is wired at the provider layer but not yet consumed by brownfield widget markup.",
-      "alternative": "Migrate Dashboard.tsx slot builders to useDashboardUserContext (or pass user from a thin page-level hook) so AC-3 binding is exercised end-to-end before DASH-02+ splits widgets into child components.",
-      "evidence": [
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/hooks/useDashboardUser.ts"
-      ]
+      "finding": "Incomplete-profile branch omits currentPath, chatPreview, and journalPreview slot children.",
+      "alternative": "Mount downstream widget components in the incomplete branch too.",
+      "evidence": ["frontend/src/pages/Dashboard.tsx"]
     },
     {
       "id": "C-2",
       "area": "ui-fidelity",
       "priority": "medium",
-      "finding": "beforeGrid upgrade/reassessment CTAs are nested inside ai_RNbBHXRE; IR bTIpm is a separate ai_RNbBHXRD child outside dashboard-content. Acceptable brownfield retention for scaffold but diverges from Bubble sibling order.",
-      "alternative": "Add a dashboard-banners slot sibling to dashboard-content (or data-bubble-id bTIpm region) when DASH-03+ lands subscription/micro-commitment rows.",
+      "finding": "beforeGrid renders ContinueOnboardingBanner inside ai_RNbBHXRE rather than sibling to dashboard-content.",
+      "alternative": "Move beforeGrid to sibling of ai_RNbBHXRE per DASH-07 layout_notes.",
       "evidence": [
-        "ir/inventory.json",
-        "frontend/src/components/dashboard/DashboardMain.tsx"
-      ]
-    },
-    {
-      "id": "C-3",
-      "area": "scaffold-completeness",
-      "priority": "low",
-      "finding": "journalPreview and crisisSupport slots are defined with bubble ids but Dashboard.tsx does not pass content for complete-profile branch; slots render empty placeholders until DASH-06/DASH-07.",
-      "alternative": "No action for DASH-01 scope; ensure downstream items mount into ai_RNbBHXSx and bTIfU without restructuring the grid.",
-      "evidence": [
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/components/dashboard/DashboardMain.tsx"
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx"
       ]
     }
   ],
-  "scores": {
-    "completeness": 4,
-    "grounding": 5,
-    "actionability": 4
-  },
-  "brownfield": {
-    "preflight_present": true,
-    "reuse_decision": "extend",
-    "forbidden_paths_touched": false
-  },
-  "shell_06_integration": {
-    "status": "pass",
-    "notes": "Dashboard.tsx preserves dashboardShellProps (bTHDT, ai_RNbBKLUh, ai_RNbBKLUi); DashboardMain owns ai_RNbBHXRD boundary inside DashboardLayout main slot; shell chrome unchanged."
-  }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }

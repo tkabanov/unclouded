@@ -1,3 +1,5 @@
+import { extractLoadSignalSlugs } from "@/lib/enums/onboardingQuestions";
+import { STATE_NERVOUS_SYSTEM } from "@/lib/enums/wellnessState";
 import { resolvePressureProfile } from "./buildPressureProfile";
 import { loadProfileRow, patchOnboardingAndResults } from "./profileFieldPatch";
 
@@ -23,7 +25,11 @@ export async function calculateUserPressureProfile(userId: string): Promise<stri
   const loadSignals = readSignalRecord(onboarding_data, "loadSignals");
   const stateSignals = readSignalRecord(onboarding_data, "stateSignals");
 
-  const profile = resolvePressureProfile(loadSignals, stateSignals);
+  const loadSignalSlugs = extractLoadSignalSlugs(loadSignals);
+  const nervousSystemSlug =
+    stateSignals.nervous_system_state ?? STATE_NERVOUS_SYSTEM.REGULATED;
+
+  const profile = resolvePressureProfile(loadSignalSlugs, nervousSystemSlug);
 
   await patchOnboardingAndResults(
     userId,

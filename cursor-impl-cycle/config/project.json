@@ -5,7 +5,7 @@
   "styles_slice": "ir/slices/styles.json",
   "frontend_app_dir": "frontend",
   "adapter_dir": null,
-  "supabase_context_dir": "frontend/supabase",
+  "supabase_context_dir": "supabase",
   "prototype_inventory_path": "cursor-impl-cycle/config/prototype-inventory.json",
   "path_conventions_path": "cursor-impl-cycle/config/path-conventions.json",
   "coverage_threshold_pct": 90,
@@ -24,17 +24,17 @@
   "forbidden_write_paths": ["project/"],
   "parallel": {
     "enabled": true,
-    "decompose": { "max": 4 },
+    "decompose": { "max": 6 },
     "implement": {
       "write_strategy": "serial",
-      "max": 4,
-      "review_triage_max": 4
+      "max": 6,
+      "review_triage_max": 6
     }
   },
   "subagents": {
     "write": { "subagent_type": "generalPurpose", "model": "auto", "readonly": false },
-    "review": { "subagent_type": "generalPurpose", "model": "auto", "readonly": true },
-    "triage": { "subagent_type": "generalPurpose", "model": "auto", "readonly": true },
+    "review": { "subagent_type": "generalPurpose", "model": "auto", "readonly": false },
+    "triage": { "subagent_type": "generalPurpose", "model": "auto", "readonly": false },
     "implement": { "subagent_type": "generalPurpose", "model": "auto", "readonly": false }
   }
 }

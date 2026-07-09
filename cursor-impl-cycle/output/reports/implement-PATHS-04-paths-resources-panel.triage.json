@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "PATHS-04-paths-resources-panel",
-  "assessed_at": "2026-07-08T09:52:00.000Z",
+  "assessed_at": "2026-07-08T22:31:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-04-paths-resources-panel.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,22 +11,22 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "PATHS-04 AC-3 explicitly requires resource-view-btn ai_RNbBHYJN to open the resource popup; delivering ResourceDetailPopup wiring in this rewrite was necessary to pass AC-3/FV-4 and is not a criteria failure. Full popup body migration is scoped to PATHS-05-resource-detail-popup (target_files: ResourceDetailPopup.tsx). Record cross-item completion for PATHS-05 so that wave can run delta review or mark largely satisfied rather than re-implementing."
+      "rationale": "Valid coverage-artifact gap: files_changed lists ResourceDetailPopup.tsx, Paths.tsx, routes.ts, and the coverage JSON but omits PathsResourcesPanel.tsx, ResourceCard.tsx, and pathsResourcesApi.ts even though preflight.mapped_target_files and criteria_audit AC-2/AC-3 evidence cite all three as primary deliverables. Brownfield triage confirms all three target_files exist, are fully implemented (pinned crisis section, resource RG + fetchResources, View Resource handoff), and criteria_audit/functional_audit/ui_evidence all pass at 100%. Omission is audit traceability housekeeping only — it does not reduce coverage_pct, fail any AC, or block downstream PATHS-05 depends_on on resource-view-btn popup wiring. Expand files_changed on the next coverage pass; no source rewrite required for advance."
     },
     {
       "critique_id": "C-2",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "rationale": "Crisis card titles use tel:/sms: href links instead of IR static Text — a deliberate functional improvement for crisis resources, consistent with existing brownfield patterns (CrisisBar, CrisisSupportCard, AppSidebar). AC-2 passes on copy, Group_card_ styling, and named ui_refs (ai_RNbBHYIQ/IZ/Ii); no ui_evidence failure. Review itself labels this an acceptable UX delta; pixel-parity non-link text is not in PATHS-04 ACs."
+      "rationale": "IR re-read confirms Group_card_ specifies padding 24px on all sides (ir/slices/styles.json). bubbleStyle(Group_card_) in frontend/src/styles/bubble-styles.css already maps that 24px padding; PathsResourcesPanel PinnedCrisisCard and ResourceCard also apply Tailwind p-5 (20px), which may override the DS class via cascade — a 4px delta. However Group_card_ is applied via bubbleStyle + data-style-ref on both components, review ui_evidence for Group_card_ passes, and the p-5 stack is shared repo-wide (PathCard, DashboardChatPreviewCard, etc.). PATHS-04 ACs require Group_card_ styling, not explicit pixel padding in acceptance criteria; downstream PATHS-05 depends on popup handoff, not card inset. Defer removing redundant p-5 or consolidating Group_card_ padding across cards as optional DS-01 polish."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "STATIC_FALLBACK_RESOURCES in pathsResourcesApi ensures the resource RG renders when Supabase tables are empty in dev — prototype ergonomics, not live Bubble custom.resource parity. All ACs and functional checks pass with real or fallback data; no criteria_audit or data-contract failure. Optional VITE_DEV_ONLY gating or empty-state copy is polish outside PATHS-04 scope; defer to a later data-hardening wave if needed."
+      "rationale": "Coverage functional_verification reuses FV-4 label from PATHS-01 tab chrome while review independently derived FV-1..3 from this item's ACs (tab gating, fetchResources RG load, View Resource popup). Independent functional_audit FV-1..3 all pass with correct evidence on PathsResourcesPanel, pathsResourcesApi, ResourceCard, and Paths.tsx popup state. ID cross-item confusion is coverage-artifact labeling only — behavior is verified and AC-3 popup handoff is satisfied. Align functional_verification row IDs with item-specific checks on the next coverage pass; no source rewrite required for advance."
     }
   ],
-  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — post-rewrite review ok=true, coverage 100%, rewrite_pass true, 0 blockers, all ACs and FV-4 pass. C-1 deferred to PATHS-05-resource-detail-popup for delta review / cross-item completion note. C-2 accepted: tel/sms crisis links match app-wide crisis UX; IR static-text parity not required. C-3 deferred: dev static fallback is non-blocking prototype convenience."
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and ui_evidence pass. Deferred: C-1 coverage files_changed completeness for PathsResourcesPanel.tsx, ResourceCard.tsx, pathsResourcesApi.ts (artifact hygiene); C-2 Group_card_ redundant p-5 vs bubbleStyle 24px padding (DS-01 card-padding polish); C-3 functional_verification FV ID alignment with item-specific checks (coverage labeling hygiene)."
 }

@@ -1,7 +1,7 @@
 {
   "item_id": "PATHS-05-resource-detail-popup",
   "module_id": "MOD-DRSAM-PATHS",
-  "assessed_at": "2026-07-08T10:10:00.000Z",
+  "assessed_at": "2026-07-09T04:11:00.000Z",
   "coverage_pct": 100,
   "rewrite_pass": true,
   "preflight": {
@@ -12,7 +12,7 @@
       "frontend/src/components/paths/ResourceCard.tsx"
     ],
     "gaps": [
-      "Rewrite B-1: ai_RNbBHYKS/ai_RNbBHYKT were wrongly mapped as sensitivity; IR defines them as link-group and link-label (External Link). Header sensitivity belongs on ai_RNbBHYKG in badges row."
+      "Triage C-1 fixed: removed card-only ai_RNbBHYJM from popup; popup disclaimer uses ai_RNbBHYKM row and ai_RNbBHYKO text per IR"
     ],
     "reuse_decision": "extend",
     "mapped_target_files": {
@@ -32,8 +32,8 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — body ai_RNbBHYKL with disclaimer row ai_RNbBHYKM, content ai_RNbBHYKR; sensitivity shown only in header ai_RNbBHYKG (no popup body sensitivity in IR; card uses ai_RNbBHYJI/JJ/JK separately)",
-        "frontend/src/lib/paths/routes.ts — PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY from Bubble ai_RNbBHYKO static text"
+        "frontend/src/components/paths/ResourceDetailPopup.tsx — body ai_RNbBHYKL with disclaimer row ai_RNbBHYKM, icon ai_RNbBHYKN, disclaimer text ai_RNbBHYKO, and content ai_RNbBHYKR",
+        "frontend/src/lib/paths/routes.ts — PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY from Bubble ai_RNbBHYKO static text; card-only ai_RNbBHYJM retained on ResourceCard only"
       ]
     },
     {
@@ -60,15 +60,18 @@
     { "bubble_id": "ai_RNbBHYMy", "selector": "[data-bubble-id='ai_RNbBHYMy']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYJz", "selector": "[data-bubble-id='ai_RNbBHYJz']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKA", "selector": "[data-bubble-id='ai_RNbBHYKA']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKB", "selector": "[data-bubble-id='ai_RNbBHYKB']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKC", "selector": "[data-bubble-id='ai_RNbBHYKC']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKE", "selector": "[data-bubble-id='ai_RNbBHYKE']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKG", "selector": "[data-bubble-id='ai_RNbBHYKG']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKI", "selector": "[data-bubble-id='ai_RNbBHYKI']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKL", "selector": "[data-bubble-id='ai_RNbBHYKL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKM", "selector": "[data-bubble-id='ai_RNbBHYKM']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKN", "selector": "[data-bubble-id='ai_RNbBHYKN']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYKO", "selector": "[data-bubble-id='ai_RNbBHYKO']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKR", "selector": "[data-bubble-id='ai_RNbBHYKR']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKS", "selector": "[data-bubble-id='ai_RNbBHYKS']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKT", "selector": "[data-bubble-id='ai_RNbBHYKT']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJM", "selector": "[data-bubble-id='ai_RNbBHYJM']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKV", "selector": "[data-bubble-id='ai_RNbBHYKV']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKU", "selector": "[data-bubble-id='ai_RNbBHYKU']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYKW", "selector": "[data-bubble-id='ai_RNbBHYKW']", "status": "pass" },
@@ -76,7 +79,6 @@
   ],
   "files_changed": [
     "frontend/src/components/paths/ResourceDetailPopup.tsx",
-    "frontend/src/lib/paths/routes.ts",
     "cursor-impl-cycle/output/coverage/PATHS-05-resource-detail-popup.json"
   ]
 }

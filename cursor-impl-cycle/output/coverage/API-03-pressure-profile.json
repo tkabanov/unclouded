@@ -1,25 +1,59 @@
 {
   "item_id": "API-03-pressure-profile",
   "module_id": "MOD-DRSAM-API",
-  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "assessed_at": "2026-07-09T07:53:17.000Z",
   "coverage_pct": 100,
   "preflight": {
-    "existing_files_found": ["frontend/src/lib/classification.ts"],
-    "gaps": ["AC-1: Pressure profile logic embedded in classification.ts only"],
+    "existing_files_found": [
+      "frontend/src/lib/userProfile/buildPressureProfile.ts",
+      "frontend/src/lib/userProfile/calculateUserPressureProfile.ts",
+      "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+      "frontend/src/lib/userProfile/buildPressureProfile.test.ts",
+      "frontend/src/lib/enums/onboardingQuestions.ts",
+      "frontend/src/lib/enums/wellnessState.ts"
+    ],
+    "gaps": [
+      "AC-1: resolvePressureProfile used prototype severity buckets instead of bTIAw three-branch logic",
+      "AC-2: calculateUserPressureProfile did not map AUTH-05 slugs to Bubble-parity pressure_profile_text"
+    ],
     "reuse_decision": "extend",
     "mapped_target_files": {
-      "frontend/src/api/userProfile/buildPressureProfile.ts": "frontend/src/lib/userProfile/buildPressureProfile.ts"
+      "frontend/src/lib/userProfile/buildPressureProfile.ts": "frontend/src/lib/userProfile/buildPressureProfile.ts",
+      "frontend/src/lib/userProfile/calculateUserPressureProfile.ts": "frontend/src/lib/userProfile/calculateUserPressureProfile.ts",
+      "frontend/src/lib/userProfile/onboardingProfilePipeline.ts": "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
     }
   },
   "criteria": [
-    {"id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts"]},
-    {"id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts"]},
-    {"id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"]}
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/buildPressureProfile.ts — resolvePressureProfile implements bTIAw branches: high-intensity join (bTIBH), wired low-external (bTICE), default low-pressure (bTICC)",
+        "frontend/src/lib/enums/onboardingQuestions.ts — per-answer intensity + loadType + high_intensity_text metadata for ENUM-02 slugs",
+        "frontend/src/lib/userProfile/buildPressureProfile.test.ts — five branch fixtures covering all three paths"
+      ]
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserPressureProfile.ts — reads onboarding_data.loadSignals and stateSignals.nervous_system_state from AUTH-05, calls resolvePressureProfile, patches pressure_profile_text and results.pressure_profile"
+      ]
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts — runOnboardingProfilePipeline invokes calculateUserPressureProfile after calculateUserClassification"
+      ]
+    }
   ],
   "files_changed": [
+    "frontend/src/lib/enums/onboardingQuestions.ts",
     "frontend/src/lib/userProfile/buildPressureProfile.ts",
     "frontend/src/lib/userProfile/calculateUserPressureProfile.ts",
-    "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+    "frontend/src/lib/userProfile/buildPressureProfile.test.ts",
+    "frontend/src/lib/classification.ts"
   ],
   "functional_ok": true
 }

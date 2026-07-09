@@ -4,7 +4,7 @@ import { ChatReusable } from "./ChatReusable";
 import type { ChatConversation, ChatMessage } from "./types";
 import { CHAT_CONVERSATION_DEFAULTS } from "./types";
 import {
-  fetchConversations,
+  fetchConversationById,
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
 import {
@@ -42,16 +42,20 @@ export default function ChatPanelMount({
   const [composerValue, setComposerValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const { selectedMode, modeBadgeText, onModeSelect } = useCoachingModeUpdate();
+  const { selectedMode, modeBadgeText, onModeSelect } = useCoachingModeUpdate({
+    conversationId,
+    userId,
+    initialMode: conversationMeta?.coaching_mode,
+  });
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [conversations, nextMessages] = await Promise.all([
-        fetchConversations(userId, onboardingData),
+      const [conversation, nextMessages] = await Promise.all([
+        fetchConversationById(userId, conversationId, onboardingData),
         fetchMessagesForConversation(conversationId, onboardingData),
       ]);
-      setConversationMeta(conversations.find((row) => row.id === conversationId) ?? null);
+      setConversationMeta(conversation);
       setMessages(nextMessages);
     } catch {
       setConversationMeta(null);

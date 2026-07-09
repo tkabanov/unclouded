@@ -34,7 +34,7 @@
         "frontend/src/lib/journal/journalReflectionApi.ts",
         "frontend/src/lib/journal/journalEntriesApi.ts",
         "frontend/src/components/journal/EntryDetailPopup.tsx",
-        "frontend/supabase/functions/chat/index.ts"
+        "supabase/functions/chat/index.ts"
       ],
       "gap": null
     }

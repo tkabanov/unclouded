@@ -1,45 +1,215 @@
 {
   "phase": "implement",
   "target_id": "SET-08-workplace-tab-and-link-flow",
-  "assessed_at": "2026-07-08T14:30:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T07:16:00.000Z",
   "ok": true,
   "coverage_pct": 100,
   "coverage_confidence_pct": 93,
   "functional_ok": true,
+  "rewrite_verification": {
+    "prior_blockers": ["C-2", "C-3", "C-5"],
+    "status": "resolved",
+    "notes": "IR copy centralized in workplaceApi.ts and wired through SettingsWorkplaceTab.tsx: title (ai_RNbBHYYP), subtitle (ai_RNbBHYYQ), privacy (ai_RNbBHYYT), labels (ai_RNbBHYYW/ai_RNbBHYYZ), placeholders (ai_RNbBHYYX/ai_RNbBHYYa), and button (ai_RNbBHYYb) byte-match drsam-99657.bubble literals. Style refs Group_card_, Text_heading_2_, Text_small_, Text_label_, Input_default_, Button_primary_ applied. workplace upsert failures now surface via workplaceUpsertErrorMessage; ai_RNbBHYYS icon marker present."
+  },
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYM panel root with info card, form, privacy notice"], "gap": null },
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx"
+      ],
+      "gap": null,
+      "notes": "ai_RNbBHYYM panel root; ai_RNbBHYYN info card, ai_RNbBHYYU form, ai_RNbBHYYR privacy notice each carry data-bubble-id markers"
+    },
     {
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "SettingsWorkplaceTab.tsx — labels and inputs have bubble ids (ai_RNbBHYYW/ai_RNbBHYYZ and ai_RNbBHYYX/ai_RNbBHYYa)",
-        "Privacy notice: WORKPLACE_PRIVACY_TEXT_BUBBLE_ID ai_RNbBHYYT byte-match confirmed against drsam-99657.bubble literal",
-        "WORKPLACE_PRIVACY_ICON_BUBBLE_ID ai_RNbBHYYS icon marker present"
+        "frontend/src/lib/settings/workplaceApi.ts",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+        "drsam-99657.bubble"
       ],
-      "gap": null
+      "gap": null,
+      "notes": "Independent Bubble re-read confirms WORKPLACE_NAME_LABEL, WORKPLACE_EMAIL_LABEL, WORKPLACE_NAME_PLACEHOLDER, WORKPLACE_EMAIL_PLACEHOLDER, WORKPLACE_PRIVACY_TEXT, WORKPLACE_CARD_TITLE, WORKPLACE_CARD_SUBTITLE, and WORKPLACE_LINK_BTN_LABEL match IR static copy"
     },
-    { "id": "AC-3", "status": "pass", "evidence": ["workplaceApi linkWorkplace upserts workplace table + profiles.onboarding_data", "SettingsWorkplaceTab handleLink with toast + reload"], "gap": null }
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+        "supabase/migrations/20260708130000_subscription_workplace_billing.sql"
+      ],
+      "gap": null,
+      "notes": "linkWorkplace validates form, persists profiles.onboarding_data keys (workplace_name_text, workplace_contact_email_text, workplace_linked_at, workplace_custom_workplace), upserts workplace directory; handleLink on ai_RNbBHYYb with toast and reload"
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "Workplace tab renders info card, privacy, inputs, link button", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsWorkplaceTab.tsx"] },
-    { "id": "FV-2", "check": "Link validates name/email before persist", "status": "pass", "evidence": ["frontend/src/lib/settings/workplaceApi.ts — validateWorkplaceForm"] },
-    { "id": "FV-3", "check": "Successful link persists and reloads form state", "status": "pass", "evidence": ["workplaceApi linkWorkplace + loadWorkplaceLink"] },
-    { "id": "FV-4", "check": "Workplace upsert errors surfaced when schema present", "status": "pass", "evidence": ["workplaceApi isSchemaUnavailable + throw on real upsert errors"] }
+    {
+      "id": "FV-1",
+      "check": "Workplace tab renders info card, privacy callout, name/email inputs, and link button (not placeholder shell)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Link button validates required name/email and rejects invalid email before persist",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — validateWorkplaceForm"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Successful link persists workplace data for current user and reloads form state",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — linkWorkplace + loadWorkplaceLink",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — handleLink refreshes name/email after success"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Workplace directory upsert surfaces RLS/permission errors when schema present",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — workplaceUpsertErrorMessage, isRlsOrPermissionDenied, isSchemaUnavailable"
+      ]
+    }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYYN", "status": "pass", "notes": "Group_card_ applied" },
-    { "bubble_id": "ai_RNbBHYYP", "status": "pass", "notes": "Text_heading_2_" },
-    { "bubble_id": "ai_RNbBHYYQ", "status": "pass", "notes": "Text_small_" },
-    { "bubble_id": "ai_RNbBHYYS", "status": "pass", "notes": "Shield icon with data-bubble-id" },
-    { "bubble_id": "ai_RNbBHYYT", "status": "pass", "notes": "Privacy text byte-matches drsam-99657.bubble literal for ai_RNbBHYYT" },
-    { "bubble_id": "ai_RNbBHYYb", "status": "pass", "notes": "Link button inside form group ai_RNbBHYYU" }
+    {
+      "bubble_id": "ai_RNbBHYYM",
+      "selector": "[data-bubble-id='ai_RNbBHYYM']",
+      "status": "pass",
+      "notes": "Workplace tab panel root"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYN",
+      "selector": "[data-bubble-id='ai_RNbBHYYN']",
+      "status": "pass",
+      "notes": "Group_card_ style_ref applied"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYO",
+      "selector": "[data-bubble-id='ai_RNbBHYYO']",
+      "status": "partial",
+      "notes": "Header marker present; React adds Building2 icon but Bubble ai_RNbBHYYO contains only title and subtitle text children"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYP",
+      "selector": "[data-bubble-id='ai_RNbBHYYP']",
+      "status": "pass",
+      "notes": "Text_heading_2_; IR copy Workplace"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYQ",
+      "selector": "[data-bubble-id='ai_RNbBHYYQ']",
+      "status": "pass",
+      "notes": "Text_small_; IR employer-link subtitle byte-match"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYR",
+      "selector": "[data-bubble-id='ai_RNbBHYYR']",
+      "status": "pass",
+      "notes": "Privacy notice container with border/muted background"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYS",
+      "selector": "[data-bubble-id='ai_RNbBHYYS']",
+      "status": "pass",
+      "notes": "Shield icon with data-bubble-id inside ai_RNbBHYYR"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYT",
+      "selector": "[data-bubble-id='ai_RNbBHYYT']",
+      "status": "pass",
+      "notes": "Privacy static copy byte-matches drsam-99657.bubble literal for ai_RNbBHYYT"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYU",
+      "selector": "[data-bubble-id='ai_RNbBHYYU']",
+      "status": "pass",
+      "notes": "Form group wraps name/email field groups and link button"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYV",
+      "selector": "[data-bubble-id='ai_RNbBHYYV']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYW",
+      "selector": "[data-bubble-id='ai_RNbBHYYW']",
+      "status": "pass",
+      "notes": "Text_label_ style_ref; IR copy Organization Name"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYX",
+      "selector": "[data-bubble-id='ai_RNbBHYYX']",
+      "status": "pass",
+      "notes": "Input_default_; placeholder Your employer or organization name"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYY",
+      "selector": "[data-bubble-id='ai_RNbBHYYY']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYZ",
+      "selector": "[data-bubble-id='ai_RNbBHYYZ']",
+      "status": "pass",
+      "notes": "Text_label_ style_ref; IR copy Workplace Contact Email"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYa",
+      "selector": "[data-bubble-id='ai_RNbBHYYa']",
+      "status": "pass",
+      "notes": "Input_default_; placeholder hr@yourcompany.com; type=email"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYb",
+      "selector": "[data-bubble-id='ai_RNbBHYYb']",
+      "status": "pass",
+      "notes": "Button_primary_ inside ai_RNbBHYYU; IR copy Link Workplace Account"
+    }
   ],
-  "gaps": [],
+  "gaps": [
+    "Card header (ai_RNbBHYYO) includes a Lucide Building2 icon not present in Bubble element tree (title/subtitle only)",
+    "Success/error toast strings are app-authored, not IR static copy"
+  ],
   "blockers": [],
   "critiques": [
-    { "id": "C-1", "area": "brownfield-preflight", "priority": "low", "finding": "Coverage preflight reuse_decision remains 'new' though implementation gap-filled an existing SettingsMain shell.", "alternative": "Update coverage metadata to reflect extend/gap-fill reuse without changing runtime behavior." },
-    { "id": "C-2", "area": "ui-fidelity", "priority": "low", "finding": "Input placeholders and linked-on timestamp are UX additions not byte-verified against Bubble literals.", "alternative": "Extract placeholder strings from drsam-99657.bubble if strict parity is required." }
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "workplace-card-header (ai_RNbBHYYO) renders a Building2 icon beside title/subtitle, but Bubble ai_RNbBHYYO has only ai_RNbBHYYP and ai_RNbBHYYQ text children — no icon entity.",
+      "alternative": "Remove the invented icon or map to an IR icon entity if one exists elsewhere in the workplace card slice.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+        "drsam-99657.bubble",
+        "ir/inventory.json — ai_RNbBHYYO"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "functional",
+      "priority": "low",
+      "finding": "workplace_linked_at is persisted in onboarding_data but no longer surfaced in UI after the copy-fix pass removed linkedAt state.",
+      "alternative": "Acceptable if Bubble bTIja workflow does not display linked timestamp; otherwise add a read-only linked-on line sourced from loadWorkplaceLink.",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx"
+      ]
+    }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
 }

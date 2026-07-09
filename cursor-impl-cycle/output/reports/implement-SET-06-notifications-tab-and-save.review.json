@@ -1,16 +1,180 @@
 {
   "phase": "implement",
   "target_id": "SET-06-notifications-tab-and-save",
-  "assessed_at": "2026-07-08T11:07:00.000Z",
+  "assessed_at": "2026-07-09T06:25:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 85,
+  "coverage_confidence_pct": 91,
   "functional_ok": true,
-  "criteria_audit": [],
-  "functional_audit": [],
-  "ui_evidence": [],
-  "gaps": [],
+  "rewrite_verification": {
+    "prior_blockers": ["B-1"],
+    "status": "resolved",
+    "notes": "IR copy and dropdown values now match drsam-99657.bubble ai_RNbBHYYB/C/F/G/L: title Notifications, subtitle, Check-In Reminder Frequency label, Select frequency placeholder, three Bubble choice strings (Daily/Weekly/Never with em-dash descriptions). NOTIFICATION_FREQUENCY_OPTIONS stores display text in notification_frequency_text — no invented slug enum. data-bubble-id restored on ai_RNbBHYYB, ai_RNbBHYYC, ai_RNbBHYYF."
+  },
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+        "frontend/src/lib/settings/notificationsApi.ts",
+        "drsam-99657.bubble"
+      ],
+      "gap": null,
+      "notes": "Independent Bubble re-read confirms static copy and ai_RNbBHYYG choices match implementation; dropdown value/onboarding_data key uses IR display strings"
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/notificationsApi.ts",
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx"
+      ],
+      "gap": null,
+      "notes": "saveNotificationFrequency merges notification_frequency_text into profiles.onboarding_data; handleSave reloads saved value and shows toast"
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "loadNotificationFrequency reads notification_frequency_text from profiles.onboarding_data with IR default fallback",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/notificationsApi.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Save Notification Settings persists frequency and reloads bound select state",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/notificationsApi.ts",
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Frequency select binds Bubble choice display text (not slug enum) as option values",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/notificationsApi.ts",
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHYXy",
+      "selector": "[data-bubble-id='ai_RNbBHYXy']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXz",
+      "selector": "[data-bubble-id='ai_RNbBHYXz']",
+      "status": "partial",
+      "notes": "Marker present; IR style_ref Group_card_ but implementation uses Group_card_muted_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYA",
+      "selector": "[data-bubble-id='ai_RNbBHYYA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYB",
+      "selector": "[data-bubble-id='ai_RNbBHYYB']",
+      "status": "partial",
+      "notes": "IR copy Notifications confirmed; IR style_ref Text_heading_2_ but code uses Text_heading_3_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYC",
+      "selector": "[data-bubble-id='ai_RNbBHYYC']",
+      "status": "partial",
+      "notes": "IR subtitle copy matches Bubble; IR style_ref Text_small_ but code uses Text_body_muted_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYD",
+      "selector": "[data-bubble-id='ai_RNbBHYYD']",
+      "status": "partial",
+      "notes": "Form group wraps label+select only; save button is card sibling in React though Bubble nests ai_RNbBHYYL under ai_RNbBHYYD"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYE",
+      "selector": "[data-bubble-id='ai_RNbBHYYE']",
+      "status": "fail",
+      "notes": "notifications-freq-group wrapper has no data-bubble-id; label and select marked directly on ai_RNbBHYYD"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYF",
+      "selector": "[data-bubble-id='ai_RNbBHYYF']",
+      "status": "pass",
+      "notes": "Text_label_ style_ref; IR copy Check-In Reminder Frequency"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYG",
+      "selector": "[data-bubble-id='ai_RNbBHYYG']",
+      "status": "partial",
+      "notes": "Placeholder and three IR choice strings correct; IR style_ref Dropdown_default_ but SelectTrigger uses Input_default_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYL",
+      "selector": "[data-bubble-id='ai_RNbBHYYL']",
+      "status": "pass",
+      "notes": "Button_primary_ style_ref; copy Save Notification Settings matches Bubble"
+    }
+  ],
+  "gaps": [
+    "notifications-freq-group (ai_RNbBHYYE) wrapper lacks data-bubble-id; freq label and select are direct children of ai_RNbBHYYD",
+    "Save button (ai_RNbBHYYL) mounted as card sibling of form group; Bubble nests it under ai_RNbBHYYD",
+    "Card style_ref Group_card_ vs Group_card_muted_; title/subtitle/select style_refs diverge from IR (heading_2/small/dropdown vs heading_3/body_muted/input)"
+  ],
   "blockers": [],
-  "critiques": [],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Several in-scope style_ref targets from IR (Group_card_, Text_heading_2_, Text_small_, Dropdown_default_) are mapped to different bubbleStyle tokens than inventory.json specifies for ai_RNbBHYXz/B/C/G.",
+      "alternative": "Align notifications tab tokens with IR style_ref rows (match SettingsProfileTab pattern for card/title/subtitle) and apply Dropdown_default_ on the frequency SelectTrigger.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+        "ir/inventory.json",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "notifications-freq-group (ai_RNbBHYYE) is flattened: no wrapper marker and save button DOM parent differs from Bubble hierarchy under ai_RNbBHYYD.",
+      "alternative": "Add a freq-group div with data-bubble-id ai_RNbBHYYE wrapping label+select, and nest the save button inside ai_RNbBHYYD to match IR parent_element_id chain.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "coverage-artifact",
+      "priority": "low",
+      "finding": "Coverage preflight.gaps still lists pre-fix AC-2 failures (slug enum, missing title/subtitle markers) although B-1 rewrite is now resolved in code.",
+      "alternative": "Refresh preflight.gaps on the next coverage pass to reflect resolved items only.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/SET-06-notifications-tab-and-save.json"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

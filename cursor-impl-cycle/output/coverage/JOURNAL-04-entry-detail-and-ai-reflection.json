@@ -12,7 +12,7 @@
       "frontend/src/components/journal/JournalEntriesTab.tsx",
       "frontend/src/components/journal/NewEntryPopup.tsx",
       "frontend/src/components/journal/EditMilestonePopup.tsx",
-      "frontend/supabase/functions/chat/index.ts"
+      "supabase/functions/chat/index.ts"
     ],
     "gaps": [
       "AC-1: EntryDetailPopup.tsx did not exist — brownfield Dialog + AlertDialog hosted edit/delete",

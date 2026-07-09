@@ -12,7 +12,7 @@ Read `cursor-impl-cycle/config/implementation-policy.json` and follow it in ever
 ## Backend: read-only `project/`
 
 - `project/` is the **canonical Supabase backend** (migrations, RLS, edge functions) when present.
-- `frontend/supabase/` holds the prototype's migrations and edge functions — read for client integration context.
+- `supabase/` holds the prototype's migrations and edge functions — read for client integration context.
 - **FORBIDDEN:** any write/edit/create/delete under `project/` including `project/supabase/**`.
 - **Allowed:** read schema, types, RPC names, RLS behavior, and existing API contracts.
 
@@ -21,6 +21,7 @@ Read `cursor-impl-cycle/config/implementation-policy.json` and follow it in ever
 | Area | Path | Purpose |
 |------|------|---------|
 | Frontend | `frontend/` | React + Vite + TypeScript SPA (existing prototype) |
+| Supabase | `supabase/` | Prototype migrations and edge functions |
 | Cycle artifacts | `cursor-impl-cycle/` | module-map, decompose, coverage, reports |
 
 Routes live in `frontend/src/App.tsx`. Auth guard: `frontend/src/components/ProtectedRoute.tsx`.
@@ -34,7 +35,7 @@ Routes live in `frontend/src/App.tsx`. Auth guard: `frontend/src/components/Prot
 
 ## Decompose implications
 
-- Items should state whether work is **frontend-only** or needs edge function changes in `frontend/supabase/`.
+- Items should state whether work is **frontend-only** or needs edge function changes in `supabase/`.
 - Do not decompose items that require changing `project/supabase`; document dependency gaps in `scope`.
 - `target_files[]` use `.tsx` / `.ts` under `frontend/src/` — see `config/path-conventions.json`.
 

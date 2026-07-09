@@ -28,7 +28,7 @@
       "evidence": [
         "frontend/src/lib/journal/journalEntriesApi.ts — fetchJournalEntries() queries journal_entries for user_id with title→title_text, mood→mood_tag_text, body→content_text + content_preview truncation",
         "frontend/src/pages/Journal.tsx — load() calls fetchJournalEntries(user.id) via useAuth on mount",
-        "frontend/supabase/migrations/20260702192837_aa7faa5d-1538-4d3b-855b-94aac42fe308.sql — existing prototype journal_entries table; no project/ schema writes in item scope"
+        "supabase/migrations/20260702192837_aa7faa5d-1538-4d3b-855b-94aac42fe308.sql — existing prototype journal_entries table; no project/ schema writes in item scope"
       ],
       "gap": null
     },

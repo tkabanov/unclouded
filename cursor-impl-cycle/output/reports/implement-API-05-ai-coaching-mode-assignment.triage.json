@@ -1,15 +1,32 @@
 {
   "phase": "implement",
   "target_id": "API-05-ai-coaching-mode-assignment",
-  "assessed_at": "2026-07-08T14:00:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T10:22:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-05-ai-coaching-mode-assignment.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Bubble workflow byte-verification is grounding backlog." },
-    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Missing vitest matrix deferred to testing wave." },
-    { "critique_id": "C-4", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "Singular ai_coaching_mode_os mirror intentional Bubble parity." }
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "calculateUserAiCoachingMode patches ai_coaching_mode_os alongside the list field, which bTIEN does not do. AC-2 only requires the list patch and passes; DASH-02 reads the preferred mode via readPreferredCoachingMode (last list entry), not the singular field. The extra patch is a harmless prototype convenience and does not block API-06-ai-confidence-level-trigger, which depends on coaching-mode assignment completing but does not consume ai_coaching_mode_os. Document or remove the singular-field write in a later polish pass if strict Bubble parity is desired."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "resolveAiCoachingModes is exhaustively unit-tested (11 cases covering all seven bTIEN actions plus simplifier add). calculateUserAiCoachingMode is a thin orchestration layer (loadProfileRow → resolveAiCoachingModes → patchOnboardingAndResults) with no branch logic of its own; functional audit FV-2 and AC-2 pass. Integration tests for field extraction and patch payload are valid backlog but not in API-05 acceptance criteria and do not gate API-06."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Decompose ir_refs cite entity id bTIEN while the Bubble api key is bTIES; the implementer correctly located and ported the seven-action chain (review grounding 5/5, all ACs pass). This is decompose documentation clarity, not an implementation defect. A note that bTIEN lives at api/bTIES can be added in a future decompose pass without rewriting API-05 code."
+    }
   ],
-  "summary": "0 fix_now, 2 defer, 1 accept. ok_to_advance true."
+  "summary": "Review passed (ok=true, coverage 100%, functional_ok=true, 0 blockers). 0 fix_now, 3 defer, 0 accept. All critiques are low-priority gaps that do not violate ACs or block API-06-ai-confidence-level-trigger. Advance to API-06; deferred items are polish (singular-field parity), test coverage for calculateUserAiCoachingMode orchestration, and decompose ir_ref key annotation."
 }

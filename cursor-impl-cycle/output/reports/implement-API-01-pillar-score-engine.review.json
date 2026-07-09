@@ -1,10 +1,10 @@
 {
   "phase": "implement",
   "target_id": "API-01-pillar-score-engine",
-  "assessed_at": "2026-07-08T10:15:00.000Z",
+  "assessed_at": "2026-07-09T06:23:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 87,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     {
@@ -12,6 +12,7 @@
       "status": "pass",
       "evidence": [
         "frontend/src/lib/userProfile/aggregatePillarScore.ts",
+        "drsam-99657.bubble — api.bTHxY (id bTHxW): sum q1..q5, divide by 5, round to 1 decimal (return bTHxo)",
         "frontend/src/components/OnboardingStability.tsx",
         "frontend/src/components/OnboardingAlignment.tsx",
         "frontend/src/components/OnboardingPerformance.tsx"
@@ -26,7 +27,7 @@
         "frontend/src/lib/userProfile/calculateUserAlignment.ts",
         "frontend/src/lib/userProfile/calculateUserPerformance.ts",
         "frontend/src/lib/userProfile/pillarScoreUserData.ts",
-        "output/drsam-99657/agent/schema/uds.types.ts"
+        "drsam-99657.bubble — bTHxu/bTHyM/bTHyU TriggerCustomEvent → bTHxW then ChangeThing stability_score_number / alignment_score_number / performance_score_number"
       ],
       "gap": null
     },
@@ -34,9 +35,10 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
-        "frontend/src/lib/completeOnboarding.ts",
-        "frontend/src/pages/Onboarding.tsx"
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts — runPillarScoreCalculators stability → alignment → performance",
+        "frontend/src/lib/completeOnboarding.ts — invokes runOnboardingProfilePipeline(userId) after saveOnboarding",
+        "frontend/src/pages/Onboarding.tsx — passes userId into completeOnboarding deps",
+        "drsam-99657.bubble — bTGNJ ScheduleAPIEvent chain bTHVC / bTHja / bTHgY"
       ],
       "gap": null
     }
@@ -44,18 +46,16 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "computePillarScore(q1..q5) returns one-decimal average matching onboarding step pillar math (bTHxW/bTHxo parity)",
+      "check": "computePillarScore averages five numeric inputs rounded to one decimal, matching Bubble bTHxW/bTHxo and onboarding step inline calculators",
       "status": "pass",
       "evidence": [
         "frontend/src/lib/userProfile/aggregatePillarScore.ts",
-        "frontend/src/components/OnboardingStability.tsx",
-        "frontend/src/components/OnboardingAlignment.tsx",
-        "frontend/src/components/OnboardingPerformance.tsx"
+        "drsam-99657.bubble"
       ]
     },
     {
       "id": "FV-2",
-      "check": "calculateUserStability/Alignment/Performance load onboarding answers, compute pillar score, and patch stability_score_number / alignment_score_number / performance_score_number via Supabase",
+      "check": "calculateUserStability/Alignment/Performance load profile onboarding_data, derive q1–q5, compute score, and patch stability_score_number / alignment_score_number / performance_score_number",
       "status": "pass",
       "evidence": [
         "frontend/src/lib/userProfile/calculateUserStability.ts",
@@ -66,11 +66,11 @@
     },
     {
       "id": "FV-3",
-      "check": "completeOnboarding invokes runPillarScoreCalculators(userId) after saveOnboarding in stability → alignment → performance order (bTHVC/bTHja/bTHgY chain)",
+      "check": "Pillar calculator chain is invoked during onboarding completion before dashboard navigation",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/completeOnboarding.ts",
         "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+        "frontend/src/lib/completeOnboarding.ts",
         "frontend/src/pages/Onboarding.tsx"
       ]
     }
@@ -81,39 +81,52 @@
   "critiques": [
     {
       "id": "C-1",
-      "area": "brownfield-preflight",
+      "area": "data-model",
       "priority": "medium",
-      "finding": "Coverage preflight lists eight related prototype files but declares reuse_decision \"new\"; actual work extended completeOnboarding and added lib modules under frontend/src/lib/userProfile/, which is gap-fill/extend not greenfield.",
-      "alternative": "Set reuse_decision to \"gap-fill\" or \"extend\" and note mapped_target_files from frontend/src/api/userProfile/ to frontend/src/lib/userProfile/.",
+      "finding": "Bubble calculate_user_stability (bTHxu) reads sq1_option_customer_stability_answer_os.index from the User type, while readQuestionScores consumes numeric sq1..sq5 nested under stabilityScores/alignmentScores/performanceScores or flat *_number keys in onboarding_data JSONB.",
+      "alternative": "Document the JSONB nested-score contract in pillarScoreUserData.ts, or also persist option-set slugs and resolve .index at calculator time for literal UDS field parity.",
       "evidence": [
-        "cursor-impl-cycle/output/coverage/API-01-pillar-score-engine.json"
+        "frontend/src/lib/userProfile/pillarScoreUserData.ts",
+        "drsam-99657.bubble",
+        "output/drsam-99657/agent/schema/uds.types.ts"
       ]
     },
     {
       "id": "C-2",
-      "area": "data-contract",
+      "area": "brownfield",
       "priority": "medium",
-      "finding": "Bubble user fields sq1_number..pq5_number and *_score_number are patched into profiles.onboarding_data JSONB (and results when present) because the prototype schema has no dedicated score columns; downstream API-02 may need to read the same JSONB keys.",
-      "alternative": "Document the JSONB key contract in pillarScoreUserData.ts or add typed profile columns in a future migration if project/supabase adopts flat user score fields.",
+      "finding": "Coverage preflight marks reuse_decision new though prototype already computed pillar scores inline in OnboardingStability/Alignment/Performance and owned completeOnboarding.ts — this item extracts and wires existing logic rather than introducing a greenfield surface.",
+      "alternative": "Record reuse_decision as gap-fill with existing_files_found including the three onboarding pillar step components whose formulas now delegate to computePillarScore.",
       "evidence": [
-        "frontend/src/lib/userProfile/pillarScoreUserData.ts",
-        "frontend/supabase/migrations/20260702190431_61e67455-2f14-4775-93f0-a6407ef4fb79.sql"
+        "cursor-impl-cycle/output/coverage/API-01-pillar-score-engine.json",
+        "frontend/src/components/OnboardingStability.tsx"
       ]
     },
     {
       "id": "C-3",
       "area": "testing",
       "priority": "low",
-      "finding": "No unit tests cover computePillarScore edge cases or readQuestionScores fallback between flat *_number keys and nested stabilityScores/alignmentScores/performanceScores objects.",
-      "alternative": "Add focused tests for aggregatePillarScore and pillarScoreUserData.readQuestionScores with both Bubble-flat and prototype-nested onboarding_data shapes.",
+      "finding": "No unit tests cover computePillarScore edge cases (NaN guard, rounding boundaries) or readQuestionScores fallback between flat *_number and nested score maps.",
+      "alternative": "Add aggregatePillarScore.test.ts with Bubble-derived fixtures and a pillarScoreUserData.test.ts for nested vs flat onboarding_data shapes.",
       "evidence": [
         "frontend/src/lib/userProfile/aggregatePillarScore.ts",
         "frontend/src/lib/userProfile/pillarScoreUserData.ts"
       ]
+    },
+    {
+      "id": "C-4",
+      "area": "integration",
+      "priority": "low",
+      "finding": "completeOnboarding calls runOnboardingProfilePipeline (API-01 through API-05) rather than runPillarScoreCalculators alone; pillar calculators still run first but downstream API items execute in the same completion turn.",
+      "alternative": "Acceptable for AUTH-05 end-to-end parity with bTGNJ; split calls only if API-01 must be independently testable without classification/pressure side effects.",
+      "evidence": [
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+      ]
     }
   ],
   "scores": {
-    "completeness": 5,
+    "completeness": 4,
     "grounding": 4,
     "actionability": 4
   }

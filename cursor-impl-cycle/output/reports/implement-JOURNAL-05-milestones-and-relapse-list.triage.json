@@ -32,7 +32,7 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "UntypedSupabase cast is the documented greenfield pattern for querying uds_* tables not yet in frontend/supabase schema (42P01/PGRST205 fallback). Critique acknowledges necessity; removing the cast requires migrations and regenerated client types — out of JOURNAL-05 scope and not an adapter-policy violation. Revisit when uds_milestone/uds_relapseevent migrations land (likely alongside JOURNAL-06/07 write paths or a schema wave)."
+      "rationale": "UntypedSupabase cast is the documented greenfield pattern for querying uds_* tables not yet in supabase schema (42P01/PGRST205 fallback). Critique acknowledges necessity; removing the cast requires migrations and regenerated client types — out of JOURNAL-05 scope and not an adapter-policy violation. Revisit when uds_milestone/uds_relapseevent migrations land (likely alongside JOURNAL-06/07 write paths or a schema wave)."
     }
   ],
   "summary": "Review passed at 100% coverage with 0 blockers. Triage: 0 fix_now, 4 defer, 0 accept. Deferred: C-1 → JOURNAL-06/07 (popup mount + handler bodies); C-2 → JOURNAL-06 (delete semantics and aria-label on ai_RNbBHXjm); C-3 → JOURNAL-06 (stable ids on write); C-4 → schema/typegen wave when uds_* tables exist. ok_to_advance=true, rewrite_required=false."

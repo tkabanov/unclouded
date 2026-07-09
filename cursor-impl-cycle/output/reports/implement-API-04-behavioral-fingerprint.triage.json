@@ -1,15 +1,32 @@
 {
   "phase": "implement",
   "target_id": "API-04-behavioral-fingerprint",
-  "assessed_at": "2026-07-08T12:33:00.000Z",
+  "assessed_at": "2026-07-09T08:12:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-04-behavioral-fingerprint.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-1", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Label strings not byte-verified against bTICg bubble literals; AC-1 passes; defer test matrix to grounding backlog." },
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Preflight reuse_decision metadata inaccuracy only; implementation correctly gap-filled lib calculators." },
-    { "critique_id": "C-3", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "JSONB onboarding_data contract is intentional brownfield parity with API-01/API-03; pipeline internally consistent." },
-    { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Missing unit tests — testing backlog only; all ACs pass." }
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Valid ir-fidelity documentation gap: decompose scope and buildBehavioralFingerprint.ts header cite pointer name bTICa while Bubble entity id and ir_refs are bTICV (event_name calculate_behavioral_fingerprint). Implementation and buildBehavioralFingerprint.test.ts use correct bTICV branch strings; criteria_audit AC-1 and functional_audit FV-1 pass. Standardizing comments/decompose prose to bTICV is cycle-artifact housekeeping — does not affect runtime behavior or API-05-ai-coaching-mode-assignment depends_on gate, which needs a computed behavioral_fingerprint_text string, not grep-friendly entity ids."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Valid testing gap: resolveBehavioralFingerprint has exhaustive 14-case unit coverage but calculateUserBehavioralFingerprint lacks mocked loadProfileRow/patchOnboardingAndResults integration test. Testing is not in API-04 acceptance criteria; review priority is low. Core branch logic is verified; field extraction (behavioralPatterns.pressure_response_pattern, non_followthrough_reason) and patch payload are thin wrappers over tested resolveBehavioralFingerprint and shared profileFieldPatch. API-05 calculateUserAiCoachingMode already reads onboarding_data[behavioral_fingerprint_text] after pipeline invocation — depends_on gate is satisfiable without calculator integration tests. Add calculateUserBehavioralFingerprint.test.ts in a dedicated test wave."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Critique correctly notes Bubble bTIDk ChangeThing writes user.behavioral_fingerprint_text while prototype stores behavioral_fingerprint_text in profiles.onboarding_data via patchOnboardingAndResults — but this is intentional brownfield adaptation, not a defect. Decompose scope explicitly limits work to frontend Supabase client patch with no project/ schema changes; sibling calculators API-02/API-03 use the same onboarding_data pattern for classification_option_classification_os and pressure_profile_text. calculateUserAiCoachingMode (API-05) already consumes onboarding_data[BEHAVIORAL_FINGERPRINT_TEXT_FIELD] after runOnboardingProfilePipeline invokes calculateUserBehavioralFingerprint — downstream depends_on gate is fully satisfiable. Dedicated profiles-column migration is out of scope until backend schema work is explicitly scheduled."
+    }
   ],
-  "summary": "0 fix_now, 4 defer, 0 accept. Review passed at 100% coverage; advance allowed."
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, all ACs pass, no blockers. Deferred: C-1 bTICa→bTICV comment/decompose standardization (cycle-artifact housekeeping); C-2 calculateUserBehavioralFingerprint integration tests (out of AC scope, dedicated test wave). Accepted: C-3 onboarding_data vs user-column storage (intentional prototype pattern per decompose scope; API-05-ai-coaching-mode-assignment consumes fingerprint from onboarding_data successfully)."
 }

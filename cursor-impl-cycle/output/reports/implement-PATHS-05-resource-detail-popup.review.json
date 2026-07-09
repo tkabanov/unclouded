@@ -1,19 +1,20 @@
 {
   "phase": "implement",
   "target_id": "PATHS-05-resource-detail-popup",
-  "assessed_at": "2026-07-08T10:12:00.000Z",
+  "assessed_at": "2026-07-09T04:15:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 91,
+  "coverage_confidence_pct": 89,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx — handleViewResource sets viewingResource and resourcePopupOpen; ResourceDetailPopup receives resource prop",
-        "frontend/src/components/paths/ResourceCard.tsx — resource-view-btn ai_RNbBHYJN invokes onViewResource",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — popup ai_RNbBHYJx; header ai_RNbBHYJz with title group ai_RNbBHYKA; badges row ai_RNbBHYKB with mode ai_RNbBHYKC, submode ai_RNbBHYKE, sensitivity ai_RNbBHYKG; title ai_RNbBHYKI"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/ResourceCard.tsx",
+        "frontend/src/components/paths/ResourceDetailPopup.tsx",
+        "frontend/src/lib/paths/routes.ts"
       ],
       "gap": null
     },
@@ -21,10 +22,9 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — body ai_RNbBHYKL with disclaimer row ai_RNbBHYKM (icon ai_RNbBHYKN, text ai_RNbBHYKO), content group ai_RNbBHYKP with label ai_RNbBHYKQ and content ai_RNbBHYKR",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — sensitivity bound to header badge ai_RNbBHYKG (IR Text resource-detail-sensitivity-badge under ai_RNbBHYKB), not link-group ids",
-        "frontend/src/lib/paths/routes.ts — PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY matches Bubble ai_RNbBHYKO static text",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — coaching caption ai_RNbBHYJM copy matches Bubble ai_RNbBHYMS static text"
+        "frontend/src/components/paths/ResourceDetailPopup.tsx",
+        "frontend/src/lib/paths/routes.ts",
+        "drsam-99657.bubble"
       ],
       "gap": null
     },
@@ -32,101 +32,202 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — footer ai_RNbBHYKV with Done ai_RNbBHYKW (Button_primary_), close ai_RNbBHYKJ dismisses popup",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — external link ai_RNbBHYKU with label ai_RNbBHYKT (External Link) inside group ai_RNbBHYKS",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — overlay ai_RNbBHYMy with data-style-ref Group_overlay_"
+        "frontend/src/components/paths/ResourceDetailPopup.tsx",
+        "frontend/src/lib/paths/routes.ts",
+        "drsam-99657.bubble"
       ],
       "gap": null
     }
   ],
   "functional_audit": [
     {
-      "id": "FV-4",
-      "check": "Resource view button opens ResourceDetailPopup bound to selected resource; close and Done dismiss popup",
+      "id": "FV-1",
+      "check": "resource-view-btn ai_RNbBHYJN opens ResourceDetailPopup bound to clicked ResourceListItem parent data",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx",
         "frontend/src/components/paths/ResourceCard.tsx",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/PathsResourcesPanel.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Popup renders header badges, title, disclaimer ai_RNbBHYKO IR copy, resource content, and conditional external link from resource fields",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/ResourceDetailPopup.tsx",
+        "frontend/src/lib/paths/routes.ts",
+        "frontend/src/lib/paths/pathsResourcesApi.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Close ai_RNbBHYKJ and Done ai_RNbBHYKW dismiss popup; external link ai_RNbBHYKU opens href in new tab when present",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/ResourceDetailPopup.tsx",
+        "frontend/src/pages/Paths.tsx"
       ]
     }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYJx", "selector": "[data-bubble-id='ai_RNbBHYJx']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYMy", "selector": "[data-bubble-id='ai_RNbBHYMy']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJz", "selector": "[data-bubble-id='ai_RNbBHYJz']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKA", "selector": "[data-bubble-id='ai_RNbBHYKA']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKC", "selector": "[data-bubble-id='ai_RNbBHYKC']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKE", "selector": "[data-bubble-id='ai_RNbBHYKE']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKG", "selector": "[data-bubble-id='ai_RNbBHYKG']", "status": "pass", "notes": "B-1 fix verified: sensitivity badge in header badges row ai_RNbBHYKB" },
-    { "bubble_id": "ai_RNbBHYKI", "selector": "[data-bubble-id='ai_RNbBHYKI']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKL", "selector": "[data-bubble-id='ai_RNbBHYKL']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKR", "selector": "[data-bubble-id='ai_RNbBHYKR']", "status": "pass" },
+    {
+      "bubble_id": "ai_RNbBHYJx",
+      "selector": "[data-bubble-id='ai_RNbBHYJx']",
+      "status": "pass",
+      "notes": "Popup dialog content shell — maps to Bubble /pages/bTHDg/elements/ai_RNbBHYMy"
+    },
+    {
+      "bubble_id": "ai_RNbBHYMy",
+      "selector": "[data-bubble-id='ai_RNbBHYMy']",
+      "status": "pass",
+      "notes": "Overlay marker on DialogOverlay with Group_overlay_ style_ref"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJz",
+      "selector": "[data-bubble-id='ai_RNbBHYJz']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKA",
+      "selector": "[data-bubble-id='ai_RNbBHYKA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKC",
+      "selector": "[data-bubble-id='ai_RNbBHYKC']",
+      "status": "pass",
+      "notes": "IR Text resource-detail-mode-badge — decompose AC-1 mislabels as title"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKL",
+      "selector": "[data-bubble-id='ai_RNbBHYKL']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKR",
+      "selector": "[data-bubble-id='ai_RNbBHYKR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKU",
+      "selector": "[data-bubble-id='ai_RNbBHYKU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKV",
+      "selector": "[data-bubble-id='ai_RNbBHYKV']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKW",
+      "selector": "[data-bubble-id='ai_RNbBHYKW']",
+      "status": "pass",
+      "notes": "Static IR label Done confirmed in drsam-99657.bubble"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKJ",
+      "selector": "[data-bubble-id='ai_RNbBHYKJ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_overlay_",
+      "selector": "[data-style-ref='Group_overlay_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Button_primary_",
+      "selector": "[data-style-ref='Button_primary_']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKB",
+      "selector": "[data-bubble-id='ai_RNbBHYKB']",
+      "status": "pass",
+      "notes": "Badges row — nested child not in decompose ui_refs"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKE",
+      "selector": "[data-bubble-id='ai_RNbBHYKE']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKG",
+      "selector": "[data-bubble-id='ai_RNbBHYKG']",
+      "status": "pass",
+      "notes": "Sensitivity text badge in header badges row"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKI",
+      "selector": "[data-bubble-id='ai_RNbBHYKI']",
+      "status": "pass",
+      "notes": "Resource title — correct IR node vs decompose AC-1 ai_RNbBHYKC typo"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKM",
+      "selector": "[data-bubble-id='ai_RNbBHYKM']",
+      "status": "pass",
+      "notes": "Triage C-1: popup disclaimer wrap — no duplicate card-only ai_RNbBHYJM"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKN",
+      "selector": "[data-bubble-id='ai_RNbBHYKN']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYKO",
+      "selector": "[data-bubble-id='ai_RNbBHYKO']",
+      "status": "pass",
+      "notes": "PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY matches Bubble static text"
+    },
     {
       "bubble_id": "ai_RNbBHYKS",
       "selector": "[data-bubble-id='ai_RNbBHYKS']",
-      "status": "partial",
-      "notes": "IR parent_id ai_RNbBHYKL (body); implementation nests link group under footer ai_RNbBHYKV — visual order matches layout_notes (link above Done)"
+      "status": "pass"
     },
     {
       "bubble_id": "ai_RNbBHYKT",
       "selector": "[data-bubble-id='ai_RNbBHYKT']",
       "status": "pass",
-      "notes": "B-1 fix verified: Text resource-detail-link-label with static copy External Link — not sensitivity"
-    },
-    { "bubble_id": "ai_RNbBHYKU", "selector": "[data-bubble-id='ai_RNbBHYKU']", "status": "pass", "notes": "B-1 fix verified: Link resource-detail-link renders resource.externalLink href" },
-    { "bubble_id": "ai_RNbBHYKV", "selector": "[data-bubble-id='ai_RNbBHYKV']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKW", "selector": "[data-bubble-id='ai_RNbBHYKW']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYKJ", "selector": "[data-bubble-id='ai_RNbBHYKJ']", "status": "pass" },
-    {
-      "bubble_id": "ai_RNbBHYJM",
-      "selector": "[data-bubble-id='ai_RNbBHYJM']",
-      "status": "partial",
-      "notes": "IR parent is resource-card footer ai_RNbBHYJL; popup body has no ai_RNbBHYJM child — marker reused for matching Coaching-only resource copy"
-    },
-    { "bubble_id": "Group_overlay_", "selector": "[data-style-ref='Group_overlay_']", "status": "pass" },
-    { "bubble_id": "Button_primary_", "selector": "[data-style-ref='Button_primary_']", "status": "pass" }
+      "notes": "External Link label copy matches IR"
+    }
   ],
   "gaps": [],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "ui-fidelity",
-      "priority": "medium",
-      "finding": "Link group ai_RNbBHYKS/ai_RNbBHYKT/ai_RNbBHYKU is rendered inside footer ai_RNbBHYKV, but IR nests ai_RNbBHYKS under body ai_RNbBHYKL with footer ai_RNbBHYKV containing only Done ai_RNbBHYKW.",
-      "alternative": "Move the link group DOM under section ai_RNbBHYKL (keep visual stack link-then-Done via flex order or separate footer wrapper) to match IR parent_element_id hierarchy.",
+      "area": "decompose-grounding",
+      "priority": "low",
+      "finding": "Decompose AC-2 cites card caption ai_RNbBHYJM for popup disclaimer copy; IR popup disclaimer is ai_RNbBHYKO (full coaching disclaimer). Implementation correctly uses ai_RNbBHYKM/KO after triage C-1 removed duplicate ai_RNbBHYJM from ResourceDetailPopup; ai_RNbBHYJM remains on ResourceCard only.",
+      "alternative": "Update MOD-DRSAM-PATHS decompose AC-2 to reference ai_RNbBHYKO and sensitivity ai_RNbBHYKG to match IR entity names.",
       "evidence": [
-        "ir/inventory.json — ai_RNbBHYKS parent_id ai_RNbBHYKL",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — link group inside DialogFooter ai_RNbBHYKV"
+        "frontend/src/components/paths/ResourceDetailPopup.tsx",
+        "frontend/src/components/paths/ResourceCard.tsx",
+        "ir/inventory.json",
+        "drsam-99657.bubble"
       ]
     },
     {
       "id": "C-2",
       "area": "ui-fidelity",
       "priority": "low",
-      "finding": "data-bubble-id ai_RNbBHYJM is mounted in the popup body even though IR defines it only on the resource card footer (parent ai_RNbBHYJL); popup disclaimer banner uses ai_RNbBHYKM/ai_RNbBHYKO instead.",
-      "alternative": "Drop the ai_RNbBHYJM marker from the popup and rely on ai_RNbBHYKO disclaimer copy unless decompose explicitly requires card disclaimer id reuse.",
+      "finding": "IR nests external-link group ai_RNbBHYKS under body ai_RNbBHYKL; React places link group inside DialogFooter ai_RNbBHYKV above Done. Visual order matches layout_notes (link row above full-width primary) and AC-3 footer requirement.",
+      "alternative": "Move link group markup inside the body section while preserving footer-only Done placement if strict parent_element_id parity is required.",
       "evidence": [
-        "ir/inventory.json — ai_RNbBHYJM parent_id ai_RNbBHYJL",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx"
+        "frontend/src/components/paths/ResourceDetailPopup.tsx",
+        "ir/inventory.json",
+        "drsam-99657.bubble"
       ]
     },
     {
       "id": "C-3",
-      "area": "data",
+      "area": "coverage-grounding",
       "priority": "low",
-      "finding": "STATIC_FALLBACK_RESOURCES omit external_link_text so ai_RNbBHYKU link row is hidden in dev unless Supabase rows include externalLink.",
-      "alternative": "Add a sample externalLink to one fallback resource for local FV link-row verification.",
-      "evidence": [
-        "frontend/src/lib/paths/pathsResourcesApi.ts — STATIC_FALLBACK_RESOURCES",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — conditional resource?.externalLink"
-      ]
+      "finding": "Coverage functional_verification reuses FV-4 id/label from PATHS-04 tab chrome; independent audit derived FV-1..3 from this item's ACs.",
+      "alternative": "Align coverage functional_verification rows with item-specific checks on next coverage pass.",
+      "evidence": ["cursor-impl-cycle/output/coverage/PATHS-05-resource-detail-popup.json"]
     }
   ],
-  "scores": {
-    "completeness": 5,
-    "grounding": 4,
-    "actionability": 4
-  }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }

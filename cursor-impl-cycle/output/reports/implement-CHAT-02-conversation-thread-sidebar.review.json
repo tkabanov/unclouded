@@ -1,49 +1,20 @@
 {
   "phase": "implement",
   "target_id": "CHAT-02-conversation-thread-sidebar",
-  "assessed_at": "2026-07-08T08:16:00.000Z",
+  "assessed_at": "2026-07-09T10:45:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 93,
+  "coverage_confidence_pct": 89,
   "functional_ok": true,
-  "rewrite_verification": {
-    "rewrite_pass": true,
-    "prior_blockers": ["B-1", "B-2", "B-3"],
-    "resolved": [
-      {
-        "id": "B-1",
-        "finding": "Cell IR hierarchy flattened — bO/bR/bP/bQ nesting wrong",
-        "fix_evidence": [
-          "frontend/src/components/chat/ConversationThreadCell.tsx — bM(ai_RNbBHXbM) > bN(ai_RNbBHXbN) > siblings bO(ai_RNbBHXbO) + bR(ai_RNbBHXbR); bO children bP(ai_RNbBHXbP) button + bQ(ai_RNbBHXbQ) date",
-          "ir/inventory.json — parent_id chain: bM←bL, bN←bM, bO←bN, bR←bN, bP←bO, bQ←bO, bS←bR, bU←bR"
-        ]
-      },
-      {
-        "id": "B-2",
-        "finding": "Missing deleteTarget state in Chat.tsx for CHAT-04 popup host",
-        "fix_evidence": [
-          "frontend/src/pages/Chat.tsx — useState<ConversationListItem | null>(null) deleteTarget; handleDeleteRequest sets target",
-          "frontend/src/pages/Chat.tsx — sr-only data-delete-target-id exposes bound conversation id for CHAT-04 mount"
-        ]
-      },
-      {
-        "id": "B-3",
-        "finding": "bS/bU icon handlers swapped or mis-mapped",
-        "fix_evidence": [
-          "frontend/src/components/chat/ConversationThreadCell.tsx — bS(ai_RNbBHXbS) Pencil + onRenameRequest; bU(ai_RNbBHXbU) Trash2 + onDeleteRequest",
-          "frontend/src/lib/chat/routes.ts — DELETE_TRIGGER_BTN=ai_RNbBHXbS (rename), DELETE_CONFIRM_BTN=ai_RNbBHXbU (delete)"
-        ]
-      }
-    ]
-  },
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/chat/ConversationSidebar.tsx — root data-bubble-id ai_RNbBHXbK, RG ai_RNbBHXbL",
-        "frontend/src/components/chat/ConversationThreadCell.tsx — cell root ai_RNbBHXbM with nested bN→(bO+bR) hierarchy per ir/inventory.json",
-        "frontend/src/components/chat/ConversationThreadCell.tsx — bubbleStyle(Group_transparent_, Button_ghost_, Text_body_, Text_caption_, Button_icon_) on in-scope nodes"
+        "frontend/src/components/chat/ConversationSidebar.tsx — root data-bubble-id ai_RNbBHXbK; RG container ai_RNbBHXbL",
+        "frontend/src/components/chat/ConversationThreadCell.tsx — cell root ai_RNbBHXbM with nested bN→(bO+bR); bO children bP select button + bQ date text",
+        "ir/inventory.json — hierarchy ai_RNbBHXbK→bL→bM→bN→(bO,bR); bO→(bP,bQ); bR→(bS,bU)",
+        "frontend/src/lib/chat/routes.ts — CHAT-02 bubble id constants match IR element ids"
       ],
       "gap": null
     },
@@ -51,8 +22,9 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/chat/chatConversationsApi.ts — fetchConversations queries chatconversation via supabase.from().eq('user_user', userId).order('modified_date', { ascending: false })",
-        "frontend/src/lib/chat/chatConversationsApi.ts — onboarding_data fallback when table absent; no adapter passthrough"
+        "frontend/src/lib/chat/chatConversationsApi.ts — fetchConversations queries chatconversation for user_user ordered by modified_date desc",
+        "frontend/src/lib/chat/chatConversationsApi.ts — preview text resolved via chatmessage lookup; no adapter passthrough",
+        "frontend/src/components/chat/ConversationSidebar.tsx — loadConversations invokes fetchConversations on mount and listVersion bump"
       ],
       "gap": null
     },
@@ -60,9 +32,9 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/chat/chatRouteStore.ts — useChatConversationParam reads/writes ?conversation= preserving other search params",
-        "frontend/src/components/chat/ConversationSidebar.tsx — handleSelect calls setConversationId",
-        "frontend/src/components/chat/ConversationThreadCell.tsx — isActive applies bg-accent on ai_RNbBHXbM; bP onClick calls onSelect"
+        "frontend/src/lib/chat/chatRouteStore.ts — useChatConversationParam reads/writes ?conversation= via setSearchParams(prev=>…) preserving other params",
+        "frontend/src/components/chat/ConversationThreadCell.tsx — isActive applies bg-accent highlight on ai_RNbBHXbM when id matches URL param",
+        "frontend/src/components/chat/ConversationThreadCell.tsx — bP onClick calls onSelect → setConversationId"
       ],
       "gap": null
     },
@@ -70,9 +42,9 @@
       "id": "AC-4",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/chat/ConversationThreadCell.tsx — bR(ai_RNbBHXbR) nests bS+bU icon buttons with Button_icon_ style_ref",
-        "frontend/src/pages/Chat.tsx — handleDeleteRequest sets deleteTarget to bound ConversationListItem",
-        "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json — CHAT-04 owns DeleteConversationPopup UI; CHAT-02 provides sidebar trigger wiring"
+        "frontend/src/components/chat/ConversationThreadCell.tsx — bR actions group with bS (rename) and bU (delete) preserving IR sibling hierarchy under bN",
+        "frontend/src/pages/Chat.tsx — handleDeleteRequest sets deleteTarget; DeleteConversationPopup receives bound conversation",
+        "frontend/src/components/chat/DeleteConversationPopup.tsx — CHAT-04 popup opens when deleteTarget !== null"
       ],
       "gap": null
     },
@@ -80,8 +52,9 @@
       "id": "AC-5",
       "status": "pass",
       "evidence": [
-        "frontend/src/hooks/useEmptyConversationBootstrap.ts — when !loading && conversations.length===0, createConversation then setConversationId (bTInY/bTInW parity)",
-        "frontend/src/components/chat/ConversationSidebar.tsx — invokes bootstrap after fetchConversations"
+        "frontend/src/hooks/useEmptyConversationBootstrap.ts — bTInQ parity: empty non-loading list triggers createConversation then setConversationId",
+        "frontend/src/lib/chat/chatConversationsApi.ts — createConversation inserts chatconversation row (bTInY NewThing parity)",
+        "frontend/src/components/chat/ConversationSidebar.tsx — bootstrap hook wired after fetchConversations with onBootstrapped reload"
       ],
       "gap": null
     }
@@ -89,7 +62,17 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "RepeatingGroup loads current-user chatconversation rows from Supabase ordered by modified_date",
+      "check": "ConversationSidebar renders thread list with IR bubble markers ai_RNbBHXbK/bL and per-cell ai_RNbBHXbM hierarchy",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/chat/ConversationSidebar.tsx",
+        "frontend/src/components/chat/ConversationThreadCell.tsx",
+        "frontend/src/pages/Chat.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Thread list loads current-user chatconversation rows via Supabase client ordered by modified date",
       "status": "pass",
       "evidence": [
         "frontend/src/lib/chat/chatConversationsApi.ts",
@@ -97,8 +80,8 @@
       ]
     },
     {
-      "id": "FV-2",
-      "check": "Selecting a thread cell updates /chat?conversation=<id> while preserving other URL params",
+      "id": "FV-3",
+      "check": "Selecting a thread cell updates /chat?conversation=<id> while preserving other URL search params",
       "status": "pass",
       "evidence": [
         "frontend/src/lib/chat/chatRouteStore.ts",
@@ -106,81 +89,137 @@
       ]
     },
     {
-      "id": "FV-3",
-      "check": "Empty thread list bootstraps first chatconversation and navigates to new conversation id",
-      "status": "pass",
-      "evidence": [
-        "frontend/src/hooks/useEmptyConversationBootstrap.ts",
-        "frontend/src/lib/chat/chatConversationsApi.ts — createConversation"
-      ]
-    },
-    {
       "id": "FV-4",
-      "check": "Delete icon button binds selected conversation for popup host (CHAT-04 integration point)",
+      "check": "Delete control (bU) opens DeleteConversationPopup with the selected chatconversation bound",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/chat/ConversationThreadCell.tsx — bU onDeleteRequest",
-        "frontend/src/pages/Chat.tsx — deleteTarget state + data-delete-target-id"
+        "frontend/src/components/chat/ConversationThreadCell.tsx",
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/components/chat/DeleteConversationPopup.tsx"
       ]
     },
     {
       "id": "FV-5",
-      "check": "Active thread cell highlights per URL conversation param",
+      "check": "Empty repeating group bootstraps first chatconversation and navigates to ?conversation=<new_id> (bTInQ/bTInY/bTInW)",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/chat/ConversationSidebar.tsx — isActive={conversation.id === conversationId}",
-        "frontend/src/components/chat/ConversationThreadCell.tsx — conditional bg-accent on ai_RNbBHXbM"
+        "frontend/src/hooks/useEmptyConversationBootstrap.ts",
+        "frontend/src/lib/chat/chatConversationsApi.ts"
       ]
     }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHXbK", "selector": "[data-bubble-id='ai_RNbBHXbK']", "status": "pass", "notes": "ConversationSidebar root" },
-    { "bubble_id": "ai_RNbBHXbL", "selector": "[data-bubble-id='ai_RNbBHXbL']", "status": "pass", "notes": "RepeatingGroup list container" },
-    { "bubble_id": "ai_RNbBHXbM", "selector": "[data-bubble-id='ai_RNbBHXbM']", "status": "pass", "notes": "RG cell root; active highlight" },
-    { "bubble_id": "ai_RNbBHXbN", "selector": "[data-bubble-id='ai_RNbBHXbN']", "status": "pass", "notes": "Inner row group; sole child of bM" },
-    { "bubble_id": "ai_RNbBHXbO", "selector": "[data-bubble-id='ai_RNbBHXbO']", "status": "pass", "notes": "Text column; sibling of bR under bN" },
-    { "bubble_id": "ai_RNbBHXbP", "selector": "[data-bubble-id='ai_RNbBHXbP']", "status": "pass", "notes": "Select button with title+preview" },
-    { "bubble_id": "ai_RNbBHXbQ", "selector": "[data-bubble-id='ai_RNbBHXbQ']", "status": "pass", "notes": "Modified date text sibling of bP under bO" },
-    { "bubble_id": "ai_RNbBHXbR", "selector": "[data-bubble-id='ai_RNbBHXbR']", "status": "pass", "notes": "Actions group; sibling of bO under bN" },
-    { "bubble_id": "ai_RNbBHXbS", "selector": "[data-bubble-id='ai_RNbBHXbS']", "status": "pass", "notes": "Pencil rename trigger" },
-    { "bubble_id": "ai_RNbBHXbU", "selector": "[data-bubble-id='ai_RNbBHXbU']", "status": "pass", "notes": "Trash delete trigger" },
-    { "bubble_id": "RepeatingGroup_list_", "selector": "style_ref:RepeatingGroup_list_", "status": "partial", "notes": "ui_ref listed in decompose; RG container uses Tailwind space-y-1 overflow-y-auto without bubbleStyle(RepeatingGroup_list_)" }
+    {
+      "bubble_id": "ai_RNbBHXbK",
+      "selector": "[data-bubble-id='ai_RNbBHXbK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbL",
+      "selector": "[data-bubble-id='ai_RNbBHXbL']",
+      "status": "pass",
+      "notes": "RepeatingGroup_list_ style_ref not applied — Tailwind overflow-y-auto only"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbM",
+      "selector": "[data-bubble-id='ai_RNbBHXbM']",
+      "status": "pass",
+      "notes": "Active conditional bg-accent on cell root matches IR selected-state intent"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbN",
+      "selector": "[data-bubble-id='ai_RNbBHXbN']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbO",
+      "selector": "[data-bubble-id='ai_RNbBHXbO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbP",
+      "selector": "[data-bubble-id='ai_RNbBHXbP']",
+      "status": "pass",
+      "notes": "Select button carries title + preview spans; IR bP is Button with dynamic text bindings"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbQ",
+      "selector": "[data-bubble-id='ai_RNbBHXbQ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbR",
+      "selector": "[data-bubble-id='ai_RNbBHXbR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbS",
+      "selector": "[data-bubble-id='ai_RNbBHXbS']",
+      "status": "pass",
+      "notes": "Button_icon_ style via bubbleStyle; rename handler is no-op stub in Chat.tsx"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbU",
+      "selector": "[data-bubble-id='ai_RNbBHXbU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "RepeatingGroup_list_",
+      "selector": "[data-style-ref='RepeatingGroup_list_']",
+      "status": "partial",
+      "notes": "IR list RG style exists in styles.json but ai_RNbBHXbL container has no data-style-ref or bubbleStyle(RepeatingGroup_list_)"
+    }
   ],
   "gaps": [],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "ui-fidelity",
-      "priority": "low",
-      "finding": "RepeatingGroup ai_RNbBHXbL does not apply bubbleStyle('RepeatingGroup_list_') though RepeatingGroup_list_ is in decompose ui_refs[] and styles.json defines border/background none.",
-      "alternative": "Add bubbleStyle('RepeatingGroup_list_') to the RG container className or document intentional Tailwind substitution in coverage.",
-      "evidence": ["frontend/src/components/chat/ConversationSidebar.tsx", "ir/slices/styles.json", "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json"]
+      "area": "data-layer",
+      "priority": "medium",
+      "finding": "fetchConversations and createConversation fall back to profiles.onboarding_data when chatconversation/chatmessage tables are absent (supabase has no chat migrations). AC-2 names table query only.",
+      "alternative": "Land supabase chatconversation migration so the primary Supabase table path is always exercised; keep onboarding fallback only for migration rollout.",
+      "evidence": [
+        "frontend/src/lib/chat/chatConversationsApi.ts",
+        "supabase/"
+      ]
     },
     {
       "id": "C-2",
-      "area": "integration",
-      "priority": "medium",
-      "finding": "Delete trigger sets deleteTarget state but DeleteConversationPopup is not mounted — user sees no modal until CHAT-04 lands.",
-      "alternative": "CHAT-04 should read deleteTarget from Chat.tsx (or lift to shared store) and render ai_RNbBHXct popup on bU click; current wiring is sufficient CHAT-02 handoff.",
-      "evidence": ["frontend/src/pages/Chat.tsx", "cursor-impl-cycle/output/decompose/MOD-DRSAM-CHAT.json — CHAT-04-delete-conversation-popup"]
+      "area": "functional",
+      "priority": "low",
+      "finding": "Rename trigger ai_RNbBHXbS is wired through onRenameRequest but Chat.tsx handleRenameRequest is an intentional no-op — icon renders without opening a rename flow.",
+      "alternative": "Defer to a rename-popup item or wire inline title edit; document as out-of-scope in decompose if rename is not required for CHAT-02 gate.",
+      "evidence": [
+        "frontend/src/pages/Chat.tsx",
+        "frontend/src/components/chat/ConversationThreadCell.tsx"
+      ]
     },
     {
       "id": "C-3",
-      "area": "behavior",
-      "priority": "low",
-      "finding": "bR action row uses opacity-0 group-hover:opacity-100 reveal; Bubble IR does not encode hover-only visibility on ai_RNbBHXbR.",
-      "alternative": "Match Bubble always-visible icon row if parity tooling flags hover gating, or accept as brownfield UX enhancement.",
-      "evidence": ["frontend/src/components/chat/ConversationThreadCell.tsx", "ir/inventory.json — ai_RNbBHXbR"]
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Repeating group ai_RNbBHXbL omits RepeatingGroup_list_ style_ref from ir/slices/styles.json (border/background list presentation).",
+      "alternative": "Apply bubbleStyle('RepeatingGroup_list_') or equivalent token mapping on the RG scroll container.",
+      "evidence": [
+        "frontend/src/components/chat/ConversationSidebar.tsx",
+        "ir/slices/styles.json — RepeatingGroup_list_"
+      ]
     },
     {
       "id": "C-4",
-      "area": "integration",
+      "area": "resilience",
       "priority": "low",
-      "finding": "bS rename button calls onRenameRequest but Chat.tsx handleRenameRequest is an intentional no-op stub pending rename popup item.",
-      "alternative": "Wire rename flow when a CHAT rename-popup item is decomposed, mirroring deleteTarget pattern.",
-      "evidence": ["frontend/src/pages/Chat.tsx", "frontend/src/components/chat/ConversationThreadCell.tsx"]
+      "finding": "useEmptyConversationBootstrap sets bootstrappedRef before async createConversation completes; a failed create will not retry on subsequent renders.",
+      "alternative": "Set bootstrappedRef only after successful create, or reset on failure with user-visible error toast.",
+      "evidence": [
+        "frontend/src/hooks/useEmptyConversationBootstrap.ts"
+      ]
     }
   ],
-  "scores": { "completeness": 5, "grounding": 5, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

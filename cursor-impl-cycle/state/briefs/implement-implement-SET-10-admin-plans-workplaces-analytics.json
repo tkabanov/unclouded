@@ -1,0 +1,46 @@
+{
+  "role": "implement",
+  "phase": "implement",
+  "target_id": "SET-10-admin-plans-workplaces-analytics",
+  "current_module_id": "MOD-DRSAM-SETTINGS",
+  "current_item_id": "SET-10-admin-plans-workplaces-analytics",
+  "template": "/Users/tim/projects/unclouded/cursor-impl-cycle/prompts/write-implement.md",
+  "inputs": {
+    "inventory_path": "ir/inventory.json",
+    "styles_slice_path": "ir/slices/styles.json",
+    "bubble_source_path": "drsam-99657.bubble",
+    "ui_fidelity_rubric_path": "cursor-impl-cycle/prompts/ui-fidelity-rubric.md",
+    "module_map_path": "cursor-impl-cycle/state/module-map.json",
+    "cycle_path": "cursor-impl-cycle/state/cycle.json",
+    "frontend_app_dir": "frontend",
+    "adapter_dir": null,
+    "supabase_context_dir": "supabase",
+    "implementation_policy_path": "cursor-impl-cycle/config/implementation-policy.json",
+    "prototype_inventory_path": "cursor-impl-cycle/config/prototype-inventory.json",
+    "path_conventions_path": "cursor-impl-cycle/config/path-conventions.json",
+    "provider_scope_seed_path": "cursor-impl-cycle/config/drsam-scope-seed.json",
+    "scope_focus": "drsam_authenticated_spa",
+    "development_mode": "brownfield",
+    "frontend_stack": "react-vite-tsx",
+    "prototype_dir": "frontend",
+    "forbidden_write_paths": [
+      "project/"
+    ],
+    "allowed_write_paths": [
+      "frontend/",
+      "cursor-impl-cycle/"
+    ],
+    "read_only_context_paths": [
+      "project/",
+      "ir/",
+      "supabase/"
+    ],
+    "coverage_threshold_pct": 90
+  },
+  "outputs": [
+    "cursor-impl-cycle/output/coverage/SET-10-admin-plans-workplaces-analytics.json"
+  ],
+  "subagent_type": "generalPurpose",
+  "model": null,
+  "readonly": false
+}

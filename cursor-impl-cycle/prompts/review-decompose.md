@@ -1,8 +1,10 @@
 # Review decompose
 
-**Role:** Reviewer (generalPurpose, **readonly: true**)  
+**Role:** Reviewer (generalPurpose — **do not** pass Task `readonly: true`; Ask mode blocks report writes)  
 **Phase:** `decompose`  
 **Target:** `{{target_id}}`
+
+**Write scope:** persist **only** the report path below. Do **not** modify application source or decompose artifacts except via the report file.
 
 Write **only**: `cursor-impl-cycle/output/reports/decompose-{{target_id}}.review.json`
 

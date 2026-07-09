@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "PATHS-02-paths-grid-filters-and-cards",
-  "assessed_at": "2026-07-08T07:48:00.000Z",
+  "assessed_at": "2026-07-08T22:24:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-02-paths-grid-filters-and-cards.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,15 +11,29 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "layout_notes cite ai_RNbBHYLA responsive column-state, but PATHS-02 ui_refs name ai_RNbBHYHn (grid RG) not ai_RNbBHYLA; implementation mounts data-bubble-id on ai_RNbBHYHn with grid-cols-1 md:grid-cols-2 achieving equivalent 1→2 column responsive behavior. No criteria_audit, functional_audit, or ui_evidence failure; PATHS-03 depends_on needs grid cells and view-details wiring only. Optional ai_RNbBHYLA marker and Bubble column-state hook are pixel-parity polish, not AC blockers."
+      "rationale": "Valid coverage-artifact gap: files_changed lists PathCard.tsx, PathsGridPanel.tsx, routes.ts, and the coverage JSON but omits PathsFilterRow.tsx even though AC-1 criteria evidence and functional_audit FV-2 cite it as a deliverable. PathsFilterRow.tsx is fully implemented with ai_RNbBHYHZ/ai_RNbBHYHb markers and ENUM-04 tier labels; criteria_audit AC-1 passes at 100%. Omission is audit traceability housekeeping only — it does not reduce coverage_pct, fail any AC, or block downstream PATHS-03 depends_on on grid cards and view-details btn ai_RNbBHYIJ. Expand files_changed on the next coverage pass; no source rewrite required for advance."
     },
     {
       "critique_id": "C-2",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "rationale": "Tier-filter no-match copy is intentional React-only client-side UX — IR has no distinct filtered-empty element; bTJEI (style_ref Text_body_) covers zero-enrollment empty state per AC-2/FV-4 and passes ui_evidence. Bubble tier filtering is server/RG-driven without a separate \"no matches\" label; adding a synthetic bubble-id would invent IR not present in decompose ui_refs."
+      "rationale": "IR re-read confirms bTIva is a CustomElement instance wrapper (parent bTIvi) whose reusable root is bTIuS; PathCard correctly marks bTIva on the instance wrapper and DS-02 ProgressBar marks bTIuS/bTIua/bTIuZ on the reusable subtree per DS-02 contract. Nested markers reflect Bubble instance-over-reusable composition, not a missing region. ui_evidence for bTIva passes; AC-2 requires progress via DS-02 ProgressBar (bTIva) + pct bTIvt — satisfied. Downstream PATHS-03 depends on view-details flow, not progress-bar bubble-id placement. Defer optional bubbleId prop on ProgressBar as parity-tooling polish to collapse duplicate subtree selectors."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR hierarchy places ai_RNbBHYLA as responsive column-state parent of ai_RNbBHYLB grid cells; layout_notes cite ai_RNbBHYLA for mobile breakpoint behavior. Implementation applies md:grid-cols-2 directly on ai_RNbBHYHn (the named ui_ref in PATHS-02 AC-2) and review ui_evidence for ai_RNbBHYHn passes with equivalent responsive columns. ai_RNbBHYLA is not a named ui_ref in PATHS-02 acceptance criteria or ui_refs[] — only layout_notes guidance. Visual layout parity is achieved; missing intermediate marker affects parity tooling selectors only. Defer ai_RNbBHYLA wrapper as optional marker polish."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "IR bTJEI copy \"You haven't enrolled in any path yet\" is correctly used for the zero-enrollment empty state (PathsGridPanel renders bTJEI with PATHS_GRID_EMPTY_TEXT). The tier-filter zero-results branch (enrollments.length > 0 but filteredEnrollments.length === 0) is client-side filter UX with no Bubble IR equivalent — Bubble tier filtering hides rows server-side without a distinct empty-state element. PATHS-02 ACs require bTJEI empty copy and tier DD filtering (AC-2/AC-3), not IR-grounded copy for filtered-not-empty. Defer extracting ad-hoc \"No paths match the selected tier.\" to routes.ts constant or confirming Bubble conditional copy on a later polish pass."
     }
   ],
-  "summary": "0 fix_now, 1 defer, 1 accept. Advance OK — post-rewrite review ok=true, coverage 100%, rewrite_pass true, 0 blockers, all ACs and functional checks pass. C-1 deferred: ai_RNbBHYLA column-state marker optional polish; responsive grid behavior satisfied via ai_RNbBHYHn Tailwind breakpoints. C-2 accepted: tier-filter empty message is React-only UX with no IR bubble-id source; bTJEI zero-enrollment case is IR-grounded."
+  "summary": "0 fix_now, 4 defer, 0 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and ui_evidence pass. Deferred: C-1 coverage files_changed completeness for PathsFilterRow.tsx (artifact hygiene); C-2 bTIva/ProgressBar nested bubble-id polish (parity tooling); C-3 ai_RNbBHYLA responsive wrapper marker (not in ui_refs); C-4 tier-filter empty copy (client-side UX, no IR source)."
 }

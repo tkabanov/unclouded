@@ -29,7 +29,7 @@ Write:
 
 - Each module: `id` (`MOD-DRSAM-*`), `title`, `purpose`, `ir_roots[]`, `ir_slices[]`, `estimated_size`, `priority`
 - Cover authenticated SPA: auth/onboarding, shell, enums, design system, dashboard, journal, paths, chat, crisis, settings, API surface
-- `project/supabase` is **read-only context** — do not plan migrations; plan frontend + optional `adapter/` only
+- `project/supabase` is **read-only context** — do not plan migrations there; plan `frontend/`, `supabase/` (prototype), and optional `adapter/` only
 - Do not invent features absent from IR
 
 ## MODULE-MAP.md

@@ -33,9 +33,9 @@
     }
   ],
   "migrations_apply_order": [
-    "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql",
-    "frontend/supabase/migrations/20260708160000_subscription_workplace_billing_rbac.sql",
-    "frontend/supabase/migrations/20260708170000_settings_admin_rls.sql"
+    "supabase/migrations/20260708130000_subscription_workplace_billing.sql",
+    "supabase/migrations/20260708160000_subscription_workplace_billing_rbac.sql",
+    "supabase/migrations/20260708170000_settings_admin_rls.sql"
   ],
   "manual_qa_checklist": [
     "Apply Supabase migrations in order (billing → rbac → admin RLS)",

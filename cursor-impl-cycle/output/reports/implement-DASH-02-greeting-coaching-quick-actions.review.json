@@ -1,20 +1,18 @@
 {
   "phase": "implement",
   "target_id": "DASH-02-greeting-coaching-quick-actions",
-  "assessed_at": "2026-07-07T20:48:00.000Z",
+  "assessed_at": "2026-07-08T19:15:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 90,
+  "coverage_confidence_pct": 87,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx — root data-bubble-id ai_RNbBHXRG (Group_card_)",
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx — ai_RNbBHXRH greeting-top nests ai_RNbBHXRI avatar and text stack with ai_RNbBHXRL, ai_RNbBHXRN, ai_RNbBHXRO",
-        "frontend/src/pages/Dashboard.tsx — DashboardGreetingRow mounts DashboardGreetingCard in greetingRow slot for both incomplete and complete profile branches",
-        "ir/inventory.json — ai_RNbBHXRG parent ai_RNbBHXRF; ai_RNbBHXRH/ai_RNbBHXRI children under greeting card"
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "gap": null
     },
@@ -22,11 +20,10 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx — bTIVE wrapper (Group_transparent_) with bTIVK label and bTIVQ SelectTrigger (Dropdown_default_)",
-        "frontend/src/lib/enums/coachingMode.ts — AI_COACHING_MODE_ORDER/LABELS from ai_coaching_mode_os (ENUM-03)",
-        "frontend/src/lib/dashboard/coachingModeApi.ts — updateCoachingModePreference patches profiles.onboarding_data ai_coaching_mode_list_list_option_ai_coaching_mode_os via supabase.from('profiles').update",
-        "frontend/src/hooks/useDashboardUser.ts — readPreferredCoachingMode/readCoachingModeList expose dropdown value from onboarding_data",
-        "drsam-99657.bubble — bTIVW InputChanged on bTIVQ: add on non-empty (bTIVc), set_list simplifier fallback on empty (bTIVe)"
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "frontend/src/lib/dashboard/coachingModeApi.ts",
+        "frontend/src/hooks/useDashboardUser.ts",
+        "frontend/src/lib/enums/coachingMode.ts"
       ],
       "gap": null
     },
@@ -34,11 +31,8 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardQuickActions.tsx — root ai_RNbBHXRP with ai_RNbBHXRQ (Button_accent_) and ai_RNbBHXRS (Button_outline_)",
-        "frontend/src/components/dashboard/DashboardQuickActions.tsx — onClick navigate('/paths') and navigate('/journal')",
-        "frontend/src/lib/router/authenticatedRoutes.tsx — /paths and /journal routes registered",
-        "frontend/src/pages/Dashboard.tsx — DashboardQuickActions sibling to DashboardGreetingCard inside DashboardGreetingRow under ai_RNbBHXRF slot",
-        "drsam-99657.bubble — button copy 'Plan tomorrow' and 'Reflect on today' matches implementation"
+        "frontend/src/components/dashboard/DashboardQuickActions.tsx",
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "gap": null
     }
@@ -46,31 +40,40 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "Greeting card binds current user display fields (name, classification pill, coaching note) from dashboard user context",
+      "check": "Coaching mode dropdown reads preferred mode and persists changes to profiles.onboarding_data (bTIVW / ai_coaching_mode_list_list_option_ai_coaching_mode_os)",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "frontend/src/lib/dashboard/coachingModeApi.ts",
         "frontend/src/hooks/useDashboardUser.ts",
-        "drsam-99657.bubble — ai_RNbBHXRL binds name_text; ai_RNbBHXRN classification display; ai_RNbBHXRO pressure_profile_text"
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
       ]
     },
     {
       "id": "FV-2",
-      "check": "Coaching mode dropdown change persists preference to Supabase and refreshes profile",
+      "check": "Mode pill (ai_RNbBHXRN) shows user classification display per Bubble ElementParent.classification_option_classification_os binding",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx — handleCoachingModeChange",
-        "frontend/src/lib/dashboard/coachingModeApi.ts — updateCoachingModePreference",
-        "frontend/src/integrations/supabase/client.ts — supabase client used (via coachingModeApi import)"
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "frontend/src/hooks/useDashboardUser.ts",
+        "drsam-99657.bubble — ai_RNbBHXRN text binds classification_option_classification_os.display"
       ]
     },
     {
       "id": "FV-3",
-      "check": "Quick-action buttons route to /paths and /journal (not dead handlers or placeholders)",
+      "check": "Quick action buttons navigate to /paths (plan) and /journal (reflect) with IR copy",
       "status": "pass",
       "evidence": [
         "frontend/src/components/dashboard/DashboardQuickActions.tsx",
-        "frontend/src/lib/router/authenticatedRoutes.tsx"
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Coaching note (ai_RNbBHXRO) shows pressure profile text when results exist",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "frontend/src/hooks/useDashboardUser.ts"
       ]
     }
   ],
@@ -93,8 +96,8 @@
     {
       "bubble_id": "ai_RNbBHXRK",
       "selector": "[data-bubble-id='ai_RNbBHXRK']",
-      "status": "partial",
-      "notes": "IR dashboard-greeting-text-column group between avatar and name stack; implementation uses anonymous Group_transparent_ wrapper without marker"
+      "status": "fail",
+      "notes": "IR Group dashboard-greeting-text (parent of greeting-name + mode-badge) flattened; no marker on intermediate wrapper"
     },
     {
       "bubble_id": "ai_RNbBHXRL",
@@ -104,34 +107,20 @@
     {
       "bubble_id": "ai_RNbBHXRM",
       "selector": "[data-bubble-id='ai_RNbBHXRM']",
-      "status": "partial",
-      "notes": "IR dashboard-mode-badge group wrapping pill + coaching note; flattened to anonymous flex-col without marker"
+      "status": "fail",
+      "notes": "IR Group dashboard-mode-badge missing; mode-pill and coaching-note are direct siblings under anonymous div, not children of ai_RNbBHXRM"
     },
     {
       "bubble_id": "ai_RNbBHXRN",
       "selector": "[data-bubble-id='ai_RNbBHXRN']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Correctly binds classificationName per Bubble IR (not coaching mode label)"
     },
     {
       "bubble_id": "ai_RNbBHXRO",
       "selector": "[data-bubble-id='ai_RNbBHXRO']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRP",
-      "selector": "[data-bubble-id='ai_RNbBHXRP']",
-      "status": "pass",
-      "notes": "Sibling under ai_RNbBHXRF per layout_notes — not nested inside greeting card"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRQ",
-      "selector": "[data-bubble-id='ai_RNbBHXRQ']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRS",
-      "selector": "[data-bubble-id='ai_RNbBHXRS']",
-      "status": "pass"
+      "status": "partial",
+      "notes": "Marker present; uses bubbleStyle(Text_body_muted_) instead of IR style_ref Text_caption_"
     },
     {
       "bubble_id": "bTIVE",
@@ -142,7 +131,7 @@
       "bubble_id": "bTIVK",
       "selector": "[data-bubble-id='bTIVK']",
       "status": "pass",
-      "notes": "Label text 'My coaching mode' matches Bubble"
+      "notes": "Static copy 'My coaching mode' matches Bubble"
     },
     {
       "bubble_id": "bTIVQ",
@@ -150,31 +139,26 @@
       "status": "pass"
     },
     {
-      "bubble_id": "style_ref:bTIVE",
-      "selector": "[data-bubble-id='bTIVE'][data-style-ref='Group_transparent_']",
+      "bubble_id": "ai_RNbBHXRP",
+      "selector": "[data-bubble-id='ai_RNbBHXRP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRQ",
+      "selector": "[data-bubble-id='ai_RNbBHXRQ']",
       "status": "pass",
-      "notes": "ir/refs.json style_ref:bTIVE → Group_transparent_; applied via bubbleStyle"
+      "notes": "Copy 'Plan tomorrow' and Button_accent_ style_ref match IR"
+    },
+    {
+      "bubble_id": "ai_RNbBHXRS",
+      "selector": "[data-bubble-id='ai_RNbBHXRS']",
+      "status": "pass",
+      "notes": "Copy 'Reflect on today' and Button_outline_ style_ref match IR"
     }
   ],
   "gaps": [
-    {
-      "id": "G-1",
-      "area": "hierarchy",
-      "finding": "Intermediate IR groups ai_RNbBHXRK (greeting text column) and ai_RNbBHXRM (mode-badge wrapper) are flattened without data-bubble-id markers.",
-      "evidence": [
-        "ir/inventory.json",
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
-      ]
-    },
-    {
-      "id": "G-2",
-      "area": "workflow-parity",
-      "finding": "Bubble bTIVQ data_source filters ai_coaching_mode_os to exclude simplifier; React Select lists all five ENUM-03 slugs including simplifier.",
-      "evidence": [
-        "drsam-99657.bubble — bTIVQ properties.data_source filtered not_equals simplifier",
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx — AI_COACHING_MODE_ORDER.map"
-      ]
-    }
+    "ui_refs ai_RNbBHXRK and ai_RNbBHXRM intermediate groups omitted — greeting-text and mode-badge nesting flattened",
+    "ai_RNbBHXRO uses Text_body_muted_ token instead of IR Text_caption_ style_ref"
   ],
   "blockers": [],
   "critiques": [
@@ -182,55 +166,44 @@
       "id": "C-1",
       "area": "ui-fidelity",
       "priority": "medium",
-      "finding": "ai_RNbBHXRK and ai_RNbBHXRM are in decompose ui_refs[] but lack data-bubble-id on their wrapper divs; AC-1 required leaf markers only, so parity tooling cannot assert full greeting-top subtree.",
-      "alternative": "Add data-bubble-id to the two intermediate Group_transparent_ wrappers around name and mode-badge stack.",
+      "finding": "Greeting card flattens IR hierarchy: ai_RNbBHXRK (dashboard-greeting-text) and ai_RNbBHXRM (dashboard-mode-badge) group wrappers have no data-bubble-id nodes; mode-pill and coaching-note sit in an anonymous flex column.",
+      "alternative": "Add wrapper divs with data-bubble-id ai_RNbBHXRK and ai_RNbBHXRM nesting ai_RNbBHXRL/ai_RNbBHXRN/ai_RNbBHXRO per ir/inventory.json parent_id chain.",
       "evidence": [
-        "ir/inventory.json",
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "ir/inventory.json"
       ]
     },
     {
       "id": "C-2",
-      "area": "workflow-parity",
-      "priority": "medium",
-      "finding": "Bubble dropdown excludes simplifier from selectable options (simplifier is only reachable via bTIVe empty-selection set_list fallback); implementation exposes simplifier in the dropdown list.",
-      "alternative": "Filter AI_COACHING_MODE_ORDER to omit simplifier in the SelectItem list while keeping simplifier fallback in updateCoachingModePreference for empty clears.",
-      "evidence": [
-        "drsam-99657.bubble",
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
-      ]
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Coaching note (ai_RNbBHXRO) applies Text_body_muted_ instead of Bubble Text_caption_ style_ref.",
+      "alternative": "Switch className to bubbleStyle('Text_caption_') on the coaching-note element.",
+      "evidence": ["frontend/src/components/dashboard/DashboardGreetingCard.tsx"]
     },
     {
       "id": "C-3",
-      "area": "workflow-parity",
+      "area": "functional-parity",
       "priority": "low",
-      "finding": "bTIVe empty-selection branch is implemented in coachingModeApi but Radix Select cannot clear to empty, so simplifier-only reset is unreachable from the UI.",
-      "alternative": "Accept as intentional brownfield simplification, or add an explicit 'reset' affordance if Bubble clear semantics matter.",
+      "finding": "bTIVW empty-selection branch (bTIVe reset to simplifier) is unreachable because shadcn Select has no clear-to-empty path; non-duplicate add semantics differ slightly from Bubble add action.",
+      "alternative": "Add explicit reset control or allow deselect if product requires full bTIVW parity.",
       "evidence": [
         "frontend/src/lib/dashboard/coachingModeApi.ts",
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "drsam-99657.bubble — workflow bTIVW"
       ]
     },
     {
       "id": "C-4",
       "area": "data-binding",
       "priority": "low",
-      "finding": "Coaching note falls back to static placeholder when pressureProfile is absent; Bubble binds pressure_profile_text with no generic fallback copy.",
-      "alternative": "Omit coaching-note region or hide ai_RNbBHXRO until results.pressure_profile is available.",
+      "finding": "Coaching note reads results.pressure_profile while Bubble binds ElementParent.pressure_profile_text; fields are synced on calculate path but users without results fall back to placeholder instead of onboarding_data.pressure_profile_text.",
+      "alternative": "Prefer onboarding_data.pressure_profile_text with results.pressure_profile fallback in useDashboardUser.",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
-        "drsam-99657.bubble — ai_RNbBHXRO text expression"
+        "frontend/src/hooks/useDashboardUser.ts",
+        "frontend/src/lib/userProfile/calculateUserPressureProfile.ts"
       ]
     }
   ],
-  "scores": {
-    "completeness": 4,
-    "grounding": 5,
-    "actionability": 4
-  },
-  "brownfield": {
-    "preflight_present": true,
-    "reuse_decision": "gap-fill",
-    "forbidden_paths_touched": false
-  }
+  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
 }

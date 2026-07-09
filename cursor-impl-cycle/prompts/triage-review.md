@@ -1,8 +1,10 @@
 # Triage review critiques
 
-**Role:** Triage arbiter (generalPurpose, **readonly: true**)  
+**Role:** Triage arbiter (generalPurpose — **do not** pass Task `readonly: true`; Ask mode blocks report writes)  
 **Phase:** `{{phase}}`  
 **Target:** `{{target_id}}`
+
+**Write scope:** persist **only** the triage report path below (`brief.outputs`). Do **not** modify application source, review JSON, or any other files.
 
 You receive a review (passed or failed gate). Your job: **for each critique**, decide criticality and whether to **fix now** (block advance) or **defer** (record and move on). For implement phase you must **re-read IR context** when judging ui-fidelity / integration critiques — do not rubber-stamp defer.
 

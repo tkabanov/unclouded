@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "PATHS-07-session-completion-route-integration",
-  "assessed_at": "2026-07-08T10:12:00.000Z",
+  "assessed_at": "2026-07-08T22:40:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-07-session-completion-route-integration.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,30 +11,29 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Valid edge-case UX gap: when enrollment currentSessionId matches ?session= but fetchPathSession returns null, SessionCompletionRoute keeps isVisible true and hides bTJDf while rendering an empty bTJAG/bTJAB shell after loading. criteria_audit AC-1/AC-2 and functional_audit FV-1–FV-4 pass on the happy path; decompose scope does not require error recovery or redirect. No downstream MOD-DRSAM-PATHS items depend on failure handling. Defer inline error or param-clear fallback to a polish/API hardening wave."
+      "rationale": "Confirmed in brownfield React paths: useSessionCompletionRoute only reads and clears SESSION_SEARCH_PARAM; no PathDetailPopup or EnrollmentFloatingBar action calls setSearchParams with enrollment.currentSessionId. PATHS-03 triage anticipated PATHS-07 would wire bTJCv Continue Path session-navigation, but PATHS-07 decompose scope and AC-1..AC-3 obligate overlay mount, ?session= match against bTItY store currentSessionId, and submit/clear param only — not bTJCv footer CTA or chip navigation. criteria_audit, functional_audit FV-1/FV-4, and ui_evidence all pass at 100%; review ok=true. Overlay is reachable via direct ?session= deep link. PATHS-07 is the terminal MOD-DRSAM-PATHS item with no downstream depends_on gate on entry navigation. Defer bTJCv footer CTA and optional floating-bar chip ?session= setter to a paths navigation polish follow-up (PATHS-03 footer chrome + PATHS-06 enrollment strip)."
     },
     {
       "critique_id": "C-2",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "deferred_to_item": "API-06-ai-confidence-level-trigger",
-      "rationale": "PATHS-07 AC-3 explicitly scopes a frontend stub for ScheduleAPIEvent bTJCM parity; decompose scope documents read-only pathsession surfaces with no persistence. schedulePathSessionCompletion console.info stub satisfies AC-3 and criteria_audit pass. Persistence and pathanswer writes belong to API-06 per module decompose depends_on chain — not a PATHS-07 rewrite gap."
+      "rationale": "SessionCompletionRoute.tsx renders null inside bTJAB when loading finishes and fetchPathSession returns null (bad id, catalog miss, or fetch error) — valid UX gap but outside PATHS-07 AC-1..AC-3, which require DS-04 mount with resolved pathsession when visible/matched, not error/retry chrome. criteria_audit AC-1 passes on happy path; functional FV-2 passes on catalog/Supabase resolution. Defer inline error state with dismiss/back-to-paths and optional invalid-param clear as session-overlay polish when paths navigation (C-1) lands."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "PATHS-01 triage C-2 carried integration-test expectation to PATHS-07, but PATHS-07 decompose acceptance_criteria cover routing, gating, and submit orchestration only — no test AC. Behavioral checks FV-1–FV-4 and ui_evidence all pass. Automated React Router test for bTJDf vs bTJAB toggle and post-submit param clear is valuable backlog; does not block module completion with no further PATHS depends_on items."
+      "rationale": "AC-3 explicitly scopes a frontend bTJCM ScheduleAPIEvent stub; pathsSessionApi.ts documents stub boundary and logs handler id. incrementModulesCompletedCount is acceptable prototype side effect; full Bubble bTJBW pathanswer insert and enrollment current_session progression require supabase pathanswer/pathenrollment tables not in PATHS-07 scope (no project/ migrations). functional FV-4 and criteria_audit AC-3 pass. Defer pathanswer persistence and enrollment session advance to a later backend/API integration wave when tables or edge functions are available."
     },
     {
       "critique_id": "C-4",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Duplicate data-bubble-id bTItY on EnrollmentFloatingBar and PathsGridPanel is a PATHS-02/06 hierarchy artifact; PATHS-06 triage C-1 already deferred marker consolidation. PATHS-07 URL session matching is store-driven via pathsEnrollmentStore currentSessionId — ui_evidence for bTItY passes and named ui_ref parity is functionally satisfied. Retain single canonical bTItY on EnrollmentFloatingBar as optional IR hierarchy polish in a later wave."
+      "rationale": "PATHS-07 layout_notes state the page item handles routing, data bind, and submit orchestration only — not separate overlay presentation tokens. Named ui_refs bTJAG/bTJAB/bTIyi/bTItY pass ui_evidence; bTJDe parent presentation is not an enumerated ui_ref or AC marker. Generic flex/skeleton wrapper is acceptable per decompose page-orchestration boundary. Defer bTJDe/bTJAG full-width overlay token resolution from ir/slices/bTHDg____root.json or styles.json to optional pixel-parity polish if tooling flags deltas."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 1 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. C-1 deferred: empty-overlay recovery when fetchPathSession fails after enrollment match. C-2 accepted: AC-3 frontend stub intentional; persistence deferred to API-06-ai-confidence-level-trigger. C-3 deferred: integration tests remain backlog (PATHS-01 carry-forward). C-4 deferred: duplicate bTItY marker polish (PATHS-06 carry-forward)."
+  "summary": "0 fix_now, 4 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs and ui_evidence pass. Deferred: C-1 bTJCv/?session= entry navigation (paths-nav polish: PATHS-03 footer + PATHS-06 chip); C-2 fetch-null empty-shell error UX; C-3 full bTJBW pathanswer/enrollment progression beyond bTJCM stub; C-4 bTJDe overlay presentation tokens (optional parity polish)."
 }

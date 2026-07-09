@@ -7,7 +7,7 @@ import {
 import { loadProfileRow, patchOnboardingAndResults, readNumberField } from "./profileFieldPatch";
 
 export const CLASSIFICATION_OPTION_FIELD = "classification_option_classification_os" as const;
-const ORIENTATION_SCORE_FIELD = "orientation_score_number" as const;
+export const ORIENTATION_SCORE1_NUMBER_FIELD = "orientation_score1_number" as const;
 
 /** Bubble API event calculate_user_classification (bTHzC). */
 export async function calculateUserClassification(userId: string): Promise<string> {
@@ -34,23 +34,15 @@ export async function calculateUserClassification(userId: string): Promise<strin
   const orientation = readNumberField(
     onboarding_data,
     results,
-    ORIENTATION_SCORE_FIELD,
+    ORIENTATION_SCORE1_NUMBER_FIELD,
     "orientation_score",
   );
-
-  const pressureProfile =
-    typeof results?.pressure_profile === "string"
-      ? results.pressure_profile
-      : typeof onboarding_data.pressure_profile_text === "string"
-        ? onboarding_data.pressure_profile_text
-        : undefined;
 
   const { classification, classification_os } = resolveClassification({
     stability_score: stability,
     performance_score: performance,
     alignment_score: alignment,
     orientation_score: orientation,
-    pressure_profile: pressureProfile,
   });
 
   await patchOnboardingAndResults(

@@ -1,36 +1,20 @@
 {
   "phase": "implement",
   "target_id": "PATHS-04-paths-resources-panel",
-  "assessed_at": "2026-07-08T09:50:00.000Z",
+  "assessed_at": "2026-07-08T22:30:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 91,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
-  "rewrite_verification": {
-    "rewrite_pass": true,
-    "prior_blockers": ["AC-3"],
-    "resolved": [
-      {
-        "id": "AC-3",
-        "finding": "ResourceDetailPopup not wired — View Resource button had no popup handler in Paths.tsx",
-        "fix_evidence": [
-          "frontend/src/pages/Paths.tsx — viewingResource/resourcePopupOpen state; handleViewResource sets resource and opens popup; ResourceDetailPopup mounted with open/onOpenChange/resource props",
-          "frontend/src/components/paths/PathsResourcesPanel.tsx — onViewResource prop forwarded to ResourceCard",
-          "frontend/src/components/paths/ResourceCard.tsx — View Resource btn ai_RNbBHYJN calls onViewResource?.(resource)",
-          "frontend/src/components/paths/ResourceDetailPopup.tsx — Dialog popup ai_RNbBHYJx with overlay ai_RNbBHYMy, close ai_RNbBHYKJ, Done ai_RNbBHYKW"
-        ]
-      }
-    ]
-  },
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx — tabpanel data-bubble-id ai_RNbBHYIK, inner root bTJDs wraps PathsResourcesPanel; hidden when !isPathsLibraryActive (paths_library / bTItA)",
-        "frontend/src/lib/paths/pathsTabStore.ts — isPathsLibraryActive when activeTab === paths_library",
-        "frontend/src/lib/enums/pathPageTabs.ts — PATHS_LIBRARY maps to paths_library (bTItA)",
-        "ir/inventory.json — ai_RNbBHYIK pointer .../bTJDs, parent bTJDf; is_visible false by default per PATHS-01 AC-4"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/lib/paths/pathsTabStore.ts",
+        "frontend/src/lib/enums/pathPageTabs.ts",
+        "frontend/src/lib/paths/routes.ts"
       ],
       "gap": null
     },
@@ -38,9 +22,8 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathsResourcesPanel.tsx — pinned section ai_RNbBHYIL with header ai_RNbBHYIM/ai_RNbBHYIN/ai_RNbBHYIO (IR copy: Always Available — Crisis & Safety)",
-        "frontend/src/components/paths/PathsResourcesPanel.tsx — three Group_card_ crisis cards ai_RNbBHYIQ, ai_RNbBHYIZ, ai_RNbBHYIi with icon rows, titles, descriptions, Always Free badges",
-        "frontend/src/lib/paths/routes.ts — bubble ID constants align with IR element ids for crisis card regions"
+        "frontend/src/components/paths/PathsResourcesPanel.tsx",
+        "frontend/src/styles/bubble-styles.css"
       ],
       "gap": null
     },
@@ -48,24 +31,43 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathsResourcesPanel.tsx — intro ai_RNbBHYIr/ai_RNbBHYIs, RG ai_RNbBHYIu maps ResourceCard per resource",
-        "frontend/src/components/paths/ResourceCard.tsx — cell ai_RNbBHYIv with title ai_RNbBHYJF, content ai_RNbBHYJG, sensitivity badge ai_RNbBHYJI, disclaimer ai_RNbBHYJM, view btn ai_RNbBHYJN",
-        "frontend/src/lib/paths/pathsResourcesApi.ts — fetchResources queries resource/uds_resource with onboarding_data.resources and static fallback",
-        "frontend/src/pages/Paths.tsx — handleViewResource opens ResourceDetailPopup with selected resource",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — popup ai_RNbBHYJx renders resource title, content ai_RNbBHYKR, external link ai_RNbBHYKU"
+        "frontend/src/components/paths/PathsResourcesPanel.tsx",
+        "frontend/src/components/paths/ResourceCard.tsx",
+        "frontend/src/lib/paths/pathsResourcesApi.ts",
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/ResourceDetailPopup.tsx"
       ],
       "gap": null
     }
   ],
   "functional_audit": [
     {
-      "id": "FV-4",
-      "check": "View Resource button opens ResourceDetailPopup with selected resource; close/Done dismisses popup",
+      "id": "FV-1",
+      "check": "Resources panel (ai_RNbBHYIK/bTJDs) mounts only when path_page_tab_os is paths_library (bTItA)",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx — handleViewResource sets viewingResource and resourcePopupOpen true; onOpenChange clears state on close",
-        "frontend/src/components/paths/ResourceCard.tsx — ai_RNbBHYJN onClick invokes onViewResource",
-        "frontend/src/components/paths/ResourceDetailPopup.tsx — Dialog bound to resource prop; close ai_RNbBHYKJ and Done ai_RNbBHYKW call dismiss"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/lib/paths/pathsTabStore.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Resource library RG loads custom.resource rows via fetchResources with Supabase/onboarding/static fallback",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathsResourcesPanel.tsx",
+        "frontend/src/lib/paths/pathsResourcesApi.ts",
+        "frontend/src/lib/resources/demoResourceSeed.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "View Resource button opens ResourceDetailPopup bound to clicked resource (not dead handler)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/ResourceCard.tsx",
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/ResourceDetailPopup.tsx"
       ]
     }
   ],
@@ -74,7 +76,7 @@
       "bubble_id": "ai_RNbBHYIK",
       "selector": "[data-bubble-id='ai_RNbBHYIK']",
       "status": "pass",
-      "notes": "Tabpanel wrapper in Paths.tsx; pairs with bTJDs inner root per PATHS-01 convention"
+      "notes": "Marker on Paths.tsx tabpanel wrapper; bTJDs child nests PathsResourcesPanel"
     },
     {
       "bubble_id": "ai_RNbBHYIL",
@@ -89,7 +91,8 @@
     {
       "bubble_id": "ai_RNbBHYIO",
       "selector": "[data-bubble-id='ai_RNbBHYIO']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "IR copy Always Available — Crisis & Safety preserved"
     },
     {
       "bubble_id": "ai_RNbBHYIP",
@@ -102,6 +105,16 @@
       "status": "pass"
     },
     {
+      "bubble_id": "ai_RNbBHYIZ",
+      "selector": "[data-bubble-id='ai_RNbBHYIZ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYIi",
+      "selector": "[data-bubble-id='ai_RNbBHYIi']",
+      "status": "pass"
+    },
+    {
       "bubble_id": "ai_RNbBHYIr",
       "selector": "[data-bubble-id='ai_RNbBHYIr']",
       "status": "pass"
@@ -109,8 +122,7 @@
     {
       "bubble_id": "ai_RNbBHYIs",
       "selector": "[data-bubble-id='ai_RNbBHYIs']",
-      "status": "pass",
-      "notes": "Resource Library title; distinct from 988 icon wrap ai_RNbBHYIS (case-sensitive IR ids)"
+      "status": "pass"
     },
     {
       "bubble_id": "ai_RNbBHYIu",
@@ -121,7 +133,7 @@
       "bubble_id": "ai_RNbBHYIv",
       "selector": "[data-bubble-id='ai_RNbBHYIv']",
       "status": "pass",
-      "notes": "Repeating cell id on each ResourceCard instance — expected RG pattern"
+      "notes": "Shared RG cell id on each ResourceCard — matches Bubble repeating-group pattern"
     },
     {
       "bubble_id": "ai_RNbBHYJF",
@@ -142,7 +154,7 @@
       "bubble_id": "Group_card_",
       "selector": "[data-style-ref='Group_card_']",
       "status": "pass",
-      "notes": "Crisis cards and resource cards use bubbleStyle(Group_card_) via data-style-ref"
+      "notes": "Applied on crisis cards and ResourceCard via bubbleStyle + data-style-ref"
     }
   ],
   "gaps": [],
@@ -150,39 +162,32 @@
   "critiques": [
     {
       "id": "C-1",
-      "area": "scope",
+      "area": "coverage-grounding",
       "priority": "medium",
-      "finding": "Rewrite delivered a full ResourceDetailPopup.tsx (PATHS-05 target) inside PATHS-04 to satisfy AC-3 popup wiring. PATHS-05 may need only delta review or can be marked largely satisfied.",
-      "alternative": "Keep popup wiring in Paths.tsx but defer popup body polish to PATHS-05; document cross-item completion in cycle state.",
-      "evidence": [
-        "frontend/src/components/paths/ResourceDetailPopup.tsx",
-        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json — PATHS-05 target_files"
-      ]
+      "finding": "Coverage files_changed omits PathsResourcesPanel.tsx, ResourceCard.tsx, and pathsResourcesApi.ts even though they are the primary target_files for this item.",
+      "alternative": "Expand files_changed to list all target_files and any sibling wiring touched for AC-3 popup handoff.",
+      "evidence": ["cursor-impl-cycle/output/coverage/PATHS-04-paths-resources-panel.json"]
     },
     {
       "id": "C-2",
       "area": "ui-fidelity",
       "priority": "low",
-      "finding": "Crisis card titles use tel:/sms: href links (functional improvement) whereas Bubble IR uses static Text elements — acceptable UX delta for crisis resources.",
-      "alternative": "Match IR non-link text and add separate CTA buttons if pixel parity is required.",
+      "finding": "Group_card_ cards use Tailwind p-5 (20px) while ir/slices/styles.json Group_card_ specifies padding 24px on all sides.",
+      "alternative": "Use p-6 or bubbleStyle padding tokens to match IR spacing exactly.",
       "evidence": [
-        "frontend/src/components/paths/PathsResourcesPanel.tsx — PinnedCrisisCard href tel:988, sms:741741, tel:18006624357"
+        "frontend/src/components/paths/PathsResourcesPanel.tsx",
+        "frontend/src/components/paths/ResourceCard.tsx",
+        "ir/slices/styles.json"
       ]
     },
     {
       "id": "C-3",
-      "area": "data",
+      "area": "functional-scope",
       "priority": "low",
-      "finding": "pathsResourcesApi static fallback seeds three demo resources when Supabase tables are absent — ensures RG renders in dev but is not live Bubble custom.resource data.",
-      "alternative": "Gate fallback behind VITE_DEV_ONLY or surface empty-state copy when no backend rows exist.",
-      "evidence": [
-        "frontend/src/lib/paths/pathsResourcesApi.ts — STATIC_FALLBACK_RESOURCES, deriveResources fallback chain"
-      ]
+      "finding": "Coverage functional_verification reused FV-4 label from PATHS-01 tab chrome; independent audit derived FV-1..3 from this item's ACs instead.",
+      "alternative": "Align coverage functional_verification rows with item-specific checks to avoid cross-item ID confusion.",
+      "evidence": ["cursor-impl-cycle/output/coverage/PATHS-04-paths-resources-panel.json"]
     }
   ],
-  "scores": {
-    "completeness": 5,
-    "grounding": 4,
-    "actionability": 5
-  }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }

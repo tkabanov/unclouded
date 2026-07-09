@@ -42,7 +42,7 @@
     "frontend/src/lib/settings/subscriptionApi.ts",
     "frontend/src/lib/settings/routes.ts",
     "frontend/src/components/settings/SettingsMain.tsx",
-    "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"
+    "supabase/migrations/20260708130000_subscription_workplace_billing.sql"
   ],
   "functional_ok": true
 }

@@ -1,32 +1,32 @@
 {
   "phase": "implement",
   "target_id": "CHAT-01-chat-content-layout",
-  "assessed_at": "2026-07-08T07:04:00.000Z",
+  "assessed_at": "2026-07-09T22:40:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-CHAT-01-chat-content-layout.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
     {
       "critique_id": "C-1",
-      "severity": "defer",
-      "resolution": "defer",
+      "severity": "accept",
+      "resolution": "accept",
       "action_required": false,
-      "rationale": "IR re-read (ir/inventory.json text_expressions on ai_RNbBHXbH, drsam-99657.bubble properties.text) confirms Bubble static copy is 'New' without a Lucide Plus icon, while ChatPageContent.tsx renders 'New conversation' with a decorative icon. CHAT-01 AC-3 gates ai_RNbBHXbH data-bubble-id and Button_primary_ style_ref via bubbleStyle() — both pass in criteria_audit and ui_evidence; static copy parity is rubric guidance but not AC-gated. The button is wired and functional (FV-3 pass). Trivial copy/icon alignment can land when CHAT-05-new-conversation-flow touches the same ai_RNbBHXbH control or in a micro ui-fidelity polish pass without blocking CHAT-02 depends_on."
+      "rationale": "IR re-read (ir/inventory.json) confirms bTIUt is a CustomElement child of ai_RNbBHXbD, sibling to ai_RNbBHXbE — not a persistent layout wrapper. CHAT-01 ui_refs list ai_RNbBHXbD and ai_RNbBHXbE but not bTIUt; CHAT-03 scope explicitly owns data-bubble-id bTIUt on ChatPanelMount wrapping ChatReusable. CHAT-01 AC-2 is satisfied via the flex-1 right-column panel slot populated by ChatPanelMount or ChatWelcomePanel; ui_evidence bTIUt passes when ?conversation= is set and absence during welcome state matches IR mutual-exclusion deferred to CHAT-03/CHAT-06. Adding a second bTIUt wrapper in ChatPageContent would duplicate the CustomElement marker and conflate layout region with panel mount ownership."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Decompose scope explicitly assigns conversation-sidebar migration to CHAT-02-conversation-thread-sidebar: ui_refs ai_RNbBHXbK (conversation-sidebar root) and ai_RNbBHXbL (RepeatingGroup) with AC-1 requiring data-bubble-id markers and cell hierarchy. CHAT-01 scope is layout-only — ai_RNbBHXbE sidebar region marker passes AC-2 with brownfield thread list as interim slot content. Review ui_evidence passes ai_RNbBHXbE; missing ai_RNbBHXbK/ai_RNbBHXbL markers inside the slot do not fail CHAT-01 ACs and CHAT-02 depends_on CHAT-01 is satisfiable with the current region mount point."
+      "rationale": "Valid layout note: ChatPageContent uses h-[calc(100vh-3.5rem)] while DashboardLayout main already has overflow-y-auto, which may cause nested scroll or viewport-offset drift vs IR fit_height fluid semantics on ai_RNbBHXbD. criteria_audit AC-1/AC-2 pass, functional_audit FV-1/FV-2 pass, and downstream CHAT-02/CHAT-03 depends_on gates need sidebar/panel slot regions and bubble-id boundaries — not a specific height inheritance model. Refine to h-full min-h-0 flex-1 in a shell layout polish pass alongside SHELL-10 deferred column-nesting gaps."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "ai_RNbBHXbG and ai_RNbBHXbH correctly apply bubbleStyle('Text_heading_3_') and bubbleStyle('Button_primary_') per AC-3; data-style-ref attributes are parity-tooling selectors used elsewhere (e.g. DashboardCheckinCard) but are not named in CHAT-01 acceptance criteria or ui_refs. criteria_audit AC-3 and all ui_evidence entries pass. Adding data-style-ref on title and button is low-priority automated-selector consistency polish — defer to a design-system parity-tooling sweep or CHAT module follow-up without blocking advance."
+      "rationale": "Valid ui-fidelity polish: aside ai_RNbBHXbE uses fixed md:w-64 rather than IR presentation width/fit_width tokens. ui_evidence for ai_RNbBHXbE passes and AC-2 responsive flex-col md:flex-row stack with w-full on narrow viewports already satisfies fit_width semantics at the layout level. Pixel-exact sidebar column sizing does not block CHAT-02 (conversation-sidebar internals, thread RG) depends_on gate; CHAT-02 scope owns list cell layout inside ai_RNbBHXbK. Map proportional flex-basis from styles.json in a chat layout fidelity pass after CHAT-02 lands thread content."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 ai_RNbBHXbH static copy/icon vs Bubble 'New' (ui-fidelity polish, bundle with CHAT-05 button wiring); C-2 → CHAT-02-conversation-thread-sidebar (ai_RNbBHXbK/ai_RNbBHXbL sidebar subtree markers); C-3 data-style-ref parity-tooling on title row elements."
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and ui_evidence pass. Accepted: C-1 bTIUt marker on ChatPanelMount per CHAT-03 ownership and IR CustomElement semantics. Deferred: C-2 shell height inheritance vs calc viewport offset (layout polish with SHELL batch); C-3 ai_RNbBHXbE fluid column width tokens (chat layout fidelity after CHAT-02)."
 }

@@ -32,7 +32,6 @@ import {
   PATHS_RESOURCE_DETAIL_SUBMODE_BADGE_BUBBLE_ID,
   PATHS_RESOURCE_DETAIL_TITLE_BUBBLE_ID,
   PATHS_RESOURCE_DETAIL_TITLE_GROUP_BUBBLE_ID,
-  PATHS_RESOURCE_DISCLAIMER_BUBBLE_ID,
 } from "@/lib/paths/routes";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -181,14 +180,6 @@ export default function ResourceDetailPopup({
                 {resource?.content || "No additional content available."}
               </p>
             </div>
-
-            <p
-              data-bubble-id={PATHS_RESOURCE_DISCLAIMER_BUBBLE_ID}
-              data-style-ref="Text_caption_"
-              className={cn(bubbleStyle("Text_caption_"), "text-xs text-muted-foreground")}
-            >
-              Coaching-only resource
-            </p>
           </section>
 
           <DialogFooter

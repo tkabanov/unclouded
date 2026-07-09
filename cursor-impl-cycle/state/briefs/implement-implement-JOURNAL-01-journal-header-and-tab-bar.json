@@ -14,7 +14,7 @@
     "cycle_path": "cursor-impl-cycle/state/cycle.json",
     "frontend_app_dir": "frontend",
     "adapter_dir": null,
-    "supabase_context_dir": "frontend/supabase",
+    "supabase_context_dir": "supabase",
     "implementation_policy_path": "Users/tim/projects/unclouded/cursor-impl-cycle/config/implementation-policy.json",
     "prototype_inventory_path": "cursor-impl-cycle/config/prototype-inventory.json",
     "path_conventions_path": "cursor-impl-cycle/config/path-conventions.json",

@@ -1,48 +1,125 @@
 {
   "item_id": "SET-08-workplace-tab-and-link-flow",
   "module_id": "MOD-DRSAM-SETTINGS",
-  "assessed_at": "2026-07-08T11:22:00.000Z",
+  "assessed_at": "2026-07-09T06:38:00.000Z",
   "coverage_pct": 100,
   "preflight": {
-    "existing_files_found": ["frontend/src/components/settings/SettingsMain.tsx"],
-    "gaps": ["AC-1: Workplace panel empty", "AC-2: No name/email inputs", "AC-3: No link workflow"],
-    "reuse_decision": "gap-fill",
-    "mapped_target_files": {}
+    "existing_files_found": [
+      "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+      "frontend/src/lib/settings/workplaceApi.ts",
+      "frontend/src/components/settings/SettingsMain.tsx",
+      "frontend/src/lib/settings/routes.ts",
+      "supabase/migrations/20260708130000_subscription_workplace_billing.sql"
+    ],
+    "gaps": [],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/components/settings/SettingsWorkplaceTab.vue": "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
+      "frontend/src/lib/settings/workplaceApi.ts": "frontend/src/lib/settings/workplaceApi.ts"
+    }
   },
   "criteria": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYN info card, ai_RNbBHYYU form, ai_RNbBHYYR privacy notice"
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYM panel with ai_RNbBHYYN info card, ai_RNbBHYYU form, ai_RNbBHYYR privacy notice"
       ]
     },
     {
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYX name input, ai_RNbBHYYa email input, ai_RNbBHYYT privacy text"
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYW/ai_RNbBHYYZ labels, ai_RNbBHYYX/ai_RNbBHYYa placeholders, ai_RNbBHYYT privacy text",
+        "frontend/src/lib/settings/workplaceApi.ts — Bubble copy constants for title, subtitle, labels, placeholders, button, and privacy notice"
       ]
     },
     {
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/settings/workplaceApi.ts — linkWorkplace validates and persists",
-        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYb link button"
+        "frontend/src/lib/settings/workplaceApi.ts — linkWorkplace validates form, writes profiles.onboarding_data + workplace_custom_workplace, upserts workplace on contact_email_text",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — ai_RNbBHYYb triggers linkWorkplace",
+        "supabase/migrations/20260708130000_subscription_workplace_billing.sql — authenticated workplace INSERT/UPDATE RLS (read-only context)"
       ]
+    }
+  ],
+  "functional_verification": [
+    {
+      "id": "FV-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — info card, privacy notice, name/email inputs, link button"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — validateWorkplaceForm requires name and valid email"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — linkWorkplace + loadWorkplaceLink persist and reload form state",
+        "frontend/src/components/settings/SettingsWorkplaceTab.tsx — handleLink refreshes form after success"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/workplaceApi.ts — upsertWorkplaceDirectory surfaces RLS/permission errors via workplaceUpsertErrorMessage; schema-missing errors fall through isSchemaUnavailable"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHYYM",
+      "selector": "[data-bubble-id='ai_RNbBHYYM']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYN",
+      "selector": "[data-bubble-id='ai_RNbBHYYN']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYR",
+      "selector": "[data-bubble-id='ai_RNbBHYYR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYU",
+      "selector": "[data-bubble-id='ai_RNbBHYYU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYT",
+      "selector": "[data-bubble-id='ai_RNbBHYYT']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYX",
+      "selector": "[data-bubble-id='ai_RNbBHYYX']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYa",
+      "selector": "[data-bubble-id='ai_RNbBHYYa']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYb",
+      "selector": "[data-bubble-id='ai_RNbBHYYb']",
+      "status": "pass"
     }
   ],
   "files_changed": [
     "frontend/src/components/settings/SettingsWorkplaceTab.tsx",
-    "frontend/src/lib/settings/workplaceApi.ts",
-    "frontend/src/lib/settings/routes.ts",
-    "frontend/src/components/settings/SettingsMain.tsx",
-    "frontend/supabase/migrations/20260708130000_subscription_workplace_billing.sql"
-  ],
-  "polish_notes": [
-    "reuse_decision gap-fill reflects SettingsMain shell extension",
-    "WORKPLACE_NAME_PLACEHOLDER / WORKPLACE_EMAIL_PLACEHOLDER exported from workplaceApi"
+    "frontend/src/lib/settings/workplaceApi.ts"
   ],
   "functional_ok": true
 }

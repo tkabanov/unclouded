@@ -1,5 +1,6 @@
 import {
   AI_CONFIDENCE_LEVEL,
+  AI_CONFIDENCE_LEVEL_RANGES,
   type AiConfidenceLevelSlug,
 } from "@/lib/enums/coachingMode";
 
@@ -7,8 +8,9 @@ import {
 export function computeAiConfidenceLevel(
   modulesCompletedCount: number,
 ): AiConfidenceLevelSlug {
-  if (modulesCompletedCount <= 0) return AI_CONFIDENCE_LEVEL.EXPLORATORY;
-  if (modulesCompletedCount <= 2) return AI_CONFIDENCE_LEVEL.EXPLORATORY_PLUS;
-  if (modulesCompletedCount <= 5) return AI_CONFIDENCE_LEVEL.GUIDED;
-  return AI_CONFIDENCE_LEVEL.DIRECT;
+  const match = AI_CONFIDENCE_LEVEL_RANGES.find(
+    (range) =>
+      modulesCompletedCount >= range.min && modulesCompletedCount <= range.max,
+  );
+  return match?.slug ?? AI_CONFIDENCE_LEVEL.DIRECT;
 }

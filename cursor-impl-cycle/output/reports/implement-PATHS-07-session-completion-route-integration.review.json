@@ -1,20 +1,20 @@
 {
   "phase": "implement",
   "target_id": "PATHS-07-session-completion-route-integration",
-  "assessed_at": "2026-07-08T08:10:30.000Z",
+  "assessed_at": "2026-07-08T22:32:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 91,
+  "coverage_confidence_pct": 87,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/hooks/useSessionCompletionRoute.ts — reads ?session= via SESSION_SEARCH_PARAM; isVisible when enrollments.find(currentSessionId === sessionId) and !loading",
-        "frontend/src/components/paths/SessionCompletionRoute.tsx — outer data-bubble-id bTJAG, inner bTJAB; renders DS-04 SessionCompletionForm with session from fetchPathSession(sessionId, pathSlug)",
-        "frontend/src/lib/paths/pathsSessionApi.ts — fetchPathSession queries pathsession/pathquestion tables with catalog fallback",
-        "frontend/src/lib/paths/pathsEnrollmentStore.ts — enrollments back bTItY RG current_session matching"
+        "frontend/src/components/paths/SessionCompletionRoute.tsx",
+        "frontend/src/hooks/useSessionCompletionRoute.ts",
+        "frontend/src/lib/paths/pathsSessionApi.ts",
+        "frontend/src/components/design-system/SessionCompletionForm.tsx"
       ],
       "gap": null
     },
@@ -22,9 +22,10 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx — sessionCompletionVisible ? SessionCompletionRoute : bTJDf (PATHS_CONTENT_BUBBLE_ID) shell; EnrollmentFloatingBar hidden when overlay active",
-        "frontend/src/hooks/useSessionCompletionVisible.ts — delegates to useSessionCompletionRoute().isVisible (replaces PATHS-01 stub)",
-        "frontend/src/components/design-system/SessionCompletionForm.tsx — bTIxC title_text and bTIxG coaching_text_text bindings from pathsession prop (DS-04 reused verbatim)"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/hooks/useSessionCompletionVisible.ts",
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/lib/paths/routes.ts"
       ],
       "gap": null
     },
@@ -32,10 +33,10 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/SessionCompletionRoute.tsx — bTIzk submit via handleSubmit → schedulePathSessionCompletion; clearSessionParam(); onReturnToMyPaths() (selectMyPaths)",
-        "frontend/src/lib/paths/pathsSessionApi.ts — schedulePathSessionCompletion bTJCM ScheduleAPIEvent stub (console.info handler tag)",
-        "frontend/src/components/design-system/SessionCompletionForm.tsx — bTJBC/bTJBI plugin placeholders hidden aria-hidden inert",
-        "frontend/src/lib/paths/pathsTabStore.ts — selectMyPaths sets PATH_PAGE_TAB.MY_PATHS after param clear"
+        "frontend/src/components/paths/SessionCompletionRoute.tsx",
+        "frontend/src/lib/paths/pathsSessionApi.ts",
+        "frontend/src/components/design-system/SessionCompletionForm.tsx",
+        "frontend/src/lib/paths/pathsTabStore.ts"
       ],
       "gap": null
     }
@@ -43,47 +44,56 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "?session= URL param matching an enrollment currentSessionId shows SessionCompletionForm with resolved pathsession data",
+      "check": "?session= URL param read via GetParamFromUrl parity; overlay visible only when param matches enrollment currentSessionId from bTItY store data",
       "status": "pass",
       "evidence": [
         "frontend/src/hooks/useSessionCompletionRoute.ts",
-        "frontend/src/components/paths/SessionCompletionRoute.tsx",
-        "frontend/src/lib/paths/pathsSessionApi.ts"
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts"
       ]
     },
     {
       "id": "FV-2",
-      "check": "Missing or non-matching session param keeps bTJDf paths grid/header/tabs visible and hides completion overlay",
+      "check": "pathsession prop resolved for DS-04 via Supabase pathsession/pathquestion read with static catalog fallback",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx",
-        "frontend/src/hooks/useSessionCompletionRoute.ts — isVisible false when no matchingEnrollment"
+        "frontend/src/lib/paths/pathsSessionApi.ts",
+        "frontend/src/lib/paths.ts"
       ]
     },
     {
       "id": "FV-3",
-      "check": "Submit clears session search param (replace navigation) and returns user to My Paths tab/grid",
+      "check": "Session completion overlay replaces bTJDf paths content and hides EnrollmentFloatingBar while active",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/SessionCompletionRoute.tsx — clearSessionParam + onReturnToMyPaths",
-        "frontend/src/lib/paths/pathsTabStore.ts — selectMyPaths"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/hooks/useSessionCompletionVisible.ts"
       ]
     },
     {
       "id": "FV-4",
-      "check": "EnrollmentFloatingBar suppressed while session-completion overlay is active",
+      "check": "bTIzk submit schedules bTJCM completion stub, clears ?session= param, and returns user to My Paths tab",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx — {!sessionCompletionVisible && <EnrollmentFloatingBar />}"
+        "frontend/src/components/paths/SessionCompletionRoute.tsx",
+        "frontend/src/lib/paths/pathsSessionApi.ts",
+        "frontend/src/lib/paths/pathsTabStore.ts"
       ]
     },
     {
       "id": "FV-5",
-      "check": "Brownfield preflight documented gap-fill with existing prototype reuse (DS-04, paths store, PATHS-01 gating)",
+      "check": "Plugin placeholder nodes bTJBC/bTJBI remain inert hidden markers inside DS-04 form",
       "status": "pass",
       "evidence": [
-        "cursor-impl-cycle/output/coverage/PATHS-07-session-completion-route-integration.json — preflight.reuse_decision gap-fill",
-        "frontend/src/hooks/useSessionCompletionVisible.ts — wired from stub"
+        "frontend/src/components/design-system/SessionCompletionForm.tsx"
+      ]
+    },
+    {
+      "id": "FV-6",
+      "check": "Brownfield preflight block present with gap-fill reuse_decision and mapped React target paths",
+      "status": "pass",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/PATHS-07-session-completion-route-integration.json"
       ]
     }
   ],
@@ -92,49 +102,25 @@
       "bubble_id": "bTJAG",
       "selector": "[data-bubble-id='bTJAG']",
       "status": "pass",
-      "notes": "Outer CustomElement mount wrapper inside ai_RNbBHYGq; Bubble pointer /pages/bTHDg/elements/bTJDe/elements/bTJAG"
+      "notes": "Outer CustomElement mount wrapper on SessionCompletionRoute; IR inventory places bTJAB child under /pages/bTHDg/elements/bTJDe/elements/bTJAG"
     },
     {
       "bubble_id": "bTJAB",
       "selector": "[data-bubble-id='bTJAB']",
       "status": "pass",
-      "notes": "Inner mount hosts DS-04 SessionCompletionForm when session data resolves"
+      "notes": "Inner mount wraps DS-04 SessionCompletionForm inside ai_RNbBHYGq content slot per layout_notes"
     },
     {
       "bubble_id": "bTIyi",
       "selector": "[data-bubble-id='bTIyi']",
       "status": "pass",
-      "notes": "RE session completion form root on SessionCompletionForm; title/coaching/question regions preserved"
+      "notes": "Reusable form root reused verbatim from DS-04; bTIxC/bTIxG title and coaching bindings from fetched pathsession"
     },
     {
       "bubble_id": "bTItY",
       "selector": "[data-bubble-id='bTItY']",
       "status": "pass",
-      "notes": "Enrollment RG marker on EnrollmentFloatingBar/PathsGridPanel; URL match uses pathsEnrollmentStore currentSessionId not DOM"
-    },
-    {
-      "bubble_id": "bTJDf",
-      "selector": "[data-bubble-id='bTJDf']",
-      "status": "pass",
-      "notes": "PATHS_CONTENT_BUBBLE_ID shell hidden via conditional render when sessionCompletionVisible"
-    },
-    {
-      "bubble_id": "bTIxC",
-      "selector": "[data-bubble-id='bTIxC']",
-      "status": "pass",
-      "notes": "Session title bound to pathsession.title_text"
-    },
-    {
-      "bubble_id": "bTIxG",
-      "selector": "[data-bubble-id='bTIxG']",
-      "status": "pass",
-      "notes": "Coaching copy bound to pathsession.coaching_text_text"
-    },
-    {
-      "bubble_id": "bTIzk",
-      "selector": "[data-bubble-id='bTIzk']",
-      "status": "pass",
-      "notes": "Submit button triggers handleSubmit orchestration"
+      "notes": "Enrollment RG marker lives on EnrollmentFloatingBar; visibility gate reads same enrollment list currentSessionId — marker unmounted while overlay shown (mutual hide with bTJDf)"
     }
   ],
   "gaps": [],
@@ -143,49 +129,51 @@
     {
       "id": "C-1",
       "area": "functional",
-      "priority": "medium",
-      "finding": "When ?session= matches an enrollment but fetchPathSession returns null (unknown id or fetch error), bTJAG/bTJAB mount renders with no form body and no user-facing error after loading completes.",
-      "alternative": "Show an inline error or redirect to My Paths with toast when session data cannot be resolved; avoid leaving an empty overlay shell.",
+      "priority": "high",
+      "finding": "No in-app navigation sets ?session= — SESSION_SEARCH_PARAM is only read and cleared; bTJCv Continue Path (deferred from PATHS-03 triage as PATHS-07 session-navigation parity) is still absent from PathDetailPopup and floating bar.",
+      "alternative": "Add bTJCv footer CTA or enrollment chip action that sets search param to enrollment.currentSessionId via react-router setSearchParams while keeping other params (Bubble ChangePage keep_current_page_params parity).",
       "evidence": [
-        "frontend/src/components/paths/SessionCompletionRoute.tsx — session ? <SessionCompletionForm /> : null after loading"
+        "frontend/src/hooks/useSessionCompletionRoute.ts",
+        "frontend/src/components/paths/PathDetailPopup.tsx",
+        "cursor-impl-cycle/output/reports/implement-PATHS-03-path-detail-enrollment-popup.triage.json"
       ]
     },
     {
       "id": "C-2",
-      "area": "data-layer",
-      "priority": "low",
-      "finding": "schedulePathSessionCompletion is intentionally a no-op beyond console.info until API-06 paths-progress trigger lands; answers/reflection state are not persisted on submit.",
-      "alternative": "Wire edge-function or client patch in API-06 post-completion item; optionally queue pathanswer writes when pathanswer table exists.",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "When isVisible is true but fetchPathSession returns null (bad id or fetch error), SessionCompletionRoute renders an empty bTJAB shell with no error or retry UI.",
+      "alternative": "Show inline error state with dismiss/back-to-paths action; optionally clear invalid ?session= param.",
       "evidence": [
-        "frontend/src/lib/paths/pathsSessionApi.ts — schedulePathSessionCompletion stub",
-        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json — AC-3 frontend stub scope"
+        "frontend/src/components/paths/SessionCompletionRoute.tsx"
       ]
     },
     {
       "id": "C-3",
-      "area": "testing",
+      "area": "functional",
       "priority": "medium",
-      "finding": "No automated integration test exercises bTJDf hide/show toggle or ?session= gating end-to-end; PATHS-01 review deferred this to PATHS-07.",
-      "alternative": "Add a React Router test rendering Paths with search params and mocked pathsEnrollmentStore asserting bTJDf vs bTJAB visibility and post-submit param clear.",
+      "finding": "schedulePathSessionCompletion stub increments modules_completed_count via incrementModulesCompletedCount but does not persist pathanswer rows or advance enrollment current_session — acceptable for bTJCM stub but incomplete vs full Bubble bTJBW side effects.",
+      "alternative": "Document stub boundary in pathsSessionApi or add follow-up item for pathanswer insert and enrollment session progression when supabase tables are available.",
       "evidence": [
-        "cursor-impl-cycle/output/reports/implement-PATHS-01-paths-tab-state-and-header.review.json — C-1 deferred to PATHS-07"
+        "frontend/src/lib/paths/pathsSessionApi.ts",
+        "frontend/src/lib/userProfile/userProfileHooks.ts"
       ]
     },
     {
       "id": "C-4",
       "area": "ui-fidelity",
       "priority": "low",
-      "finding": "Duplicate data-bubble-id='bTItY' on EnrollmentFloatingBar and PathsGridPanel persists from PATHS-02/06; PATHS-07 matching logic is store-driven so parity is unaffected.",
-      "alternative": "Retain single canonical bTItY marker on EnrollmentFloatingBar per PATHS-06 critique C-1 when polishing IR hierarchy.",
+      "finding": "Session overlay uses generic flex/skeleton layout without explicit full-width overlay presentation tokens from bTHDg slice parent bTJDe — layout_notes allow page-level orchestration only.",
+      "alternative": "Resolve bTJDe/bTJAG presentation from ir/slices/bTHDg____root.json or styles.json if pixel parity tooling flags deltas.",
       "evidence": [
-        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
-        "frontend/src/components/paths/PathsGridPanel.tsx"
+        "frontend/src/components/paths/SessionCompletionRoute.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json"
       ]
     }
   ],
   "scores": {
-    "completeness": 5,
-    "grounding": 5,
+    "completeness": 4,
+    "grounding": 4,
     "actionability": 4
   }
 }

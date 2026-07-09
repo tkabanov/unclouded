@@ -1,33 +1,121 @@
 {
   "phase": "implement",
   "target_id": "API-02-user-classification",
-  "assessed_at": "2026-07-08T11:53:00.000Z",
+  "assessed_at": "2026-07-09T07:40:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 85,
+  "coverage_confidence_pct": 91,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/classifyUser.ts", "frontend/src/lib/classification.ts"], "gap": "orientation_score is in ClassificationScoreInput and passed from calculateUserClassification but never referenced in resolveClassificationType; branch matrix mirrors pre-API computeClassification in classification.ts (7 TerminateWorkflow branches / 7 classification_os ids bTHyq–bTHyy). Could not independently parse drsam-99657.bubble action conditions to confirm orientation is unused in Bubble as well." },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserClassification.ts", "frontend/src/lib/userProfile/profileFieldPatch.ts", "ir/inventory.json"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts", "frontend/src/lib/completeOnboarding.ts", "ir/inventory.json"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/classifyUser.ts — resolveClassificationOs ordered branches bTHzu→bTHzz→bTIAE→bTIAG→bTIAL→bTIAQ→bTIAS",
+        "drsam-99657.bubble — /api/bTHzi (custom event bTHzg): TerminateWorkflow thresholds 3.2/3.8 and orientation_score <= 3 for comfortable_plateau"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserClassification.ts — ORIENTATION_SCORE1_NUMBER_FIELD, loadProfileRow, resolveClassification, patch classification_option_classification_os",
+        "drsam-99657.bubble — bTHzC TriggerCustomEvent bTHzg then ChangeThing bTIAc sets classification_option_classification_os from bTHzt"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts — runPillarScoreCalculators then calculateUserClassification",
+        "frontend/src/lib/completeOnboarding.ts — invokes runOnboardingProfilePipeline after saveOnboarding"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "resolveClassification accepts four pillar score inputs and returns classification_os Bubble option ids matching bTHzg seven-branch classification matrix", "status": "pass", "evidence": ["frontend/src/lib/userProfile/classifyUser.ts", "frontend/src/lib/classification.ts", "ir/inventory.json"] },
-    { "id": "FV-2", "check": "calculateUserClassification(userId) loads user score fields, calls resolveClassification, and patches classification_option_classification_os via Supabase mirroring bTHzC ChangeThing bTIAc", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserClassification.ts", "frontend/src/lib/userProfile/profileFieldPatch.ts"] },
-    { "id": "FV-3", "check": "onboarding profile pipeline invokes calculateUserClassification immediately after API-01 pillar calculators, matching bTGNJ workflow bTHlG ScheduleAPIEvent bTICO ordering", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts", "frontend/src/lib/completeOnboarding.ts"] }
+    {
+      "id": "FV-1",
+      "check": "resolveClassification implements Bubble bTHzi ordered threshold branches (not prototype classification.ts computeClassification)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/classifyUser.ts",
+        "frontend/src/lib/classification.ts — computeClassification uses pressure-profile heuristics; classifyUser.ts is independent",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "calculateUserClassification loads pillar/orientation scores, resolves classification_os, patches profile fields mirroring bTHzC/bTIAc",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserClassification.ts",
+        "frontend/src/lib/userProfile/profileFieldPatch.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Classification calculator runs after API-01 pillar calculators during onboarding completion",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+        "frontend/src/lib/completeOnboarding.ts"
+      ]
+    }
   ],
   "ui_evidence": [],
-  "gaps": [
-    "orientation_score is wired into the API contract but does not influence classification branches; orientation_score_number is never patched by a pillar calculator (sourced from results.orientation_score fallback after computeResults at save time).",
-    "capacity_erosion branch depends on pressure_profile === 'System Overload' read from results.pressure_profile (client computeResults preview) because API-03 pressure calculator runs after classification in the pipeline."
-  ],
+  "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-1", "area": "behavior", "priority": "high", "finding": "AC-1 and bTHzg (parameter_count: 4) require orientation_score as an input, but resolveClassificationType never reads input.orientation_score — the parameter is dead code. Decompose review C-1 flagged this gap; implement prep deferred orientation sourcing to results fallback rather than patching orientation_score_number.", "alternative": "Either wire orientation_score into bTHzg branch conditions after parsing drsam-99657.bubble /api/bTHzi actions, or document explicitly that Bubble passes orientation but branch logic is stability/performance/alignment-only (matching classification.ts prototype) and downgrade AC-1 wording at decompose.", "evidence": ["frontend/src/lib/userProfile/classifyUser.ts", "frontend/src/lib/userProfile/calculateUserClassification.ts", "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json", "ir/inventory.json"] },
-    { "id": "C-2", "area": "data-contract", "priority": "medium", "finding": "calculateUserClassification reads orientation_score_number from onboarding_data JSONB but onboarding saves orientationScore (camelCase) and never patches orientation_score_number; classification relies on results.orientation_score fallback (default 3). Pillar scores use *_score_number keys patched by API-01.", "alternative": "Patch orientation_score_number in onboarding_data during saveOnboarding or add calculateUserOrientation in API-01; align readNumberField keys with onboarding_data.orientationScore nested shape.", "evidence": ["frontend/src/lib/userProfile/calculateUserClassification.ts", "frontend/src/lib/completeOnboarding.ts", "frontend/src/lib/userProfile/pillarScoreUserData.ts"] },
-    { "id": "C-3", "area": "integration", "priority": "medium", "finding": "resolveClassification uses pressure_profile (optional 5th input, default 'Moderate Load') for the capacity_erosion branch, but API-03 calculateUserPressureProfile runs after classification in runOnboardingProfilePipeline; at classification time only client-side computeResults.pressure_profile is available.", "alternative": "Reorder pipeline to compute pressure profile before classification if Bubble reads user.pressure_profile_text at bTHzg time, or document that onboarding preview pressure_profile in results is the intended source for the classification branch.", "evidence": ["frontend/src/lib/userProfile/classifyUser.ts", "frontend/src/lib/userProfile/onboardingProfilePipeline.ts", "frontend/src/lib/classification.ts"] },
-    { "id": "C-4", "area": "grounding", "priority": "medium", "finding": "Branch logic is duplicated verbatim from frontend/src/lib/classification.ts computeClassification rather than extracted once; classifyUser.ts and classification.ts can drift.", "alternative": "Have resolveClassification delegate to computeClassification or share a single classifyFromScores module used by both onboarding preview and post-save pipeline.", "evidence": ["frontend/src/lib/userProfile/classifyUser.ts", "frontend/src/lib/classification.ts"] },
-    { "id": "C-5", "area": "testing", "priority": "low", "finding": "No unit tests cover resolveClassification branch matrix or classification_os id mapping for boundary scores (e.g. stability 3.0 vs 2.9 with System Overload).", "alternative": "Add table-driven tests for each of the seven classification_os outputs and fallback paths.", "evidence": ["frontend/src/lib/userProfile/classifyUser.ts"] }
+    {
+      "id": "C-1",
+      "area": "data-model",
+      "priority": "medium",
+      "finding": "calculateUserClassification reads orientation_score1_number from onboarding_data, but completeOnboarding persists orientation as orientationScore (camelCase) in onboarding_data and orientation_score in results; the Bubble field key is never written to onboarding_data.",
+      "alternative": "Persist orientation_score1_number in onboarding_data during AUTH-04 orientation step or completeOnboarding save, matching bTHzC user.orientation_score1_number sourcing and removing reliance on results fallback.",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserClassification.ts",
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/pages/Onboarding.tsx"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "brownfield",
+      "priority": "medium",
+      "finding": "saveOnboarding still runs computeResults (prototype classification.ts) before the pipeline overwrites classification via calculateUserClassification; transient mismatch exists between initial results.classification and Bubble-parity patch until pipeline completes.",
+      "alternative": "Skip prototype classification in computeResults when runOnboardingProfilePipeline will execute immediately, or derive results.classification from resolveClassification after pillar scores are patched.",
+      "evidence": [
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/lib/classification.ts"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "testing",
+      "priority": "low",
+      "finding": "No unit tests cover resolveClassification branch ordering at 3.2/3.8 boundaries or the comfortable_plateau orientation <= 3 gate.",
+      "alternative": "Add classifyUser.test.ts with Bubble-derived score fixtures for each bTHzi TerminateWorkflow branch.",
+      "evidence": [
+        "frontend/src/lib/userProfile/classifyUser.ts"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "coverage",
+      "priority": "low",
+      "finding": "Coverage preflight gaps[] still documents pre-rewrite AC-1/AC-2 failures even though criteria now pass.",
+      "alternative": "Clear resolved gaps from preflight on the next implement coverage refresh.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/API-02-user-classification.json"
+      ]
+    }
   ],
-  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

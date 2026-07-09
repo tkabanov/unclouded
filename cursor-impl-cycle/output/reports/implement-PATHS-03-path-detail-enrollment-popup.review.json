@@ -1,20 +1,21 @@
 {
   "phase": "implement",
   "target_id": "PATHS-03-path-detail-enrollment-popup",
-  "assessed_at": "2026-07-08T07:58:00.000Z",
+  "assessed_at": "2026-07-08T22:30:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 88,
+  "coverage_confidence_pct": 86,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathDetailPopup.tsx — DialogPrimitive.Content data-bubble-id ai_RNbBHYJO, overlay ai_RNbBHYMU",
-        "frontend/src/components/paths/PathCard.tsx — View Path button data-bubble-id ai_RNbBHYIJ",
-        "frontend/src/pages/Paths.tsx — handleViewPathDetails sets viewingEnrollment and pathDetailPopupOpen; PathDetailPopup receives enrollment prop",
-        "frontend/src/components/paths/PathDetailPopup.tsx — header ai_RNbBHYJQ with badges ai_RNbBHYJS, title ai_RNbBHYJZ, close ai_RNbBHYJa"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/PathsGridPanel.tsx",
+        "frontend/src/components/paths/PathCard.tsx",
+        "frontend/src/components/paths/PathDetailPopup.tsx",
+        "frontend/src/lib/paths/routes.ts"
       ],
       "gap": null
     },
@@ -22,10 +23,10 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathDetailPopup.tsx — body section ai_RNbBHYJc",
-        "frontend/src/components/paths/PathDetailPopup.tsx — steps label ai_RNbBHYJh and text ai_RNbBHYJi from getPathBySlug",
-        "frontend/src/components/paths/PathDetailPopup.tsx — disclaimer banner ai_RNbBHYJk with icon ai_RNbBHYJl and text ai_RNbBHYJm",
-        "frontend/src/components/paths/PathDetailPopup.tsx — progress group ai_RNbBHYJn, DS-02 wrapper bTItq/bTIuq, pct ai_RNbBHYJs, last-step ai_RNbBHYJt"
+        "frontend/src/components/paths/PathDetailPopup.tsx",
+        "frontend/src/components/design-system/ProgressBar.tsx",
+        "frontend/src/lib/paths.ts",
+        "frontend/src/lib/paths/routes.ts"
       ],
       "gap": null
     },
@@ -33,10 +34,10 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/paths/pathsEnrollmentApi.ts — enrollInPath inserts pathenrollment1 with onboarding_data fallback",
-        "frontend/src/lib/paths/pathsEnrollmentApi.ts — unenrollFromPath sets ABANDONED on pathenrollment1 or onboarding_data",
-        "frontend/src/components/paths/PathDetailPopup.tsx — footer ai_RNbBHYJu wires enroll ai_RNbBHYJw and unenroll ai_RNbBHYJv with store refresh",
-        "frontend/src/components/paths/PathDetailPopup.tsx — Upgrade Plan bTJHa shown when path tier exceeds user tier (TIER_ORDER + profile onboarding tier)"
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+        "frontend/src/components/paths/PathDetailPopup.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+        "frontend/src/lib/enums/tier.ts"
       ],
       "gap": null
     }
@@ -44,104 +45,193 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "View Path on grid card opens PathDetailPopup bound to enrollment row data",
+      "check": "View Path button opens PathDetailPopup with enrollment parent data from grid (not dead handler or route-only fallback when onViewDetails wired)",
       "status": "pass",
       "evidence": [
         "frontend/src/pages/Paths.tsx",
         "frontend/src/components/paths/PathsGridPanel.tsx",
-        "frontend/src/components/paths/PathCard.tsx"
+        "frontend/src/components/paths/PathCard.tsx",
+        "frontend/src/components/paths/PathDetailPopup.tsx"
       ]
     },
     {
       "id": "FV-2",
-      "check": "Enroll CTA persists enrollment via pathenrollment1 insert or profiles.onboarding_data fallback",
+      "check": "Enroll CTA calls enrollInPath and persists pathenrollment1 row or onboarding_data fallback",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
-        "frontend/src/components/paths/PathDetailPopup.tsx"
+        "frontend/src/components/paths/PathDetailPopup.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts"
       ]
     },
     {
       "id": "FV-3",
-      "check": "Unenroll CTA updates enrollment status and dismisses popup",
+      "check": "Unenroll CTA calls unenrollFromPath, updates enrollment status, and dismisses popup",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
-        "frontend/src/components/paths/PathDetailPopup.tsx"
+        "frontend/src/components/paths/PathDetailPopup.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts"
       ]
     },
     {
       "id": "FV-4",
-      "check": "Upgrade Plan button visible under tier gating and navigates to subscription route",
+      "check": "Upgrade Plan bTJHa visible when path tier exceeds user tier stub and navigates to in-app subscription route",
       "status": "pass",
       "evidence": [
         "frontend/src/components/paths/PathDetailPopup.tsx",
-        "frontend/src/lib/enums/tier.ts"
+        "frontend/src/lib/enums/tier.ts",
+        "frontend/src/lib/router/authenticatedRoutes.tsx"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Close control ai_RNbBHYJa dismisses modal overlay",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/paths/PathDetailPopup.tsx"
       ]
     }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYJO", "selector": "[data-bubble-id='ai_RNbBHYJO']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYMU", "selector": "[data-bubble-id='ai_RNbBHYMU']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJQ", "selector": "[data-bubble-id='ai_RNbBHYJQ']", "status": "pass" },
+    {
+      "bubble_id": "ai_RNbBHYJO",
+      "selector": "[data-bubble-id='ai_RNbBHYJO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYMU",
+      "selector": "[data-bubble-id='ai_RNbBHYMU']",
+      "status": "pass",
+      "notes": "Popup overlay marker on DialogOverlay; data-style-ref Group_overlay_ not applied"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJQ",
+      "selector": "[data-bubble-id='ai_RNbBHYJQ']",
+      "status": "pass"
+    },
     {
       "bubble_id": "ai_RNbBHYJR",
       "selector": "[data-bubble-id='ai_RNbBHYJR']",
       "status": "partial",
-      "notes": "IR nests badges ai_RNbBHYJS and title ai_RNbBHYJZ under header-text group ai_RNbBHYJR; implementation flattens both as direct children of ai_RNbBHYJQ"
+      "notes": "IR Group path-detail-header-text flattened; badges row and title mount directly under ai_RNbBHYJQ"
     },
-    { "bubble_id": "ai_RNbBHYJS", "selector": "[data-bubble-id='ai_RNbBHYJS']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJZ", "selector": "[data-bubble-id='ai_RNbBHYJZ']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJa", "selector": "[data-bubble-id='ai_RNbBHYJa']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJc", "selector": "[data-bubble-id='ai_RNbBHYJc']", "status": "pass" },
+    {
+      "bubble_id": "ai_RNbBHYJS",
+      "selector": "[data-bubble-id='ai_RNbBHYJS']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJZ",
+      "selector": "[data-bubble-id='ai_RNbBHYJZ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJa",
+      "selector": "[data-bubble-id='ai_RNbBHYJa']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJc",
+      "selector": "[data-bubble-id='ai_RNbBHYJc']",
+      "status": "pass"
+    },
     {
       "bubble_id": "ai_RNbBHYJg",
       "selector": "[data-bubble-id='ai_RNbBHYJg']",
       "status": "partial",
-      "notes": "Steps label/text rendered inside anonymous Group_transparent_ div; IR parent is path-detail-steps-group ai_RNbBHYJg"
+      "notes": "IR Group path-detail-steps-group omitted; steps label/text nested in anonymous div under ai_RNbBHYJc"
     },
-    { "bubble_id": "ai_RNbBHYJh", "selector": "[data-bubble-id='ai_RNbBHYJh']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJi", "selector": "[data-bubble-id='ai_RNbBHYJi']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJk", "selector": "[data-bubble-id='ai_RNbBHYJk']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJn", "selector": "[data-bubble-id='ai_RNbBHYJn']", "status": "pass" },
+    {
+      "bubble_id": "ai_RNbBHYJh",
+      "selector": "[data-bubble-id='ai_RNbBHYJh']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJi",
+      "selector": "[data-bubble-id='ai_RNbBHYJi']",
+      "status": "pass",
+      "notes": "Steps text synthesized from getPathBySlug session list rather than Bubble dynamic binding"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJk",
+      "selector": "[data-bubble-id='ai_RNbBHYJk']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJn",
+      "selector": "[data-bubble-id='ai_RNbBHYJn']",
+      "status": "pass"
+    },
     {
       "bubble_id": "ai_RNbBHYJp",
       "selector": "[data-bubble-id='ai_RNbBHYJp']",
       "status": "partial",
-      "notes": "IR nests bTItq and pct ai_RNbBHYJs under progress-bar-wrap ai_RNbBHYJp; implementation attaches bTItq directly under ai_RNbBHYJn"
+      "notes": "IR progress-bar-wrap group missing; bTItq marker placed directly under ai_RNbBHYJn"
     },
-    { "bubble_id": "bTItq", "selector": "[data-bubble-id='bTItq']", "status": "pass" },
-    { "bubble_id": "bTIuq", "selector": "[data-bubble-id='bTIuq']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJs", "selector": "[data-bubble-id='ai_RNbBHYJs']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJt", "selector": "[data-bubble-id='ai_RNbBHYJt']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJu", "selector": "[data-bubble-id='ai_RNbBHYJu']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJw", "selector": "[data-bubble-id='ai_RNbBHYJw']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYJv", "selector": "[data-bubble-id='ai_RNbBHYJv']", "status": "pass" },
-    { "bubble_id": "bTJHa", "selector": "[data-bubble-id='bTJHa']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYIJ", "selector": "[data-bubble-id='ai_RNbBHYIJ']", "status": "pass" },
+    {
+      "bubble_id": "bTItq",
+      "selector": "[data-bubble-id='bTItq']",
+      "status": "pass",
+      "notes": "Marker on progress wrap; IR nests bTItq under ai_RNbBHYJp > bTItv GetElement group"
+    },
+    {
+      "bubble_id": "bTIuq",
+      "selector": "[data-bubble-id='bTIuq']",
+      "status": "pass",
+      "notes": "Wraps DS-02 ProgressBar reusable instance bTIuS subtree"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJs",
+      "selector": "[data-bubble-id='ai_RNbBHYJs']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJt",
+      "selector": "[data-bubble-id='ai_RNbBHYJt']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJu",
+      "selector": "[data-bubble-id='ai_RNbBHYJu']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJw",
+      "selector": "[data-bubble-id='ai_RNbBHYJw']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYJv",
+      "selector": "[data-bubble-id='ai_RNbBHYJv']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTJHa",
+      "selector": "[data-bubble-id='bTJHa']",
+      "status": "pass",
+      "notes": "IR copy Upgrade Plan confirmed in drsam-99657.bubble"
+    },
     {
       "bubble_id": "Group_overlay_",
       "selector": "[data-style-ref='Group_overlay_']",
-      "status": "pass",
-      "notes": "Style entity applied via DialogOverlay; no bubble id expected"
+      "status": "partial",
+      "notes": "Overlay uses ai_RNbBHYMU bubble id only; Group_overlay_ style_ref not on DialogOverlay"
     },
     {
       "bubble_id": "Button_primary_",
       "selector": "[data-style-ref='Button_primary_']",
       "status": "pass",
-      "notes": "Applied on enroll and upgrade buttons via data-style-ref + bubbleStyle"
+      "notes": "Applied on enroll and upgrade CTAs via bubbleStyle helper"
+    },
+    {
+      "bubble_id": "ai_RNbBHYIJ",
+      "selector": "[data-bubble-id='ai_RNbBHYIJ']",
+      "status": "pass",
+      "notes": "Upstream trigger on PathCard View Path button opening popup flow"
     }
   ],
   "gaps": [
-    {
-      "id": "G-1",
-      "area": "ui-hierarchy",
-      "finding": "Three decompose ui_refs (ai_RNbBHYJR, ai_RNbBHYJg, ai_RNbBHYJp) lack data-bubble-id wrappers; IR parent_element_id chain is flattened one level in header, steps, and progress regions",
-      "evidence": [
-        "ir/inventory.json",
-        "frontend/src/components/paths/PathDetailPopup.tsx"
-      ]
-    }
+    "ui_refs ai_RNbBHYJR, ai_RNbBHYJg, ai_RNbBHYJp intermediate groups flattened without data-bubble-id markers",
+    "Footer Button bTJCv (Continue Path) from ir/slices/bTHDg____root.json not implemented — deferred from decompose C-3"
   ],
   "blockers": [],
   "critiques": [
@@ -149,32 +239,58 @@
       "id": "C-1",
       "area": "ui-fidelity",
       "priority": "medium",
-      "finding": "Header, steps, and progress sub-trees omit intermediate IR group markers (ai_RNbBHYJR, ai_RNbBHYJg, ai_RNbBHYJp), weakening automated parity checks even though leaf AC markers are present",
-      "alternative": "Add wrapper divs with the missing data-bubble-id values to mirror inventory parent_element_id nesting without changing visible layout",
+      "finding": "Fourth footer Button bTJCv (style_ref:bTJCv, IR label Continue Path) is absent from PathDetailPopup footer ai_RNbBHYJu; decompose review C-3 deferred this to PATHS-03 implement.",
+      "alternative": "Add bTJCv with Button_primary_ styling and wire ChangePage or session-navigation stub per bTJHg workflow in ir/slices/bTHDg____root.json.",
+      "evidence": [
+        "ir/inventory.json",
+        "drsam-99657.bubble",
+        "frontend/src/components/paths/PathDetailPopup.tsx"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "Three in-scope ui_ref wrapper groups (ai_RNbBHYJR header-text, ai_RNbBHYJg steps-group, ai_RNbBHYJp progress-bar-wrap) are flattened in React hierarchy while child markers remain.",
+      "alternative": "Insert data-bubble-id wrappers matching IR parent_element_id chain for parity tooling without changing layout.",
       "evidence": [
         "ir/inventory.json",
         "frontend/src/components/paths/PathDetailPopup.tsx"
       ]
     },
     {
-      "id": "C-2",
-      "area": "functional-ux",
+      "id": "C-3",
+      "area": "functional",
       "priority": "medium",
-      "finding": "enrollInPath and unenrollFromPath failures are only console.error'd; user receives no inline toast or banner when Supabase mutation fails",
-      "alternative": "Surface a dismissible error state in the popup footer or reuse an existing toast pattern from dashboard mutations",
+      "finding": "After enrollInPath succeeds, Paths.tsx keeps a stale viewingEnrollment snapshot; popup CTA state does not reflect refreshed store until close/reopen.",
+      "alternative": "Sync viewingEnrollment from usePathsEnrollmentStore after refresh or derive enrollment prop from store by enrollmentId.",
       "evidence": [
-        "frontend/src/components/paths/PathDetailPopup.tsx"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/PathDetailPopup.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts"
       ]
     },
     {
-      "id": "C-3",
+      "id": "C-4",
+      "area": "brownfield",
+      "priority": "low",
+      "finding": "Decompose target_files lists frontend/src/pages/PathDetail.tsx but implementation lives in PathDetailPopup.tsx; legacy PathDetail route page remains unchanged prototype session UI.",
+      "alternative": "Document mapped_target_files in coverage (already maps .vue to PathDetailPopup.tsx) or retire /paths/:slug PathDetail route if popup supersedes it.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "frontend/src/pages/PathDetail.tsx",
+        "cursor-impl-cycle/output/coverage/PATHS-03-path-detail-enrollment-popup.json"
+      ]
+    },
+    {
+      "id": "C-5",
       "area": "ui-fidelity",
       "priority": "low",
-      "finding": "Steps text ai_RNbBHYJi concatenates all sessions into one paragraph; IR text_expressions suggest per-path dynamic copy that may render as separate lines in Bubble",
-      "alternative": "Render sessions as a vertical list or line-broken block if visual parity testing shows mismatch",
+      "finding": "DialogOverlay carries ai_RNbBHYMU bubble id but omits data-style-ref Group_overlay_ from ui_refs.",
+      "alternative": "Apply bubbleStyle('Group_overlay_') or data-style-ref on DialogOverlay for style catalog parity.",
       "evidence": [
         "frontend/src/components/paths/PathDetailPopup.tsx",
-        "ir/inventory.json"
+        "ir/slices/styles.json"
       ]
     }
   ],

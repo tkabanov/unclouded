@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "CHAT-05-chat-messaging-and-create-flow",
-  "assessed_at": "2026-07-08T10:56:00.000Z",
+  "assessed_at": "2026-07-09T07:15:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-CHAT-05-chat-messaging-and-create-flow.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,8 +11,15 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Stream parser resilience with local fallback satisfies AC-3 stub requirement; polish when edge function contract stabilizes."
+      "rationale": "Valid API-layer asymmetry: createConversation, deleteConversation, fetchConversations, and fetchConversationById use try-table-then-onboarding_data fallback, but updateConversationCoachingMode and touchConversationAfterMessage only mutate profiles.onboarding_data. In a hybrid deploy where chatconversation rows exist, coaching_mode and sidebar preview/modified_date updates would not round-trip on table rows. However brownfield prototype has no chatconversation migration in supabase (grep confirms); the active path is onboarding_data and criteria_audit AC-1/AC-3, functional_audit FV-1/FV-4, and ui_evidence all pass. CHAT-05 decompose scope wires API parity with Bubble workflows and explicitly excludes schema migrations; CHAT-02/CHAT-04 triage deferred table-path QA to this wave but scope limited work to onboarding_data + best-effort create. Bundle try-table updates for coaching_mode and touchConversationAfterMessage with the deferred supabase chatconversation/chatmessage migration wave (mirrors DASH-04 C-3 dormant-table-branch and JOURNAL-04 C-1 layering deferrals) rather than block advance on unreachable table-update code today."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "useChatSignOutClear clears ?conversation= when user becomes null — satisfying AC-3 LoggedOut bTIma parity and review ui_evidence bTImV/bTImb pass notes. Bubble store-reset semantics would also clear composer draft and invalidate sidebar caches; current SPA has no additional client caches beyond URL param and per-mount React state, so sign-out unmounts chat module context. criteria_audit AC-3 passes and functional_audit FV-3 passes. Low-priority future hardening if global chat context or sidebar listVersion caches are introduced — defer full store-reset (composer reset + sidebar list bump) to chat session lifecycle polish, not a CHAT-05 depends_on blocker."
     }
   ],
-  "summary": "CHAT module complete. C-1 deferred."
+  "summary": "0 fix_now, 2 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass. Deferred: C-1 try-table parity for updateConversationCoachingMode/touchConversationAfterMessage to chat schema migration wave (CHAT-02/CHAT-04 anticipated table-path QA; prototype uses onboarding_data today); C-2 sign-out composer/sidebar cache reset to chat session lifecycle polish (URL clear satisfies AC-3)."
 }

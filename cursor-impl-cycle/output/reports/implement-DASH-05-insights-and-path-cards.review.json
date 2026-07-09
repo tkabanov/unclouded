@@ -1,10 +1,10 @@
 {
   "phase": "implement",
   "target_id": "DASH-05-insights-and-path-cards",
-  "assessed_at": "2026-07-08T06:03:00.000Z",
+  "assessed_at": "2026-07-08T22:50:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 88,
+  "coverage_confidence_pct": 90,
   "functional_ok": true,
   "criteria_audit": [
     {
@@ -13,7 +13,7 @@
       "evidence": [
         "frontend/src/components/dashboard/DashboardInsightsCard.tsx — root ai_RNbBHXRx (Group_card_) with header ai_RNbBHXRy, title ai_RNbBHXSA, list ai_RNbBHXSB, three insight-item groups, disclaimer ai_RNbBHXSL",
         "frontend/src/pages/Dashboard.tsx — dailyCheckIn slot renders DashboardInsightsCard after DashboardCheckinCard and assessment results card",
-        "drsam-99657.bubble — static copy matches Coaching Insights title, three insight texts, and disclaimer verbatim"
+        "drsam-99657.bubble — static copy matches Coaching Insights title, three insight texts, and disclaimer"
       ],
       "gap": null
     },
@@ -21,7 +21,7 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — root ai_RNbBHXSf with header ai_RNbBHXSg, path-name ai_RNbBHXSm, ProgressBar in bTIvC wrapper inside ai_RNbBHXSn, path-next-step ai_RNbBHXSt fed by enrollment.nextStepTitle",
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — root ai_RNbBHXSf with header ai_RNbBHXSg, bTIrY RG wrapper enclosing cell ai_RNbBHXSl, path-name ai_RNbBHXSm, ProgressBar in bTIvC inside ai_RNbBHXSn, path-next-step ai_RNbBHXSt fed by enrollment.nextStepTitle",
         "frontend/src/components/design-system/ProgressBar.tsx — DS-02 reusable with data-bubble-id bTIuS/bTIua/bTIuZ",
         "frontend/src/lib/dashboard/pathEnrollmentApi.ts — pathenrollment1 search for active enrollment with profiles.onboarding_data.path_enrollment1 fallback (Bubble bTIrY binding)",
         "frontend/src/pages/Dashboard.tsx — currentPath slot mounts DashboardCurrentPathCard as first right-column widget"
@@ -66,6 +66,15 @@
       "evidence": [
         "frontend/src/components/dashboard/DashboardInsightsCard.tsx — INSIGHT_ITEMS constant with three Bubble-matching strings",
         "drsam-99657.bubble — ai_RNbBHXSE/ai_RNbBHXSH/ai_RNbBHXSK text expressions match implementation"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Layout: insights card stacks below check-in in left column; current path card is first right-column widget per layout_notes",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardMain.tsx — grid with DASHBOARD_DAILY_CHECKIN_SLOT_BUBBLE_ID and DASHBOARD_CURRENT_PATH_SLOT_BUBBLE_ID",
+        "frontend/src/pages/Dashboard.tsx — dailyCheckIn and currentPath slot ordering"
       ]
     }
   ],
@@ -115,16 +124,6 @@
       "notes": "Same accent background delta as ai_RNbBHXSC"
     },
     {
-      "bubble_id": "ai_RNbBHXSG",
-      "selector": "[data-bubble-id='ai_RNbBHXSG']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXSH",
-      "selector": "[data-bubble-id='ai_RNbBHXSH']",
-      "status": "pass"
-    },
-    {
       "bubble_id": "ai_RNbBHXSI",
       "selector": "[data-bubble-id='ai_RNbBHXSI']",
       "status": "pass",
@@ -140,7 +139,7 @@
       "bubble_id": "ai_RNbBHXSf",
       "selector": "[data-bubble-id='ai_RNbBHXSf']",
       "status": "pass",
-      "notes": "data-style-ref Group_card_"
+      "notes": "data-style-ref Group_card_; also emitted on DashboardMain slot wrapper (see C-3)"
     },
     {
       "bubble_id": "ai_RNbBHXSg",
@@ -162,8 +161,8 @@
     {
       "bubble_id": "bTIrY",
       "selector": "[data-bubble-id='bTIrY']",
-      "status": "partial",
-      "notes": "RG - path RepeatingGroup not marked; enrollment cell ai_RNbBHXSl used instead of RG wrapper"
+      "status": "pass",
+      "notes": "C-1 resolved: RepeatingGroup_list_ wrapper with data-bubble-id encloses ai_RNbBHXSl cell per ir/inventory.json parent chain ai_RNbBHXSf > bTIrY > ai_RNbBHXSl; present in loading and active-enrollment branches"
     },
     {
       "bubble_id": "ai_RNbBHXSl",
@@ -185,7 +184,12 @@
       "bubble_id": "bTIvC",
       "selector": "[data-bubble-id='bTIvC']",
       "status": "pass",
-      "notes": "fit_height progress row wrapper per layout_notes"
+      "notes": "fit_height progress row wrapper per layout_notes; hosts DS-02 ProgressBar (bTIuS) instead of bTIuw CustomElement marker"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSo",
+      "selector": "[data-bubble-id='ai_RNbBHXSo']",
+      "status": "pass"
     },
     {
       "bubble_id": "ai_RNbBHXSp",
@@ -201,6 +205,22 @@
       "bubble_id": "ai_RNbBHXSt",
       "selector": "[data-bubble-id='ai_RNbBHXSt']",
       "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSu",
+      "selector": "[data-bubble-id='ai_RNbBHXSu']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHXSv",
+      "selector": "[data-bubble-id='ai_RNbBHXSv']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIrf",
+      "selector": "[data-bubble-id='bTIrf']",
+      "status": "pass",
+      "notes": "Empty-state text sibling of bTIrY under ai_RNbBHXSf when no active enrollment"
     },
     {
       "bubble_id": "style_ref:ai_RNbBHXSA",
@@ -219,24 +239,9 @@
     }
   ],
   "gaps": [
-    {
-      "id": "G-1",
-      "area": "schema",
-      "finding": "frontend/supabase has no pathenrollment1 table; pathEnrollmentApi falls back to profiles.onboarding_data.path_enrollment1.",
-      "evidence": [
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — isSchemaUnavailable fallback",
-        "cursor-impl-cycle/output/coverage/DASH-05-insights-and-path-cards.json — preflight.gaps"
-      ]
-    },
-    {
-      "id": "G-2",
-      "area": "data-feed",
-      "finding": "Coaching insights are static IR copy; no dynamic insights API in item scope.",
-      "evidence": [
-        "frontend/src/components/dashboard/DashboardInsightsCard.tsx — INSIGHT_ITEMS constant",
-        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json — DASH-05 scope frontend-only cards"
-      ]
-    }
+    "supabase has no pathenrollment1 table; pathEnrollmentApi falls back to profiles.onboarding_data.path_enrollment1",
+    "Coaching insights are static IR copy; no dynamic insights API in item scope",
+    "DS-02 ProgressBar mounts at bTIuS inside bTIvC wrapper; IR CustomElement host bTIuw is not separately marked"
   ],
   "blockers": [],
   "critiques": [
@@ -244,32 +249,34 @@
       "id": "C-1",
       "area": "ui-fidelity",
       "priority": "medium",
-      "finding": "RG - path (bTIrY) RepeatingGroup wrapper has no data-bubble-id; implementation collapses search to a single ai_RNbBHXSl cell render.",
-      "alternative": "Add data-bubble-id=\"bTIrY\" on the enrollment content wrapper (or map .map over enrollments) to preserve RG marker for parity tooling.",
-      "evidence": [
-        "ir/inventory.json — bTIrY parent_id ai_RNbBHXSf, element_type RepeatingGroup",
-        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — ai_RNbBHXSl without bTIrY parent"
-      ]
-    },
-    {
-      "id": "C-2",
-      "area": "ui-fidelity",
-      "priority": "medium",
       "finding": "Insight-item groups use Tailwind bg-accent/30 rounded-lg; Bubble ai_RNbBHXSC sets bgcolor var(--color_aiRNbAaxgt_default) and border_roundness 8.",
-      "alternative": "Apply bubbleStyle or CSS variable --color_aiRNbAaxgt_default on insight-item rows to match IR presentation.",
+      "alternative": "Apply bg-[var(--color_aiRNbAaxgt_default)] or a bubbleStyle insight-row class on ai_RNbBHXSC/ai_RNbBHXSF/ai_RNbBHXSI rows.",
       "evidence": [
         "frontend/src/components/dashboard/DashboardInsightsCard.tsx — insight-item className",
+        "frontend/src/styles/tokens.css — --color_aiRNbAaxgt_default",
         "drsam-99657.bubble — ai_RNbBHXSC properties.bgcolor"
       ]
     },
     {
-      "id": "C-3",
+      "id": "C-2",
       "area": "functional",
-      "priority": "low",
-      "finding": "When pathenrollment1 table exists but returns no active row, API returns EMPTY_ENROLLMENT from table path without consulting onboarding_data fallback.",
-      "alternative": "Merge table miss with onboarding_data derive (as microCommitmentsApi does) so prototype users with only JSON enrollment still see current path when table is empty.",
+      "priority": "medium",
+      "finding": "When pathenrollment1 table exists but returns no active row, fetchCurrentPathEnrollment returns EMPTY_ENROLLMENT from the table path without consulting onboarding_data fallback.",
+      "alternative": "Merge table miss with deriveFromOnboardingData (as microCommitmentsApi does for schema-missing only) when pathenrollment1 schema lands.",
       "evidence": [
         "frontend/src/lib/dashboard/pathEnrollmentApi.ts — fetchCurrentPathEnrollment returns fromTable when not null, including EMPTY_ENROLLMENT"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "DashboardMain DashboardSlot and DashboardCurrentPathCard both emit data-bubble-id ai_RNbBHXSf, yielding duplicate selectors on the right-column current-path region.",
+      "alternative": "Use a transparent slot wrapper without data-bubble-id (left-column ai_RNbBHXRX pattern) or drop the inner card root marker and rely on the slot boundary.",
+      "evidence": [
+        "frontend/src/components/dashboard/DashboardMain.tsx — DASHBOARD_CURRENT_PATH_SLOT_BUBBLE_ID",
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — root ai_RNbBHXSf",
+        "frontend/src/lib/dashboard/routes.ts"
       ]
     },
     {
@@ -277,20 +284,30 @@
       "area": "ui-fidelity",
       "priority": "low",
       "finding": "path-next-step ai_RNbBHXSt and ai_RNbBHXSq both surface the same nextStepTitle when present; matches Bubble duplicate regions but may read redundant in UI.",
-      "alternative": "Hide ai_RNbBHXSt when ai_RNbBHXSq already shows Next: prefix, or bind ai_RNbBHXSt to a distinct field if IR differentiates them.",
+      "alternative": "Accept as IR parity (prior triage accepted) or hide ai_RNbBHXSt when ai_RNbBHXSq already shows Next: prefix.",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — ai_RNbBHXSq and ai_RNbBHXSt both render enrollment.nextStepTitle"
+        "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — ai_RNbBHXSq and ai_RNbBHXSt both render enrollment.nextStepTitle",
+        "ir/inventory.json — sibling regions under ai_RNbBHXSl"
       ]
     }
   ],
   "scores": {
-    "completeness": 4,
-    "grounding": 4,
+    "completeness": 5,
+    "grounding": 5,
     "actionability": 4
   },
   "brownfield": {
     "preflight_present": true,
-    "reuse_decision": "gap-fill",
+    "reuse_decision": "extend",
     "forbidden_paths_touched": false
+  },
+  "rewrite_verification": {
+    "prior_critique_id": "C-1",
+    "topic": "bTIrY RepeatingGroup wrapper data-bubble-id",
+    "resolved": true,
+    "evidence": [
+      "frontend/src/components/dashboard/DashboardCurrentPathCard.tsx — data-bubble-id=\"bTIrY\" with RepeatingGroup_list_ style wraps ai_RNbBHXSl in loading and active-enrollment branches",
+      "ir/inventory.json — bTIrY parent_id ai_RNbBHXSf, ai_RNbBHXSl parent_id bTIrY"
+    ]
   }
 }

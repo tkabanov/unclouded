@@ -1,20 +1,22 @@
 {
   "item_id": "SET-02-profile-tab-and-save",
   "module_id": "MOD-DRSAM-SETTINGS",
-  "assessed_at": "2026-07-08T11:00:00.000Z",
+  "assessed_at": "2026-07-09T00:00:00.000Z",
   "coverage_pct": 100,
   "preflight": {
     "existing_files_found": [
+      "frontend/src/components/settings/SettingsProfileTab.tsx",
+      "frontend/src/lib/settings/profileApi.ts",
       "frontend/src/components/settings/SettingsMain.tsx",
-      "frontend/src/lib/userProfile.tsx",
-      "frontend/supabase/migrations/20260702190431_61e67455-2f14-4775-93f0-a6407ef4fb79.sql"
+      "frontend/src/lib/settings/routes.ts",
+      "frontend/src/lib/userProfile.tsx"
     ],
     "gaps": [
-      "AC-1: Profile panel ai_RNbBHYVG was empty marker shell without form entities",
-      "AC-2: No first name / email / sobriety date inputs with Bubble ids",
-      "AC-3: No profile-save-btn workflow persisting to Supabase"
+      "AC-3 partial: saveProfileForm updated profiles.email only — missing bTIhq UpdateCredentials when email changes",
+      "FV-3 fail: no supabase.auth.updateUser path for email change",
+      "UI: missing profile card header (ai_RNbBHYVI/VJ/VK), label bubble ids, Group_card_ style, Save Profile copy"
     ],
-    "reuse_decision": "new",
+    "reuse_decision": "extend",
     "mapped_target_files": {
       "frontend/src/features/settings/SettingsProfileTab.vue": "frontend/src/components/settings/SettingsProfileTab.tsx",
       "frontend/src/features/settings/profileApi.ts": "frontend/src/lib/settings/profileApi.ts"
@@ -33,29 +35,63 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/settings/SettingsProfileTab.tsx — ai_RNbBHYVO first name, ai_RNbBHYVR email, ai_RNbBHYWH sobriety date with bubbleStyle(Input_default_)"
+        "frontend/src/components/settings/SettingsProfileTab.tsx — ai_RNbBHYVO first name, ai_RNbBHYVR email, ai_RNbBHYWH sobriety date with Input_default_ style_ref and IR placeholders"
       ]
     },
     {
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/settings/profileApi.ts — saveProfileForm updates profiles + onboarding_data",
-        "frontend/src/components/settings/SettingsProfileTab.tsx — ai_RNbBHYWT save button reloads form via loadProfileForm + useUserProfile.refresh"
+        "frontend/src/lib/settings/profileApi.ts — saveProfileForm ChangeThing parity (profiles + onboarding_data) and conditional bTIhq UpdateCredentials via signInWithPassword + auth.updateUser when email changes",
+        "frontend/src/components/settings/SettingsProfileTab.tsx — ai_RNbBHYWT save reloads form via loadProfileForm + useUserProfile.refresh"
+      ]
+    }
+  ],
+  "functional_verification": [
+    {
+      "id": "FV-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/profileApi.ts — saveProfileForm updates profiles.first_name and onboarding_data sobriety/recovery keys"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsProfileTab.tsx — handleSave refresh() then loadProfileForm resets bound form and initialEmail"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/profileApi.ts — email change reauthenticates with bTIhj password then supabase.auth.updateUser({ email })",
+        "frontend/src/components/settings/SettingsProfileTab.tsx — conditional bTIhj password field when email differs from initial auth email"
       ]
     }
   ],
   "ui_evidence": [
     { "bubble_id": "ai_RNbBHYVG", "selector": "[data-bubble-id='ai_RNbBHYVG']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYVH", "selector": "[data-bubble-id='ai_RNbBHYVH']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVI", "selector": "[data-bubble-id='ai_RNbBHYVI']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVJ", "selector": "[data-bubble-id='ai_RNbBHYVJ']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVK", "selector": "[data-bubble-id='ai_RNbBHYVK']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVL", "selector": "[data-bubble-id='ai_RNbBHYVL']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVN", "selector": "[data-bubble-id='ai_RNbBHYVN']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYVP", "selector": "[data-bubble-id='ai_RNbBHYVP']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYVO", "selector": "[data-bubble-id='ai_RNbBHYVO']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYVR", "selector": "[data-bubble-id='ai_RNbBHYVR']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWA", "selector": "[data-bubble-id='ai_RNbBHYWA']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWB", "selector": "[data-bubble-id='ai_RNbBHYWB']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWD", "selector": "[data-bubble-id='ai_RNbBHYWD']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWF", "selector": "[data-bubble-id='ai_RNbBHYWF']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYWH", "selector": "[data-bubble-id='ai_RNbBHYWH']", "status": "pass" },
+    { "bubble_id": "bTIhj", "selector": "[data-bubble-id='bTIhj']", "status": "pass" },
     { "bubble_id": "ai_RNbBHYWT", "selector": "[data-bubble-id='ai_RNbBHYWT']", "status": "pass" }
   ],
   "files_changed": [
     "frontend/src/components/settings/SettingsProfileTab.tsx",
-    "frontend/src/components/settings/SettingsMain.tsx",
     "frontend/src/lib/settings/profileApi.ts",
     "frontend/src/lib/settings/routes.ts"
   ],

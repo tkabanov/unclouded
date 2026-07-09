@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "CHAT-03-chat-reusable-panel-mount",
-  "assessed_at": "2026-07-08T10:52:00.000Z",
+  "assessed_at": "2026-07-09T06:10:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-CHAT-03-chat-reusable-panel-mount.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,8 +11,22 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Optimistic send stub is explicitly scoped to CHAT-05 per coverage notes and decompose boundaries. CHAT-05 depends_on CHAT-03 and owns composer insert + AI reply wiring."
+      "rationale": "Valid functional gap: useCoachingModeUpdate.ts updates local React state for bTIRi badge text only and does not persist coaching mode to chatconversation context. CHAT-03 decompose scope wires composer send to the CHAT-05 API layer and explicitly does not re-implement DS-06 coaching-mode UI; CHAT-05 layout_notes assign mode-change events to chatconversation context field updates and list useCoachingModeUpdate.ts in target_files. criteria_audit AC-1..AC-3 pass, functional_audit FV-1..FV-4 pass, and CHAT-05 depends_on gate needs bTIUt mount + ?conversation= routing + message list — all satisfied. Defer full mode persistence wiring to CHAT-05-chat-messaging-and-create-flow."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "During loading, ChatPanelMount keeps the bTIUt root wrapper (data-bubble-id on outer div) but swaps ChatReusable (bTIRW) for generic \"Loading conversation…\" text. criteria_audit AC-1..AC-3 pass and ui_evidence for bTIUt/bTIRW both pass on the loaded path; no AC requires skeleton markers or bTIRW subtree during fetch. Loading-state presentation is optional visual polish, not a named ui_ref contract failure. CHAT-03 downstream consumers (CHAT-05) need mounted composable and message binding, not loading skeleton fidelity. Defer skeleton/loading-prop pattern to DS-06 shell polish or CHAT-05 end-to-end QA."
+    },
+    {
+      "critique_id": "C-3",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Valid grounding edge case: conversation title/mode metadata comes from fetchConversations sidebar list (conversations.find) rather than a direct chatconversation row read, so deep-linked ?conversation= ids absent from the list show CHAT_CONVERSATION_DEFAULTS title until sidebar reload. criteria_audit AC-1 passes (URL param resolves mount; prop binding satisfied on happy path) and functional_audit FV-1..FV-3 pass. CHAT-03 scope binds chatconversation from URL param via chatRouteStore — not obligated to implement single-row fetch. Does not block CHAT-05 depends_on (mount, send API, routing). Defer direct chatconversation-by-id fetch in ChatPanelMount.reload() to CHAT-05 API-layer resilience alongside C-1 mode persistence."
     }
   ],
-  "summary": "Review passed at 100%. C-1 deferred to CHAT-05 as planned."
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass. Deferred: C-1 coaching mode context-field persistence to CHAT-05; C-2 loading skeleton / bTIRW markers during fetch to DS-06 shell polish; C-3 direct chatconversation row fetch for deep-linked headers to CHAT-05 API resilience."
 }

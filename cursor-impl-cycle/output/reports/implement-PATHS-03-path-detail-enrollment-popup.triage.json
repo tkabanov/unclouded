@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "PATHS-03-path-detail-enrollment-popup",
-  "assessed_at": "2026-07-08T08:03:00.000Z",
+  "assessed_at": "2026-07-08T22:35:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-03-path-detail-enrollment-popup.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,22 +11,36 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "IR re-read confirms ai_RNbBHYJR (header-text group), ai_RNbBHYJg (path-detail-steps-group), and ai_RNbBHYJp (progress-bar-wrap) are intermediate Group_transparent_ nodes in decompose ui_refs[], but AC-1/AC-2 cite only leaf markers (ai_RNbBHYJS/JZ, ai_RNbBHYJh/Ji, bTItq/bTIuq/ai_RNbBHYJs) — not these wrappers. PathDetailPopup.tsx preserves layout via space-y flex nesting; all leaf data-bubble-id selectors pass criteria_audit and coverage ui_evidence. ui_evidence is partial solely for automated hierarchy selectors on the three flattened wrappers. Matches DASH-02 C-1 and DASH-04 C-1 precedent: two-line wrapper divs are parity-tooling polish, not a rewrite blocker; PATHS-04/PATHS-06 depends_on need enroll/unenroll wiring and store refresh, not intermediate DOM anchors."
+      "rationale": "IR re-read confirms bTJCv (Continue Path, style_ref:bTJCv) lives in path-detail-popup footer under ai_RNbBHYJu alongside enroll/unenroll/upgrade, but PATHS-03 decompose scope and AC-1..AC-3 only obligate ai_RNbBHYJw/Jv and bTJHa — bTJCv was never added to formal ui_refs[] or acceptance criteria despite decompose-review C-3 flag. Implement satisfies all scoped ACs at 100%; review ok=true. bTJHg/bTJHi ButtonClicked workflow is ChangePage/session-navigation parity owned by PATHS-07-session-completion-route-integration (URL ?session= param, current_session on bTItY list). Defer bTJCv CTA + navigation stub to PATHS-07 or a paths footer polish pass."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Finding confirmed: handleEnroll/handleUnenroll catch blocks only console.error (PathDetailPopup.tsx L129-130, L147-148). functional_audit FV-2/FV-3 and criteria_audit AC-3 pass on happy-path mutation + store refresh; decompose scope and ACs do not require inline error toast or banner. Brownfield dashboard/journal items defer similar mutation-error surfacing when ACs are satisfied (JOURNAL-03 C-2 auth-edge-case pattern). User-visible enroll/unenroll failure feedback is UX hardening backlog, not a gate blocker for PATHS-03."
+      "rationale": "IR intermediate wrapper groups ai_RNbBHYJR (path-detail-header-text), ai_RNbBHYJg (path-detail-steps-group), and ai_RNbBHYJp (progress-bar-wrap) are flattened while named child markers (ai_RNbBHYJS/JZ, ai_RNbBHYJh/Ji, bTItq/bTIuq) remain and review ui_evidence passes those selectors. PATHS-03 ACs name header ai_RNbBHYJQ, body ai_RNbBHYJc, and progress group ai_RNbBHYJn — not the omitted wrapper ids. Layout and copy parity are preserved; missing wrappers affect parity-tooling parent_element_id chains only. Defer optional data-bubble-id wrapper inserts as marker polish (same pattern as PATHS-02 triage C-2/C-3)."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "formatStepsText joins sessions with spaces into single ai_RNbBHYJi paragraph; IR text_expressions may render per-session line breaks in Bubble. AC-2 requires steps label ai_RNbBHYJh and text ai_RNbBHYJi bound to path session data — satisfied with correct copy content. criteria_audit AC-2 and ui_evidence for ai_RNbBHYJi pass; review priority is low and alternative defers action until visual parity testing confirms mismatch. Line-broken or list rendering is optional fidelity polish within PATHS-03 scope, not a downstream depends_on blocker."
+      "rationale": "Confirmed in Paths.tsx: viewingEnrollment snapshot is set on open and passed to PathDetailPopup; handleEnroll calls refresh() on pathsEnrollmentStore but does not re-sync the popup prop, so footer CTA visibility (showEnroll/showUnenroll) stays stale until close/reopen. enrollInPath/unenrollFromPath persist correctly (FV-2/FV-3 pass; AC-3 satisfied for API wiring). Store and grid consumers see refreshed enrollments; PATHS-06 and PATHS-07 depends_on gates do not require live popup CTA flip. Defer derive enrollment from store by enrollmentId or post-refresh viewingEnrollment sync as PATHS-03 UX polish."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "Brownfield mapping critique is already resolved in coverage preflight: mapped_target_files documents PathDetailPopup.tsx as the popup implementation and pathsEnrollmentApi.ts path; reuse_decision gap-fill is appropriate. Legacy frontend/src/pages/PathDetail.tsx remains a separate /paths/:slug route prototype and is outside PATHS-03 popup-from-grid AC-1 scope. No rewrite or coverage gap — documentation artifact only."
+    },
+    {
+      "critique_id": "C-5",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "DialogOverlay carries ai_RNbBHYMU data-bubble-id and shadcn overlay styling; Group_overlay_ is listed in decompose ui_refs and layout_notes but ACs do not require data-style-ref on the overlay node. ui_evidence partial on style_ref only; visible modal overlay behavior passes. Defer bubbleStyle('Group_overlay_') or data-style-ref on DialogOverlay as style-catalog parity polish."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 intermediate ui_ref wrappers (ai_RNbBHYJR, ai_RNbBHYJg, ai_RNbBHYJp) as parity-tooling polish per DASH-02 C-1 precedent; C-2 mutation error toast as UX hardening not in ACs; C-3 steps line-break layout pending optional visual parity confirmation."
+  "summary": "0 fix_now, 4 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass. Deferred: C-1 bTJCv Continue Path footer CTA to PATHS-07 session-navigation; C-2 intermediate wrapper bubble-id markers (parity tooling); C-3 post-enroll popup CTA sync polish; C-5 Group_overlay_ style_ref on overlay. Accepted: C-4 brownfield target_files mapping already documented in coverage preflight."
 }

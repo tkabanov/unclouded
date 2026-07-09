@@ -127,16 +127,16 @@ export default function ChatWelcomePanel({ className }: ChatWelcomePanelProps) {
             action="1-800-662-4357"
             href="tel:18006624357"
           />
+          <p
+            data-bubble-id={CHAT_WELCOME_DISCLAIMER_BUBBLE_ID}
+            className={cn(
+              bubbleStyle("Text_caption_"),
+              "border-t border-[var(--color_aiRNbAaxgw_default)] pt-3 text-xs leading-6 text-[var(--color_aiRNbAaxgs_default)]",
+            )}
+          >
+            Unclouded is AI coaching only — not therapy or medical care. In an emergency, call 911.
+          </p>
         </section>
-        <p
-          data-bubble-id={CHAT_WELCOME_DISCLAIMER_BUBBLE_ID}
-          className={cn(
-            bubbleStyle("Text_caption_"),
-            "border-t border-[var(--color_aiRNbAaxgw_default)] pt-3 text-xs leading-6 text-[var(--color_aiRNbAaxgs_default)]",
-          )}
-        >
-          Unclouded is AI coaching only — not therapy or medical care. In an emergency, call 911.
-        </p>
       </div>
     </div>
   );

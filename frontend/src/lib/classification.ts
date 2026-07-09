@@ -1,5 +1,7 @@
 // Classification logic for onboarding results
 
+import { extractLoadSignalSlugs } from "@/lib/enums/onboardingQuestions";
+import { STATE_NERVOUS_SYSTEM } from "@/lib/enums/wellnessState";
 import { resolvePressureProfile } from "@/lib/userProfile/buildPressureProfile";
 
 export interface ClassificationType {
@@ -247,7 +249,10 @@ function computePressureProfile(
   stateSignals: Record<string, string>,
   _behavioralPatterns: Record<string, string>
 ): string {
-  return resolvePressureProfile(loadSignals, stateSignals);
+  const loadSignalSlugs = extractLoadSignalSlugs(loadSignals);
+  const nervousSystemSlug =
+    stateSignals.nervous_system_state ?? STATE_NERVOUS_SYSTEM.REGULATED;
+  return resolvePressureProfile(loadSignalSlugs, nervousSystemSlug);
 }
 
 function computeTradeoffStatement(

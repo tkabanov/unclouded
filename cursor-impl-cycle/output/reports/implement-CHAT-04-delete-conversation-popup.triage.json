@@ -1,32 +1,46 @@
 {
   "phase": "implement",
   "target_id": "CHAT-04-delete-conversation-popup",
-  "assessed_at": "2026-07-08T10:16:00.000Z",
+  "assessed_at": "2026-07-09T06:15:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-CHAT-04-delete-conversation-popup.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
     {
       "critique_id": "C-1",
-      "severity": "defer",
-      "resolution": "defer",
+      "severity": "accept",
+      "resolution": "accept",
       "action_required": false,
-      "rationale": "Decompose AC-1 explicitly names ai_RNbBHXeq–ev; implementation matches those ids with correct copy and hierarchy (criteria_audit AC-1 pass, ui_evidence pass). IR slice bTHDZ____root.json uses ai_RNbBHXcz and ai_RNbBHXdA–E for the same nodes — an automated selector alias gap, not a missing named ui_ref. Medium priority; CHAT-05 depends on delete workflow behavior, not slice-id remapping. Defer id harmonization to a later parity/tooling pass."
+      "rationale": "CHAT-04 decompose ui_refs and AC-1 obligate bubble-path ids (ai_RNbBHXeq–ev) on DOM markers; DeleteConversationPopup.tsx and routes.ts constants match those ids and criteria_audit AC-1 passes. ir/slices/bTHDZ____root.json canonical ids (ai_RNbBHXcz, ai_RNbBHXdA–E) are an alternate IR keying for the same nodes — parity tooling mismatch is a decompose metadata normalization concern, not an implementation defect. Downstream CHAT-05 depends_on needs a mounted delete popup with working deleteConversation mutation, both satisfied; dual-marking or ui_refs normalization can land in a decompose follow-up without blocking advance."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Group_overlay_ is listed in ui_refs but Popup_dialog_ on the dialog root plus shadcn overlay delivers acceptable visual parity; ui_evidence is partial only for the unused inner wrapper style. Low-priority polish with no AC violation and no downstream item blocked — consistent with AuthDialog pattern variance noted in review."
+      "rationale": "Confirm button Button_primary_ on ai_RNbBHXev is intentional per CHAT-04 layout_notes ('confirm destructive action uses primary button styling from DS-01') — ui_evidence passes and criteria_audit AC-1 passes. Cancel ai_RNbBHXeu uses Button_ghost_ instead of slice-canonical Button_outline_ (ui_evidence partial); valid style_ref gap but low visual impact and does not block CHAT-05 depends_on (needs delete workflow, not button token parity). Defer cancel outline swap to a chat popup fidelity polish pass alongside CHAT-01/CHAT-02 deferred style-catalog items."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Onboarding-data fallback when chatmessage table is absent cannot purge message rows server-side, but Chat.tsx clears local thread cache so UX stays consistent. Production Supabase path satisfies AC-2 message purge; this is a prototype-schema edge case outside current scope with no functional_ok or blocker impact."
+      "rationale": "Title Text_heading_2_ and body Text_body_ differ from slice-canonical Text_heading_3_ and Text_body_muted_ on ai_RNbBHXcz/ai_RNbBHXdB (ui_evidence partial, priority low). Static copy matches Bubble/drsam-99657.bubble strings and criteria_audit AC-1 passes on hierarchy and text nodes. Typography token swap is polish only; no downstream item in depends_on requires canonical heading/body style_refs on this popup. Defer to chat popup fidelity polish wave."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Valid data-layer note: deleteConversation implements tryDeleteMessagesForConversation then chatconversation delete when tables exist, with profiles.onboarding_data fallback when schema errors indicate missing chat tables — consistent with brownfield prototype (supabase has no chat migrations). criteria_audit AC-2 and functional_audit FV-2 pass on the table-delete path; CHAT-05 depends_on gate needs deleteConversation composable and mutation hook, both satisfied via either path. Mirrors CHAT-02 triage C-1: defer supabase chatconversation/chatmessage migrations and table-path QA to CHAT-05 migration wave; retain onboarding fallback during rollout."
+    },
+    {
+      "critique_id": "C-5",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Group_overlay_ is listed in decompose ui_refs but Radix Dialog overlay/backdrop has no data-style-ref marker (ui_evidence partial, priority low). Overlay behavior and Popup_dialog_ content styling satisfy functional and AC requirements; missing style_ref is automated parity-check tooling only. Does not block CHAT-05 or any depends_on consumer. Defer Group_overlay_ wiring on DialogOverlay to design-system dialog primitive polish (shared dialog.tsx concern, not CHAT-04-specific blocker)."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 0 accept. Review gate passed (ok:true, coverage 100%, functional_ok:true, no blockers). All critiques are polish/backlog: C-1 slice-vs-decompose bubble id alias, C-2 Group_overlay_ inner wrapper, C-3 onboarding fallback message-purge documentation — none block CHAT-05 or other downstream items."
+  "summary": "0 fix_now, 4 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass. Accepted: C-1 bubble-path vs slice-canonical id keying (implementation follows decompose ui_refs/AC-1). Deferred: C-2 cancel Button_outline_ polish (confirm primary per layout_notes); C-3 typography style_ref tokens; C-4 chat table migrations and table-path QA to CHAT-05; C-5 Group_overlay_ on dialog backdrop to DS dialog primitive polish."
 }

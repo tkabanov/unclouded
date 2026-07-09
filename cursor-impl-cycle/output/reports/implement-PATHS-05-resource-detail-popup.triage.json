@@ -1,32 +1,32 @@
 {
   "phase": "implement",
   "target_id": "PATHS-05-resource-detail-popup",
-  "assessed_at": "2026-07-08T10:14:30.000Z",
+  "assessed_at": "2026-07-09T04:22:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-05-resource-detail-popup.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
     {
       "critique_id": "C-1",
-      "severity": "defer",
-      "resolution": "defer",
+      "severity": "accept",
+      "resolution": "accept",
       "action_required": false,
-      "rationale": "IR nests ai_RNbBHYKS under body ai_RNbBHYKL while the link group is rendered inside footer ai_RNbBHYKV. Decompose AC-3 and layout_notes ('link row above full-width primary button') intentionally colocate link ai_RNbBHYKU with footer Done ai_RNbBHYKW; all criteria_audit rows pass and named ui_refs (ai_RNbBHYKU, ai_RNbBHYKV, ai_RNbBHYKW) are present. ai_RNbBHYKS itself is not a named ui_ref; review ui_evidence marks partial with visual-order rationale. No downstream PATHS-06+ item depends on strict DOM parent_id nesting. Defer IR hierarchy realignment to a polish wave if parity tooling requires body-child placement."
+      "rationale": "IR re-read confirms popup disclaimer static text lives on ai_RNbBHYKO (not card caption ai_RNbBHYJM). ResourceDetailPopup correctly renders ai_RNbBHYKM/KO with PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY; ai_RNbBHYJM remains on ResourceCard only. criteria_audit AC-2 and ui_evidence for ai_RNbBHYKO pass. Decompose AC-2 entity typo (ai_RNbBHYJM, misplaced sensitivity refs) is documentation grounding only — AC-quality issue outside implement rewrite scope; update MOD-DRSAM-PATHS decompose on a later decompose pass."
     },
     {
       "critique_id": "C-2",
       "severity": "accept",
       "resolution": "accept",
       "action_required": false,
-      "rationale": "AC-2 explicitly requires 'disclaimer note ai_RNbBHYJM copy from IR' in the popup body. Implementation mounts ai_RNbBHYJM on the coaching-only caption with matching Bubble static text; the popup disclaimer banner correctly uses ai_RNbBHYKM/ai_RNbBHYKO. IR parent ai_RNbBHYJL is on the resource card, but decompose AC names ai_RNbBHYJM for copy parity in this popup — marker reuse is scope-intentional, not a criteria failure."
+      "rationale": "IR nests ai_RNbBHYKS under body ai_RNbBHYKL, but decompose layout_notes explicitly require link row above full-width primary button and AC-3 mandates footer ai_RNbBHYKV with link ai_RNbBHYKU plus Done ai_RNbBHYKW. React DialogFooter placement preserves that visual order; review ui_evidence for ai_RNbBHYKS, ai_RNbBHYKT, ai_RNbBHYKV, and ai_RNbBHYKU all pass. Strict parent_element_id nesting would conflict with AC-3 footer requirement — no implement change needed."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "STATIC_FALLBACK_RESOURCES omit externalLink so the link row is hidden in offline/dev unless Supabase rows supply externalLink. Conditional rendering in ResourceDetailPopup is correct; AC-3 and FV-4 pass when data includes a link. This is prototype dev ergonomics (same class as PATHS-04 C-3), not a live data-contract or downstream blocker — defer optional sample externalLink on a fallback row to a later data-hardening wave."
+      "rationale": "Coverage functional_verification reuses FV-4 id/label from PATHS-04 tab chrome while review independently derived FV-1..3 from this item's ACs (open popup, render content/disclaimer/link, dismiss and external link). Independent functional_audit FV-1..3 all pass with correct evidence on ResourceDetailPopup, ResourceCard, and Paths.tsx. ID cross-item confusion is coverage-artifact labeling only — behavior verified at 100% coverage. Align functional_verification row IDs with item-specific checks on next coverage pass; no source rewrite required for advance."
     }
   ],
-  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, rewrite_pass true, 0 blockers, all ACs and FV-4 pass. C-1 deferred: footer link placement matches AC-3/layout_notes despite IR body parent_id. C-2 accepted: ai_RNbBHYJM marker required by AC-2 copy parity. C-3 deferred: dev static fallback missing externalLink is non-blocking polish."
+  "summary": "0 fix_now, 1 defer, 2 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and ui_evidence pass. Deferred: C-3 functional_verification FV ID alignment with item-specific checks (coverage labeling hygiene). Accepted: C-1 decompose AC-2 entity typo vs correct IR implementation; C-2 footer link placement per AC-3/layout_notes despite IR body nesting."
 }

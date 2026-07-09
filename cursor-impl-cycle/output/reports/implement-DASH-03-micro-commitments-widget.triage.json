@@ -1,32 +1,32 @@
 {
   "phase": "implement",
   "target_id": "DASH-03-micro-commitments-widget",
-  "assessed_at": "2026-07-08T06:03:00.000Z",
+  "assessed_at": "2026-07-08T19:15:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-DASH-03-micro-commitments-widget.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
     {
       "critique_id": "C-1",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "rationale": "IR re-read confirms bTJGS children are only bTJGY (text) and bTJGe (Mark as Completed button); decompose ui_refs list bTJGe as the in-scope completion control and include no completed-state icon or text node. AC-2 passes: cells show completion indicators via Text_success_ styling and CheckCircle2 when session is in the completed set, with bTJGe hidden on that branch — an intentional React conditional swap, not a missing named ui_ref. criteria_audit AC-2 and all ui_evidence entries pass; the anonymous completed span is polish parity tooling, not an AC or downstream blocker."
+      "rationale": "Valid ui-fidelity note: the isCompleted branch renders an invented CheckCircle2 + Completed label with no Bubble ui_ref, while bTJGk workflow removes completed sessions from focused_m_commitment_custom_pathsession so the branch is unreachable after markMicroCommitmentCompleted refresh. However all named DASH-03 ui_refs (bTJFv, bTJGB, bTJGH, bTJGS, bTJGY, bTJGe) pass ui_evidence and criteria_audit AC-2 is pass; no downstream item lists DASH-03 in depends_on. Removing the dead branch is strict Bubble RG parity polish, not a blocker — defer as optional cleanup within DASH-03 or a later dashboard polish pass."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Distinct from the prior fix_now C-2 (invented Group_transparent_ chip chrome on bTJGS), which rewrite verified as resolved. Remaining finding is supplemental Tailwind typography (text-base font-semibold on bTJGB, text-sm leading-snug on bTJGY) layered on top of bubbleStyle(Text_heading_3_/Text_body_) tokens. Named ui_refs carry correct data-bubble-id and style_ref; ui_evidence for bTJGB and bTJGY both pass. Typography token extraction beyond DS-01 bubble-styles.css is low-priority polish not cited in decompose ACs; precedent DS-05 deferred equivalent supplemental Tailwind on bubble shells. No downstream depends_on item requires stripping these overrides before advance."
+      "rationale": "Valid schema-dependency gap: end-to-end visibility requires PATHS enrollment to populate path_enrollment1 (pathenrollment1 table or profiles.onboarding_data fallback). DASH-03 scope and AC-3 require read-via-Supabase with Bubble binding parity; coverage preflight documents the prototype-schema gap and microCommitmentsApi implements best-effort pathenrollment1 query plus onboarding_data fallback. Provisioning pathenrollment1 and enrollment write paths are explicitly owned by PATHS-03-path-detail-enrollment-popup (AC-3 create/update pathenrollment1) and PATHS-06-enrollment-floating-services-bar (pathenrollment1 search/RG). DASH-03 does not block those depends_on gates; defer migration and QA seed documentation to PATHS wave."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Valid coverage-artifact hygiene gap: rewrite pass files_changed omits frontend/src/lib/dashboard/microCommitmentsApi.ts despite it being a decompose target_file and AC-3 evidence source. Implement criteria_audit AC-3 and functional_audit FV-1/FV-2 both pass with microCommitmentsApi.ts cited; omission affects audit traceability in the coverage JSON only, not source correctness or gate satisfaction. Refresh files_changed on next coverage touch or cycle hygiene wave — not a rewrite blocker for DASH-03 implement advance."
+      "rationale": "Valid ux note: returning null during loading briefly suppresses the greeting-row slot before data resolves. DASH-03 ACs and layout_notes specify collapse when focused session list is empty (Bubble collapse_when_hidden on bTJFv/bTJGA), not a loading skeleton or shell placeholder. criteria_audit and functional_audit FV-5 pass; this is nice-to-have loading-state polish with no named ui_ref gap and no downstream depends_on impact. Defer skeleton or load-then-collapse behavior to a later polish pass."
     }
   ],
-  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, prior C-2 Group_transparent_ chip fix verified on rewrite pass. Accepted: C-1 completed-state span without data-bubble-id — no IR/ui_ref element exists beyond bTJGe; conditional swap is intentional. Deferred: C-2 supplemental typography Tailwind on bTJGB/bTJGY as DS polish within DASH-03; C-3 coverage files_changed omission of microCommitmentsApi.ts as artifact hygiene."
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs and ui_evidence pass. Deferred: C-1 remove invented completed-badge branch for strict Bubble RG parity (optional DASH-03 cleanup); C-2 pathenrollment1 migration and enrollment write path to PATHS-03 and PATHS-06; C-3 loading-state shell/skeleton polish."
 }

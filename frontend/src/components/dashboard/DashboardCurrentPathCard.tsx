@@ -91,71 +91,83 @@ export default function DashboardCurrentPathCard() {
       </div>
 
       {loading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-2 w-full" />
-          <Skeleton className="h-4 w-56" />
+        <div
+          data-bubble-id="bTIrY"
+          data-style-ref="RepeatingGroup_list_"
+          className={cn(bubbleStyle("RepeatingGroup_list_"), "flex w-full flex-col")}
+        >
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-2 w-full" />
+            <Skeleton className="h-4 w-56" />
+          </div>
         </div>
       ) : enrollment?.hasActiveEnrollment ? (
         <div
-          data-bubble-id="ai_RNbBHXSl"
-          className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-3")}
+          data-bubble-id="bTIrY"
+          data-style-ref="RepeatingGroup_list_"
+          className={cn(bubbleStyle("RepeatingGroup_list_"), "flex w-full flex-col")}
         >
-          <p
-            data-bubble-id="ai_RNbBHXSm"
-            data-style-ref="Text_label_"
-            className={cn(bubbleStyle("Text_label_"), "text-sm font-semibold text-foreground")}
-          >
-            {enrollment.pathName}
-          </p>
-
           <div
-            data-bubble-id="ai_RNbBHXSn"
-            className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
+            data-bubble-id="ai_RNbBHXSl"
+            className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-3")}
           >
-            <div data-bubble-id="bTIvC" className={cn(bubbleStyle("Group_transparent_"), "w-full")}>
-              <ProgressBar value={enrollment.progressPercent} />
-            </div>
+            <p
+              data-bubble-id="ai_RNbBHXSm"
+              data-style-ref="Text_label_"
+              className={cn(bubbleStyle("Text_label_"), "text-sm font-semibold text-foreground")}
+            >
+              {enrollment.pathName}
+            </p>
 
             <div
-              data-bubble-id="ai_RNbBHXSo"
-              className={cn(bubbleStyle("Group_transparent_"), "flex flex-col gap-1")}
+              data-bubble-id="ai_RNbBHXSn"
+              className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
             >
-              <p
-                data-bubble-id="ai_RNbBHXSp"
-                className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
+              <div data-bubble-id="bTIvC" className={cn(bubbleStyle("Group_transparent_"), "w-full")}>
+                <ProgressBar value={enrollment.progressPercent} />
+              </div>
+
+              <div
+                data-bubble-id="ai_RNbBHXSo"
+                className={cn(bubbleStyle("Group_transparent_"), "flex flex-col gap-1")}
               >
-                {enrollment.progressPercent}% complete
-              </p>
-              {enrollment.nextStepTitle ? (
                 <p
-                  data-bubble-id="ai_RNbBHXSq"
+                  data-bubble-id="ai_RNbBHXSp"
+                  className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
+                >
+                  {enrollment.progressPercent}% complete
+                </p>
+                {enrollment.nextStepTitle ? (
+                  <p
+                    data-bubble-id="ai_RNbBHXSq"
+                    className={cn(bubbleStyle("Text_body_"), "text-sm text-foreground")}
+                  >
+                    Next: {enrollment.nextStepTitle}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            {enrollment.nextStepTitle ? (
+              <div
+                data-bubble-id="ai_RNbBHXSt"
+                className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-2")}
+              >
+                <ArrowRight
+                  data-bubble-id="ai_RNbBHXSu"
+                  className={cn(bubbleStyle("Icon_default_"), "mt-0.5 h-4 w-4 shrink-0")}
+                  aria-hidden
+                />
+                <p
+                  data-bubble-id="ai_RNbBHXSv"
                   className={cn(bubbleStyle("Text_body_"), "text-sm text-foreground")}
                 >
-                  Next: {enrollment.nextStepTitle}
+                  {enrollment.nextStepTitle}
                 </p>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </div>
-
-          {enrollment.nextStepTitle ? (
-            <div
-              data-bubble-id="ai_RNbBHXSt"
-              className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-2")}
-            >
-              <ArrowRight
-                data-bubble-id="ai_RNbBHXSu"
-                className={cn(bubbleStyle("Icon_default_"), "mt-0.5 h-4 w-4 shrink-0")}
-                aria-hidden
-              />
-              <p
-                data-bubble-id="ai_RNbBHXSv"
-                className={cn(bubbleStyle("Text_body_"), "text-sm text-foreground")}
-              >
-                {enrollment.nextStepTitle}
-              </p>
-            </div>
-          ) : null}
         </div>
       ) : (
         <p

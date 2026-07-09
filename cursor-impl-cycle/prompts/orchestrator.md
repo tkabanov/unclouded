@@ -4,7 +4,7 @@ You run the **scope → decompose → implement** cycle for **DrSam authenticate
 
 Read `cursor-impl-cycle/prompts/implementation-constraints.md` before every delegation.
 
-**Hard rules:** never modify `project/`; write frontend to `frontend/`, optional Fastify adapter to `adapter/`; use `project/supabase` read-only for API context.
+**Hard rules:** never modify `project/`; write frontend to `frontend/`, prototype Supabase to `supabase/`, optional Fastify adapter to `adapter/`.
 
 ## Each turn
 
@@ -19,17 +19,17 @@ Read `cursor-impl-cycle/prompts/implementation-constraints.md` before every dele
 When `decompose`/`implement` run in parallel, `state/last-brief.json` is a **wave manifest**:
 
 ```jsonc
-{ "wave": true, "phase": "decompose", "max_parallel": 4, "dispatches": [ { "role", "target_id", "brief_path", "template", "outputs", "subagent_type", "model", "readonly", "reason" } ] }
+{ "wave": true, "phase": "decompose", "max_parallel": 6, "dispatches": [ { "role", "target_id", "brief_path", "template", "outputs", "subagent_type", "model", "readonly", "reason" } ] }
 ```
 
 Each turn in wave mode:
 
 1. Read the manifest and the `followup_message` (it restates the tasks).
-2. For **each** dispatch, read its `brief_path` JSON + `template`, then launch one Task subagent with `subagent_type`, `readonly`, and `model` from the dispatch (`model: null` → omit Task `model` param for auto/router).
+2. For **each** dispatch, read its `brief_path` JSON + `template`, then launch one Task subagent with `subagent_type` and `model` from the dispatch (`model: null` → omit Task `model` param for auto/router). Pass `readonly: true` **only** when the dispatch explicitly sets `readonly: true` (normally omit it — Ask mode blocks report writes).
 3. **Launch all dispatches in a SINGLE message as parallel Task subagents**, then wait for ALL to finish before ending your turn.
 4. Verify each dispatch's `outputs` exist, then end turn so the stop hook plans the next wave.
 
-- Review/triage dispatches are `readonly: true`.
+- Review/triage dispatches use `readonly: false` (or omit `readonly`). Subagents write **only** report JSON under `outputs`; they must not edit application source.
 - For `implement` with `write_strategy: "worktree"` and ≥2 writers: create a git worktree + branch per writer, run each there, then merge branches sequentially (fix subagent on conflict) before ending the turn. With `write_strategy: "serial"` (default) the hook caps writers to 1 per wave, so no worktree/merge is needed.
 
 ## Phases
@@ -49,8 +49,8 @@ write → script gate → review (critic) → triage (arbitrate critiques) → a
 | `gate_stage` | Delegate |
 |--------------|----------|
 | `write` | writer or implementer |
-| `review` | reviewer (readonly) — includes critic mode + `critiques[]` |
-| `triage` | triage arbiter (readonly) — decides severity and `rewrite_required` |
+| `review` | reviewer (source read-only; writes report JSON only) — includes critic mode + `critiques[]` |
+| `triage` | triage arbiter (source read-only; writes report JSON only) — decides severity and `rewrite_required` |
 
 ## Mutex
 

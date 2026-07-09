@@ -1,39 +1,39 @@
 {
   "phase": "implement",
   "target_id": "DASH-02-greeting-coaching-quick-actions",
-  "assessed_at": "2026-07-07T20:52:00.000Z",
+  "assessed_at": "2026-07-08T19:20:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-DASH-02-greeting-coaching-quick-actions.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
     {
       "critique_id": "C-1",
-      "severity": "defer",
-      "resolution": "defer",
+      "severity": "accept",
+      "resolution": "accept",
       "action_required": false,
-      "rationale": "IR re-read confirms ai_RNbBHXRK (text column) and ai_RNbBHXRM (mode-badge wrapper) are intermediate Group_transparent_ nodes in decompose ui_refs[], but AC-1 explicitly requires data-bubble-id only on greeting-top (ai_RNbBHXRH), avatar (ai_RNbBHXRI), name (ai_RNbBHXRL), mode-pill (ai_RNbBHXRN), and coaching-note (ai_RNbBHXRO). DOM nesting preserves IR hierarchy — leaf elements carry markers and correct parent-child structure — so criteria_audit AC-1 passes. ui_evidence is partial solely for parity selectors on the two anonymous wrappers; adding markers is a two-line tooling polish item, not a rewrite blocker, and no downstream item in depends_on requires these intermediate anchors."
+      "rationale": "IR re-read confirms ai_RNbBHXRK (dashboard-greeting-text) and ai_RNbBHXRM (dashboard-mode-badge) are intermediate Group wrappers in the parent_id chain under ai_RNbBHXRH. Valid parity-tooling observation, but DASH-02 AC-1 explicitly scopes required data-bubble-id markers to leaf elements ai_RNbBHXRH, ai_RNbBHXRI, ai_RNbBHXRL, ai_RNbBHXRN, and ai_RNbBHXRO — not intermediate groups. criteria_audit AC-1, coverage AC-1, and all AC-bound ui_evidence pass; greeting-name, mode-pill, and coaching-note render in the correct visual stack per layout_notes. Mirrors SHELL-04 C-2/C-3 acceptance pattern: intermediate wrapper markers are ui_refs for tooling but not AC-bound; flattening does not block DASH-03..07 depends_on gates."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "AC-2 requires bTIVQ to render ai_coaching_mode_os options from ENUM-03; AI_COACHING_MODE_ORDER exposes all five slugs including simplifier, satisfying the AC literal. Bubble bTIVQ data_source filters simplifier from selectable rows (simplifier is only injected via bTIVe empty-reset), which is a workflow-parity nuance beyond AC-2 wording. FV-2 passes: non-empty selection persists via updateCoachingModePreference and profile refresh. Filtering simplifier from SelectItem while retaining simplifier fallback in the API is valid backlog polish; it does not block DASH-03+ depends_on gates."
+      "rationale": "IR refs.json confirms ai_RNbBHXRO style_ref resolves to Text_caption_ (12px); implementation uses Text_body_muted_ with redundant text-sm text-muted-foreground Tailwind. Valid style gap and review ui_evidence partial, but AC-1 requires the coaching-note marker and copy binding only — not style_ref token on ai_RNbBHXRO. Marker present, pressure profile text renders correctly, FV-4 passes. One-line bubbleStyle('Text_caption_') swap is DS-01 token-bridge polish per CRISIS-01 C-2 precedent; does not affect coaching mode dropdown, quick actions, or downstream widget composition."
     },
     {
       "critique_id": "C-3",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "rationale": "Critique alternative explicitly endorses accepting this as intentional brownfield simplification. Radix Select cannot clear to an empty value, so the bTIVe empty-selection branch in coachingModeApi is defensive parity code unreachable from the current UI — not an AC-2 violation. The active add-mode path (bTIVc) is wired and tested via handleCoachingModeChange; no downstream item depends on Bubble clear-to-simplifier semantics in this wave."
+      "rationale": "Bubble workflow bTIVW includes an empty-selection branch (bTIVe reset to simplifier) that shadcn Select cannot trigger without an explicit clear/deselect affordance. AC-2 scopes InputChanged parity to updating coaching preference via Supabase on selection; updateCoachingModePreference and FV-1 pass for normal add/set paths. Empty-reset is an edge-case Bubble workflow difference, not a missing AC-2 behavior; no downstream item depends_on requires deselect-to-empty. Record as optional product parity if full bTIVW branch coverage is requested later."
     },
     {
       "critique_id": "C-4",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "FV-1 and AC-1 pass: ai_RNbBHXRO is present and binds pressureProfile from useDashboardUserContext when available. The static placeholder ('Your dashboard is ready to be personalized.') when pressureProfile is absent is brownfield empty-state UX not specified in AC-1 or FV-1; Bubble binds pressure_profile_text without a generic fallback. Hiding the coaching-note region until results.pressure_profile is available is low-priority data-binding polish that does not affect greeting card mount, coaching dropdown, or quick-action routing for downstream DASH-03+."
+      "rationale": "Bubble binds coaching-note to ElementParent.pressure_profile_text; useDashboardUser maps pressureProfile from profile.results.pressure_profile only. calculateUserPressureProfile syncs both onboarding_data.pressure_profile_text and results.pressure_profile on the calculate path, so the primary post-onboarding path is satisfied and FV-4 passes. Users without results but with stale onboarding_data.pressure_profile_text would see the placeholder instead — a pre-results edge case not named in AC-1/FV-4. Preferring onboarding_data with results fallback is a composable hardening polish in useDashboardUser; does not block DASH-03 micro-commitments or other dashboard widgets whose depends_on gates need greeting card mount and coaching mode API already delivered."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 1 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 intermediate ui_ref markers (ai_RNbBHXRK, ai_RNbBHXRM) as parity-tooling polish within DASH-02 scope; C-2 simplifier dropdown filter as Bubble workflow nuance beyond ENUM-03 AC wording; C-4 coaching-note hide-until-data vs placeholder fallback. Accepted: C-3 bTIVe empty-reset unreachable under Radix Select as intentional brownfield simplification."
+  "summary": "0 fix_now, 3 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs and functional checks pass. Accepted: C-1 intermediate group wrappers ai_RNbBHXRK/ai_RNbBHXRM omitted per AC-1 leaf-marker scope. Deferred: C-2 Text_caption_ style_ref on ai_RNbBHXRO (DS-01 token polish); C-3 bTIVW empty-selection branch (optional workflow parity); C-4 onboarding_data.pressure_profile_text fallback (composable edge-case hardening)."
 }

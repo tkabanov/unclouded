@@ -1,33 +1,105 @@
 {
   "phase": "implement",
   "target_id": "API-06-ai-confidence-level-trigger",
-  "assessed_at": "2026-07-08T12:15:00.000Z",
+  "assessed_at": "2026-07-09T10:31:30.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 86,
+  "coverage_confidence_pct": 94,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts — computeAiConfidenceLevel(modulesCompletedCount) exports tiered AiConfidenceLevelSlug", "frontend/src/lib/enums/coachingMode.ts — AI_CONFIDENCE_LEVEL slugs exploratory/exploratory_/guided/direct map to bTIFK/bTIFO/bTIFP/bTIFQ", "ir/inventory.json — bTIFa action_type ChangeThing under bTIFU (/api/bTIFW); ai_confidence_level_option_ai_confidence_level_os user field"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/userProfileHooks.ts — onModulesCompletedCountChanged guards previousCount !== currentCount (OldDataItem vs CurrentDataItem parity); patches modules_completed_count_number + ai_confidence_level_option_ai_confidence_level_os", "frontend/src/lib/userProfile/userProfileHooks.ts — incrementModulesCompletedCount loads prior count, increments, invokes handler", "frontend/src/lib/paths/pathsSessionApi.ts — schedulePathSessionCompletion calls incrementModulesCompletedCount(user.id) after PATHS-07 session submit", "frontend/src/components/paths/SessionCompletionRoute.tsx — handleSubmit → schedulePathSessionCompletion"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/paths/pathsSessionApi.ts — client-side patch via patchOnboardingAndResults; no adapter route or edge-function fetch", "frontend/supabase/functions/ — no confidence/modules_completed edge function present", "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json — scope documents client-side patch after PATHS-07 session completion as acceptable workaround"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts",
+        "frontend/src/lib/userProfile/resolveAiConfidenceLevel.test.ts",
+        "frontend/src/lib/enums/coachingMode.ts",
+        "drsam-99657.bubble — ai_confidence_level_os options bTIFK (0–0 exploratory), bTIFO (1–2 exploratory_), bTIFP (3–4 guided), bTIFQ (5–6 direct)"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/userProfileHooks.ts",
+        "frontend/src/lib/paths/pathsSessionApi.ts",
+        "frontend/src/components/paths/SessionCompletionRoute.tsx",
+        "drsam-99657.bubble — DatabaseTriggerEvent bTIFU condition OldDataItem.modules_completed_count_number not_equals CurrentDataItem.modules_completed_count_number"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/paths/pathsSessionApi.ts — schedulePathSessionCompletion client-side patch via incrementModulesCompletedCount; no adapter route",
+        "supabase/ — no edge function for bTIFU trigger found"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "computeAiConfidenceLevel maps modules_completed_count_number to correct ai_confidence_level_os slug at tier boundaries (0→exploratory, 1–2→exploratory_, 3–5→guided, 6+→direct)", "status": "pass", "evidence": ["frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts", "frontend/src/lib/enums/coachingMode.ts"] },
-    { "id": "FV-2", "check": "Path session completion submit increments modules_completed_count_number and patches ai_confidence_level in profiles.onboarding_data", "status": "pass", "evidence": ["frontend/src/components/paths/SessionCompletionRoute.tsx", "frontend/src/lib/paths/pathsSessionApi.ts", "frontend/src/lib/userProfile/userProfileHooks.ts", "frontend/src/lib/userProfile/profileFieldPatch.ts"] },
-    { "id": "FV-3", "check": "Confidence recompute skipped when modules count unchanged (bTIFW trigger condition parity)", "status": "pass", "evidence": ["frontend/src/lib/userProfile/userProfileHooks.ts — if (previousCount === currentCount) return"] },
-    { "id": "FV-4", "check": "Brownfield preflight documents extend of existing pathsSessionApi stub with mapped target paths", "status": "pass", "evidence": ["cursor-impl-cycle/output/coverage/API-06-ai-confidence-level-trigger.json — preflight.reuse_decision extend, mapped_target_files"] }
+    {
+      "id": "FV-1",
+      "check": "computeAiConfidenceLevel mirrors bTIFU ChangeThing action bTIFa range_contains_point over ai_confidence_level_os bounds; count 5 returns direct (not guided)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts",
+        "frontend/src/lib/enums/coachingMode.ts",
+        "frontend/src/lib/userProfile/resolveAiConfidenceLevel.test.ts",
+        "npm test -- resolveAiConfidenceLevel (8/8 passed)"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "onModulesCompletedCountChanged skips when previous === current and patches ai_confidence_level_option_ai_confidence_level_os when modules_completed_count_number changes",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/userProfileHooks.ts",
+        "frontend/src/lib/userProfile/profileFieldPatch.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "PATHS-07 session completion schedules incrementModulesCompletedCount, wiring bTIFU trigger parity after path session complete",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/paths/pathsSessionApi.ts",
+        "frontend/src/components/paths/SessionCompletionRoute.tsx"
+      ]
+    }
   ],
-  "ui_evidence": [
-    { "bubble_id": "bTIFU", "selector": "N/A — DatabaseTriggerEvent api_event pointer /api/bTIFW", "status": "pass", "notes": "No DOM surface; backend trigger ported to client lib. bTIFa ChangeThing range_contains_point logic implemented as computeAiConfidenceLevel tier thresholds in resolveAiConfidenceLevel.ts" },
-    { "bubble_id": "bTIFa", "selector": "N/A — api_event.action /api/bTIFW/actions/0", "status": "pass", "notes": "ChangeThing side-effect mirrored by patchOnboardingAndResults setting ai_confidence_level_option_ai_confidence_level_os alongside modules_completed_count_number" }
-  ],
+  "ui_evidence": [],
   "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-1", "area": "testing", "priority": "medium", "finding": "No unit tests cover computeAiConfidenceLevel boundary values (0, 1, 2, 3, 5, 6) or onModulesCompletedCountChanged no-op when previous === current.", "alternative": "Add table-driven tests asserting slug output per modules_completed_count_number and a guard test for unchanged count.", "evidence": ["frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts", "frontend/src/lib/userProfile/userProfileHooks.ts"] },
-    { "id": "C-2", "area": "data-contract", "priority": "medium", "finding": "Bubble user fields modules_completed_count_number and ai_confidence_level_option_ai_confidence_level_os are patched into profiles.onboarding_data JSONB (prototype schema has no flat user columns); downstream consumers must read the same JSONB keys.", "alternative": "Document JSONB key contract in userProfileHooks.ts or add typed profile columns in a future migration if project/supabase adopts flat Bubble user fields.", "evidence": ["frontend/src/lib/userProfile/profileFieldPatch.ts", "frontend/src/lib/userProfile/userProfileHooks.ts", "frontend/supabase/migrations/"] },
-    { "id": "C-3", "area": "integration", "priority": "low", "finding": "bTIFU DatabaseTriggerEvent would fire on any modules_completed_count_number change; implementation only hooks PATHS session completion increment (+1) — no generic post-update subscription for count changes from other writers.", "alternative": "Accept as intentional per AC-3 client-side workaround; add explicit call sites if other flows later mutate modules_completed_count_number.", "evidence": ["frontend/src/lib/paths/pathsSessionApi.ts", "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json — scope"] },
-    { "id": "C-4", "area": "grounding", "priority": "low", "finding": "bTIFW/bTIFa range_contains_point numeric breakpoints were inferred from implementation (≤0/≤2/≤5) and ENUM-03 slug ordering; monolithic drsam-99657.bubble action payload was not independently byte-extracted in this review pass.", "alternative": "Add explicit threshold constants with Bubble source comments or a fixture extracted from /api/bTIFW/actions/0 for reviewer-verifiable parity.", "evidence": ["frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts", "ir/inventory.json — bTIFU/bTIFa", "drsam-99657.bubble"] }
+    {
+      "id": "C-1",
+      "area": "testing",
+      "priority": "low",
+      "finding": "Unit tests exhaustively cover computeAiConfidenceLevel (8 cases, all pass) but onModulesCompletedCountChanged / incrementModulesCompletedCount have no mocked Supabase integration test verifying patch payload or early-return when counts are equal.",
+      "alternative": "Add userProfileHooks.test.ts with mocked loadProfileRow/patchOnboardingAndResults asserting confidence slug and modules count are co-patched only when previous !== current.",
+      "evidence": [
+        "frontend/src/lib/userProfile/userProfileHooks.ts",
+        "frontend/src/lib/userProfile/resolveAiConfidenceLevel.test.ts"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ir-fidelity",
+      "priority": "low",
+      "finding": "modules_completed_count > 6 falls back to direct via computeAiConfidenceLevel default; Bubble option set bTIFQ max is 6 and has no explicit seventh range — behavior is reasonable but undocumented in code beyond the fallback constant.",
+      "alternative": "Add a brief comment in resolveAiConfidenceLevel.ts noting counts above bTIFQ max inherit direct, or extend AI_CONFIDENCE_LEVEL_RANGES with an open-ended direct tier if Bubble semantics are clarified.",
+      "evidence": [
+        "frontend/src/lib/userProfile/resolveAiConfidenceLevel.ts",
+        "drsam-99657.bubble — bTIFQ modules_completed_count_max 6"
+      ]
+    }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
 }

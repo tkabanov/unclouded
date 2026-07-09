@@ -1,25 +1,228 @@
 {
   "phase": "implement",
   "target_id": "SET-02-profile-tab-and-save",
-  "assessed_at": "2026-07-08T11:00:00.000Z",
+  "assessed_at": "2026-07-09T04:02:22.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 86,
+  "coverage_confidence_pct": 90,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsProfileTab.tsx"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsProfileTab.tsx"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/settings/profileApi.ts"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsProfileTab.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsProfileTab.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/profileApi.ts",
+        "frontend/src/components/settings/SettingsProfileTab.tsx"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "Save persists first name and email to profiles", "status": "pass", "evidence": ["frontend/src/lib/settings/profileApi.ts"] },
-    { "id": "FV-2", "check": "Save refreshes bound form state after success", "status": "pass", "evidence": ["frontend/src/components/settings/SettingsProfileTab.tsx"] }
+    {
+      "id": "FV-1",
+      "check": "saveProfileForm persists first_name and onboarding_data sobriety/recovery keys for current user",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/profileApi.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Save reloads bound form state after refresh",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsProfileTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Email change reauthenticates with current password then calls supabase.auth.updateUser",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/profileApi.ts",
+        "frontend/src/components/settings/SettingsProfileTab.tsx"
+      ]
+    }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYWT", "selector": "[data-bubble-id='ai_RNbBHYWT']", "status": "pass" }
+    {
+      "bubble_id": "ai_RNbBHYVG",
+      "selector": "[data-bubble-id='ai_RNbBHYVG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVH",
+      "selector": "[data-bubble-id='ai_RNbBHYVH']",
+      "status": "pass",
+      "notes": "Group_card_ style_ref applied on profile-form-card"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVI",
+      "selector": "[data-bubble-id='ai_RNbBHYVI']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVJ",
+      "selector": "[data-bubble-id='ai_RNbBHYVJ']",
+      "status": "pass",
+      "notes": "Text_heading_2_ style; IR copy Personal Information"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVK",
+      "selector": "[data-bubble-id='ai_RNbBHYVK']",
+      "status": "pass",
+      "notes": "Text_small_ subtitle; mentions timezone/coaching fields not rendered on tab"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVL",
+      "selector": "[data-bubble-id='ai_RNbBHYVL']",
+      "status": "pass",
+      "notes": "Form group covers name/email rows only; recovery and save are card siblings per pragmatic flattening"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVM",
+      "selector": "[data-bubble-id='ai_RNbBHYVM']",
+      "status": "fail",
+      "notes": "profile-name-group wrapper has no data-bubble-id; only label/input children are marked"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVN",
+      "selector": "[data-bubble-id='ai_RNbBHYVN']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVO",
+      "selector": "[data-bubble-id='ai_RNbBHYVO']",
+      "status": "pass",
+      "notes": "Input_default_ style_ref; placeholders Your first name / you@example.com"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVP",
+      "selector": "[data-bubble-id='ai_RNbBHYVP']",
+      "status": "partial",
+      "notes": "Marker placed on email Label; IR entity is Group profile-email-group wrapper"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVQ",
+      "selector": "[data-bubble-id='ai_RNbBHYVQ']",
+      "status": "fail",
+      "notes": "profile-email-label text node unmarked; routes constant maps VP to label element"
+    },
+    {
+      "bubble_id": "ai_RNbBHYVR",
+      "selector": "[data-bubble-id='ai_RNbBHYVR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWA",
+      "selector": "[data-bubble-id='ai_RNbBHYWA']",
+      "status": "pass",
+      "notes": "Mounted as card child; Bubble parent is ai_RNbBHYVL"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWB",
+      "selector": "[data-bubble-id='ai_RNbBHYWB']",
+      "status": "partial",
+      "notes": "Marker on recovery title paragraph; IR entity is Group profile-recovery-header (icon child ai_RNbBHYWC omitted)"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWD",
+      "selector": "[data-bubble-id='ai_RNbBHYWD']",
+      "status": "partial",
+      "notes": "Marker on sobriety label; IR entity is Text profile-recovery-title under ai_RNbBHYWB"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWF",
+      "selector": "[data-bubble-id='ai_RNbBHYWF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWG",
+      "selector": "[data-bubble-id='ai_RNbBHYWG']",
+      "status": "fail",
+      "notes": "profile-sobriety-label text node unmarked"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWH",
+      "selector": "[data-bubble-id='ai_RNbBHYWH']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIhj",
+      "selector": "[data-bubble-id='bTIhj']",
+      "status": "pass",
+      "notes": "Conditional current-password input when email differs from auth email"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWT",
+      "selector": "[data-bubble-id='ai_RNbBHYWT']",
+      "status": "pass",
+      "notes": "Button_primary_ style_ref; copy Save Profile matches Bubble"
+    }
   ],
-  "gaps": [],
+  "gaps": [
+    "profile-name-group (ai_RNbBHYVM) and profile-email-group (ai_RNbBHYVP) wrappers lack dedicated data-bubble-id nodes",
+    "profile-email-label (ai_RNbBHYVQ) and profile-sobriety-label (ai_RNbBHYWG) unmarked; routes.ts maps WD/VP to wrong entities",
+    "Recovery section and save button are card-level siblings of form group; Bubble nests both under ai_RNbBHYVL",
+    "Subtitle copy references timezone and coaching mode fields not rendered on this tab",
+    "Recovery header icon (ai_RNbBHYWC) not rendered"
+  ],
   "blockers": [],
-  "critiques": [],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Bubble ID constants in routes.ts misassign ai_RNbBHYVP (email group) and ai_RNbBHYWD (recovery callout text) to label elements, breaking IR parent-child fidelity checks.",
+      "alternative": "Move markers to match inventory.json hierarchy: VP on email-group div, VQ on email label, WD on recovery callout text, WG on sobriety label.",
+      "evidence": [
+        "frontend/src/lib/settings/routes.ts",
+        "frontend/src/components/settings/SettingsProfileTab.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Recovery mode active Switch is prototype-only; Bubble ai_RNbBHYWF subtree contains only sobriety label and date picker.",
+      "alternative": "Drop the Switch or gate it behind a follow-on item if Bubble adds a recovery-mode toggle on the profile tab.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsProfileTab.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "coverage-artifact",
+      "priority": "low",
+      "finding": "Coverage preflight.gaps still lists pre-fix failures (missing UpdateCredentials, header markers) although implementation now satisfies those checks.",
+      "alternative": "Refresh preflight.gaps on the next coverage pass to reflect resolved items only.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/SET-02-profile-tab-and-save.json"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

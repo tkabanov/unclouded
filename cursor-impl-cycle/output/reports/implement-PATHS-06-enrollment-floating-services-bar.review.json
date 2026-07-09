@@ -1,19 +1,19 @@
 {
   "phase": "implement",
   "target_id": "PATHS-06-enrollment-floating-services-bar",
-  "assessed_at": "2026-07-08T07:55:00.000Z",
+  "assessed_at": "2026-07-09T00:27:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 90,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/EnrollmentFloatingBar.tsx — root data-bubble-id bTItS (PATHS_FLOATING_BAR_BUBBLE_ID); fixed top strip with w-full min-w-0 fluid width (not literal 0px)",
-        "frontend/src/pages/Paths.tsx — EnrollmentFloatingBar mounted when !sessionCompletionVisible; pt-24 on main content clears floating bar",
-        "drsam-99657.bubble — bTItX FloatingGroup (IR id bTItS) child bTItd/bTItY RG with fit_width:true, min_width_css 140px"
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+        "frontend/src/lib/paths/routes.ts",
+        "frontend/src/pages/Paths.tsx"
       ],
       "gap": null
     },
@@ -21,10 +21,11 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/paths/pathsEnrollmentStore.ts — PathsEnrollmentProvider fetches pathenrollment1 via fetchPathEnrollments; exposes enrollments, selectedEnrollmentId, selectEnrollment",
-        "frontend/src/components/paths/EnrollmentFloatingBar.tsx — bTItY RG maps enrollments to selectable chips; data-style-ref RepeatingGroup_list_; min-h-[56px] min-w-[140px] matches IR cell_min_height_css/min_width_css",
-        "frontend/src/components/paths/PathsGridPanel.tsx — refactored to usePathsEnrollmentStore() for ai_RNbBHYHn GetElement data parity (no direct fetch)",
-        "ir/inventory.json — bTItY parent_id bTItS; data_binding search custom.pathenrollment1 for CurrentUser"
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/components/paths/PathsGridPanel.tsx"
       ],
       "gap": null
     },
@@ -32,9 +33,10 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — PathEnrollmentListItem.currentSessionId/currentSessionTitle from resolveCurrentSessionFields(row.current_session_custom_pathsession)",
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — tryFetchPathEnrollmentsFromTable selects current_session_custom_pathsession",
-        "frontend/src/lib/paths/pathsEnrollmentStore.ts — selectedEnrollment exposes full PathEnrollmentListItem including currentSessionId for PATHS-07 URL matching"
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+        "frontend/src/hooks/useSessionCompletionRoute.ts"
       ],
       "gap": null
     }
@@ -42,37 +44,49 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "Paths page renders floating enrollment bar for authenticated user when session-completion overlay is hidden",
+      "check": "Floating bar loads current-user pathenrollment1 rows (onboarding_data fallback) into horizontal RG bTItY",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx",
-        "frontend/src/components/paths/EnrollmentFloatingBar.tsx"
-      ]
-    },
-    {
-      "id": "FV-2",
-      "check": "Shared pathsEnrollmentStore loads current-user pathenrollment1 rows (table or onboarding fallback) once for bar and grid",
-      "status": "pass",
-      "evidence": [
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
         "frontend/src/lib/paths/pathsEnrollmentStore.ts",
-        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
         "frontend/src/lib/dashboard/pathEnrollmentApi.ts"
       ]
     },
     {
-      "id": "FV-3",
-      "check": "Selecting an enrollment chip updates selectedEnrollmentId in shared store",
+      "id": "FV-2",
+      "check": "Selecting an enrollment chip updates selectedEnrollmentId/selectedEnrollment in shared store",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/EnrollmentFloatingBar.tsx — onClick selectEnrollment(row.enrollmentId); aria-pressed reflects selection"
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Enrollment list items expose currentSessionId for PATHS-07 ?session= URL matching",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/hooks/useSessionCompletionRoute.ts"
       ]
     },
     {
       "id": "FV-4",
-      "check": "PathsGridPanel consumes the same store enrollment list (GetElement binding parity) without duplicate fetch",
+      "check": "EnrollmentFloatingBar unmounts while session-completion overlay (bTJAB) is visible",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathsGridPanel.tsx — usePathsEnrollmentStore enrollments/loading"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/hooks/useSessionCompletionVisible.ts"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "PathsEnrollmentProvider wraps paths page so grid and floating bar share one enrollment data source (GetElement parity)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/PathsGridPanel.tsx",
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts"
       ]
     }
   ],
@@ -81,25 +95,19 @@
       "bubble_id": "bTItS",
       "selector": "[data-bubble-id='bTItS']",
       "status": "pass",
-      "notes": "EnrollmentFloatingBar fixed top strip; maps Bubble FG-services bTItX pointer"
+      "notes": "Fixed top-16 full-width strip with fluid w-full/min-w-0; RepeatingGroup_list_ on child RG; matches layout_notes top-anchored FG-services"
     },
     {
       "bubble_id": "bTItY",
       "selector": "[data-bubble-id='bTItY']",
       "status": "pass",
-      "notes": "RG on EnrollmentFloatingBar with RepeatingGroup_list_ style; duplicate marker also on PathsGridPanel wrapper per PATHS-02 GetElement convention"
+      "notes": "Canonical horizontal enrollment RG in EnrollmentFloatingBar; duplicate marker also on PathsGridPanel wrapper (PATHS-02) — see C-1"
     },
     {
       "bubble_id": "FG-services",
       "selector": "[data-bubble-id='bTItS']",
       "status": "pass",
-      "notes": "FG-services ui_ref resolves to element id bTItS per inventory pointer /pages/bTHDg/elements/bTItX"
-    },
-    {
-      "bubble_id": "RepeatingGroup_list_",
-      "selector": "[data-style-ref='RepeatingGroup_list_']",
-      "status": "pass",
-      "notes": "bTItY RG uses bubbleStyle(RepeatingGroup_list_) matching style_ref:bTItY"
+      "notes": "FG-services maps to bTItS FloatingGroup root per IR resolver FG - services__f64be9"
     }
   ],
   "gaps": [],
@@ -108,42 +116,44 @@
     {
       "id": "C-1",
       "area": "ui-fidelity",
-      "priority": "medium",
-      "finding": "Two DOM nodes carry data-bubble-id='bTItY' on the same Paths page — EnrollmentFloatingBar RG and PathsGridPanel enrollment wrapper — while Bubble defines a single bTItY under bTItS.",
-      "alternative": "Keep bTItY marker only on EnrollmentFloatingBar (canonical RG owner); use ai_RNbBHYHn alone on grid or a data-source attribute for GetElement parity without duplicating the bubble id.",
+      "priority": "high",
+      "finding": "data-bubble-id bTItY appears twice on /paths — EnrollmentFloatingBar horizontal RG (correct per IR /pages/bTHDg/elements/bTItX/elements/bTItd) and PathsGridPanel outer wrapper (ai_RNbBHYHn parent). Selector parity tooling cannot uniquely target the floating-bar RG.",
+      "alternative": "Remove bTItY from PathsGridPanel; keep bTItY only on EnrollmentFloatingBar RG and retain ai_RNbBHYHn on the grid RG for PATHS-02 markers.",
       "evidence": [
         "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
-        "frontend/src/components/paths/PathsGridPanel.tsx"
+        "frontend/src/components/paths/PathsGridPanel.tsx",
+        "ir/refs.json"
       ]
     },
     {
       "id": "C-2",
-      "area": "data-layer",
-      "priority": "medium",
-      "finding": "deriveListFromOnboardingData fallback omits currentSessionId/currentSessionTitle on PathEnrollmentListItem, so AC-3 session fields are empty when pathenrollment1 table is absent even if onboarding_data could carry session state.",
-      "alternative": "Map onboarding path_enrollment1 session fields into currentSessionId in deriveListFromOnboardingData, or document PATHS-07 dependency on pathenrollment1 migration (PATHS-03).",
-      "evidence": [
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — deriveListFromOnboardingData vs resolveCurrentSessionFields"
-      ]
+      "area": "copy",
+      "priority": "low",
+      "finding": "Empty-state label No enrolled paths yet in EnrollmentFloatingBar is ad-hoc copy not verified against IR static text for the FG-services RG empty cell.",
+      "alternative": "Resolve empty-cell copy from bTHDg slice or drsam-99657.bubble bTItX subtree and centralize in routes.ts constant.",
+      "evidence": ["frontend/src/components/paths/EnrollmentFloatingBar.tsx"]
     },
     {
       "id": "C-3",
       "area": "ui-fidelity",
-      "priority": "low",
-      "finding": "Bubble bTItY RG uses container_layout column with min_height_css 232px; implementation renders horizontal flex-row chips per layout_notes — intentional SPA adaptation but diverges from IR column stacking.",
-      "alternative": "Switch floating bar RG to flex-col with max-h matching 232px and overflow-y-auto when pixel parity with Bubble FG-services panel matters.",
+      "priority": "medium",
+      "finding": "Floating-bar enrollment cells use compact chip layout (Route icon + title + status) without per-cell Bubble ids from bTHDg slice; decompose noted cell layout ids deferred to IR slice.",
+      "alternative": "Add data-bubble-id markers on RG cell subtrees when PATHS-02/06 cell ids are enumerated in decompose follow-up.",
       "evidence": [
-        "drsam-99657.bubble — bTItd properties container_layout column",
-        "frontend/src/components/paths/EnrollmentFloatingBar.tsx"
+        "frontend/src/components/paths/EnrollmentFloatingBar.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json"
       ]
     },
     {
       "id": "C-4",
-      "area": "ui-fidelity",
+      "area": "coverage-grounding",
       "priority": "low",
-      "finding": "Empty-state copy \"No enrolled paths yet\" is React-authored; Bubble RG has no static empty cell text in the extracted tree.",
-      "alternative": "Confirm against live Bubble or IR text_expressions; align copy if a canonical string exists.",
-      "evidence": ["frontend/src/components/paths/EnrollmentFloatingBar.tsx"]
+      "finding": "pathsEnrollmentApi.ts re-exports fetchPathEnrollments from dashboard pathEnrollmentApi; enroll/unenroll helpers live in paths module but are primarily exercised by PATHS-03 — not listed in PATHS-06 coverage files_changed.",
+      "alternative": "Document cross-item API surface in PATHS-06 coverage or split enroll/unenroll to PATHS-03 coverage for traceability.",
+      "evidence": [
+        "frontend/src/lib/paths/pathsEnrollmentApi.ts",
+        "cursor-impl-cycle/output/coverage/PATHS-06-enrollment-floating-services-bar.json"
+      ]
     }
   ],
   "scores": {

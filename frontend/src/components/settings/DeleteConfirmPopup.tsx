@@ -9,8 +9,12 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   DELETE_CANCEL_BTN_BUBBLE_ID,
+  DELETE_CONFIRM_ACTIONS_BUBBLE_ID,
   DELETE_CONFIRM_BTN_BUBBLE_ID,
+  DELETE_CONFIRM_DESC_BUBBLE_ID,
+  DELETE_CONFIRM_HEADER_BUBBLE_ID,
   DELETE_CONFIRM_POPUP_BUBBLE_ID,
+  DELETE_CONFIRM_TITLE_BUBBLE_ID,
 } from "@/lib/settings/routes";
 import { bubbleStyle } from "@/styles";
 
@@ -30,14 +34,19 @@ export default function DeleteConfirmPopup({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-bubble-id={DELETE_CONFIRM_POPUP_BUBBLE_ID}>
-        <DialogHeader>
-          <DialogTitle>Delete your account?</DialogTitle>
-          <DialogDescription>
-            This permanently removes your profile data from Uncloud360. This action cannot be
-            undone.
+        <DialogHeader data-bubble-id={DELETE_CONFIRM_HEADER_BUBBLE_ID}>
+          <DialogTitle data-bubble-id={DELETE_CONFIRM_TITLE_BUBBLE_ID}>
+            Delete Account & All Data
+          </DialogTitle>
+          <DialogDescription data-bubble-id={DELETE_CONFIRM_DESC_BUBBLE_ID}>
+            This action is permanent and cannot be undone. All your chats, journals, check-ins,
+            milestones, and personal data will be erased immediately.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter
+          data-bubble-id={DELETE_CONFIRM_ACTIONS_BUBBLE_ID}
+          className="gap-2 sm:gap-0"
+        >
           <Button
             type="button"
             variant="outline"
@@ -51,11 +60,11 @@ export default function DeleteConfirmPopup({
             type="button"
             variant="destructive"
             data-bubble-id={DELETE_CONFIRM_BTN_BUBBLE_ID}
-            className={bubbleStyle("Button_primary_")}
+            className={bubbleStyle("Button_destructive_")}
             disabled={busy}
             onClick={onConfirm}
           >
-            {busy ? "Deleting…" : "Delete account"}
+            {busy ? "Deleting…" : "Yes, Delete Everything"}
           </Button>
         </DialogFooter>
       </DialogContent>

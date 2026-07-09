@@ -1,34 +1,25 @@
 {
   "phase": "implement",
   "target_id": "PATHS-01-paths-tab-state-and-header",
-  "assessed_at": "2026-07-08T07:08:00.000Z",
+  "assessed_at": "2026-07-08T19:05:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-PATHS-01-paths-tab-state-and-header.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
     {
       "critique_id": "C-1",
-      "severity": "accept",
-      "resolution": "accept",
+      "severity": "defer",
+      "resolution": "defer",
       "action_required": false,
-      "rationale": "AC-2 names tab button ai_RNbBHYHD (not the RG cell wrapper ai_RNbBHYKi) as the required interactive marker; PathsTabBar places data-bubble-id on each button per Bubble repeating-group template semantics where cell and button share the template id. Review ui_evidence passes ai_RNbBHYKi with note that RG-cell collapse is functionally equivalent; no criteria_audit or functional_audit failure. Adding a separate ai_RNbBHYKi wrapper is optional automated-parity polish, not a PATHS-01 AC or downstream depends_on requirement."
+      "rationale": "Valid coverage-artifact gap: files_changed lists only PathsPageHeader.tsx and the coverage JSON itself, while preflight.mapped_target_files and criteria evidence cite Paths.tsx, PathsTabBar.tsx, and pathsTabStore.ts as implement deliverables. All four target_files are evidenced in criteria_audit and functional_audit (all pass at 100%); the omission is audit traceability housekeeping only — it does not reduce coverage_pct, fail any AC, or block downstream PATHS-02..07 depends_on gates on tab state, panel visibility, or bTJDf chrome. Expand files_changed on the next implement or review pass; no source rewrite required for advance."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "deferred_to_item": "PATHS-07-session-completion-route-integration",
-      "rationale": "AC-3 requires bTJDf hide/show gating when bTJAB is visible — satisfied structurally via useSessionCompletionVisible hook and conditional render in Paths.tsx; coverage and criteria_audit AC-3 explicitly document stub-until-PATHS-07 as pass evidence. End-to-end overlay behavior, URL session param matching, and integration tests are owned by PATHS-07 scope/AC-1–AC-2; PATHS-02/04/06 depends_on gates on PATHS-01 need tab shell and gating wire only, not live overlay state."
-    },
-    {
-      "critique_id": "C-3",
-      "severity": "defer",
-      "resolution": "defer",
-      "action_required": false,
-      "deferred_to_item": "PATHS-02-paths-grid-filters-and-cards",
-      "rationale": "PATHS-01 scope is tab state, header, and bTJDf sibling-panel visibility — not enrollment grid migration. AC-4 requires ai_RNbBHYHE/bTJDr panel shell visibility on my_paths_ tab, which passes with brownfield PathsGuidedGrid placeholder inside the correct panel boundary. PATHS-02 explicitly owns ai_RNbBHYHn grid RG, tier filter, and path cards inside bTJDr; depends_on PATHS-01 is satisfiable with current tab chrome. Retaining prototype ALL_PATHS grid until PATHS-02 is intentional brownfield disposition per SHELL-08 and review alternative."
+      "rationale": "IR re-read (ir/refs.json style_ref edge bTJDf → Group_transparent_) confirms the bTJDf content wrapper should carry Group_transparent_. Paths.tsx mounts bTJDf with data-bubble-id and flex/gap layout but omits bubbleStyle(Group_transparent_). However Group_transparent_ resolves to background none and border-width 0 (ir/slices/styles.json) — visually neutral on this container — and PATHS-01 ACs require bTJDf data-bubble-id, header/tab bar, and sibling-panel visibility, not explicit bTJDf style_ref in acceptance criteria. criteria_audit, functional_audit, and ui_evidence for bTJDf all pass; downstream PATHS-02 and PATHS-04 depend on tab-state gating inside bTJDf, not wrapper style_ref. Defer one-line bubbleStyle addition as optional DS-01 style_ref completeness polish."
     }
   ],
-  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — post-rewrite review ok=true, coverage 100%, B-1 resolved, 0 blockers, all ACs and functional checks pass. C-1 accepted: RG cell wrapper collapse matches AC-2 ai_RNbBHYHD requirement and review ui_evidence pass. C-2 deferred to PATHS-07-session-completion-route-integration for live bTJAB overlay and integration tests. C-3 deferred to PATHS-02-paths-grid-filters-and-cards for IR enrollment grid inside bTJDr."
+  "summary": "0 fix_now, 2 defer, 0 accept. Advance OK — review ok=true, coverage 100%, no blockers, all ACs and ui_evidence pass. Deferred: C-1 coverage files_changed completeness for audit traceability (artifact hygiene on next pass); C-2 bTJDf Group_transparent_ style_ref polish (visually neutral, not in AC scope)."
 }

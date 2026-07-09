@@ -1,16 +1,186 @@
 {
   "phase": "implement",
   "target_id": "SET-03-coaching-tab-and-save",
-  "assessed_at": "2026-07-08T11:07:00.000Z",
+  "assessed_at": "2026-07-08T23:25:00.000Z",
   "ok": true,
   "coverage_pct": 100,
   "coverage_confidence_pct": 85,
   "functional_ok": true,
-  "criteria_audit": [],
-  "functional_audit": [],
-  "ui_evidence": [],
-  "gaps": [],
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx",
+        "frontend/src/lib/enums/coachingMode.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/coachingPreferencesApi.ts",
+        "frontend/src/lib/dashboard/coachingModeApi.ts",
+        "frontend/src/components/settings/SettingsCoachingTab.tsx"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "Coaching tab renders dropdown, disclaimer, and save — not empty shell",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Save persists coaching mode list to profiles.onboarding_data via Supabase client",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/coachingPreferencesApi.ts",
+        "frontend/src/lib/dashboard/coachingModeApi.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Post-save reload reflects persisted mode in dropdown selection",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHYWU",
+      "selector": "[data-bubble-id='ai_RNbBHYWU']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWV",
+      "selector": "[data-bubble-id='ai_RNbBHYWV']",
+      "status": "partial",
+      "notes": "Uses Group_card_muted_; IR style_ref is Group_card_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWW",
+      "selector": "[data-bubble-id='ai_RNbBHYWW']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWX",
+      "selector": "[data-bubble-id='ai_RNbBHYWX']",
+      "status": "fail",
+      "notes": "Title text node unmarked; copy Coaching style vs IR Coaching Preferences; style Text_heading_3_ vs Text_heading_2_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWY",
+      "selector": "[data-bubble-id='ai_RNbBHYWY']",
+      "status": "fail",
+      "notes": "Subtitle text node unmarked; copy diverges from IR ai_RNbBHYWY"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWZ",
+      "selector": "[data-bubble-id='ai_RNbBHYWZ']",
+      "status": "pass",
+      "notes": "Save button is card sibling in React; Bubble nests save under ai_RNbBHYWZ"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWq",
+      "selector": "[data-bubble-id='ai_RNbBHYWq']",
+      "status": "partial",
+      "notes": "Disclaimer banner group marked; child icon/text nodes ai_RNbBHYWr/ai_RNbBHYWs not split; copy diverges from Bubble"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWr",
+      "selector": "[data-bubble-id='ai_RNbBHYWr']",
+      "status": "fail",
+      "notes": "Disclaimer icon not rendered"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWs",
+      "selector": "[data-bubble-id='ai_RNbBHYWs']",
+      "status": "partial",
+      "notes": "Disclaimer prose inlined in banner div; IR text differs (Unclouded/988/741741 vs Uncloud360/911/988)"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWt",
+      "selector": "[data-bubble-id='ai_RNbBHYWt']",
+      "status": "pass",
+      "notes": "Button_primary_ applied; label Save preferences vs IR Save Coaching Preferences"
+    },
+    {
+      "bubble_id": "bTIiC",
+      "selector": "[data-bubble-id='bTIiC']",
+      "status": "partial",
+      "notes": "ENUM-03 options wired; style_ref Input_default_ vs IR Dropdown_default_; placeholder Select a coaching mode vs Select mode"
+    },
+    {
+      "bubble_id": "bTIhA",
+      "selector": "[data-bubble-id='bTIhA']",
+      "status": "partial",
+      "notes": "Dropdown inner placeholder/style entity; reflected only via SelectValue placeholder on bTIiC trigger"
+    }
+  ],
+  "gaps": [
+    "Header title/subtitle (ai_RNbBHYWX/ai_RNbBHYWY) lack data-bubble-id and use prototype copy instead of Bubble IR strings",
+    "Disclaimer child nodes ai_RNbBHYWr (icon) and ai_RNbBHYWs (text) not individually marked; crisis-line copy diverges from IR",
+    "Dropdown group bTIiA and field label bTIiG (Primary Coaching Mode) missing from migrated tree",
+    "Card child order differs: Bubble places dropdown group before header; React renders header then form"
+  ],
   "blockers": [],
-  "critiques": [],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Coaching card, title, dropdown, and disclaimer use prototype strings and style tokens that diverge from IR (Group_card_muted_, Text_heading_3_, Input_default_, Uncloud360 disclaimer).",
+      "alternative": "Align copy verbatim with ai_RNbBHYWX/ai_RNbBHYWY/ai_RNbBHYWs, apply Group_card_, Text_heading_2_, Text_small_, and Dropdown_default_ per refs.json.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx",
+        "ir/refs.json",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Save button is disabled when mode is empty; Bubble coaching-save workflow allows empty selection and resets list to simplifier fallback.",
+      "alternative": "Allow save with empty selection and route to updateCoachingModePreference simplifier branch for bTIiS parity.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsCoachingTab.tsx",
+        "frontend/src/lib/dashboard/coachingModeApi.ts",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "coverage-artifact",
+      "priority": "low",
+      "finding": "Coverage JSON omits functional_verification and ui_evidence rows despite claiming 100% — reviewer derived FV-1..3 independently.",
+      "alternative": "Include functional_verification and ui_evidence in coverage on next implement pass for audit traceability.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/SET-03-coaching-tab-and-save.json"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

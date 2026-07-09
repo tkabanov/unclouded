@@ -1,16 +1,244 @@
 {
   "phase": "implement",
   "target_id": "SET-04-privacy-tab-and-delete-flow",
-  "assessed_at": "2026-07-08T11:07:00.000Z",
+  "assessed_at": "2026-07-09T08:20:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 85,
+  "coverage_confidence_pct": 90,
   "functional_ok": true,
-  "criteria_audit": [],
-  "functional_audit": [],
-  "ui_evidence": [],
-  "gaps": [],
+  "criteria_audit": [
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/privacyApi.ts",
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx",
+        "frontend/src/components/settings/DeleteConfirmPopup.tsx"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "supabase/migrations/20260709120000_profiles_delete_rls.sql",
+        "frontend/src/lib/settings/privacyApi.ts",
+        "frontend/src/components/settings/DeleteConfirmPopup.tsx",
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx"
+      ],
+      "gap": null
+    }
+  ],
+  "functional_audit": [
+    {
+      "id": "FV-1",
+      "check": "exportUserData selects profiles and journal_entries for the authenticated user",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/privacyApi.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Export button triggers JSON blob download with unclouded-export filename",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Confirmed deletion removes user-owned rows, signs out, and redirects to /",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/privacyApi.ts",
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHYWu",
+      "selector": "[data-bubble-id='ai_RNbBHYWu']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWv",
+      "selector": "[data-bubble-id='ai_RNbBHYWv']",
+      "status": "pass",
+      "notes": "Group_card_muted_ style_ref on privacy-info-card"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWw",
+      "selector": "[data-bubble-id='ai_RNbBHYWw']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWx",
+      "selector": "[data-bubble-id='ai_RNbBHYWx']",
+      "status": "pass",
+      "notes": "Text_heading_3_; copy Privacy & Data"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWy",
+      "selector": "[data-bubble-id='ai_RNbBHYWy']",
+      "status": "pass",
+      "notes": "Text_body_muted_ subtitle matches IR privacy intro copy"
+    },
+    {
+      "bubble_id": "ai_RNbBHYWz",
+      "selector": "[data-bubble-id='ai_RNbBHYWz']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXA",
+      "selector": "[data-bubble-id='ai_RNbBHYXA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXF",
+      "selector": "[data-bubble-id='ai_RNbBHYXF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXG",
+      "selector": "[data-bubble-id='ai_RNbBHYXG']",
+      "status": "pass",
+      "notes": "privacy-ai-header group wraps icon + title stack"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXK",
+      "selector": "[data-bubble-id='ai_RNbBHYXK']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXP",
+      "selector": "[data-bubble-id='ai_RNbBHYXP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXR",
+      "selector": "[data-bubble-id='ai_RNbBHYXR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXS",
+      "selector": "[data-bubble-id='ai_RNbBHYXS']",
+      "status": "partial",
+      "notes": "Export My Data copy correct; missing phosphor download-simple icon and Button_outline_ bubbleStyle class"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXV",
+      "selector": "[data-bubble-id='ai_RNbBHYXV']",
+      "status": "partial",
+      "notes": "Delete Account & Data copy correct; missing phosphor trash icon; shadcn destructive variant only"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXY",
+      "selector": "[data-bubble-id='ai_RNbBHYXY']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXa",
+      "selector": "[data-bubble-id='ai_RNbBHYXa']",
+      "status": "pass",
+      "notes": "delete-confirm-header group on DialogHeader"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXb",
+      "selector": "[data-bubble-id='ai_RNbBHYXb']",
+      "status": "pass",
+      "notes": "Delete Account & All Data title"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXc",
+      "selector": "[data-bubble-id='ai_RNbBHYXc']",
+      "status": "pass",
+      "notes": "Permanent deletion warning copy"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXd",
+      "selector": "[data-bubble-id='ai_RNbBHYXd']",
+      "status": "pass",
+      "notes": "delete-confirm-actions row on DialogFooter"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXe",
+      "selector": "[data-bubble-id='ai_RNbBHYXe']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYXf",
+      "selector": "[data-bubble-id='ai_RNbBHYXf']",
+      "status": "pass",
+      "notes": "Button_destructive_ on confirm; Yes, Delete Everything copy"
+    }
+  ],
+  "gaps": [
+    "privacy-export-btn and privacy-delete-btn omit IR label_icon phosphor icons",
+    "Export button uses shadcn outline variant without Button_outline_ bubbleStyle",
+    "Data-controls section uses generic Shield icon without a mapped Bubble icon entity",
+    "Export/delete payloads cover only profiles and journal_entries — prototype schema has no chat/check-in tables yet",
+    "auth.users row persists after deletion; user can sign in again and trigger handle_new_user profile recreation"
+  ],
   "blockers": [],
-  "critiques": [],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "critiques": [
+    {
+      "id": "C-1",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "requestAccountDeletion removes journal_entries and profiles then signs out, but does not delete the auth.users record. A returning login recreates a profile via on_auth_user_created.",
+      "alternative": "Add a supabase edge function using service_role auth.admin.deleteUser after client-initiated confirmation, or document this as acceptable prototype-scope deletion until full backend parity lands.",
+      "evidence": [
+        "frontend/src/lib/settings/privacyApi.ts",
+        "supabase/migrations/20260702190431_61e67455-2f14-4775-93f0-a6407ef4fb79.sql"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "privacy-export-btn and privacy-delete-btn are text-only shadcn buttons; Bubble IR specifies label_icon buttons with download-simple and trash phosphor icons and explicit Button_outline_/Button_destructive_ styles.",
+      "alternative": "Render Lucide Download/Trash icons and apply bubbleStyle classes on both tab action buttons to match IR presentation.",
+      "evidence": [
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "decompose-grounding",
+      "priority": "low",
+      "finding": "AC-3 cites bTIiN/bTIiS as deletion workflows, but Bubble resolves those action IDs to coaching-mode ChangeThing steps on workflow 024988c5; delete-confirm-btn workflow only HideElement on the popup.",
+      "alternative": "Treat implemented Supabase row deletion + sign-out as pragmatic parity; update decompose AC wording on a future pass.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-SETTINGS.json",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "coverage-artifact",
+      "priority": "low",
+      "finding": "Coverage preflight.gaps still lists pre-fix failures (missing DELETE RLS, journal export, sign-out redirect) although code now satisfies those checks.",
+      "alternative": "Clear resolved gaps on the next coverage refresh so re-review diffs stay readable.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/SET-04-privacy-tab-and-delete-flow.json"
+      ]
+    }
+  ],
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

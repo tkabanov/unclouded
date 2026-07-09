@@ -1,4 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { ChatComposerMode } from "@/components/chat/types";
+import { CHAT_COMPOSER_MODES } from "@/components/chat/types";
+import { loadProfileRow } from "@/lib/userProfile/profileFieldPatch";
 
 /** Stored in profiles.onboarding_data when chatconversation table is absent. */
 export const CHAT_CONVERSATIONS_ONBOARDING_KEY = "chat_conversations" as const;
@@ -11,6 +14,8 @@ export interface ConversationListItem {
   title_text: string;
   preview_text: string;
   modified_date: string | null;
+  /** Composer quick-prompt mode stored on conversation context (bTIRi). */
+  coaching_mode?: ChatComposerMode;
 }
 
 type ConversationRow = {
@@ -35,15 +40,21 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
   );
 }
 
+function isChatComposerMode(value: unknown): value is ChatComposerMode {
+  return CHAT_COMPOSER_MODES.some((mode) => mode.id === value);
+}
+
 function mapConversationRow(
   row: ConversationRow,
   previewText = "",
+  coachingMode?: ChatComposerMode,
 ): ConversationListItem {
   return {
     id: row.id,
     title_text: (row.title_text ?? "").trim() || DEFAULT_CONVERSATION_TITLE,
     preview_text: previewText.trim() || DEFAULT_PREVIEW_TEXT,
     modified_date: row.modified_date ?? null,
+    coaching_mode: coachingMode,
   };
 }
 
@@ -64,6 +75,7 @@ function readOnboardingConversations(
             typeof entry.modified_date === "string" ? entry.modified_date : null,
         },
         typeof entry.preview_text === "string" ? entry.preview_text : "",
+        isChatComposerMode(entry.coaching_mode) ? entry.coaching_mode : undefined,
       ),
     )
     .sort((a, b) => {
@@ -78,6 +90,7 @@ type OnboardingConversationRow = {
   title_text: string;
   preview_text: string;
   modified_date: string | null;
+  coaching_mode?: ChatComposerMode;
 };
 
 function toOnboardingRow(item: ConversationListItem): OnboardingConversationRow {
@@ -86,20 +99,24 @@ function toOnboardingRow(item: ConversationListItem): OnboardingConversationRow 
     title_text: item.title_text,
     preview_text: item.preview_text,
     modified_date: item.modified_date,
+    coaching_mode: item.coaching_mode,
   };
 }
 
 async function persistOnboardingConversations(
   userId: string,
-  conversations: OnboardingConversationRow[],
-  onboardingData?: Record<string, unknown> | null,
+  updater: (rows: OnboardingConversationRow[]) => OnboardingConversationRow[],
 ): Promise<void> {
+  const { onboarding_data } = await loadProfileRow(userId);
+  const existing = readOnboardingConversations(onboarding_data).map(toOnboardingRow);
+  const nextRows = updater(existing);
+
   const { error } = await supabase
     .from("profiles")
     .update({
       onboarding_data: {
-        ...(onboardingData ?? {}),
-        [CHAT_CONVERSATIONS_ONBOARDING_KEY]: conversations,
+        ...onboarding_data,
+        [CHAT_CONVERSATIONS_ONBOARDING_KEY]: nextRows,
       } as never,
     })
     .eq("id", userId);
@@ -228,12 +245,7 @@ export async function createConversation(
     DEFAULT_PREVIEW_TEXT,
   );
 
-  const existing = readOnboardingConversations(onboardingData).map(toOnboardingRow);
-  await persistOnboardingConversations(
-    userId,
-    [toOnboardingRow(nextItem), ...existing],
-    onboardingData,
-  );
+  await persistOnboardingConversations(userId, (rows) => [toOnboardingRow(nextItem), ...rows]);
   return nextItem;
 }
 
@@ -291,14 +303,115 @@ export async function deleteConversation(
   if (tableResult === true) return;
 
   if (tableResult === null) {
-    const existing = readOnboardingConversations(onboardingData);
-    const nextRows = existing
-      .filter((row) => row.id !== conversationId)
-      .map(toOnboardingRow);
-    if (nextRows.length === existing.length) throw new Error("Conversation not found");
-    await persistOnboardingConversations(userId, nextRows, onboardingData);
+    await persistOnboardingConversations(userId, (rows) => {
+      const nextRows = rows.filter((row) => row.id !== conversationId);
+      if (nextRows.length === rows.length) throw new Error("Conversation not found");
+      return nextRows;
+    });
     return;
   }
 
   throw new Error("Conversation not found");
+}
+
+async function tryFetchConversationFromTable(
+  userId: string,
+  conversationId: string,
+): Promise<ConversationListItem | "schema_unavailable" | null> {
+  const client = supabase as unknown as UntypedSupabase;
+
+  let { data, error } = await client
+    .from("chatconversation")
+    .select("id, title_text, modified_date")
+    .eq("id", conversationId)
+    .eq("user_user", userId)
+    .maybeSingle();
+
+  if (error && isSchemaUnavailable(error)) {
+    const fallback = await client
+      .from("chatconversation")
+      .select("id, title_text")
+      .eq("id", conversationId)
+      .eq("user_user", userId)
+      .maybeSingle();
+    data = fallback.data;
+    error = fallback.error;
+  }
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return "schema_unavailable";
+    throw error;
+  }
+
+  if (!data) return null;
+
+  const row = data as ConversationRow;
+  const previews = await fetchPreviewByConversation([row.id]);
+  return mapConversationRow(row, previews.get(row.id) ?? "");
+}
+
+/**
+ * Fetch a single chatconversation by id — table row or onboarding_data fallback.
+ */
+export async function fetchConversationById(
+  userId: string,
+  conversationId: string,
+  onboardingData?: Record<string, unknown> | null,
+): Promise<ConversationListItem | null> {
+  const fromTable = await tryFetchConversationFromTable(userId, conversationId);
+  if (fromTable === "schema_unavailable") {
+    return readOnboardingConversations(onboardingData).find((row) => row.id === conversationId) ?? null;
+  }
+  return fromTable;
+}
+
+/**
+ * Persist composer coaching mode on conversation context (bTITI/bTITM/bTITN/bTITO → bTIRi).
+ */
+export async function updateConversationCoachingMode(
+  userId: string,
+  conversationId: string,
+  mode: ChatComposerMode,
+): Promise<void> {
+  await persistOnboardingConversations(userId, (rows) => {
+    let found = false;
+    const nextRows = rows.map((row) => {
+      if (row.id !== conversationId) return row;
+      found = true;
+      return { ...row, coaching_mode: mode };
+    });
+    if (!found) throw new Error("Conversation not found");
+    return nextRows;
+  });
+}
+
+/**
+ * Bump conversation preview + modified_date after a new message (sidebar parity).
+ */
+export async function touchConversationAfterMessage(
+  userId: string,
+  conversationId: string,
+  previewText: string,
+): Promise<void> {
+  const now = new Date().toISOString();
+  const trimmedPreview = previewText.trim() || DEFAULT_PREVIEW_TEXT;
+
+  await persistOnboardingConversations(userId, (rows) => {
+    let found = false;
+    const nextRows = rows.map((row) => {
+      if (row.id !== conversationId) return row;
+      found = true;
+      return {
+        ...row,
+        preview_text: trimmedPreview,
+        modified_date: now,
+      };
+    });
+    if (!found) return rows;
+    return nextRows.sort((a, b) => {
+      const aTime = a.modified_date ? Date.parse(a.modified_date) : 0;
+      const bTime = b.modified_date ? Date.parse(b.modified_date) : 0;
+      return bTime - aTime;
+    });
+  });
 }

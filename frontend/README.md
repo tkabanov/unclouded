@@ -21,4 +21,4 @@ Dev server runs at http://localhost:8080.
 
 ## Supabase
 
-Migrations and edge functions live in `supabase/`. Copy env vars from the Supabase project dashboard into `.env`.
+Migrations and edge functions live in `../supabase/` at the repo root. Copy env vars from the Supabase project dashboard into `.env`.

@@ -1,42 +1,236 @@
 {
   "phase": "implement",
   "target_id": "SET-09-admin-paths-and-resources",
-  "assessed_at": "2026-07-08T13:55:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T06:23:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 88,
+  "coverage_confidence_pct": 87,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["SettingsAdminShell — admin root, sub-tab bar, conditional sub-panels", "Button_tab_/Button_tab_active_ on sub-tab buttons"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["AdminPathsTab + AdminResourcesTab grids with edit/delete", "AdminResourcesTab IR markers on tag/flag/action rows", "AdminResourcesTab now renders crisis text span with data-bubble-id ai_RNbBHYaO"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["AddPathPopup/AddResourcePopup create + edit modes", "updateAdminPath/updateAdminResource APIs wired"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx",
+        "frontend/src/components/settings/SettingsMain.tsx",
+        "frontend/src/lib/settings/routes.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPathsTab.tsx",
+        "frontend/src/components/settings/admin/AdminResourcesTab.tsx",
+        "frontend/src/lib/settings/routes.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AddPathPopup.tsx",
+        "frontend/src/components/settings/admin/AddResourcePopup.tsx",
+        "frontend/src/lib/settings/admin/adminPathsApi.ts",
+        "frontend/src/lib/settings/admin/adminResourcesApi.ts",
+        "frontend/src/lib/enums/coachingMode.ts",
+        "frontend/src/lib/enums/tier.ts"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "Admin sub-tab bar toggles paths vs resources panels", "status": "pass", "evidence": ["SettingsAdminShell.tsx"] },
-    { "id": "FV-2", "check": "Paths grid loads and renders path cards", "status": "pass", "evidence": ["AdminPathsTab.tsx", "adminPathsApi.ts"] },
-    { "id": "FV-3", "check": "Add path popup persists and refreshes grid", "status": "pass", "evidence": ["AdminPathsTab handleCreate"] },
-    { "id": "FV-4", "check": "Delete path removes user-created paths", "status": "pass", "evidence": ["AdminPathsTab handleDelete"] },
-    { "id": "FV-5", "check": "Resources grid loads and renders resource cards", "status": "pass", "evidence": ["AdminResourcesTab.tsx"] },
-    { "id": "FV-6", "check": "Add resource popup persists and refreshes grid", "status": "pass", "evidence": ["AdminResourcesTab handleCreate"] },
-    { "id": "FV-7", "check": "Delete resource removes row", "status": "pass", "evidence": ["AdminResourcesTab handleDelete"] },
-    { "id": "FV-8", "check": "Edit path/resource buttons perform update workflow", "status": "pass", "evidence": ["AdminPathsTab/AdminResourcesTab edit opens popup in edit mode with updateAdminPath/updateAdminResource"] }
+    {
+      "id": "FV-1",
+      "check": "Admin sub-tab bar toggles paths vs resources panels with single visible panel",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx",
+        "frontend/src/lib/settings/admin/adminTabStore.ts"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "Add path button opens popup and submit persists row via Supabase client (path table or onboarding_data fallback)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPathsTab.tsx",
+        "frontend/src/components/settings/admin/AddPathPopup.tsx",
+        "frontend/src/lib/settings/admin/adminPathsApi.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "Add resource button opens popup and submit persists row via Supabase client (resource table or onboarding_data fallback)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminResourcesTab.tsx",
+        "frontend/src/components/settings/admin/AddResourcePopup.tsx",
+        "frontend/src/lib/settings/admin/adminResourcesApi.ts"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Grid cards expose edit (popup reuse) and delete handlers wired to admin APIs",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AdminPathsTab.tsx",
+        "frontend/src/components/settings/admin/AdminResourcesTab.tsx",
+        "frontend/src/lib/settings/admin/adminPathsApi.ts",
+        "frontend/src/lib/settings/admin/adminResourcesApi.ts"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "Path/resource forms use ENUM-03 tier, coaching mode, and sensitivity dropdowns — no project/ migrations",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/admin/AddPathPopup.tsx",
+        "frontend/src/components/settings/admin/AddResourcePopup.tsx",
+        "frontend/src/lib/enums/coachingMode.ts",
+        "frontend/src/lib/enums/tier.ts"
+      ]
+    }
   ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYZK", "status": "pass", "notes": "Button_tab_ styles on sub-tab bar" },
-    { "bubble_id": "ai_RNbBHYZp", "status": "pass", "notes": "Resource card tag/flag/action bubble ids present" },
-    { "bubble_id": "ai_RNbBHYaO", "status": "pass", "notes": "Crisis text indicator rendered with data-bubble-id" }
+    {
+      "bubble_id": "ai_RNbBHYZD",
+      "selector": "[data-bubble-id='ai_RNbBHYZD']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZE",
+      "selector": "[data-bubble-id='ai_RNbBHYZE']",
+      "status": "pass",
+      "notes": "Group_card_muted_ via bubbleStyle"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZF",
+      "selector": "[data-bubble-id='ai_RNbBHYZF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZH",
+      "selector": "[data-bubble-id='ai_RNbBHYZH']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZI",
+      "selector": "[data-bubble-id='ai_RNbBHYZI']",
+      "status": "pass",
+      "notes": "Copy Admin console vs IR Admin Dashboard; Text_heading_3_ vs IR Text_heading_2_"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZJ",
+      "selector": "[data-bubble-id='ai_RNbBHYZJ']",
+      "status": "pass",
+      "notes": "Subtitle paraphrased vs Bubble analytics disclaimer copy"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZK",
+      "selector": "[data-bubble-id='ai_RNbBHYZK']",
+      "status": "pass",
+      "notes": "role=tablist with five sub-tab buttons"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZp",
+      "selector": "[data-bubble-id='ai_RNbBHYZp']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZQ",
+      "selector": "[data-bubble-id='ai_RNbBHYZQ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZR",
+      "selector": "[data-bubble-id='ai_RNbBHYZR']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZS",
+      "selector": "[data-bubble-id='ai_RNbBHYZS']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYZU",
+      "selector": "[data-bubble-id='ai_RNbBHYZU']",
+      "status": "pass",
+      "notes": "Button_primary_ style_ref"
+    },
+    {
+      "bubble_id": "ai_RNbBHYbP",
+      "selector": "[data-bubble-id='ai_RNbBHYbP']",
+      "status": "pass",
+      "notes": "Dialog mounts on Add path / edit path"
+    },
+    {
+      "bubble_id": "ai_RNbBHYcN",
+      "selector": "[data-bubble-id='ai_RNbBHYcN']",
+      "status": "pass",
+      "notes": "Dialog mounts on Add resource / edit resource"
+    }
   ],
   "gaps": [
-    "Could not locate/verify state/wave-2-manifest.json in the repository, so any potential reopen-specific reviewer_checks for SET-09 could not be independently validated from that manifest."
+    "Header title copy Admin console vs Bubble Admin Dashboard (ai_RNbBHYZI)",
+    "Paths toolbar title Guided paths vs IR Guided Paths (ai_RNbBHYZT); resources title Resource library vs IR Resources (ai_RNbBHYZr)",
+    "Card template data-bubble-id markers repeat per grid row (RepeatingGroup parity pattern) — acceptable for React map",
+    "Coverage preflight existing_files_found lists paths lib only, not admin shell components actually extended"
   ],
   "blockers": [],
   "critiques": [
-    { "id": "C-1", "area": "functional", "priority": "high", "finding": "Edit CRUD wired — prior placeholder toasts removed.", "alternative": "N/A — fixed." },
-    { "id": "C-2", "area": "ui-fidelity", "priority": "high", "finding": "Resource card IR markers added.", "alternative": "N/A — fixed." },
-    { "id": "C-3", "area": "ui-fidelity", "priority": "medium", "finding": "Sub-tab Button_tab_ styles applied.", "alternative": "N/A — fixed." },
-    { "id": "C-6", "area": "ui-fidelity", "priority": "medium", "finding": "Crisis indicator ai_RNbBHYaO rendered on admin resource cards.", "alternative": "N/A — fixed." },
-    { "id": "C-4", "area": "data", "priority": "medium", "finding": "adminResourcesApi duplicates pathsResourcesApi seed data.", "alternative": "Extract shared helpers in later wave." }
+    {
+      "id": "C-1",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "Admin header and panel titles use paraphrased English instead of Bubble static text nodes (Admin Dashboard, Guided Paths, Resources, analytics disclaimer).",
+      "alternative": "Align visible strings with drsam-99657.bubble text on ai_RNbBHYZI, ai_RNbBHYZJ, ai_RNbBHYZT, ai_RNbBHYZr.",
+      "evidence": [
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx",
+        "frontend/src/components/settings/admin/AdminPathsTab.tsx",
+        "frontend/src/components/settings/admin/AdminResourcesTab.tsx",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "admin-card-title resolves style_ref Text_heading_2_ in IR but component applies Text_heading_3_.",
+      "alternative": "Use bubbleStyle(Text_heading_2_) on ai_RNbBHYZI for typography parity.",
+      "evidence": [
+        "frontend/src/components/settings/admin/SettingsAdminShell.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "Deleting a demo-catalog resource (static dataSource) shows success toast but row reappears on reload because delete only mutates onboarding_data, not STATIC_FALLBACK seed.",
+      "alternative": "Disable delete on static rows (mirror path isStatic) or track tombstones in onboarding_data when seed is active.",
+      "evidence": [
+        "frontend/src/lib/settings/admin/adminResourcesApi.ts",
+        "frontend/src/components/settings/admin/AdminResourcesTab.tsx",
+        "frontend/src/lib/resources/demoResourceSeed.ts"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "brownfield-preflight",
+      "priority": "low",
+      "finding": "Coverage preflight existing_files_found omits the admin shell/tab files that were actually created; lists unrelated paths catalog helpers.",
+      "alternative": "Re-run preflight listing SettingsAdminShell, AdminPathsTab, AdminResourcesTab, and API modules.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/SET-09-admin-paths-and-resources.json"
+      ]
+    }
   ],
-  "scores": { "completeness": 4, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 4,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

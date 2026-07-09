@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "DASH-06-chat-and-journal-previews",
-  "assessed_at": "2026-07-08T04:56:00.000Z",
+  "assessed_at": "2026-07-08T22:24:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-DASH-06-chat-and-journal-previews.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,32 +11,29 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "IR/decompose re-read confirms ai_RNbBHXSx is the journal card root (G - recent journal) with no separate slot-wrapper bubble id unlike chat (ai_RNbBHXSM wrapper vs ai_RNbBHXSN card). DASH-01 scaffold DashboardSlot and DashboardJournalPreviewCard both emit ai_RNbBHXSx, producing nested duplicate markers; AC-2 passes because the card root correctly owns the named ui_ref and all child anchors render. ui_evidence is partial (not fail) for selector uniqueness only. Omitting the bubble id on the journal slot wrapper is a one-line parity-tooling fix matching the chat pattern; does not block DASH-07 depends_on or fail any AC."
+      "rationale": "IR re-read confirms chat uses a distinct wrapper ai_RNbBHXSM parent of card ai_RNbBHXSN, while journal card ai_RNbBHXSx is the Group_card_ root with parent_id ai_RNbBHXRW — no separate slot element in Bubble. routes.ts maps DASHBOARD_JOURNAL_PREVIEW_SLOT_BUBBLE_ID to ai_RNbBHXSx, so DashboardMain DashboardSlot and DashboardJournalPreviewCard both emit the same data-bubble-id, yielding partial ui_evidence. Valid parity-tooling finding, but AC-2 requires the card-root marker on ai_RNbBHXSx and criteria_audit/ui_evidence for all other named journal ui_refs pass; visual layout and routing are correct. One-line fix (transparent journal slot wrapper without data-bubble-id, mirroring chat's ai_RNbBHXSM/ai_RNbBHXSN split) is optional DASH-06 cleanup — mirrors DASH-02 C-1 intermediate-wrapper deferral; no downstream item lists DASH-06 in depends_on."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "deferred_to_item": "CHAT-05-chat-messaging-and-create-flow",
-      "rationale": "Finding confirmed: frontend/supabase has no chatmessage/chatconversation migrations and chatPreviewApi falls back to profiles.onboarding_data when tables are absent. criteria_audit AC-3 passes with explicit gap documented; FV-1 passes via fetchChatPreview + onboarding_data fallback. AC-3 wording requires Supabase read with best-effort behavior, not live in-app chat history sync. CHAT-05 decompose scope owns chatmessage/chatconversation persistence wiring; DASH-06 depends_on does not include CHAT-05. Matches DASH-04 C-1 schema-defer precedent — advance OK, land live preview sync when CHAT module persists messages."
+      "rationale": "IR inventory pointer order under bTIXu confirms journal-card-header ai_RNbBHXSy (ai_RNbBHXVZ) precedes empty-state text bTIXy (bTIYA), then RG ai_RNbBHXTD (ai_RNbBHXVe); implementation renders bTIXy above ai_RNbBHXSy when entries.length === 0. Valid hierarchy reorder for empty-state visibility, but DASH-06 AC-2 scopes required markers to ai_RNbBHXSx header/link/RG cells — not bTIXy child order. Header, link, RG cells, and empty copy all render with correct markers and copy; FV-5 passes. Mirrors DASH-04 C-1 mood-group reorder deferral: strict Bubble sibling order polish with no downstream depends_on impact."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "deferred_to_item": "DASH-07-crisis-onboarding-services-overlays",
-      "rationale": "Incomplete-profile Dashboard.tsx branch (lines 77–160) intentionally shows onboarding CTA and disabled placeholder skeleton widgets rather than full dashboard widgets. DASH-06 decompose scope and ACs validate the complete-profile path where chatPreview and journalPreview slots render DashboardChatPreviewCard and DashboardJournalPreviewCard. Pre-assessment empty right-column anchors are brownfield page-level conditional UX outside DASH-06 target_files; DASH-07 assigns onboarding-incomplete banner and conditional overlay behavior. Wiring previews into the incomplete branch is a valid enhancement but not an AC violation on the primary dashboard path."
+      "rationale": "Valid functional gap in brownfield fallback path: when chatmessage/chatconversation tables are absent and profiles.onboarding_data has no chat_preview or chat_messages seed, fetchChatPreview returns hardcoded DEFAULT_LAST_MESSAGE. However DASH-06 AC-3 requires Supabase client read with Bubble binding parity; coverage preflight documents prototype-schema gap (reuse_decision gap-fill) and chatPreviewApi implements best-effort table queries then onboarding_data fallback — same interim pattern as DASH-04 daily check-in. criteria_audit AC-3 and FV-4 pass with documented gap; live session-local chat history cannot surface until CHAT-05-chat-messaging-and-create-flow wires chatmessage inserts. Defer table-path QA and live-preview surfacing to CHAT-05 wave."
     },
     {
       "critique_id": "C-4",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "deferred_to_item": "CHAT-05-chat-messaging-and-create-flow",
-      "rationale": "CHAT_PROMPT_CHIPS render correct IR copy and Link to=/chat satisfies FV-4 (interactive navigation targets, not dead UI). Bubble chip workflows may pre-seed conversation context, but no DASH-06 AC mandates router state/query prompt seeding. DS-06 triage deferred similar chip-to-consumer wiring until CHAT module supports seeded prompts. Low-priority workflow-parity backlog; defer prompt-key propagation when CHAT route store accepts initial message context."
+      "rationale": "Valid schema-dependency note: journal preview is end-to-end wired to journal_entries with RLS (FV-5 pass), while chatmessage/chatconversation tables remain absent from supabase migrations so the table query path is untested. DASH-06 scope is read-only dashboard previews with Supabase read parity; landing chat tables and exercising the insert/select path is explicitly owned by CHAT-05 (chatMessagesApi inserts, new conversation flow). onboarding_data fallback satisfies AC-3 in the current brownfield schema per review criteria_audit; mirrors DASH-03 C-2 and DASH-04 C-4 schema deferrals. DASH-07 and other dashboard widgets depend on card mount and routing already delivered, not provisioned chat tables."
     }
   ],
-  "summary": "0 fix_now, 4 defer, 0 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 journal slot duplicate ai_RNbBHXSx marker (parity-tooling polish); C-2 live chat preview sync to CHAT-05 persistence wave; C-3 incomplete-onboarding branch preview wiring to DASH-07 onboarding UX; C-4 chip prompt seeding to CHAT module when route store supports it."
+  "summary": "0 fix_now, 4 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs and functional checks pass. Deferred: C-1 duplicate ai_RNbBHXSx slot wrapper (optional DASH-06 parity cleanup); C-2 bTIXy empty-state sibling order (ui-fidelity polish); C-3 live chat preview via chatmessage tables and DEFAULT_LAST_MESSAGE fallback hardening to CHAT-05; C-4 chatmessage/chatconversation migration and table-path QA to CHAT-05."
 }

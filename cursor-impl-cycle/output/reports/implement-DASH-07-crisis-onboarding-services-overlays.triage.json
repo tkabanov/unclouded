@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "DASH-07-crisis-onboarding-services-overlays",
-  "assessed_at": "2026-07-08T06:14:00.000Z",
+  "assessed_at": "2026-07-08T22:24:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-DASH-07-crisis-onboarding-services-overlays.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,30 +11,22 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "IR re-read confirms bTIpm uses style_ref Group_card_ (styles.json bgcolor var(--color_surface_default)); drsam-99657.bubble bTIpm has no explicit bgcolor or primary tint override. ContinueOnboardingBanner.tsx applies supplemental border-primary/30 bg-primary/5 atop bubbleStyle(Group_card_) — same supplemental-Tailwind pattern deferred at DASH-05 C-2. criteria_audit AC-2 and ui_evidence for bTIpm and style_ref:bTIpm both pass; named ui_ref structure, copy, and CTA routing are correct. Removing primary tint is low-priority DS polish; no downstream depends_on requires exact Group_card_ surface before advance."
+      "rationale": "Confirmed in Dashboard.tsx: ContinueOnboardingBanner renders inside the pre-results branch (!profile.results) while Bubble gates bTIpm on CurrentUser onboarding_completed_boolean.is_false. profile.onboardingCompleted is available from AUTH-05/userProfile but is not consulted. Edge case only — users with onboarding_completed=true but missing/null results would see the banner in React but not in Bubble. AC-2 names AUTH-05 signals and reviewer criteria_audit AC-2 passes; banner copy, bTIpm markers, and /onboarding CTA (FV-3/FV-4) are correct. Aligning visibility to !profile.onboardingCompleted is a one-line polish item that does not block API-01 or other downstream depends_on gates."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Bubble bTJEO FG has no responsive hide rule and is 320px at page root; ServicesFloatingPanel.tsx uses hidden md:block. Valid ui-fidelity gap, but bTJEO and bTJEQ named ui_refs pass ui_evidence and AC-3 passes (fixed bottom-right panel outside dashboard-main). Matches SHELL-03 C-2 precedent: intentional responsive SPA deviation when mobile navigation/alternate access exists elsewhere. No MOD-DRSAM-DASHBOARD downstream item requires mobile services-panel reachability before advance; compact FAB variant is polish backlog."
+      "rationale": "Confirmed in ServicesFloatingPanel.tsx line 51: bTJEO root uses hidden md:block, fully suppressing the panel below md. Bubble FloatingGroup bTJEO has no equivalent mobile-hide conditional. Named ui_ref bTJEO ui_evidence passes at desktop breakpoints with correct fixed bottom-right z-[60] positioning, RepeatingGroup_list_ styling, and pathenrollment1 binding (FV-5/FV-6). AC-3 scopes page-level FG semantics and enrollment listing — not explicit all-breakpoint visibility. PATHS-06-enrollment-floating-services-bar owns paths-page FG bTItS/bTItX, not dashboard bTJEO mobile parity. Responsive width/positioning polish can land with DS-01 or a later responsive pass."
     },
     {
       "critique_id": "C-3",
-      "severity": "defer",
-      "resolution": "defer",
-      "action_required": false,
-      "deferred_to_item": "PATHS-03-path-detail-enrollment-popup",
-      "rationale": "Finding confirmed: prototype lacks pathenrollment1 migration; pathEnrollmentApi.ts table-then-onboarding_data fallback limits bTJEQ to at most one synthetic row. criteria_audit AC-3 passes with documented gap; FV-3 passes via fetchPathEnrollments + deriveListFromOnboardingData. Matches DASH-05 C-3 and DASH-06 C-2 schema-defer precedent — implementation-policy forbids project/ schema edits; PATHS-03 AC-3 owns pathenrollment1 create/update and PATHS-06 owns enrollment floating bar data wiring. High priority is data-layer readiness, not a DASH-07 rewrite blocker; panel code path is correct and will list full history when table exists."
-    },
-    {
-      "critique_id": "C-4",
       "severity": "accept",
       "resolution": "accept",
       "action_required": false,
-      "rationale": "Bubble FG child-tree re-read confirms bTJEO contains only bTJEQ RepeatingGroup — no Your paths header or Browse coaching paths empty-state CTA entities in IR or decompose ui_refs. ServicesFloatingPanel additions are pragmatic greenfield empty-state UX (navigate /paths per FV-4) that do not contradict passing ui_evidence for bTJEO/bTJEQ. Critique alternative says add bubble ids if IR entities are found; none exist. Low-priority workflow-parity note is satisfied by accepting intentional SPA enhancement over strict Bubble empty-RG silence."
+      "rationale": "Critique targets decompose metadata drift, not a code defect. Brownfield preflight maps legacy .vue paths to frontend/src/components/dashboard/*.tsx; CrisisSupportCard.tsx re-exports the shared module at frontend/src/components/crisis/CrisisSupportCard.tsx and Dashboard.tsx imports from @/components/crisis. Decompose target_files already list .tsx paths under components/dashboard/; AC prose .vue filenames are path-convention placeholders. Shared crisis tree avoids duplication and satisfies AC-1 bTIdW mount via DashboardMain crisisSupport slot — no rewrite required."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 1 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 Group_card_ primary tint as DS polish; C-2 mobile services-panel visibility as responsive SPA polish; C-3 pathenrollment1 full enrollment history to PATHS-03/PATHS-06 schema wave. Accepted: C-4 extra Your paths header and empty-state CTA as greenfield UX with no IR entities to mirror."
+  "summary": "0 fix_now, 2 defer, 1 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and ui_evidence pass. Deferred: C-1 ContinueOnboardingBanner visibility gate (!profile.results vs onboarding_completed edge case); C-2 ServicesFloatingPanel mobile hidden md:block responsive polish. Accepted: C-3 crisis module re-export architecture aligns with CRISIS-01 brownfield shared component pattern."
 }

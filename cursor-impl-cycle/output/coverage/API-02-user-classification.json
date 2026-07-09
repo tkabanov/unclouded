@@ -1,40 +1,52 @@
 {
   "item_id": "API-02-user-classification",
   "module_id": "MOD-DRSAM-API",
-  "assessed_at": "2026-07-08T11:45:00.000Z",
+  "assessed_at": "2026-07-09T07:35:00.000Z",
   "coverage_pct": 100,
   "preflight": {
-    "existing_files_found": ["frontend/src/lib/classification.ts"],
-    "gaps": ["AC-1: No resolveClassification export", "AC-2: No calculateUserClassification", "AC-3: Pipeline stops at pillar scores"],
+    "existing_files_found": [
+      "frontend/src/lib/userProfile/classifyUser.ts",
+      "frontend/src/lib/userProfile/calculateUserClassification.ts",
+      "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+      "frontend/src/lib/classification.ts"
+    ],
+    "gaps": [
+      "AC-1: resolveClassification reused prototype classification.ts rules instead of bTHzg ordered branches",
+      "AC-2: orientation field used orientation_score_number instead of Bubble orientation_score1_number"
+    ],
     "reuse_decision": "extend",
     "mapped_target_files": {
       "frontend/src/api/userProfile/classifyUser.ts": "frontend/src/lib/userProfile/classifyUser.ts",
-      "frontend/src/api/userProfile/calculateUserClassification.ts": "frontend/src/lib/userProfile/calculateUserClassification.ts"
+      "frontend/src/api/userProfile/calculateUserClassification.ts": "frontend/src/lib/userProfile/calculateUserClassification.ts",
+      "frontend/src/api/userProfile/onboardingProfilePipeline.ts": "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
     }
   },
   "criteria": [
     {
       "id": "AC-1",
       "status": "pass",
-      "evidence": ["frontend/src/lib/userProfile/classifyUser.ts — resolveClassification with classification_os mapping"]
+      "evidence": [
+        "frontend/src/lib/userProfile/classifyUser.ts — resolveClassification implements bTHzi actions bTHzu→bTHzz→bTIAE→bTIAG→bTIAL→bTIAQ→bTIAS with 3.2/3.8 thresholds and orientation_score for comfortable_plateau"
+      ]
     },
     {
       "id": "AC-2",
       "status": "pass",
-      "evidence": ["frontend/src/lib/userProfile/calculateUserClassification.ts — patches classification_option_classification_os"]
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserClassification.ts — loads scores from user fields, reads orientation_score1_number, patches classification_option_classification_os mirroring bTHzC/bTIAc"
+      ]
     },
     {
       "id": "AC-3",
       "status": "pass",
-      "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts — invokes calculateUserClassification after pillar calculators"]
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts — runOnboardingProfilePipeline invokes calculateUserClassification after runPillarScoreCalculators"
+      ]
     }
   ],
   "files_changed": [
     "frontend/src/lib/userProfile/classifyUser.ts",
-    "frontend/src/lib/userProfile/calculateUserClassification.ts",
-    "frontend/src/lib/userProfile/profileFieldPatch.ts",
-    "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
-    "frontend/src/lib/completeOnboarding.ts"
+    "frontend/src/lib/userProfile/calculateUserClassification.ts"
   ],
   "functional_ok": true
 }

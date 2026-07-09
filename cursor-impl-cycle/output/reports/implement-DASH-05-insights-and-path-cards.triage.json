@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "DASH-05-insights-and-path-cards",
-  "assessed_at": "2026-07-08T06:09:00.000Z",
+  "assessed_at": "2026-07-09T04:08:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-DASH-05-insights-and-path-cards.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,29 +11,29 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "IR re-read confirms bTIrY is the RepeatingGroup parent of cell template ai_RNbBHXSl (bTIre); DashboardCurrentPathCard.tsx renders the active-enrollment cell with correct data-bubble-id on ai_RNbBHXSm/ai_RNbBHXSn/ai_RNbBHXSt but collapses the RG to a single row — intentional React simplification for one active enrollment. criteria_audit AC-2 and functional_audit FV-1 pass; ui_evidence is partial only for the RG wrapper selector, not missing cell content. Matches DASH-02 C-1 / DASH-04 C-2 precedent: add data-bubble-id=\"bTIrY\" on the enrollment wrapper as parity-tooling polish within DASH-05; does not block DASH-06 depends_on."
+      "rationale": "IR re-read confirms ai_RNbBHXSC/ai_RNbBHXSF insight-item groups use bgcolor var(--color_aiRNbAaxgt_default) with border_roundness 8; DashboardInsightsCard applies Tailwind bg-accent/30 rounded-lg instead. DS-01 already exposes --color_aiRNbAaxgt_default in tokens.css and bubble-styles.css. Named ui_refs render with correct hierarchy, copy, and data-bubble-id markers; criteria_audit AC-1/AC-3 pass. ui_evidence is partial only for bgcolor delta — not a missing region. One-line token swap is optional DASH-05 polish; no downstream item depends_on DASH-05 for exact row tint."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "IR and drsam-99657.bubble confirm ai_RNbBHXSC uses bgcolor var(--color_aiRNbAaxgt_default) and border_roundness 8; DashboardInsightsCard.tsx applies supplemental Tailwind bg-accent/30 rounded-lg atop bubbleStyle(Group_transparent_). DS-01 tokens.css already defines --color_aiRNbAaxgt_default and bubble-styles.css maps it on badge/chip classes. Named ui_refs carry correct data-bubble-id; AC-1/AC-3 and FV-3 pass. ui_evidence partial is presentation delta only — swap to bg-[var(--color_aiRNbAaxgt_default)] or extracted insight-row style is low-priority DS polish per DASH-03 C-2 supplemental-Tailwind precedent; no downstream item requires exact bgcolor before advance."
+      "rationale": "Valid post-migration gap: when pathenrollment1 table exists but returns no active row, fetchCurrentPathEnrollment returns EMPTY_ENROLLMENT from the table branch (pathEnrollmentApi.ts) without consulting onboarding_data fallback. Brownfield prototype lacks pathenrollment1 migration (coverage preflight gap); current path mirrors DASH-03 microCommitmentsApi interim pattern and FV-1 passes via onboarding_data when table is absent. Merging table miss with deriveFromOnboardingData belongs in PATHS-03-path-detail-enrollment-popup / PATHS-06-enrollment-floating-services-bar migration wave — untestable today. DASH-06 and DASH-07 depends_on gates for card mount and routing are already satisfiable."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "pathEnrollmentApi.ts returns EMPTY_ENROLLMENT when pathenrollment1 query succeeds with no active row, skipping deriveFromOnboardingData — a latent forward-path bug. Brownfield prototype has no pathenrollment1 migration (coverage preflight, implementation-policy); isSchemaUnavailable always routes to onboarding_data fallback, so FV-1/AC-2 pass in the active runtime. microCommitmentsApi.ts uses the same table-then-fallback shape for schema-missing only. Merge table-miss with onboarding_data when pathenrollment1 schema lands — defer to schema/backend wave per DASH-04 C-1 table-branch precedent; does not block DASH-06."
+      "rationale": "routes.ts maps DASHBOARD_CURRENT_PATH_SLOT_BUBBLE_ID to ai_RNbBHXSf, so DashboardMain DashboardSlot and DashboardCurrentPathCard both emit the same data-bubble-id — duplicate selectors for parity tooling only. AC-2 requires the card-root marker on ai_RNbBHXSf; criteria_audit and ui_evidence for all other named path-card ui_refs pass. Optional fix: transparent slot wrapper without data-bubble-id (left-column ai_RNbBHXRX pattern). No downstream depends_on impact."
     },
     {
       "critique_id": "C-4",
       "severity": "accept",
       "resolution": "accept",
       "action_required": false,
-      "rationale": "IR inventory confirms ai_RNbBHXSq (Text under ai_RNbBHXSo) and ai_RNbBHXSt (Group with ai_RNbBHXSv text under ai_RNbBHXSl) are sibling regions in the Bubble hierarchy; both bind current-session title from the enrollment row. DashboardCurrentPathCard.tsx mirrors this: ai_RNbBHXSq renders \"Next: {title}\" and ai_RNbBHXSt renders the title with ArrowRight — matching Bubble duplicate regions per review finding. Hiding or differentiating ai_RNbBHXSt would reduce ui-fidelity to IR, not improve it. ui_evidence for both nodes passes; AC-2 requires path-next-step ai_RNbBHXSt fed by enrollment binding, satisfied."
+      "rationale": "IR confirms ai_RNbBHXSq (Next: prefix under ai_RNbBHXSo) and ai_RNbBHXSt (arrow + title group sibling under ai_RNbBHXSl) are distinct Bubble regions both bound to pathenrollment1 current_session title — intentional duplicate surfacing per IR hierarchy, not a missing region. Implementation mirrors both with enrollment.nextStepTitle; ui_evidence for ai_RNbBHXSq, ai_RNbBHXSt, ai_RNbBHXSu, and ai_RNbBHXSv pass. AC-2 scopes path-next-step ai_RNbBHXSt fed by enrollment binding — satisfied. Suppressing ai_RNbBHXSt would diverge from Bubble."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 1 accept. Advance OK — review ok=true, coverage 100%, 0 blockers, all ACs and functional checks pass. Deferred: C-1 bTIrY RG wrapper data-bubble-id as parity-tooling polish; C-2 insight-row bgcolor var(--color_aiRNbAaxgt_default) vs bg-accent/30 as DS polish; C-3 pathenrollment1 empty-table onboarding_data merge when schema lands. Accepted: C-4 duplicate next-step title in ai_RNbBHXSq and ai_RNbBHXSt as intentional Bubble IR parity."
+  "summary": "0 fix_now, 3 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass, prior bTIrY wrapper rewrite resolved. Deferred: C-1 insight-row bgcolor token polish (optional DASH-05 cleanup); C-2 pathenrollment1 table-miss onboarding fallback merge to PATHS-03/PATHS-06 migration wave; C-3 duplicate ai_RNbBHXSf slot wrapper (optional parity-tooling cleanup). Accepted: C-4 duplicate next-step regions intentional Bubble IR parity."
 }

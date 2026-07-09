@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage } from "@/components/chat/types";
 import { generateAiReplyStub } from "@/lib/chat/chatAiReplyStub";
+import { touchConversationAfterMessage } from "@/lib/chat/chatConversationsApi";
+import { loadProfileRow } from "@/lib/userProfile/profileFieldPatch";
 
 type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
@@ -61,15 +63,18 @@ function readOnboardingMessages(
 
 async function persistOnboardingMessages(
   userId: string,
-  messagesByConversation: Record<string, ChatMessage[]>,
-  onboardingData?: Record<string, unknown> | null,
+  updater: (store: Record<string, ChatMessage[]>) => Record<string, ChatMessage[]>,
 ): Promise<void> {
+  const { onboarding_data } = await loadProfileRow(userId);
+  const store = readOnboardingMessages(onboarding_data);
+  const nextStore = updater(store);
+
   const { error } = await supabase
     .from("profiles")
     .update({
       onboarding_data: {
-        ...(onboardingData ?? {}),
-        [CHAT_MESSAGES_ONBOARDING_KEY]: messagesByConversation,
+        ...onboarding_data,
+        [CHAT_MESSAGES_ONBOARDING_KEY]: nextStore,
       } as never,
     })
     .eq("id", userId);
@@ -141,18 +146,15 @@ export async function insertUserMessage(params: {
   const fromTable = await tryInsertMessageRow(params.conversationId, "user", trimmed);
   if (fromTable) return fromTable;
 
-  const store = readOnboardingMessages(params.onboardingData);
   const nextMessage: ChatMessage = {
     id: crypto.randomUUID(),
     role: "user",
     content_text: trimmed,
   };
-  const conversationMessages = [...(store[params.conversationId] ?? []), nextMessage];
-  await persistOnboardingMessages(
-    params.userId,
-    { ...store, [params.conversationId]: conversationMessages },
-    params.onboardingData,
-  );
+  await persistOnboardingMessages(params.userId, (store) => ({
+    ...store,
+    [params.conversationId]: [...(store[params.conversationId] ?? []), nextMessage],
+  }));
   return nextMessage;
 }
 
@@ -171,18 +173,15 @@ export async function insertAssistantMessage(params: {
   const fromTable = await tryInsertMessageRow(params.conversationId, "assistant", trimmed);
   if (fromTable) return fromTable;
 
-  const store = readOnboardingMessages(params.onboardingData);
   const nextMessage: ChatMessage = {
     id: crypto.randomUUID(),
     role: "assistant",
     content_text: trimmed,
   };
-  const conversationMessages = [...(store[params.conversationId] ?? []), nextMessage];
-  await persistOnboardingMessages(
-    params.userId,
-    { ...store, [params.conversationId]: conversationMessages },
-    params.onboardingData,
-  );
+  await persistOnboardingMessages(params.userId, (store) => ({
+    ...store,
+    [params.conversationId]: [...(store[params.conversationId] ?? []), nextMessage],
+  }));
   return nextMessage;
 }
 
@@ -204,7 +203,9 @@ export async function sendMessageWithAiReply(params: {
     conversationId: params.conversationId,
     userId: params.userId,
     content: assistantText,
-    onboardingData: params.onboardingData,
   });
-  return fetchMessagesForConversation(params.conversationId, params.onboardingData);
+  await touchConversationAfterMessage(params.userId, params.conversationId, assistantText);
+
+  const { onboarding_data } = await loadProfileRow(params.userId);
+  return fetchMessagesForConversation(params.conversationId, onboarding_data);
 }

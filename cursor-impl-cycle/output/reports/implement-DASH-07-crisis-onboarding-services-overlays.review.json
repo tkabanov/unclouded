@@ -1,20 +1,20 @@
 {
   "phase": "implement",
   "target_id": "DASH-07-crisis-onboarding-services-overlays",
-  "assessed_at": "2026-07-08T06:12:00.000Z",
+  "assessed_at": "2026-07-08T19:40:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 91,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardMain.tsx — DASHBOARD_CRISIS_SLOT_BUBBLE_ID bTIfU wraps crisisSupport slot in right column",
-        "frontend/src/components/dashboard/CrisisSupportCard.tsx — bTIdW root nests bTIdb card, bTIdg header (bTIdh/bTIdi icon, bTIdm title), bTIdn disclaimer, bTIdo list with bTIds/bTIeA/bTIeL hotline groups and copy on bTIdy/bTIdz, bTIeG/bTIeK, bTIeR/bTIeS",
-        "frontend/src/pages/Dashboard.tsx — crisisSupport slot renders CrisisSupportCard on both incomplete and complete dashboard branches",
-        "drsam-99657.bubble — bTIdm/bTIdn/bTIdy/bTIdz/bTIeG/bTIeK/bTIeR/bTIeS static copy matches implementation verbatim"
+        "frontend/src/components/crisis/CrisisSupportCard.tsx",
+        "frontend/src/components/crisis/CrisisHotlineRow.tsx",
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "gap": null
     },
@@ -22,10 +22,8 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx — bTIpm banner with bTIps sparkle icon, bTIpy title, bTIqE subtitle, bTIqK button",
-        "frontend/src/pages/Dashboard.tsx — beforeGrid renders ContinueOnboardingBanner when !profile || !profile.results (incomplete onboarding branch)",
-        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx — onClick navigate('/onboarding')",
-        "drsam-99657.bubble — bTIpy Your dashboard is waiting; bTIqE onboarding subtitle; bTIqK Continue onboarding"
+        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx",
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "gap": null
     },
@@ -33,47 +31,68 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx — page-level bTJEO fixed bottom-6 right-6 z-[60]; bTJEQ RepeatingGroup_list_ maps enrollment rows",
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — fetchPathEnrollments queries pathenrollment1 for user_user with onboarding_data fallback",
-        "frontend/src/pages/Dashboard.tsx — ServicesFloatingPanel sibling to DashboardLayout (lines 138, 415), outside dashboard-main subtree",
-        "ir/inventory.json — bTJEO parent_id bTHDT (page root), element_type FloatingGroup"
+        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/pages/Dashboard.tsx"
       ],
-      "gap": "Prototype schema may lack pathenrollment1; list falls back to single onboarding_data.path_enrollment1 row."
+      "gap": null
     }
   ],
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "Crisis hotline rows are actionable tel:/sms: links (988, 741741, SAMHSA)",
+      "check": "CrisisSupportCard mounts inside bTIfU dashboard-grid right-column slot via DashboardMain crisisSupport slot",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/CrisisSupportCard.tsx — CrisisHotlineRow href tel:988, sms:741741?body=HOME, tel:18006624357"
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/lib/dashboard/routes.ts",
+        "frontend/src/pages/Dashboard.tsx"
       ]
     },
     {
       "id": "FV-2",
-      "check": "Continue onboarding CTA navigates to /onboarding when profile lacks results",
+      "check": "Crisis hotline rows (988, textline, SAMHSA) expose actionable tel:/sms: links with IR copy on bTIdy/bTIdz, bTIeG/bTIeK, bTIeR/bTIeS",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx — navigate('/onboarding') on bTIqK button click",
-        "frontend/src/pages/Dashboard.tsx — banner mounted only on incomplete-profile branch"
+        "frontend/src/components/crisis/CrisisSupportCard.tsx",
+        "frontend/src/components/crisis/CrisisHotlineRow.tsx",
+        "drsam-99657.bubble"
       ]
     },
     {
       "id": "FV-3",
-      "check": "Services floating panel loads pathenrollment1 rows for authenticated user (with documented fallback)",
+      "check": "Continue onboarding bTIqK button navigates to /onboarding",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx — useEffect calls fetchPathEnrollments(user.id, profile.onboardingData)",
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — tryFetchPathEnrollmentsFromTable with deriveListFromOnboardingData fallback"
+        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx"
       ]
     },
     {
       "id": "FV-4",
-      "check": "Enrollment list items navigate to path detail or /paths browse empty state",
+      "check": "ContinueOnboardingBanner shown in pre-results dashboard branch when user lacks assessment results",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx — row onClick navigate(/paths/${slug}); empty state navigate('/paths')"
+        "frontend/src/pages/Dashboard.tsx",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "ServicesFloatingPanel is page-root sibling to DashboardLayout (outside dashboard-main subtree) with fixed bottom-right positioning",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx",
+        "frontend/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "id": "FV-6",
+      "check": "bTJEQ RepeatingGroup binds pathenrollment1 search for current user via Supabase with onboarding_data.path_enrollment1 fallback",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx",
+        "ir/inventory.json"
       ]
     }
   ],
@@ -82,189 +101,170 @@
       "bubble_id": "bTIfU",
       "selector": "[data-bubble-id='bTIfU']",
       "status": "pass",
-      "notes": "DashboardMain right-column crisis CE slot wrapper"
+      "notes": "DashboardMain crisisSupport DashboardSlot wrapper in right column"
     },
     {
       "bubble_id": "bTIdW",
       "selector": "[data-bubble-id='bTIdW']",
       "status": "pass",
-      "notes": "RE - crisis support root in CrisisSupportCard"
+      "notes": "RE crisis support root in shared CrisisSupportCard"
     },
     {
       "bubble_id": "bTIdb",
       "selector": "[data-bubble-id='bTIdb']",
       "status": "pass",
-      "notes": "dashboard-crisis-card; bgcolor surface_default, border primary per Bubble"
+      "notes": "dashboard-crisis-card bordered surface"
     },
     {
       "bubble_id": "bTIdg",
       "selector": "[data-bubble-id='bTIdg']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "crisis-dash-header row with icon + title stack"
     },
     {
       "bubble_id": "bTIdh",
       "selector": "[data-bubble-id='bTIdh']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Icon circle container"
     },
     {
       "bubble_id": "bTIdi",
       "selector": "[data-bubble-id='bTIdi']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Heart icon on bTIdh"
     },
     {
       "bubble_id": "bTIdm",
       "selector": "[data-bubble-id='bTIdm']",
       "status": "pass",
-      "notes": "Crisis Resources — IR copy match"
+      "notes": "Static copy matches IR: Crisis Resources"
     },
     {
       "bubble_id": "bTIdn",
       "selector": "[data-bubble-id='bTIdn']",
       "status": "pass",
-      "notes": "Coaching-only disclaimer — IR copy match"
+      "notes": "Disclaimer copy matches Bubble TextExpression"
     },
     {
       "bubble_id": "bTIdo",
       "selector": "[data-bubble-id='bTIdo']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "crisis-dash-list flex-wrap hotline row container"
     },
     {
       "bubble_id": "bTIds",
       "selector": "[data-bubble-id='bTIds']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "988 hotline group with tel:988 href"
     },
     {
       "bubble_id": "bTIdy",
       "selector": "[data-bubble-id='bTIdy']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "988 Suicide & Crisis Lifeline"
     },
     {
       "bubble_id": "bTIdz",
       "selector": "[data-bubble-id='bTIdz']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Call or text 988 · 24/7"
     },
     {
       "bubble_id": "bTIpm",
       "selector": "[data-bubble-id='bTIpm']",
       "status": "pass",
-      "notes": "data-style-ref Group_card_"
+      "notes": "Group_card_ style via data-style-ref and bubbleStyle"
     },
     {
       "bubble_id": "bTIps",
       "selector": "[data-bubble-id='bTIps']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Sparkle icon in 50px tinted circle per IR presentation"
     },
     {
       "bubble_id": "bTIpy",
       "selector": "[data-bubble-id='bTIpy']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Your dashboard is waiting"
     },
     {
       "bubble_id": "bTIqE",
       "selector": "[data-bubble-id='bTIqE']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Onboarding subtitle copy matches Bubble (whitespace normalized)"
     },
     {
       "bubble_id": "bTIqK",
       "selector": "[data-bubble-id='bTIqK']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Continue onboarding CTA with Button_primary_ style"
     },
     {
       "bubble_id": "bTJEO",
       "selector": "[data-bubble-id='bTJEO']",
       "status": "pass",
-      "notes": "Page-level FG; fixed bottom-right z-[60]"
+      "notes": "Page-level fixed bottom-right FloatingGroup z-[60]"
     },
     {
       "bubble_id": "bTJEQ",
       "selector": "[data-bubble-id='bTJEQ']",
       "status": "pass",
-      "notes": "data-style-ref RepeatingGroup_list_"
+      "notes": "RepeatingGroup_list_ enrollment rows with pathenrollment1 binding"
     },
     {
       "bubble_id": "style_ref:bTIpm",
-      "selector": "[data-bubble-id='bTIpm'][data-style-ref='Group_card_']",
-      "status": "pass"
+      "selector": "[data-style-ref='Group_card_']",
+      "status": "pass",
+      "notes": "Resolved via bubbleStyle(Group_card_) on bTIpm root"
     },
     {
       "bubble_id": "style_ref:bTJEQ",
-      "selector": "[data-bubble-id='bTJEQ'][data-style-ref='RepeatingGroup_list_']",
-      "status": "pass"
+      "selector": "[data-style-ref='RepeatingGroup_list_']",
+      "status": "pass",
+      "notes": "Resolved via bubbleStyle(RepeatingGroup_list_) on bTJEQ"
     }
   ],
   "gaps": [
-    {
-      "id": "G-1",
-      "area": "schema",
-      "finding": "Prototype Supabase may lack pathenrollment1 table; services panel and pathEnrollmentApi fall back to profiles.onboarding_data.path_enrollment1, limiting the RG to at most one synthetic row.",
-      "evidence": [
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — isSchemaUnavailable + deriveListFromOnboardingData",
-        "cursor-impl-cycle/output/coverage/DASH-07-crisis-onboarding-services-overlays.json — preflight.gaps"
-      ]
-    },
-    {
-      "id": "G-2",
-      "area": "cross-module",
-      "finding": "Shared frontend/src/components/crisis/ module deferred to CRISIS-01; dashboard-local CrisisSupportCard duplicates RE bTIdW inline.",
-      "evidence": [
-        "cursor-impl-cycle/output/coverage/DASH-07-crisis-onboarding-services-overlays.json — preflight.gaps"
-      ]
-    }
+    "pathenrollment1 table may be absent in prototype schema; ServicesFloatingPanel and fetchPathEnrollments fall back to profiles.onboarding_data.path_enrollment1",
+    "ServicesFloatingPanel empty-state CTA copy (Browse coaching paths) and panel header (Your paths) are prototype additions not present in scoped ui_refs"
   ],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "ui-fidelity",
+      "area": "functional-semantics",
       "priority": "medium",
-      "finding": "ContinueOnboardingBanner applies border-primary/30 bg-primary/5 tint on top of Group_card_, diverging from styles.json Group_card_ surface_default card treatment.",
-      "alternative": "Use pure Group_card_ tokens unless IR/bubble source shows explicit primary tint on bTIpm.",
+      "finding": "Bubble bTIpm visibility binds to CurrentUser onboarding_completed_boolean.is_false, while Dashboard gates the banner via the pre-results branch (!profile.results). Users with onboarding_completed=true but no persisted results would see the banner in React but not in Bubble.",
+      "alternative": "Drive ContinueOnboardingBanner visibility from profile.onboardingCompleted (or equivalent AUTH-05 completion flag) to mirror Bubble conditional, independent of results hydration timing.",
       "evidence": [
-        "frontend/src/components/dashboard/ContinueOnboardingBanner.tsx — className border-primary/30 bg-primary/5",
-        "ir/slices/styles.json — Group_card_ bgcolor var(--color_surface_default)"
+        "frontend/src/pages/Dashboard.tsx",
+        "drsam-99657.bubble",
+        "frontend/src/lib/userProfile.tsx"
       ]
     },
     {
       "id": "C-2",
       "area": "ui-fidelity",
       "priority": "medium",
-      "finding": "ServicesFloatingPanel is hidden below md breakpoint (hidden md:block); Bubble bTJEO FG has no responsive hide and is 320px wide at page root.",
-      "alternative": "Show a compact mobile variant or collapse to icon FAB so services enrollments remain reachable on small viewports.",
+      "finding": "ServicesFloatingPanel applies hidden md:block, suppressing the FG on viewports below md while Bubble bTJEO FloatingGroup has no equivalent mobile hide state.",
+      "alternative": "Render bTJEO at all breakpoints with responsive width/positioning, or document intentional mobile deferral to PATHS-06 enrollment bar.",
       "evidence": [
-        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx — hidden md:block",
-        "drsam-99657.bubble — bTJFc width 320, zindex 10, no is_visible responsive rule"
+        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx",
+        "drsam-99657.bubble"
       ]
     },
     {
       "id": "C-3",
-      "area": "functional",
-      "priority": "high",
-      "finding": "Without pathenrollment1 persistence, most prototype users see empty or single-row services panel rather than full enrollment history from Bubble search.",
-      "alternative": "Land PATH/API migrations for pathenrollment1 or seed onboarding_data with multiple enrollments for demo parity until tables exist.",
-      "evidence": [
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — deriveListFromOnboardingData returns at most one row",
-        "cursor-impl-cycle/output/coverage/DASH-07-crisis-onboarding-services-overlays.json — preflight.gaps"
-      ]
-    },
-    {
-      "id": "C-4",
-      "area": "workflow-parity",
+      "area": "architecture",
       "priority": "low",
-      "finding": "Services panel adds a Your paths section header and Browse coaching paths empty-state CTA not present in decompose ui_refs.",
-      "alternative": "Confirm against Bubble FG child tree whether header/empty copy exists; add bubble ids if IR entities are found.",
+      "finding": "CrisisSupportCard canonical implementation lives under frontend/src/components/crisis/ with dashboard path as re-export; decompose AC text still references .vue filenames under features/dashboard.",
+      "alternative": "Update decompose target_files to the React paths and add depends_on CRISIS-01 when that module lands to avoid duplicate crisis trees.",
       "evidence": [
-        "frontend/src/components/dashboard/ServicesFloatingPanel.tsx — lines 55-56, 69-81"
+        "frontend/src/components/dashboard/CrisisSupportCard.tsx",
+        "frontend/src/components/crisis/CrisisSupportCard.tsx",
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-DASHBOARD.json"
       ]
     }
   ],
-  "scores": {
-    "completeness": 5,
-    "grounding": 4,
-    "actionability": 4
-  },
-  "brownfield": {
-    "preflight_present": true,
-    "reuse_decision": "gap-fill",
-    "forbidden_paths_touched": false
-  }
+  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
 }

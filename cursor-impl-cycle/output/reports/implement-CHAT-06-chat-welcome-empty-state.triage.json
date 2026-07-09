@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "CHAT-06-chat-welcome-empty-state",
-  "assessed_at": "2026-07-08T10:20:00.000Z",
+  "assessed_at": "2026-07-09T04:13:45.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-CHAT-06-chat-welcome-empty-state.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,22 +11,22 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Disclaimer ai_RNbBHXce nesting inside ai_RNbBHXcL is hierarchy parity polish; visual order and copy are correct, all ACs pass. CHAT-03 depends on welcome panel mount behavior, not strict DOM nesting of disclaimer node."
+      "rationale": "CHAT-06 decompose scope and AC-3 cover crisis hotline card hierarchy and mutual exclusivity with bTIUt — not ButtonClicked coaching-prompt workflow (b94a4040 → bTIqq). Implemented cards are 988/Crisis Text Line/SAMHSA with tel:/sms: anchors; functional_audit FV-3 passes and criteria_audit AC-3 passes. Decompose triage already assigned coaching-prompt click parity to implement wave via CHAT-05 useNewConversation, but current IR cards are crisis resources where tel/sms is correct behavior. CHAT-03 depends_on gate needs mounted welcome panel when ?conversation= absent — satisfied. Defer coaching-prompt NewThing+ChangePage wiring to CHAT-05-chat-messaging-and-create-flow if/when coaching-style suggestion cards are added."
     },
     {
       "critique_id": "C-2",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Anchor vs Group element_type difference is intentional for tel/sms crisis hotline navigation; functional_ok passes FV-2. Defer strict element_type parity."
+      "rationale": "Named ui_refs ai_RNbBHXcI, ai_RNbBHXcO, ai_RNbBHXcU, ai_RNbBHXca are Icon elements in bTHDZ____root.json; implementation mounts Lucide Heart/Phone/MessageSquare/Stethoscope glyphs with data-bubble-id markers and Icon_primary_ tokens. criteria_audit AC-2 passes and all icon ui_evidence entries pass with Lucide stand-in notes. Brownfield frontend uses lucide-react throughout; mirrors CRISIS-01-crisis-support-reusable C-1 and SHELL-02-sidebar-navigation C-2 deferrals — glyph library parity is optional visual polish, not a composable contract. CHAT-03 downstream depends_on needs welcome panel structure and crisis tel/sms anchors, not Bubble phosphor glyph shapes. Defer Bubble icon asset mapping to DS-01/icon primitive polish wave."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Missing data-style-ref on typography nodes is automated parity tooling gap only; bubbleStyle classes are applied. Low priority backlog."
+      "rationale": "Disclaimer ai_RNbBHXce is correctly nested under ai_RNbBHXcL per ir/inventory.json parent_id (prior triage C-1 fix verified); criteria_audit AC-1 passes and ui_evidence ai_RNbBHXce passes. border-t/pt-3 Tailwind utilities are layout polish not grounded in IR presentation or style_ref on ai_RNbBHXce — low visual impact and does not fail any AC or ui_evidence check. No downstream depends_on consumer gates on disclaimer separator styling. Defer separator resolution from Group_card_muted_ sibling spacing or IR padding to chat welcome fidelity polish alongside C-2 icon assets."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 0 accept. Review passed at 100% coverage with functional_ok true. CHAT-03 panel mount can proceed."
+  "summary": "0 fix_now, 3 defer, 0 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass. Deferred: C-1 coaching-prompt ButtonClicked parity to CHAT-05 (crisis tel/sms cards satisfy current ACs/FV-3); C-2 Lucide vs Bubble icon glyph parity to DS-01 polish wave (CRISIS-01/SHELL-02 precedent); C-3 disclaimer border-t separator to welcome-panel fidelity polish."
 }

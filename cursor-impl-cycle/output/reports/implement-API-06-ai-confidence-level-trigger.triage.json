@@ -1,15 +1,25 @@
 {
   "phase": "implement",
   "target_id": "API-06-ai-confidence-level-trigger",
-  "assessed_at": "2026-07-08T12:42:00.000Z",
+  "assessed_at": "2026-07-09T10:34:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-06-ai-confidence-level-trigger.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
   "decisions": [
-    { "critique_id": "C-1", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Unit tests not in AC; functional checks pass; defer to test-hardening wave." },
-    { "critique_id": "C-2", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "JSONB onboarding_data storage is intentional brownfield prototype pattern per AC-3." },
-    { "critique_id": "C-3", "severity": "accept", "resolution": "accept", "action_required": false, "rationale": "pathsSessionApi hook after PATHS-07 session submit matches scoped AC-2/AC-3 client-side workaround." },
-    { "critique_id": "C-4", "severity": "defer", "resolution": "defer", "action_required": false, "rationale": "Threshold grounding polish only; FV-1/AC-1 pass with ENUM-03 slug ordering." }
+    {
+      "critique_id": "C-1",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "onModulesCompletedCountChanged and incrementModulesCompletedCount are thin orchestration layers (early-return when previous === current, computeAiConfidenceLevel, patchOnboardingAndResults). computeAiConfidenceLevel is exhaustively unit-tested (8 cases, all pass including count 7). Functional audit FV-2 and AC-2 pass; PATHS-07 wires incrementModulesCompletedCount after session completion (FV-3). Mocked Supabase integration tests for patch payload are valid backlog but not in API-06 acceptance criteria. API-06 is the final MOD-DRSAM-API item with no downstream depends_on consumers — same defer pattern as API-05 C-2 for calculateUserAiCoachingMode orchestration tests."
+    },
+    {
+      "critique_id": "C-2",
+      "severity": "defer",
+      "resolution": "defer",
+      "action_required": false,
+      "rationale": "Bubble ai_confidence_level_os option set bTIFQ caps at modules_completed_count 6; no seventh range exists in IR. The ?? AI_CONFIDENCE_LEVEL.DIRECT fallback for counts above range max is correct range_contains_point parity and is already asserted in resolveAiConfidenceLevel.test.ts (count 7 → direct). AI_CONFIDENCE_LEVEL_RANGES documents bTIFK–bTIFQ bounds in coachingMode.ts. An inline comment in resolveAiConfidenceLevel.ts clarifying above-max inheritance is polish only — not an AC violation, not a ui_ref gap, and does not block module closeout."
+    }
   ],
-  "summary": "0 fix_now, 3 defer, 1 accept. Review ok=true at 100% coverage; advance allowed."
+  "summary": "Review passed (ok=true, coverage 100%, functional_ok=true, 0 blockers). 0 fix_now, 2 defer, 0 accept. Both critiques are low-priority gaps that do not violate ACs or block downstream items. API-06 is the final MOD-DRSAM-API item — advance to module closeout. Deferred backlog: userProfileHooks integration tests for patch payload/early-return, and inline comment for counts-above-bTIFQ-max direct fallback."
 }

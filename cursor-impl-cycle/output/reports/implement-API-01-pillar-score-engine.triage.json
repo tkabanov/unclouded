@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "API-01-pillar-score-engine",
-  "assessed_at": "2026-07-08T10:20:00.000Z",
+  "assessed_at": "2026-07-09T06:33:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-API-01-pillar-score-engine.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,22 +11,29 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Preflight reuse_decision metadata inaccuracy is coverage artifact hygiene only; actual code correctly extends frontend/src/lib/userProfile/. Does not affect functional behavior."
+      "rationale": "Bubble bTHxu reads option-set .index fields on the User type, while readQuestionScores consumes pre-derived numeric sq1..sq5 from stabilityScores/alignmentScores/performanceScores nested maps or flat *_number keys in profiles.onboarding_data JSONB. Brownfield AUTH-04 onboarding steps already compute and persist numeric scores during the wizard (OnboardingStability/Alignment/Performance delegate to computePillarScore), so calculators receive equivalent inputs without re-resolving option slugs at API-01 time. criteria_audit AC-2 and FV-2 pass; API-02-user-classification depends_on gate needs patched *_score_number fields, not UDS option-set index resolution. Optional JSONB contract documentation in pillarScoreUserData.ts is polish — defer to a later doc pass or AUTH-04 consumer wave if literal UDS field parity is required."
     },
     {
       "critique_id": "C-2",
-      "severity": "defer",
-      "resolution": "defer",
+      "severity": "accept",
+      "resolution": "accept",
       "action_required": false,
-      "rationale": "JSONB key contract for score fields is documented implicitly in pillarScoreUserData.ts; API-02 classification can read same keys. Defer explicit contract doc to API-02 pass."
+      "rationale": "Preflight reuse_decision: new is imprecise coverage metadata, not an implementation defect. Prototype already computed pillar scores inline in onboarding step components and completeOnboarding.ts; API-01 correctly extracted shared aggregatePillarScore/calculateUser* modules and wired runPillarScoreCalculators into onboardingProfilePipeline. All ACs pass (coverage 100%, criteria_audit pass, functional_ok=true). Per triage AC-quality rules, preflight label correction is cycle-artifact polish — does not require rewrite."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Missing unit tests for aggregatePillarScore edge cases is testing backlog; all ACs and functional checks pass without tests."
+      "rationale": "No unit tests for computePillarScore NaN/rounding edge cases or readQuestionScores nested-vs-flat fallback. Testing is not in API-01 acceptance criteria; review priority is low. Functional audits FV-1/FV-2 pass with Bubble-grounded evidence. Add aggregatePillarScore.test.ts and pillarScoreUserData.test.ts in a dedicated test wave or alongside the next edit to userProfile calculators — does not block API-02 advance."
+    },
+    {
+      "critique_id": "C-4",
+      "severity": "accept",
+      "resolution": "accept",
+      "action_required": false,
+      "rationale": "completeOnboarding invokes runOnboardingProfilePipeline, which calls runPillarScoreCalculators first (stability → alignment → performance) before API-02–API-05 steps — matching Bubble bTGNJ ScheduleAPIEvent full chain, not only the bTHVC/bTHja/bTHgY pillar segment. AC-3 requires exposing runPillarScoreCalculators callable from AUTH-05 completeOnboarding; it is exported and runs as the pipeline's first stage. Review alternative explicitly marks this acceptable for AUTH-05 end-to-end parity; downstream API items own their own calculator modules within the shared pipeline."
     }
   ],
-  "summary": "0 fix_now, 3 defer, 0 accept. Review passed at 100% coverage with functional_ok true. API-02 can proceed."
+  "summary": "0 fix_now, 2 defer, 2 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, all ACs pass, no blockers. Deferred: C-1 optional JSONB/UDS field-parity documentation (AUTH-04 owns onboarding persistence contract); C-3 unit tests for aggregatePillarScore and pillarScoreUserData (out of API-01 AC scope). Accepted: C-2 preflight reuse_decision metadata inaccuracy; C-4 full pipeline invocation is intentional AUTH-05/bTGNJ parity with pillar calculators running first."
 }

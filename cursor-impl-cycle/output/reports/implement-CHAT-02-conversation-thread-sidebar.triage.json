@@ -1,7 +1,7 @@
 {
   "phase": "implement",
   "target_id": "CHAT-02-conversation-thread-sidebar",
-  "assessed_at": "2026-07-08T08:26:00.000Z",
+  "assessed_at": "2026-07-09T22:58:00.000Z",
   "review_ref": "cursor-impl-cycle/output/reports/implement-CHAT-02-conversation-thread-sidebar.review.json",
   "ok_to_advance": true,
   "rewrite_required": false,
@@ -11,29 +11,29 @@
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "RepeatingGroup_list_ is a named ui_ref and review ui_evidence is partial, but ir/slices/styles.json resolves the style_ref to border_width 0 and background_style none — no visible delta versus the current Tailwind container (space-y-1 overflow-y-auto). Element ai_RNbBHXbL passes hierarchy and data-bubble-id checks; AC-1 passes. Applying bubbleStyle for DS-01 consistency is polish, not a blocking fidelity gap for this item."
+      "rationale": "Valid data-layer note: chatConversationsApi.ts implements the AC-2 primary path (supabase.from('chatconversation') ordered by modified_date, chatmessage preview lookup) and only falls back to profiles.onboarding_data when schema errors indicate missing tables — consistent with brownfield prototype where supabase has no chat migrations yet. criteria_audit AC-2 and functional_audit FV-2 pass on the table-query path; CHAT-03 depends_on gate needs ?conversation= routing and sidebar list binding, both satisfied via either path. Land supabase chatconversation/chatmessage migrations and table-path QA in CHAT-05 (mirrors DASH-06 triage C-4 deferral to CHAT-05 migration wave); keep onboarding fallback only for rollout until migrations ship."
     },
     {
       "critique_id": "C-2",
-      "severity": "defer",
-      "resolution": "defer",
+      "severity": "accept",
+      "resolution": "accept",
       "action_required": false,
-      "rationale": "DeleteConversationPopup mount is explicitly scoped to CHAT-04-delete-conversation-popup per decompose. CHAT-02 deliverable is the sidebar trigger wiring: bU onDeleteRequest → Chat.tsx deleteTarget state plus data-delete-target-id handoff. CHAT-04 depends_on CHAT-02 and will consume deleteTarget; interim no-modal behavior is expected until that item lands."
+      "rationale": "CHAT-02 decompose scope and AC-1..AC-5 obligate IR cell hierarchy, delete popup wiring (bU → DeleteConversationPopup), selection routing, and empty-RG bootstrap — not a rename workflow. ai_RNbBHXbS renders with Pencil icon, data-bubble-id, and bubbleStyle per ui_evidence pass; handleRenameRequest no-op is intentional (Chat.tsx comment). No rename-popup item exists in MOD-DRSAM-CHAT decompose; CHAT-04 owns delete confirmation only. criteria_audit AC-4 passes on bU delete trigger; downstream CHAT-03/CHAT-04 depends_on gates do not require rename behavior."
     },
     {
       "critique_id": "C-3",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "Hover-gated opacity on ai_RNbBHXbR (opacity-0 group-hover:opacity-100) is a brownfield UX enhancement; ir/inventory.json does not encode hover-only visibility on the action row. Not in CHAT-02 acceptance criteria; always-visible icons can be revisited during visual parity tooling if flagged."
+      "rationale": "IR re-read (ir/slices/styles.json RepeatingGroup_list_) confirms border_width 0 and background_style none — effectively neutral list chrome. ai_RNbBHXbL ui_evidence passes with functional overflow-y-auto scroll; only RepeatingGroup_list_ style_ref marker is partial. Named ui_ref is in CHAT-02 scope, but applying bubbleStyle('RepeatingGroup_list_') or data-style-ref on the RG container confers no meaningful visual delta and does not block CHAT-03 panel mount (depends_on needs thread list + URL param, both pass). Defer style-catalog wiring on ai_RNbBHXbL to a chat sidebar fidelity polish pass alongside CHAT-01 deferred column-width tokens."
     },
     {
       "critique_id": "C-4",
       "severity": "defer",
       "resolution": "defer",
       "action_required": false,
-      "rationale": "bS rename trigger is wired (Pencil + onRenameRequest) for IR cell parity, but no rename-popup item exists in MOD-DRSAM-CHAT decompose. Chat.tsx handleRenameRequest no-op is an intentional stub until a future rename item is decomposed, mirroring the deleteTarget handoff pattern used for CHAT-04."
+      "rationale": "Valid resilience edge case: useEmptyConversationBootstrap sets bootstrappedRef=true before await createConversation, so a failed create skips retry. criteria_audit AC-5 and functional_audit FV-5 pass on happy path; ConversationSidebar already surfaces load errors via toast on fetchConversations failure. Low-priority bootstrap hardening (set ref after success, reset on failure, optional error toast) does not block CHAT-03 depends_on or any downstream item; defer to CHAT-05 API-layer polish when chat migrations and createConversation error paths are exercised end-to-end."
     }
   ],
-  "summary": "Review passed (ok: true, 100% coverage, 0 blockers). Triage: 0 fix_now, 4 defer, 0 accept. Advance OK — prior blockers B-1/B-2/B-3 resolved. Deferred: C-1 RepeatingGroup_list_ style polish; C-2 popup mount to CHAT-04-delete-conversation-popup; C-3 hover reveal polish; C-4 rename flow pending future decompose item."
+  "summary": "0 fix_now, 3 defer, 1 accept. Advance OK — review ok=true, coverage 100%, functional_ok=true, no blockers, all ACs pass. Accepted: C-2 rename bS no-op (out of CHAT-02 scope; IR marker renders). Deferred: C-1 chat table migrations and table-path QA to CHAT-05; C-3 RepeatingGroup_list_ style_ref on ai_RNbBHXbL (neutral-token polish with CHAT-01 layout fidelity); C-4 bootstrap retry on createConversation failure (CHAT-05 API resilience)."
 }

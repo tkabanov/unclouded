@@ -1,30 +1,119 @@
 {
   "phase": "implement",
   "target_id": "API-05-ai-coaching-mode-assignment",
-  "assessed_at": "2026-07-08T14:00:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T10:20:30.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 88,
+  "coverage_confidence_pct": 96,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/userProfile/assignAiCoachingModes.ts"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["completeOnboarding.ts — refreshProfile after pipeline before navigate", "Onboarding.tsx passes refresh"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/assignAiCoachingModes.ts",
+        "frontend/src/lib/userProfile/assignAiCoachingModes.test.ts",
+        "drsam-99657.bubble — APIEvent bTIEN (api/bTIES) actions bTIEm through bTIFD: seven-action ChangeThing chain with set_list (0–5) and add simplifier (6)"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
+        "frontend/src/lib/dashboard/coachingModeApi.ts",
+        "frontend/src/lib/userProfile/profileFieldPatch.ts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/hooks/useDashboardUser.ts",
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx",
+        "drsam-99657.bubble — /pages/bTGNJ/workflows/bTHuG ScheduleAPIEvent bTIFI → api_event bTIEN"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "resolveAiCoachingModes branch mapping", "status": "pass", "evidence": ["assignAiCoachingModes.ts"] },
-    { "id": "FV-2", "check": "calculateUserAiCoachingMode patches list field", "status": "pass", "evidence": ["calculateUserAiCoachingMode.ts"] },
-    { "id": "FV-3", "check": "Pipeline final step invokes calculator", "status": "pass", "evidence": ["onboardingProfilePipeline.ts"] },
-    { "id": "FV-4", "check": "DASH-02 reads patched list on first dashboard paint", "status": "pass", "evidence": ["completeOnboarding.ts", "useDashboardUser.ts"] }
+    {
+      "id": "FV-1",
+      "check": "resolveAiCoachingModes mirrors bTIEN seven-action sequential chain: default stabilizer; alignment<3.2→rebuilder; stability<3.2→stabilizer; performance<3.2→simplifier; all≥3.8→strategist; recovery/grief→protector; high cognitive load appends simplifier (bTIFD add, no duplicate)",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/assignAiCoachingModes.ts",
+        "frontend/src/lib/userProfile/assignAiCoachingModes.test.ts",
+        "drsam-99657.bubble — APIEvent bTIEN actions 0–6 independently verified; no pressure-profile or classification-matrix branches present"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "calculateUserAiCoachingMode loads pillar scores and health/load signals from profile row, resolves mode list, patches ai_coaching_mode_list_list_option_ai_coaching_mode_os on profiles.onboarding_data",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
+        "frontend/src/lib/userProfile/profileFieldPatch.ts",
+        "frontend/src/lib/dashboard/coachingModeApi.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "runOnboardingProfilePipeline final step invokes calculateUserAiCoachingMode after fingerprint; DASH-02 greeting card reads preferred mode from patched list without re-running calculator",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+        "frontend/src/lib/completeOnboarding.ts",
+        "frontend/src/hooks/useDashboardUser.ts",
+        "frontend/src/components/dashboard/DashboardGreetingCard.tsx"
+      ]
+    }
   ],
   "ui_evidence": [],
   "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-2", "area": "grounding", "priority": "medium", "finding": "bTIEN per-action conditions not byte-verified against Bubble.", "alternative": "Fixture tests per classification_os branch." },
-    { "id": "C-3", "area": "testing", "priority": "medium", "finding": "No unit tests for resolveAiCoachingModes matrix.", "alternative": "Add vitest cases." },
-    { "id": "C-4", "area": "data-contract", "priority": "low", "finding": "Singular ai_coaching_mode_os mirror redundant but consistent.", "alternative": "Document as legacy mirror." }
+    {
+      "id": "C-1",
+      "area": "data-model",
+      "priority": "low",
+      "finding": "calculateUserAiCoachingMode also patches ai_coaching_mode_os (last list entry) alongside the list field; bTIEN ChangeThing actions only mutate ai_coaching_mode_list_list_option_ai_coaching_mode_os.",
+      "alternative": "Rely solely on readPreferredCoachingMode (last list entry) for DASH-02 display, or document the singular field as a prototype convenience mapping in profileFieldPatch.",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
+        "drsam-99657.bubble — APIEvent bTIEN (all seven actions target list field only)"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "testing",
+      "priority": "low",
+      "finding": "Unit tests exhaustively cover resolveAiCoachingModes (11 cases, all pass) but calculateUserAiCoachingMode has no test for field extraction from onboarding_data/results or patchOnboardingAndResults payload.",
+      "alternative": "Add calculateUserAiCoachingMode.test.ts with mocked loadProfileRow/patchOnboardingAndResults verifying score reads, health-flag resolution, and list patch.",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserAiCoachingMode.ts",
+        "frontend/src/lib/userProfile/assignAiCoachingModes.test.ts"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "ir-fidelity",
+      "priority": "low",
+      "finding": "Decompose ir_refs cite bTIEN while Bubble stores the API event under api key bTIES (entity id bTIEN); grep-by-id works but key mismatch can confuse implementers.",
+      "alternative": "Note in decompose that bTIEN entity id lives at api/bTIES in drsam-99657.bubble.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-API.json",
+        "drsam-99657.bubble — api/bTIES id bTIEN"
+      ]
+    }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
 }

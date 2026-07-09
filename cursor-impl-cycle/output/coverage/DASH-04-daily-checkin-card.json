@@ -14,7 +14,7 @@
       "frontend/src/styles/index.ts"
     ],
     "gaps": [
-      "AC-3: dailycheckin and user tables are absent from frontend/supabase migrations; checkinApi attempts best-effort insert then falls back to profiles.onboarding_data.daily_checkins with daily_check_in_streak_number / streak_days_number",
+      "AC-3: dailycheckin and user tables are absent from supabase migrations; checkinApi attempts best-effort insert then falls back to profiles.onboarding_data.daily_checkins with daily_check_in_streak_number / streak_days_number",
       "AC-3: Streak computation is client-side simplified parity (yesterday continuation) rather than full Bubble bTIWG scheduled cancellation workflow"
     ],
     "reuse_decision": "gap-fill",

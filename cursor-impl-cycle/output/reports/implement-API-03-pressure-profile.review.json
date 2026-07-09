@@ -1,28 +1,103 @@
 {
   "phase": "implement",
   "target_id": "API-03-pressure-profile",
-  "assessed_at": "2026-07-08T14:00:00.000Z",
-  "wave": "re-review-after-fixes",
+  "assessed_at": "2026-07-09T07:58:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 88,
+  "coverage_confidence_pct": 93,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["buildPressureProfile.ts — regulated:1 in STATE_SEVERITY", "classification.ts delegates to resolvePressureProfile"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["calculateUserPressureProfile.ts patches pressure_profile_text"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["onboardingProfilePipeline.ts order after classification"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/buildPressureProfile.ts",
+        "frontend/src/lib/enums/onboardingQuestions.ts",
+        "frontend/src/lib/userProfile/buildPressureProfile.test.ts",
+        "drsam-99657.bubble — CustomEvent bTIAw actions bTIBH / bTICE / bTICC"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserPressureProfile.ts",
+        "frontend/src/lib/userProfile/profileFieldPatch.ts",
+        "drsam-99657.bubble — APIEvent bTIBO ChangeThing bTICJ on pressure_profile_text"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts",
+        "frontend/src/lib/completeOnboarding.ts"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "resolvePressureProfile with regulated slug parity", "status": "pass", "evidence": ["frontend/src/lib/userProfile/buildPressureProfile.ts"] },
-    { "id": "FV-2", "check": "calculateUserPressureProfile patches user row", "status": "pass", "evidence": ["frontend/src/lib/userProfile/calculateUserPressureProfile.ts"] },
-    { "id": "FV-3", "check": "Pipeline ordering matches bTHqE", "status": "pass", "evidence": ["frontend/src/lib/userProfile/onboardingProfilePipeline.ts"] }
+    {
+      "id": "FV-1",
+      "check": "resolvePressureProfile implements bTIAw three-branch logic with Bubble high_intensity_text labels and nervous-system display strings",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/buildPressureProfile.ts",
+        "frontend/src/lib/userProfile/buildPressureProfile.test.ts",
+        "drsam-99657.bubble"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "calculateUserPressureProfile reads AUTH-05 loadSignals/stateSignals slugs and patches pressure_profile_text plus results.pressure_profile",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/calculateUserPressureProfile.ts",
+        "frontend/src/lib/enums/onboardingQuestions.ts — extractLoadSignalSlugs"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "runOnboardingProfilePipeline invokes calculateUserPressureProfile immediately after calculateUserClassification",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/userProfile/onboardingProfilePipeline.ts"
+      ]
+    }
   ],
   "ui_evidence": [],
   "gaps": [],
   "blockers": [],
   "critiques": [
-    { "id": "C-3", "area": "ir-fidelity", "priority": "medium", "finding": "Aggregate buckets vs compound pressure_profile_os labels — intentional brownfield simplification.", "alternative": "Document or align with Bubble option_set display text." },
-    { "id": "C-5", "area": "testing", "priority": "low", "finding": "No unit tests for regulated slug and thresholds.", "alternative": "Add vitest table-driven cases." }
+    {
+      "id": "C-1",
+      "area": "ir-fidelity",
+      "priority": "medium",
+      "finding": "When two or more high-intensity load signals are present, join order follows LOAD_SIGNAL_QUESTIONS field order (cognitive → relational → environmental → financial) instead of bTIBO load_signal_list construction order (cognitive → environmental → financial → relational). Single- and paired-high cases that include cognitive still match; e.g. all-four-high yields a different permutation than Bubble format_as_text.",
+      "alternative": "Collect high-intensity texts in bTIBO list order by iterating extractLoadSignalSlugs output (which mirrors the API event argument order) rather than LOAD_SIGNAL_QUESTIONS iteration with find().",
+      "evidence": [
+        "frontend/src/lib/userProfile/buildPressureProfile.ts",
+        "drsam-99657.bubble — bTIBO plus_element chain",
+        "frontend/src/lib/userProfile/buildPressureProfile.test.ts"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "integration",
+      "priority": "medium",
+      "finding": "Downstream consumers still compare legacy bucket strings (e.g. classification.ts and assignAiCoachingModes.ts check pressureProfile === \"System Overload\") while API-03 now writes Bubble-parity descriptive strings. Protector/Stabilizer coaching-mode and tradeoff branches will not fire on high-load profiles until those items are updated.",
+      "alternative": "In a follow-on item, key downstream branches off high-intensity presence or a shared helper rather than exact legacy bucket literals.",
+      "evidence": [
+        "frontend/src/lib/classification.ts",
+        "frontend/src/lib/userProfile/assignAiCoachingModes.ts"
+      ]
+    }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 5,
+    "actionability": 4
+  }
 }

@@ -1,20 +1,19 @@
 {
   "phase": "implement",
   "target_id": "DASH-04-daily-checkin-card",
-  "assessed_at": "2026-07-07T21:30:00.000Z",
+  "assessed_at": "2026-07-08T19:38:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 87,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — root ai_RNbBHXRY (Group_card_) with nested ai_RNbBHXRZ header, ai_RNbBHXRd streak badge, ai_RNbBHXRg form",
-        "frontend/src/pages/Dashboard.tsx — dailyCheckIn slot renders DashboardCheckinCard inside DashboardMain ai_RNbBHXRX slot",
-        "frontend/src/components/dashboard/DashboardMain.tsx — DASHBOARD_DAILY_CHECKIN_SLOT_BUBBLE_ID ai_RNbBHXRX wraps slot",
-        "ir/inventory.json — ai_RNbBHXRY parent bTHDT page tree; ai_RNbBHXRZ/ai_RNbBHXRd/ai_RNbBHXRg children of ai_RNbBHXRY"
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/pages/Dashboard.tsx"
       ],
       "gap": null
     },
@@ -22,9 +21,8 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — CheckinSlider on ai_RNbBHXRk and ai_RNbBHXRo uses handle_color hsla(188,52%,36%,1) and track bg-[var(--color_aiRNbAaxgw_default)]",
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — mood binds bTIXh/ai_RNbBHXRj; energy binds ai_RNbBHXRn with bubbleStyle(Text_label_) and var(--color_primary_default)",
-        "drsam-99657.bubble — SliderInput handle_color hsla(188,52%,36%,1) on mood/energy sliders"
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+        "ir/slices/styles.json"
       ],
       "gap": null
     },
@@ -32,251 +30,186 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/dashboard/checkinApi.ts — submitDailyCheckIn inserts dailycheckin (mood_number, energy_stress_level_number, reflection_text, date_date, user_user) then updates streak",
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — ai_RNbBHXRw handleSubmit calls submitDailyCheckIn, setStreak(result.streak), refresh()",
-        "drsam-99657.bubble — ai_RNbBHXRw ButtonClicked workflow schedules API event bTIWG with mood/energy/reflection/date/user params",
-        "frontend/supabase/migrations — profiles.onboarding_data JSONB fallback when dailycheckin table absent"
+        "frontend/src/lib/dashboard/checkinApi.ts",
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx"
       ],
-      "gap": "Prototype has no dailycheckin or user streak columns; streak persisted in profiles.onboarding_data. Streak math is client-side yesterday-continuation, not full bTIWG scheduled cancellation chain."
+      "gap": null
     }
   ],
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "Submit Check-In persists mood, energy, and reflection for authenticated user (not dead handler)",
+      "check": "DashboardCheckinCard mounts in left-column ai_RNbBHXRX slot under dashboard grid (layout_notes)",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — handleSubmit with toast success/error",
-        "frontend/src/lib/dashboard/checkinApi.ts — tryInsertCheckinTable then profiles.onboarding_data fallback",
-        "frontend/supabase/migrations/20260702190431_*.sql — profiles table with onboarding_data"
+        "frontend/src/components/dashboard/DashboardMain.tsx",
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/lib/dashboard/routes.ts"
       ]
     },
     {
       "id": "FV-2",
-      "check": "Streak badge refreshes after submit from user streak field",
+      "check": "Mood slider (ai_RNbBHXRk) and energy slider (ai_RNbBHXRo) update bound value text nodes reactively",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — setStreak(result.streak) and loadStreak via fetchDailyCheckInStreak",
-        "frontend/src/lib/dashboard/checkinApi.ts — DAILY_CHECK_IN_STREAK_FIELD daily_check_in_streak_number with streak_days_number fallback"
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx"
       ]
     },
     {
       "id": "FV-3",
-      "check": "Mood and energy sliders bind live to displayed value text nodes",
+      "check": "checkin-submit-btn (ai_RNbBHXRw) triggers bTIqQ parity — persist DailyCheckIn fields (mood, energy_stress_level, reflection, date, user) via Supabase client",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — useState mood/energy; CheckinSlider onChange updates labels bTIXh and ai_RNbBHXRn"
+        "frontend/src/lib/dashboard/checkinApi.ts",
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+        "ir/inventory.json"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "After submit, streak badge (ai_RNbBHXRf) refreshes from daily_check_in_streak_number with streak_days_number fallback",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/checkinApi.ts",
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx"
+      ]
+    },
+    {
+      "id": "FV-5",
+      "check": "dailycheckin and user tables absent from supabase — API falls back to profiles.onboarding_data.daily_checkins with Bubble field keys",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/dashboard/checkinApi.ts",
+        "supabase/",
+        "cursor-impl-cycle/output/coverage/DASH-04-daily-checkin-card.json"
       ]
     }
   ],
   "ui_evidence": [
     {
-      "bubble_id": "ai_RNbBHXRX",
-      "selector": "[data-bubble-id='ai_RNbBHXRX']",
-      "status": "pass",
-      "notes": "DashboardMain left-column slot wrapper"
-    },
-    {
       "bubble_id": "ai_RNbBHXRY",
       "selector": "[data-bubble-id='ai_RNbBHXRY']",
       "status": "pass",
-      "notes": "data-style-ref Group_card_"
+      "notes": "Group_card_ root with data-style-ref; vertical gap-4 form stack"
     },
     {
       "bubble_id": "ai_RNbBHXRZ",
       "selector": "[data-bubble-id='ai_RNbBHXRZ']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Header row with title group and conditional streak badge"
     },
     {
       "bubble_id": "ai_RNbBHXRc",
       "selector": "[data-bubble-id='ai_RNbBHXRc']",
       "status": "pass",
-      "notes": "Text_heading_3_ Daily Check-In"
+      "notes": "Text_heading_3_ copy: Daily Check-In"
     },
     {
       "bubble_id": "ai_RNbBHXRd",
       "selector": "[data-bubble-id='ai_RNbBHXRd']",
       "status": "pass",
-      "notes": "Conditionally rendered when streak > 0"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRf",
-      "selector": "[data-bubble-id='ai_RNbBHXRf']",
-      "status": "pass"
+      "notes": "Group_badge_primary_ streak badge; hidden when streak is 0 or loading"
     },
     {
       "bubble_id": "ai_RNbBHXRg",
       "selector": "[data-bubble-id='ai_RNbBHXRg']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRh",
-      "selector": "[data-bubble-id='ai_RNbBHXRh']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRi",
-      "selector": "[data-bubble-id='ai_RNbBHXRi']",
-      "status": "partial",
-      "notes": "bTIXh nested inside ai_RNbBHXRi; IR has bTIXh as sibling of ai_RNbBHXRi under ai_RNbBHXRh"
+      "status": "pass",
+      "notes": "Form column stacks mood, energy, reflection, submit per layout_notes"
     },
     {
       "bubble_id": "bTIXh",
       "selector": "[data-bubble-id='bTIXh']",
-      "status": "partial",
-      "notes": "Parent nesting differs from IR inventory parent_id ai_RNbBHXRh"
+      "status": "pass",
+      "notes": "Mood label text with Text_label_ + primary color; parent nesting differs from IR (see C-1)"
     },
     {
       "bubble_id": "ai_RNbBHXRj",
       "selector": "[data-bubble-id='ai_RNbBHXRj']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "checkin-mood-value binds slider; aria-hidden duplicate of numeric mood"
     },
     {
       "bubble_id": "ai_RNbBHXRk",
       "selector": "[data-bubble-id='ai_RNbBHXRk']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRl",
-      "selector": "[data-bubble-id='ai_RNbBHXRl']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Slider handle_color hsla(188,52%,36%,1) matches IR; track uses var(--color_aiRNbAaxgw_default)"
     },
     {
       "bubble_id": "ai_RNbBHXRn",
       "selector": "[data-bubble-id='ai_RNbBHXRn']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "checkin-energy-value with Text_label_ + var(--color_primary_default)"
     },
     {
       "bubble_id": "ai_RNbBHXRo",
       "selector": "[data-bubble-id='ai_RNbBHXRo']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRp",
-      "selector": "[data-bubble-id='ai_RNbBHXRp']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "ai_RNbBHXRq",
-      "selector": "[data-bubble-id='ai_RNbBHXRq']",
-      "status": "pass"
+      "status": "pass",
+      "notes": "Energy slider shares mood slider IR handle styling"
     },
     {
       "bubble_id": "ai_RNbBHXRr",
       "selector": "[data-bubble-id='ai_RNbBHXRr']",
       "status": "pass",
-      "notes": "MultiLineInput_default_ with Bubble placeholder copy"
+      "notes": "MultiLineInput_default_ reflection field with Bubble placeholder copy"
     },
     {
       "bubble_id": "ai_RNbBHXRw",
       "selector": "[data-bubble-id='ai_RNbBHXRw']",
       "status": "pass",
-      "notes": "Button_primary_ Submit Check-In"
-    },
-    {
-      "bubble_id": "style_ref:ai_RNbBHXRc",
-      "selector": "[data-bubble-id='ai_RNbBHXRc'][data-style-ref='Text_heading_3_']",
-      "status": "pass"
-    },
-    {
-      "bubble_id": "style_ref:ai_RNbBHXRd",
-      "selector": "[data-bubble-id='ai_RNbBHXRd'][data-style-ref='Group_badge_primary_']",
-      "status": "pass"
+      "notes": "Button_primary_ full-width Submit Check-In wired to submitDailyCheckIn"
     }
   ],
   "gaps": [
-    {
-      "id": "G-1",
-      "area": "schema",
-      "finding": "Prototype frontend/supabase has no dailycheckin table or user streak columns; submit falls back to profiles.onboarding_data.daily_checkins.",
-      "evidence": [
-        "frontend/supabase/migrations — no dailycheckin migration",
-        "frontend/src/lib/dashboard/checkinApi.ts — isSchemaUnavailable fallback path"
-      ]
-    },
-    {
-      "id": "G-2",
-      "area": "workflow-parity",
-      "finding": "Decompose AC-3 cites workflow bTIqQ (ButtonClicked ChangePage in IR), but Bubble submit button ai_RNbBHXRw schedules API event bTIWG (NewThing + ChangeThing + scheduled streak reset).",
-      "evidence": [
-        "ir/inventory.json — bTIqQ trigger_type ButtonClicked, action ChangePage",
-        "drsam-99657.bubble — ai_RNbBHXRw workflow action ScheduleAPIEvent bTIWG",
-        "ir/inventory.json — bTIWG api_event NewThing/ChangeThing/ScheduleAPIEvent"
-      ]
-    },
-    {
-      "id": "G-3",
-      "area": "streak-logic",
-      "finding": "When dailycheckin insert succeeds, streak is still computed from onboarding_data dates only, not from table history.",
-      "evidence": [
-        "frontend/src/lib/dashboard/checkinApi.ts — computeNextStreak(readCheckinsFromOnboarding(...)) even when inserted=true"
-      ]
-    }
+    "dailycheckin and user tables are absent from supabase migrations; checkinApi attempts dailycheckin insert then falls back to profiles.onboarding_data.daily_checkins",
+    "Streak computation is client-side simplified parity (yesterday continuation) rather than full Bubble bTIWG scheduled cancellation workflow",
+    "When dailycheckin table insert succeeds, computeNextStreak still derives from onboarding_data history only — streak may be wrong once the table is provisioned"
   ],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "functional",
-      "priority": "high",
-      "finding": "Streak calculation ignores dailycheckin table rows after a successful insert; only onboarding_data history is consulted, so production schema would under-count consecutive days.",
-      "alternative": "After insert, query dailycheckin dates for the user (or mirror Bubble bTIWG server-side streak rules) before updating daily_check_in_streak_number.",
+      "area": "ui-fidelity",
+      "priority": "medium",
+      "finding": "IR inventory places bTIXh (mood label) as a direct child of ai_RNbBHXRh, but the component nests bTIXh inside ai_RNbBHXRi alongside ai_RNbBHXRj — mood group hierarchy is flattened/reordered.",
+      "alternative": "Move bTIXh to sit as a sibling of ai_RNbBHXRi under ai_RNbBHXRh to match Bubble parent_element_id chain.",
       "evidence": [
-        "frontend/src/lib/dashboard/checkinApi.ts — submitDailyCheckIn lines 188-190"
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+        "ir/inventory.json"
       ]
     },
     {
       "id": "C-2",
       "area": "ui-fidelity",
-      "priority": "medium",
-      "finding": "bTIXh (mood label text) is nested under ai_RNbBHXRi; IR inventory lists bTIXh as direct child of ai_RNbBHXRh alongside ai_RNbBHXRi.",
-      "alternative": "Render bTIXh as sibling of ai_RNbBHXRi inside ai_RNbBHXRh to match Bubble element tree.",
+      "priority": "low",
+      "finding": "Streak badge (ai_RNbBHXRd) is not rendered while loading or when streak is 0; Bubble may always reserve badge chrome even at zero streak.",
+      "alternative": "Render badge shell with 0 day streak during load/zero states, or defer hide until first successful fetch confirms zero.",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — mood group JSX",
-        "ir/inventory.json — bTIXh parent_id ai_RNbBHXRh"
+        "frontend/src/components/dashboard/DashboardCheckinCard.tsx",
+        "drsam-99657.bubble"
       ]
     },
     {
       "id": "C-3",
-      "area": "workflow-parity",
-      "priority": "medium",
-      "finding": "Bubble bTIWG chains CancelScheduledAPIEvent + ScheduleAPIEvent for streak reset on missed days; client uses simplified yesterday-continuation only.",
-      "alternative": "Document as intentional prototype scope or port bTIWr deferred streak-reset API when backend tables land.",
+      "area": "functional",
+      "priority": "high",
+      "finding": "submitDailyCheckIn computes nextStreak from onboarding_data dates even when tryInsertCheckinTable returns true; existing dailycheckin rows are not queried, so streak will reset to 1 on consecutive days once the table exists.",
+      "alternative": "On successful table insert, query dailycheckin dates for the user (or read user.daily_check_in_streak_number after tryUpdateUserStreakTable) before computing streak.",
       "evidence": [
-        "ir/inventory.json — bTIWG actions CancelScheduledAPIEvent, ScheduleAPIEvent bTIWr",
-        "frontend/src/lib/dashboard/checkinApi.ts — computeNextStreak"
+        "frontend/src/lib/dashboard/checkinApi.ts"
       ]
     },
     {
       "id": "C-4",
-      "area": "ui-fidelity",
-      "priority": "low",
-      "finding": "Streak badge group ai_RNbBHXRd is hidden when streak is 0; Bubble binds badge to user data but may still render the group container.",
-      "alternative": "Show badge with '0 day streak' or match Bubble visibility conditions from user data binding.",
+      "area": "schema-dependency",
+      "priority": "medium",
+      "finding": "End-to-end check-in persistence in the prototype depends on profiles.onboarding_data because dailycheckin is not provisioned in supabase — AC-3 table insert path is untested in this brownfield schema.",
+      "alternative": "Land dailycheckin migration in supabase or document explicit QA seed for table-path verification.",
       "evidence": [
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — streak > 0 conditional"
-      ]
-    },
-    {
-      "id": "C-5",
-      "area": "workflow-parity",
-      "priority": "low",
-      "finding": "Bubble submit workflow includes ResetInputs after ScheduleAPIEvent; React clears reflection only, leaving mood/energy at submitted values.",
-      "alternative": "Reset sliders to defaults after successful submit to mirror ResetInputs.",
-      "evidence": [
-        "drsam-99657.bubble — ai_RNbBHXRw workflow action ResetInputs",
-        "frontend/src/components/dashboard/DashboardCheckinCard.tsx — setReflection('') only"
+        "frontend/src/lib/dashboard/checkinApi.ts",
+        "supabase/",
+        "cursor-impl-cycle/output/coverage/DASH-04-daily-checkin-card.json"
       ]
     }
   ],
-  "scores": {
-    "completeness": 4,
-    "grounding": 4,
-    "actionability": 4
-  },
-  "brownfield": {
-    "preflight_present": true,
-    "reuse_decision": "gap-fill",
-    "forbidden_paths_touched": false
-  }
+  "scores": { "completeness": 4, "grounding": 5, "actionability": 4 }
 }

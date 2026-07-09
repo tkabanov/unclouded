@@ -1,37 +1,96 @@
 {
   "item_id": "SET-06-notifications-tab-and-save",
   "module_id": "MOD-DRSAM-SETTINGS",
-  "assessed_at": "2026-07-08T11:06:00.000Z",
+  "assessed_at": "2026-07-09T06:14:00.000Z",
   "coverage_pct": 100,
   "preflight": {
-    "existing_files_found": ["frontend/src/components/settings/SettingsMain.tsx"],
-    "gaps": ["AC-1: Notifications panel empty", "AC-2: No frequency dropdown", "AC-3: No save workflow"],
-    "reuse_decision": "new",
-    "mapped_target_files": {}
+    "existing_files_found": [
+      "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+      "frontend/src/lib/settings/notificationsApi.ts",
+      "frontend/src/components/settings/SettingsMain.tsx",
+      "frontend/src/lib/settings/routes.ts"
+    ],
+    "gaps": [
+      "AC-2 fail: invented four-value slug enum and wrong static copy vs ai_RNbBHYYB/C/F/G/L",
+      "AC-2: missing data-bubble-id on title, subtitle, and frequency label nodes"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/features/settings/SettingsNotificationsTab.vue": "frontend/src/components/settings/SettingsNotificationsTab.tsx",
+      "frontend/src/features/settings/notificationsApi.ts": "frontend/src/lib/settings/notificationsApi.ts"
+    }
   },
   "criteria": [
     {
       "id": "AC-1",
       "status": "pass",
-      "evidence": ["frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYXz card, ai_RNbBHYYA header, ai_RNbBHYYD form"]
+      "evidence": [
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYXy panel with ai_RNbBHYXz card, ai_RNbBHYYA header, ai_RNbBHYYD form"
+      ]
     },
     {
       "id": "AC-2",
       "status": "pass",
-      "evidence": ["frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYYG frequency select"]
+      "evidence": [
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYYB title 'Notifications', ai_RNbBHYYC subtitle, ai_RNbBHYYF label, ai_RNbBHYYG select with Bubble choice text values",
+        "frontend/src/lib/settings/notificationsApi.ts — NOTIFICATION_FREQUENCY_OPTIONS uses IR labels (Daily/Weekly/Never) not slug enum"
+      ]
     },
     {
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/settings/notificationsApi.ts — saveNotificationFrequency",
-        "frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYYL save button"
+        "frontend/src/lib/settings/notificationsApi.ts — saveNotificationFrequency writes notification_frequency_text to profiles.onboarding_data",
+        "frontend/src/components/settings/SettingsNotificationsTab.tsx — ai_RNbBHYYL 'Save Notification Settings' reloads saved value after save"
       ]
+    }
+  ],
+  "ui_evidence": [
+    {
+      "bubble_id": "ai_RNbBHYXz",
+      "selector": "[data-bubble-id='ai_RNbBHYXz']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYA",
+      "selector": "[data-bubble-id='ai_RNbBHYYA']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYB",
+      "selector": "[data-bubble-id='ai_RNbBHYYB']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYC",
+      "selector": "[data-bubble-id='ai_RNbBHYYC']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYD",
+      "selector": "[data-bubble-id='ai_RNbBHYYD']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYF",
+      "selector": "[data-bubble-id='ai_RNbBHYYF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYG",
+      "selector": "[data-bubble-id='ai_RNbBHYYG']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYYL",
+      "selector": "[data-bubble-id='ai_RNbBHYYL']",
+      "status": "pass"
     }
   ],
   "files_changed": [
     "frontend/src/components/settings/SettingsNotificationsTab.tsx",
-    "frontend/src/lib/settings/notificationsApi.ts"
+    "frontend/src/lib/settings/notificationsApi.ts",
+    "frontend/src/lib/settings/routes.ts"
   ],
   "functional_ok": true
 }

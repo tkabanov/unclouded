@@ -30,7 +30,7 @@
         "frontend/src/components/journal/MilestoneCard.tsx — ai_RNbBHXjh title_text and ai_RNbBHXji Achieved achieved_at_date bind to row data",
         "frontend/src/components/journal/RelapseEventCard.tsx — ai_RNbBHXkD event_date_date and ai_RNbBHXkJ notes_text bind to row data",
         "frontend/src/pages/Journal.tsx — loadMilestones() fetches both lists for current user via useAuth + profile.onboardingData",
-        "frontend/supabase/ — no uds_milestone/uds_relapseevent migrations; fallback path documented in coverage preflight"
+        "supabase/ — no uds_milestone/uds_relapseevent migrations; fallback path documented in coverage preflight"
       ],
       "gap": null
     },
@@ -221,7 +221,7 @@
       "area": "brownfield",
       "priority": "low",
       "finding": "UntypedSupabase cast bypasses generated client types for uds_milestone/uds_relapseevent — necessary while tables are absent from prototype schema but should be removed when migrations land.",
-      "alternative": "Regenerate Supabase types and drop UntypedSupabase once uds_* tables exist in frontend/supabase or project contract.",
+      "alternative": "Regenerate Supabase types and drop UntypedSupabase once uds_* tables exist in supabase or project contract.",
       "evidence": [
         "frontend/src/lib/journal/milestonesApi.ts",
         "frontend/src/lib/journal/relapseEventsApi.ts"

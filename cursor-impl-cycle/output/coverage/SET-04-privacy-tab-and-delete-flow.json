@@ -1,45 +1,102 @@
 {
   "item_id": "SET-04-privacy-tab-and-delete-flow",
   "module_id": "MOD-DRSAM-SETTINGS",
-  "assessed_at": "2026-07-08T11:06:00.000Z",
+  "assessed_at": "2026-07-09T08:15:00.000Z",
   "coverage_pct": 100,
   "preflight": {
-    "existing_files_found": ["frontend/src/components/settings/SettingsMain.tsx"],
-    "gaps": [
-      "AC-1: Privacy panel empty",
-      "AC-2: No export/delete buttons",
-      "AC-3: No delete-confirm-popup"
+    "existing_files_found": [
+      "frontend/src/components/settings/SettingsPrivacyTab.tsx",
+      "frontend/src/components/settings/DeleteConfirmPopup.tsx",
+      "frontend/src/lib/settings/privacyApi.ts",
+      "frontend/src/components/settings/SettingsMain.tsx",
+      "frontend/src/lib/settings/routes.ts"
     ],
-    "reuse_decision": "new",
-    "mapped_target_files": {}
+    "gaps": [
+      "AC-3: profiles DELETE blocked — no RLS DELETE policy",
+      "FV-3: deletion did not sign out or redirect after success",
+      "Export: profile-only payload missing journal_entries",
+      "UI: generic copy; missing nested section data-bubble-id markers and IR card header"
+    ],
+    "reuse_decision": "extend",
+    "mapped_target_files": {
+      "frontend/src/features/settings/SettingsPrivacyTab.vue": "frontend/src/components/settings/SettingsPrivacyTab.tsx",
+      "frontend/src/features/settings/DeleteConfirmPopup.vue": "frontend/src/components/settings/DeleteConfirmPopup.tsx",
+      "frontend/src/features/settings/privacyApi.ts": "frontend/src/lib/settings/privacyApi.ts"
+    }
   },
   "criteria": [
     {
       "id": "AC-1",
       "status": "pass",
-      "evidence": ["frontend/src/components/settings/SettingsPrivacyTab.tsx — ai_RNbBHYWv card, ai_RNbBHYWz sections"]
+      "evidence": [
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx — ai_RNbBHYWu panel with ai_RNbBHYWv card, ai_RNbBHYWz sections, nested privacy-data/ai/employer/actions groups with IR copy"
+      ]
     },
     {
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/lib/settings/privacyApi.ts — exportUserData JSON download",
-        "frontend/src/components/settings/SettingsPrivacyTab.tsx — ai_RNbBHYXS export, ai_RNbBHYXV opens popup"
+        "frontend/src/lib/settings/privacyApi.ts — exportUserData bundles profile + journal_entries JSON download",
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx — ai_RNbBHYXS export, ai_RNbBHYXV opens delete-confirm-popup"
       ]
     },
     {
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/settings/DeleteConfirmPopup.tsx — ai_RNbBHYXY with confirm/cancel",
-        "frontend/src/lib/settings/privacyApi.ts — requestAccountDeletion"
+        "supabase/migrations/20260709120000_profiles_delete_rls.sql — DELETE RLS for own profile",
+        "frontend/src/lib/settings/privacyApi.ts — requestAccountDeletion deletes journal_entries + profile then signs out",
+        "frontend/src/components/settings/DeleteConfirmPopup.tsx — ai_RNbBHYXY popup with ai_RNbBHYXe cancel and ai_RNbBHYXf confirm"
       ]
     }
+  ],
+  "functional_verification": [
+    {
+      "id": "FV-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/privacyApi.ts — exportUserData selects profiles and journal_entries for user"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx — export triggers JSON blob download with unclouded-export filename"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/settings/privacyApi.ts — requestAccountDeletion signs out after row deletion",
+        "frontend/src/components/settings/SettingsPrivacyTab.tsx — handleDeleteConfirm navigates to / after success"
+      ]
+    }
+  ],
+  "ui_evidence": [
+    { "bubble_id": "ai_RNbBHYWu", "selector": "[data-bubble-id='ai_RNbBHYWu']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWv", "selector": "[data-bubble-id='ai_RNbBHYWv']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWw", "selector": "[data-bubble-id='ai_RNbBHYWw']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWx", "selector": "[data-bubble-id='ai_RNbBHYWx']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWy", "selector": "[data-bubble-id='ai_RNbBHYWy']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYWz", "selector": "[data-bubble-id='ai_RNbBHYWz']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXA", "selector": "[data-bubble-id='ai_RNbBHYXA']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXF", "selector": "[data-bubble-id='ai_RNbBHYXF']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXK", "selector": "[data-bubble-id='ai_RNbBHYXK']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXP", "selector": "[data-bubble-id='ai_RNbBHYXP']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXS", "selector": "[data-bubble-id='ai_RNbBHYXS']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXV", "selector": "[data-bubble-id='ai_RNbBHYXV']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXY", "selector": "[data-bubble-id='ai_RNbBHYXY']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXe", "selector": "[data-bubble-id='ai_RNbBHYXe']", "status": "pass" },
+    { "bubble_id": "ai_RNbBHYXf", "selector": "[data-bubble-id='ai_RNbBHYXf']", "status": "pass" }
   ],
   "files_changed": [
     "frontend/src/components/settings/SettingsPrivacyTab.tsx",
     "frontend/src/components/settings/DeleteConfirmPopup.tsx",
-    "frontend/src/lib/settings/privacyApi.ts"
+    "frontend/src/lib/settings/privacyApi.ts",
+    "frontend/src/lib/settings/routes.ts",
+    "supabase/migrations/20260709120000_profiles_delete_rls.sql"
   ],
   "functional_ok": true
 }

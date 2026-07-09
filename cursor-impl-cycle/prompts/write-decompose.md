@@ -24,7 +24,7 @@ Write: `cursor-impl-cycle/output/decompose/{{target_id}}.json`
 - `ir/slices/styles.json` — Bubble style definitions (`presentation`, `display`) for `style_ref` on elements
 - `drsam-99657.bubble` — fallback via entity `source_path` when `presentation` is missing or dynamic
 - `cursor-impl-cycle/prompts/ui-fidelity-rubric.md`
-- `frontend/supabase/**` and `project/supabase/**` — **read only** for API/table/RPC names to reference in AC (no schema changes)
+- `supabase/**` and `project/supabase/**` — **read only** for API/table/RPC names to reference in AC (no schema changes under `project/`)
 
 ## Rules
 

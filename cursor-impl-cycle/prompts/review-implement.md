@@ -1,8 +1,10 @@
 # Review implement — independent IR audit (DrSam brownfield)
 
-**Role:** Reviewer (generalPurpose, **readonly: true**)  
+**Role:** Reviewer (generalPurpose — **do not** pass Task `readonly: true`; Ask mode blocks report writes)  
 **Phase:** `implement`  
 **Target item:** `{{target_id}}`
+
+**Write scope:** persist **only** the report path below (`brief.outputs`). Do **not** modify application source (`frontend/`, `adapter/`, `project/`, etc.) or any other files.
 
 Write **only**: `cursor-impl-cycle/output/reports/implement-{{target_id}}.review.json`
 

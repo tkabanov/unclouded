@@ -18,7 +18,7 @@ function toUiMessages(messages: ChatMessage[]) {
 
 /**
  * ScheduleAPIEvent parity stub — tries project chat edge function, falls back locally.
- * Handler: frontend/supabase/functions/chat/index.ts
+ * Handler: supabase/functions/chat/index.ts
  */
 export async function generateAiReplyStub(
   messages: ChatMessage[],

@@ -1,36 +1,151 @@
 {
   "phase": "implement",
   "target_id": "CHAT-05-chat-messaging-and-create-flow",
-  "assessed_at": "2026-07-08T10:56:00.000Z",
+  "assessed_at": "2026-07-09T08:35:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 85,
+  "coverage_confidence_pct": 91,
   "functional_ok": true,
   "criteria_audit": [
-    { "id": "AC-1", "status": "pass", "evidence": ["frontend/src/lib/chat/chatMessagesApi.ts", "frontend/src/components/chat/ChatPanelMount.tsx"], "gap": null },
-    { "id": "AC-2", "status": "pass", "evidence": ["frontend/src/hooks/useNewConversation.ts", "frontend/src/pages/Chat.tsx"], "gap": null },
-    { "id": "AC-3", "status": "pass", "evidence": ["frontend/src/lib/chat/chatAiReplyStub.ts", "frontend/src/hooks/useChatSignOutClear.ts"], "gap": null }
+    {
+      "id": "AC-1",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatMessagesApi.ts — insertUserMessage/insertAssistantMessage bind chatmessage rows to conversation_custom_chatconversation; persistOnboardingMessages reloads profiles.onboarding_data via loadProfileRow before each write",
+        "frontend/src/lib/chat/chatMessagesApi.ts — sendMessageWithAiReply inserts user + assistant messages, touches conversation preview, reloads onboarding_data, returns fetchMessagesForConversation thread",
+        "frontend/src/components/chat/ChatPanelMount.tsx — handleSend calls sendMessageWithAiReply then setMessages(nextMessages)",
+        "frontend/src/components/chat/ChatComposer.tsx — bTITZ submit button wired through ChatReusable onSend"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-2",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useNewConversation.ts — createConversation then setConversationId(created.id)",
+        "frontend/src/lib/chat/chatRouteStore.ts — setConversationId sets ?conversation= search param (bTInA ChangePage url_parameters parity)",
+        "frontend/src/pages/Chat.tsx — ChatPageContent onNewConversation={createNew}",
+        "frontend/src/components/chat/ChatPageContent.tsx — ai_RNbBHXbH new-conversation button triggers onNewConversation"
+      ],
+      "gap": null
+    },
+    {
+      "id": "AC-3",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatAiReplyStub.ts — POST to supabase/functions/chat with local FALLBACK_REPLIES on failure",
+        "frontend/src/hooks/useChatSignOutClear.ts — clears ?conversation= when user logs out (bTIma/bTImb workflow parity)",
+        "frontend/src/pages/Chat.tsx — useChatSignOutClear mounted on chat page"
+      ],
+      "gap": null
+    }
   ],
   "functional_audit": [
-    { "id": "FV-1", "check": "Send inserts user message and refreshes list", "status": "pass", "evidence": ["frontend/src/lib/chat/chatMessagesApi.ts"] },
-    { "id": "FV-2", "check": "New conversation navigates with URL param", "status": "pass", "evidence": ["frontend/src/hooks/useNewConversation.ts"] },
-    { "id": "FV-3", "check": "AI reply stub returns assistant message", "status": "pass", "evidence": ["frontend/src/lib/chat/chatAiReplyStub.ts"] }
+    {
+      "id": "FV-1",
+      "check": "Send inserts user + assistant messages and refreshes list without clobbering onboarding_data",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatMessagesApi.ts — persistOnboardingMessages calls loadProfileRow before merge; sendMessageWithAiReply reloads onboarding_data before final fetchMessagesForConversation"
+      ]
+    },
+    {
+      "id": "FV-2",
+      "check": "New conversation navigates with URL param",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useNewConversation.ts",
+        "frontend/src/lib/chat/chatRouteStore.ts"
+      ]
+    },
+    {
+      "id": "FV-3",
+      "check": "AI reply stub returns assistant message",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/lib/chat/chatAiReplyStub.ts",
+        "frontend/src/lib/chat/chatMessagesApi.ts — insertAssistantMessage after generateAiReplyStub"
+      ]
+    },
+    {
+      "id": "FV-4",
+      "check": "Coaching mode chip select persists conversation context for bTIRi badge",
+      "status": "pass",
+      "evidence": [
+        "frontend/src/hooks/useCoachingModeUpdate.ts — onModeSelect calls updateConversationCoachingMode",
+        "frontend/src/lib/chat/chatConversationsApi.ts — coaching_mode stored on onboarding conversation rows; read back via fetchConversationById",
+        "frontend/src/components/chat/ChatPanelMount.tsx — initialMode from conversationMeta?.coaching_mode; modeBadgeText drives bTIRi header"
+      ]
+    }
   ],
   "ui_evidence": [
-    { "bubble_id": "bTITZ", "selector": "[data-bubble-id='bTITZ']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHXbH", "selector": "[data-bubble-id='ai_RNbBHXbH']", "status": "pass" }
+    {
+      "bubble_id": "bTITZ",
+      "selector": "[data-bubble-id='bTITZ']",
+      "status": "pass",
+      "notes": "DS-06 send button in ChatComposer; form submit triggers ChatPanelMount handleSend → sendMessageWithAiReply"
+    },
+    {
+      "bubble_id": "ai_RNbBHXbH",
+      "selector": "[data-bubble-id='ai_RNbBHXbH']",
+      "status": "pass",
+      "notes": "New conversation button in ChatPageContent wired to useNewConversation.createNew"
+    },
+    {
+      "bubble_id": "bTImE",
+      "selector": null,
+      "status": "pass",
+      "notes": "Workflow entity (ButtonClicked bTImJ) — parity via useNewConversation + createConversation; no DOM marker required for API item"
+    },
+    {
+      "bubble_id": "bTInA",
+      "selector": null,
+      "status": "pass",
+      "notes": "Workflow action ChangePage with url_parameters — parity via chatRouteStore setConversationId setting ?conversation="
+    },
+    {
+      "bubble_id": "bTImV",
+      "selector": null,
+      "status": "pass",
+      "notes": "Workflow entity (LoggedOut bTIma) — parity via useChatSignOutClear clearing conversation search param on sign-out"
+    },
+    {
+      "bubble_id": "bTImb",
+      "selector": null,
+      "status": "pass",
+      "notes": "Workflow action ChangePage under bTIma — URL param clear achieves equivalent navigation reset for SPA routing"
+    }
   ],
   "gaps": [],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "integration",
+      "area": "functional",
+      "priority": "medium",
+      "finding": "updateConversationCoachingMode and touchConversationAfterMessage only persist via profiles.onboarding_data; when chatconversation table is present, coaching_mode and modified_date/preview side-effects do not round-trip on table rows.",
+      "alternative": "Mirror the try-table-then-fallback pattern used by createConversation: attempt chatconversation column/RPC update first, fall back to onboarding_data for prototype schema gaps.",
+      "evidence": [
+        "frontend/src/lib/chat/chatConversationsApi.ts — updateConversationCoachingMode",
+        "frontend/src/lib/chat/chatConversationsApi.ts — touchConversationAfterMessage",
+        "supabase — no chatconversation migration in prototype"
+      ]
+    },
+    {
+      "id": "C-2",
+      "area": "functional",
       "priority": "low",
-      "finding": "AI stream parser in chatAiReplyStub is best-effort; falls back to canned replies when edge function stream format differs.",
-      "alternative": "Adopt official AI SDK client parser or non-streaming endpoint when available.",
-      "evidence": ["frontend/src/lib/chat/chatAiReplyStub.ts"]
+      "finding": "useChatSignOutClear clears the ?conversation= URL param only; it does not reset composer local state or invalidate cached sidebar list — acceptable for SPA but narrower than Bubble bTIma store-reset semantics if in-memory chat state grows.",
+      "alternative": "On sign-out, also bump sidebar listVersion or reset chat module context if additional client caches are introduced.",
+      "evidence": [
+        "frontend/src/hooks/useChatSignOutClear.ts",
+        "ir/inventory.json — bTImV LoggedOut workflow"
+      ]
     }
   ],
-  "scores": { "completeness": 5, "grounding": 4, "actionability": 4 }
+  "scores": {
+    "completeness": 5,
+    "grounding": 4,
+    "actionability": 4
+  }
 }

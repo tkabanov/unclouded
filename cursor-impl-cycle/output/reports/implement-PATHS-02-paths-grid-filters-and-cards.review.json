@@ -1,19 +1,21 @@
 {
   "phase": "implement",
   "target_id": "PATHS-02-paths-grid-filters-and-cards",
-  "assessed_at": "2026-07-08T07:30:00.000Z",
+  "assessed_at": "2026-07-08T19:40:00.000Z",
   "ok": true,
   "coverage_pct": 100,
-  "coverage_confidence_pct": 92,
+  "coverage_confidence_pct": 88,
   "functional_ok": true,
   "criteria_audit": [
     {
       "id": "AC-1",
       "status": "pass",
       "evidence": [
-        "frontend/src/pages/Paths.tsx — ai_RNbBHYHE tabpanel hidden unless isMyPathsActive (bTIsz / my_paths_)",
-        "frontend/src/components/paths/PathsFilterRow.tsx — ai_RNbBHYHZ tier group, ai_RNbBHYHa label, ai_RNbBHYHb DD with TIER_LABELS / All Tiers",
-        "frontend/src/components/paths/PathsGridPanel.tsx — ai_RNbBHYHh recommended section with ai_RNbBHYHi/ai_RNbBHYHj indicator and ai_RNbBHYHk title"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/PathsGridPanel.tsx",
+        "frontend/src/components/paths/PathsFilterRow.tsx",
+        "frontend/src/lib/enums/tier.ts",
+        "frontend/src/lib/enums/pathPageTabs.ts"
       ],
       "gap": null
     },
@@ -21,9 +23,10 @@
       "id": "AC-2",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathCard.tsx — ai_RNbBHYHo cell DOM order: ai_RNbBHYHp header (badges ai_RNbBHYHr/Ht/Hw) → ai_RNbBHYHy body (ai_RNbBHYHz) → bTIvg progress (bTIva ProgressBar + bTIvt pct) → ai_RNbBHYIF footer (bTIvJ indicator, ai_RNbBHYIJ btn)",
-        "frontend/src/components/paths/PathsGridPanel.tsx — bTItY enrollment RG wrapper, ai_RNbBHYHn grid RG, bTJEI empty copy via PATHS_GRID_EMPTY_TEXT",
-        "frontend/src/components/paths/PathCard.tsx — ai_RNbBHYIJ uses data-style-ref Button_accent_ and bubbleStyle(Button_accent_) per IR style_ref:ai_RNbBHYIJ"
+        "frontend/src/components/paths/PathsGridPanel.tsx",
+        "frontend/src/components/paths/PathCard.tsx",
+        "frontend/src/components/design-system/ProgressBar.tsx",
+        "frontend/src/lib/paths/routes.ts"
       ],
       "gap": null
     },
@@ -31,9 +34,11 @@
       "id": "AC-3",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathsGridPanel.tsx — fetchPathEnrollments(userId, onboardingData) feeds grid; matchesTierFilter on enrollment.tier",
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts — PathEnrollmentListItem carries tier/pillar/progressPercent; fetchPathEnrollments with table + onboarding fallback",
-        "frontend/src/components/paths/PathCard.tsx — bTIvP status via PATH_ENROLLMENT_STATUS_LABELS (ENUM-03)"
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/components/paths/PathsGridPanel.tsx",
+        "frontend/src/components/paths/PathsFilterRow.tsx",
+        "frontend/src/lib/enums/pathEnrollment.ts"
       ],
       "gap": null
     }
@@ -41,16 +46,17 @@
   "functional_audit": [
     {
       "id": "FV-1",
-      "check": "My Paths grid loads enrolled paths from pathenrollment1 (or onboarding fallback) and renders PathCard rows",
+      "check": "My Paths grid loads enrolled paths from pathenrollment1 (bTItY parity) via PathsEnrollmentProvider",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathsGridPanel.tsx",
-        "frontend/src/lib/dashboard/pathEnrollmentApi.ts"
+        "frontend/src/lib/paths/pathsEnrollmentStore.ts",
+        "frontend/src/lib/dashboard/pathEnrollmentApi.ts",
+        "frontend/src/components/paths/PathsGridPanel.tsx"
       ]
     },
     {
       "id": "FV-2",
-      "check": "Tier dropdown filters visible cards by selected ENUM-04 tier_os value",
+      "check": "Tier dropdown filters visible path cards by selected ENUM-04 tier_os value",
       "status": "pass",
       "evidence": [
         "frontend/src/components/paths/PathsFilterRow.tsx",
@@ -59,92 +65,209 @@
     },
     {
       "id": "FV-3",
-      "check": "View Path CTA navigates to path detail or invokes onViewDetails callback",
+      "check": "View Path button opens path detail flow with enrollment parent data (not dead handler)",
       "status": "pass",
       "evidence": [
         "frontend/src/components/paths/PathCard.tsx",
-        "frontend/src/components/paths/PathsGridPanel.tsx"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/components/paths/PathDetailPopup.tsx"
       ]
     },
     {
       "id": "FV-4",
-      "check": "Empty enrollment list shows IR bTJEI copy, not placeholder text",
+      "check": "Guided grid panel mounts only when path_page_tab_os is my_paths_ (PATHS-01 AC-4 sibling rule)",
       "status": "pass",
       "evidence": [
-        "frontend/src/components/paths/PathsGridPanel.tsx",
-        "frontend/src/lib/paths/routes.ts"
+        "frontend/src/pages/Paths.tsx",
+        "frontend/src/lib/paths/pathsTabStore.ts"
       ]
     }
   ],
-  "rewrite_verification": [
-    {
-      "prior_id": "C-1",
-      "status": "fixed",
-      "evidence": "PathCard.tsx lines 52–149: header → body → bTIvg progress → footer; matches IR cell child order (order 1/2/4/6)"
-    },
-    {
-      "prior_id": "C-2",
-      "status": "fixed",
-      "evidence": "routes.ts PATHS_GRID_EMPTY_TEXT = \"You haven't enrolled in any path yet\"; PathsGridPanel renders bTJEI marker with Text_body_ style"
-    },
-    {
-      "prior_id": "C-3",
-      "status": "fixed",
-      "evidence": "PathCard ai_RNbBHYIJ uses data-style-ref=\"Button_accent_\" and bubbleStyle(Button_accent_); confirmed IR style_ref:ai_RNbBHYIJ → Button_accent_"
-    }
-  ],
   "ui_evidence": [
-    { "bubble_id": "ai_RNbBHYHE", "selector": "[data-bubble-id='ai_RNbBHYHE']", "status": "pass", "notes": "On Paths.tsx tabpanel wrapper" },
-    { "bubble_id": "ai_RNbBHYHF", "selector": "[data-bubble-id='ai_RNbBHYHF']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHZ", "selector": "[data-bubble-id='ai_RNbBHYHZ']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHb", "selector": "[data-bubble-id='ai_RNbBHYHb']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHh", "selector": "[data-bubble-id='ai_RNbBHYHh']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHi", "selector": "[data-bubble-id='ai_RNbBHYHi']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHk", "selector": "[data-bubble-id='ai_RNbBHYHk']", "status": "pass" },
-    { "bubble_id": "bTItY", "selector": "[data-bubble-id='bTItY']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHn", "selector": "[data-bubble-id='ai_RNbBHYHn']", "status": "pass" },
-    { "bubble_id": "bTJEI", "selector": "[data-bubble-id='bTJEI']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHo", "selector": "[data-bubble-id='ai_RNbBHYHo']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHp", "selector": "[data-bubble-id='ai_RNbBHYHp']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHq", "selector": "[data-bubble-id='ai_RNbBHYHq']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHr", "selector": "[data-bubble-id='ai_RNbBHYHr']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHt", "selector": "[data-bubble-id='ai_RNbBHYHt']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHv", "selector": "[data-bubble-id='ai_RNbBHYHv']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHw", "selector": "[data-bubble-id='ai_RNbBHYHw']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHy", "selector": "[data-bubble-id='ai_RNbBHYHy']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYHz", "selector": "[data-bubble-id='ai_RNbBHYHz']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYIF", "selector": "[data-bubble-id='ai_RNbBHYIF']", "status": "pass" },
-    { "bubble_id": "bTIvJ", "selector": "[data-bubble-id='bTIvJ']", "status": "pass" },
-    { "bubble_id": "bTIvO", "selector": "[data-bubble-id='bTIvO']", "status": "pass" },
-    { "bubble_id": "bTIvP", "selector": "[data-bubble-id='bTIvP']", "status": "pass" },
-    { "bubble_id": "ai_RNbBHYIJ", "selector": "[data-bubble-id='ai_RNbBHYIJ']", "status": "pass" },
-    { "bubble_id": "bTIva", "selector": "[data-bubble-id='bTIva']", "status": "pass" },
-    { "bubble_id": "bTIvt", "selector": "[data-bubble-id='bTIvt']", "status": "pass" },
-    { "bubble_id": "Group_card_", "selector": "[data-style-ref='Group_card_']", "status": "pass", "notes": "On PathCard article root" }
+    {
+      "bubble_id": "ai_RNbBHYHE",
+      "selector": "[data-bubble-id='ai_RNbBHYHE']",
+      "status": "pass",
+      "notes": "Marker on Paths.tsx tabpanel wrapper; PathsGridPanel nests inside bTJDr child"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHF",
+      "selector": "[data-bubble-id='ai_RNbBHYHF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHZ",
+      "selector": "[data-bubble-id='ai_RNbBHYHZ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHb",
+      "selector": "[data-bubble-id='ai_RNbBHYHb']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHh",
+      "selector": "[data-bubble-id='ai_RNbBHYHh']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHi",
+      "selector": "[data-bubble-id='ai_RNbBHYHi']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHk",
+      "selector": "[data-bubble-id='ai_RNbBHYHk']",
+      "status": "pass",
+      "notes": "Title uses PATH_PAGE_TAB_LABELS My Paths — matches IR path_page_tab_os display"
+    },
+    {
+      "bubble_id": "bTItY",
+      "selector": "[data-bubble-id='bTItY']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHn",
+      "selector": "[data-bubble-id='ai_RNbBHYHn']",
+      "status": "pass",
+      "notes": "Responsive columns via Tailwind md:grid-cols-2; ai_RNbBHYLA wrapper not separately marked"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHo",
+      "selector": "[data-bubble-id='ai_RNbBHYHo']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHp",
+      "selector": "[data-bubble-id='ai_RNbBHYHp']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHq",
+      "selector": "[data-bubble-id='ai_RNbBHYHq']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHr",
+      "selector": "[data-bubble-id='ai_RNbBHYHr']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHt",
+      "selector": "[data-bubble-id='ai_RNbBHYHt']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHv",
+      "selector": "[data-bubble-id='ai_RNbBHYHv']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHw",
+      "selector": "[data-bubble-id='ai_RNbBHYHw']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHy",
+      "selector": "[data-bubble-id='ai_RNbBHYHy']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYHz",
+      "selector": "[data-bubble-id='ai_RNbBHYHz']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYIF",
+      "selector": "[data-bubble-id='ai_RNbBHYIF']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIvJ",
+      "selector": "[data-bubble-id='bTIvJ']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIvO",
+      "selector": "[data-bubble-id='bTIvO']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "bTIvP",
+      "selector": "[data-bubble-id='bTIvP']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "ai_RNbBHYIJ",
+      "selector": "[data-bubble-id='ai_RNbBHYIJ']",
+      "status": "pass",
+      "notes": "IR copy View Path confirmed in drsam-99657.bubble; Button_accent_ style_ref applied"
+    },
+    {
+      "bubble_id": "bTIva",
+      "selector": "[data-bubble-id='bTIva']",
+      "status": "pass",
+      "notes": "Wrapper on PathCard; inner DS-02 ProgressBar renders reusable bTIuS subtree"
+    },
+    {
+      "bubble_id": "bTIvt",
+      "selector": "[data-bubble-id='bTIvt']",
+      "status": "pass"
+    },
+    {
+      "bubble_id": "Group_card_",
+      "selector": "[data-style-ref='Group_card_']",
+      "status": "pass"
+    }
   ],
   "gaps": [],
   "blockers": [],
   "critiques": [
     {
       "id": "C-1",
-      "area": "ui-fidelity",
-      "priority": "low",
-      "finding": "layout_notes reference ai_RNbBHYLA responsive column-state breakpoint behavior; implementation uses a static grid-cols-1 md:grid-cols-2 without the IR column-state marker or Bubble breakpoint wiring.",
-      "alternative": "Add ai_RNbBHYLA data-bubble-id on the grid container and mirror Bubble column count via a useMediaQuery hook when pixel parity matters.",
-      "evidence": ["cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json", "frontend/src/components/paths/PathsGridPanel.tsx"]
+      "area": "coverage-grounding",
+      "priority": "medium",
+      "finding": "Coverage files_changed omits PathsFilterRow.tsx even though AC-1 depends on tier filter row implementation.",
+      "alternative": "Add frontend/src/components/paths/PathsFilterRow.tsx to files_changed for audit traceability.",
+      "evidence": [
+        "cursor-impl-cycle/output/coverage/PATHS-02-paths-grid-filters-and-cards.json",
+        "frontend/src/components/paths/PathsFilterRow.tsx"
+      ]
     },
     {
       "id": "C-2",
       "area": "ui-fidelity",
       "priority": "low",
-      "finding": "Tier-filter no-match empty state (\"No paths match the selected tier.\") has no IR bubble-id marker; only the zero-enrollment bTJEI case is IR-grounded.",
-      "alternative": "If Bubble defines a distinct element for filtered-empty, add its bubble-id; otherwise document as intentional React-only UX.",
+      "finding": "bTIva instance wrapper nests DS-02 ProgressBar root bTIuS/bTIua/bTIuZ, producing duplicate progress-bar bubble subtrees versus IR single CustomElement instance.",
+      "alternative": "Pass bubbleId prop into ProgressBar so the instance marker lands on the reusable root when embedded in path cards.",
+      "evidence": [
+        "frontend/src/components/paths/PathCard.tsx",
+        "frontend/src/components/design-system/ProgressBar.tsx"
+      ]
+    },
+    {
+      "id": "C-3",
+      "area": "ui-fidelity",
+      "priority": "low",
+      "finding": "layout_notes reference ai_RNbBHYLA responsive column state; implementation applies breakpoints directly on ai_RNbBHYHn without a distinct ai_RNbBHYLA marker.",
+      "alternative": "Wrap grid in a data-bubble-id ai_RNbBHYLA container if parity tooling expects that intermediate group.",
+      "evidence": [
+        "cursor-impl-cycle/output/decompose/MOD-DRSAM-PATHS.json",
+        "frontend/src/components/paths/PathsGridPanel.tsx"
+      ]
+    },
+    {
+      "id": "C-4",
+      "area": "copy",
+      "priority": "low",
+      "finding": "Tier-filter zero-results message No paths match the selected tier is ad-hoc copy not present in IR bTJEI empty-state text.",
+      "alternative": "Extract to routes constant or confirm Bubble has equivalent conditional empty copy for filtered-not-empty enrollments.",
       "evidence": ["frontend/src/components/paths/PathsGridPanel.tsx"]
     }
   ],
   "scores": {
     "completeness": 5,
-    "grounding": 5,
+    "grounding": 4,
     "actionability": 4
   }
 }

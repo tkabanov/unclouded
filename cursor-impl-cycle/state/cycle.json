@@ -1,9 +1,9 @@
 {
   "active": false,
-  "phase": "implement",
-  "gate_stage": "write",
-  "current_module_id": "MOD-DRSAM-AUTH",
-  "current_item_id": "AUTH-01-index-login-entry",
+  "phase": "complete",
+  "gate_stage": "review",
+  "current_module_id": null,
+  "current_item_id": null,
   "modules": [
     {
       "id": "MOD-DRSAM-AUTH",
@@ -424,7 +424,9 @@
             "frontend/src/features/dashboard/DashboardMain.vue",
             "frontend/src/pages/DashboardPage.vue",
             "frontend/src/features/dashboard/useDashboardUser.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "DASH-02-greeting-coaching-quick-actions",
@@ -442,7 +444,9 @@
             "frontend/src/features/dashboard/DashboardGreetingCard.vue",
             "frontend/src/features/dashboard/DashboardQuickActions.vue",
             "frontend/src/features/dashboard/coachingModeApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "DASH-03-micro-commitments-widget",
@@ -458,13 +462,15 @@
           "target_files": [
             "frontend/src/features/dashboard/DashboardMicroCommitments.vue",
             "frontend/src/features/dashboard/microCommitmentsApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "DASH-04-daily-checkin-card",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 2,
           "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
@@ -473,13 +479,15 @@
           "target_files": [
             "frontend/src/features/dashboard/DashboardCheckinCard.vue",
             "frontend/src/features/dashboard/checkinApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "DASH-05-insights-and-path-cards",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
@@ -492,13 +500,15 @@
             "frontend/src/features/dashboard/DashboardInsightsCard.vue",
             "frontend/src/features/dashboard/DashboardCurrentPathCard.vue",
             "frontend/src/features/dashboard/pathEnrollmentApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "DASH-06-chat-and-journal-previews",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 2,
           "coverage_pct": 100,
           "depends_on": [
             "DASH-01-dashboard-content-scaffold",
@@ -511,7 +521,9 @@
             "frontend/src/features/dashboard/DashboardJournalPreviewCard.vue",
             "frontend/src/features/dashboard/chatPreviewApi.ts",
             "frontend/src/features/dashboard/journalPreviewApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "DASH-07-crisis-onboarding-services-overlays",
@@ -530,7 +542,9 @@
             "frontend/src/features/dashboard/CrisisSupportCard.vue",
             "frontend/src/features/dashboard/ContinueOnboardingBanner.vue",
             "frontend/src/features/dashboard/ServicesFloatingPanel.vue"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         }
       ],
       "decompose_gate": "triage",
@@ -679,7 +693,9 @@
             "frontend/src/features/paths/pathsTabStore.ts",
             "frontend/src/features/paths/components/PathsPageHeader.vue",
             "frontend/src/features/paths/components/PathsTabBar.vue"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "PATHS-02-paths-grid-filters-and-cards",
@@ -697,7 +713,9 @@
             "frontend/src/features/paths/components/PathsGridPanel.vue",
             "frontend/src/features/paths/components/PathCard.vue",
             "frontend/src/features/paths/components/PathsFilterRow.vue"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "PATHS-03-path-detail-enrollment-popup",
@@ -714,7 +732,9 @@
           "target_files": [
             "frontend/src/features/paths/components/PathDetailPopup.vue",
             "frontend/src/features/paths/pathsEnrollmentApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "PATHS-04-paths-resources-panel",
@@ -730,20 +750,24 @@
             "frontend/src/features/paths/components/PathsResourcesPanel.vue",
             "frontend/src/features/paths/components/ResourceCard.vue",
             "frontend/src/features/paths/pathsResourcesApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "PATHS-05-resource-detail-popup",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 1,
+          "implement_iteration": 3,
           "coverage_pct": 100,
           "depends_on": [
             "PATHS-04-paths-resources-panel"
           ],
           "target_files": [
             "frontend/src/features/paths/components/ResourceDetailPopup.vue"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "PATHS-06-enrollment-floating-services-bar",
@@ -759,7 +783,9 @@
             "frontend/src/features/paths/components/EnrollmentFloatingBar.vue",
             "frontend/src/features/paths/pathsEnrollmentStore.ts",
             "frontend/src/features/paths/pathsEnrollmentApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "PATHS-07-session-completion-route-integration",
@@ -777,7 +803,9 @@
             "frontend/src/features/paths/components/SessionCompletionRoute.vue",
             "frontend/src/features/paths/pathsSessionApi.ts",
             "frontend/src/features/paths/useSessionCompletionRoute.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         }
       ],
       "decompose_gate": "triage",
@@ -791,7 +819,7 @@
           "id": "CHAT-01-chat-content-layout",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "SHELL-10-chat-page-shell",
@@ -800,7 +828,9 @@
           "target_files": [
             "frontend/src/features/chat/ChatPageContent.vue",
             "frontend/src/pages/ChatPage.vue"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "CHAT-02-conversation-thread-sidebar",
@@ -818,7 +848,9 @@
             "frontend/src/features/chat/chatConversationsApi.ts",
             "frontend/src/features/chat/chatRouteStore.ts",
             "frontend/src/features/chat/useEmptyConversationBootstrap.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "CHAT-03-chat-reusable-panel-mount",
@@ -836,7 +868,9 @@
           "target_files": [
             "frontend/src/features/chat/ChatPanelMount.vue",
             "frontend/src/features/chat/useChatConversationParam.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "CHAT-04-delete-conversation-popup",
@@ -851,13 +885,15 @@
           "target_files": [
             "frontend/src/features/chat/DeleteConversationPopup.vue",
             "frontend/src/features/chat/chatConversationsApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "CHAT-05-chat-messaging-and-create-flow",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "CHAT-03-chat-reusable-panel-mount",
@@ -869,13 +905,15 @@
             "frontend/src/features/chat/chatAiReplyStub.ts",
             "frontend/src/features/chat/useNewConversation.ts",
             "frontend/src/features/chat/useCoachingModeUpdate.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "CHAT-06-chat-welcome-empty-state",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 2,
+          "implement_iteration": 3,
           "coverage_pct": 100,
           "depends_on": [
             "CHAT-01-chat-content-layout",
@@ -884,7 +922,9 @@
           "target_files": [
             "frontend/src/features/chat/ChatWelcomePanel.vue",
             "frontend/src/features/chat/ChatSuggestionCard.vue"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         }
       ],
       "decompose_gate": "triage",
@@ -934,13 +974,15 @@
             "frontend/src/features/settings/SettingsTabBar.vue",
             "frontend/src/features/settings/settingsTabStore.ts",
             "frontend/src/pages/SettingsPage.vue"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-02-profile-tab-and-save",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
@@ -949,13 +991,15 @@
           "target_files": [
             "frontend/src/features/settings/SettingsProfileTab.vue",
             "frontend/src/features/settings/profileApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-03-coaching-tab-and-save",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
@@ -965,13 +1009,15 @@
           "target_files": [
             "frontend/src/features/settings/SettingsCoachingTab.vue",
             "frontend/src/features/settings/coachingPreferencesApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-04-privacy-tab-and-delete-flow",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 2,
           "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
@@ -981,13 +1027,15 @@
             "frontend/src/features/settings/SettingsPrivacyTab.vue",
             "frontend/src/features/settings/DeleteConfirmPopup.vue",
             "frontend/src/features/settings/privacyApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-05-security-tab-and-password-flow",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 4,
           "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
@@ -996,13 +1044,15 @@
           "target_files": [
             "frontend/src/features/settings/SettingsSecurityTab.vue",
             "frontend/src/features/settings/securityApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-06-notifications-tab-and-save",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
@@ -1011,7 +1061,9 @@
           "target_files": [
             "frontend/src/features/settings/SettingsNotificationsTab.vue",
             "frontend/src/features/settings/notificationsApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-07-subscription-tab-and-billing",
@@ -1028,13 +1080,15 @@
             "frontend/src/features/settings/SettingsSubscriptionTab.vue",
             "frontend/src/features/settings/SubscriptionPlanCard.vue",
             "frontend/src/features/settings/subscriptionApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-08-workplace-tab-and-link-flow",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 2,
           "coverage_pct": 100,
           "depends_on": [
             "SET-01-settings-tab-router-and-header",
@@ -1043,7 +1097,9 @@
           "target_files": [
             "frontend/src/features/settings/SettingsWorkplaceTab.vue",
             "frontend/src/features/settings/workplaceApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-09-admin-paths-and-resources",
@@ -1064,13 +1120,15 @@
             "frontend/src/features/settings/admin/AddResourcePopup.vue",
             "frontend/src/features/settings/admin/adminPathsApi.ts",
             "frontend/src/features/settings/admin/adminResourcesApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "SET-10-admin-plans-workplaces-analytics",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "SET-09-admin-paths-and-resources",
@@ -1086,7 +1144,9 @@
             "frontend/src/features/settings/admin/adminPlansApi.ts",
             "frontend/src/features/settings/admin/adminWorkplacesApi.ts",
             "frontend/src/features/settings/admin/adminAnalyticsApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         }
       ],
       "decompose_gate": "triage",
@@ -1114,13 +1174,15 @@
             "frontend/src/api/userProfile/calculateUserAlignment.ts",
             "frontend/src/api/userProfile/calculateUserPerformance.ts",
             "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "API-02-user-classification",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 2,
           "coverage_pct": 100,
           "depends_on": [
             "API-01-pillar-score-engine",
@@ -1130,13 +1192,15 @@
             "frontend/src/api/userProfile/classifyUser.ts",
             "frontend/src/api/userProfile/calculateUserClassification.ts",
             "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "API-03-pressure-profile",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 2,
           "coverage_pct": 100,
           "depends_on": [
             "AUTH-05-onboarding-health-load-signals",
@@ -1147,13 +1211,15 @@
             "frontend/src/api/userProfile/buildPressureProfile.ts",
             "frontend/src/api/userProfile/calculateUserPressureProfile.ts",
             "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "API-04-behavioral-fingerprint",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "API-03-pressure-profile",
@@ -1163,13 +1229,15 @@
             "frontend/src/api/userProfile/buildBehavioralFingerprint.ts",
             "frontend/src/api/userProfile/calculateUserBehavioralFingerprint.ts",
             "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "API-05-ai-coaching-mode-assignment",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "API-04-behavioral-fingerprint",
@@ -1180,13 +1248,15 @@
             "frontend/src/api/userProfile/assignAiCoachingModes.ts",
             "frontend/src/api/userProfile/calculateUserAiCoachingMode.ts",
             "frontend/src/api/userProfile/onboardingProfilePipeline.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         },
         {
           "id": "API-06-ai-confidence-level-trigger",
           "implement_passes": true,
           "implement_gate": "triage",
-          "implement_iteration": 0,
+          "implement_iteration": 1,
           "coverage_pct": 100,
           "depends_on": [
             "PATHS-07-session-completion-route-integration",
@@ -1197,17 +1267,20 @@
             "frontend/src/api/userProfile/resolveAiConfidenceLevel.ts",
             "frontend/src/api/userProfile/userProfileHooks.ts",
             "frontend/src/features/paths/pathsSessionApi.ts"
-          ]
+          ],
+          "reopen_reason": "independent-audit re-review",
+          "re_review_wave": 3
         }
       ],
       "decompose_gate": "triage",
       "decompose_iteration": 0
     }
   ],
-  "iteration": 104,
+  "iteration": 158,
   "target_iteration": 0,
   "started_at": "2026-07-07T14:31:00.000Z",
-  "completed_at": "2026-07-08T17:05:00.000Z",
-  "last_checked_at": "2026-07-08T17:05:00.000Z",
-  "closeout_ref": "cursor-impl-cycle/output/reports/final-closeout-wave-summary.json"
+  "last_checked_at": "2026-07-09T08:35:47.287Z",
+  "wave": 3,
+  "wave_started_at": "2026-07-08T18:49:01.713Z",
+  "re_review_ref": "cursor-impl-cycle/state/re-review-manifest.json"
 }

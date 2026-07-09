@@ -66,3 +66,15 @@ export const AI_CONFIDENCE_LEVEL_ORDER: readonly AiConfidenceLevelSlug[] = [
   AI_CONFIDENCE_LEVEL.GUIDED,
   AI_CONFIDENCE_LEVEL.DIRECT,
 ];
+
+/** Bubble ai_confidence_level_os range_contains_point bounds (bTIFK–bTIFQ). */
+export const AI_CONFIDENCE_LEVEL_RANGES: readonly {
+  slug: AiConfidenceLevelSlug;
+  min: number;
+  max: number;
+}[] = [
+  { slug: AI_CONFIDENCE_LEVEL.EXPLORATORY, min: 0, max: 0 }, // bTIFK
+  { slug: AI_CONFIDENCE_LEVEL.EXPLORATORY_PLUS, min: 1, max: 2 }, // bTIFO
+  { slug: AI_CONFIDENCE_LEVEL.GUIDED, min: 3, max: 4 }, // bTIFP
+  { slug: AI_CONFIDENCE_LEVEL.DIRECT, min: 5, max: 6 }, // bTIFQ
+];

@@ -2,15 +2,19 @@ import { supabase } from "@/integrations/supabase/client";
 
 const NOTIFICATION_FREQUENCY_KEY = "notification_frequency_text";
 
+/** Bubble ai_RNbBHYYG choices — stored as display text in notification_frequency_text. */
 export const NOTIFICATION_FREQUENCY_OPTIONS = [
-  { value: "daily", label: "Daily digest" },
-  { value: "weekly", label: "Weekly summary" },
-  { value: "important_only", label: "Important only" },
-  { value: "off", label: "Off" },
+  "Daily — remind me every day",
+  "Weekly — remind me once a week",
+  "Never — I'll check in on my own",
 ] as const;
 
-export type NotificationFrequency =
-  (typeof NOTIFICATION_FREQUENCY_OPTIONS)[number]["value"];
+export type NotificationFrequency = (typeof NOTIFICATION_FREQUENCY_OPTIONS)[number];
+
+export const NOTIFICATION_FREQUENCY_PLACEHOLDER = "Select frequency" as const;
+
+export const NOTIFICATION_FREQUENCY_DEFAULT: NotificationFrequency =
+  "Weekly — remind me once a week";
 
 export async function loadNotificationFrequency(userId: string): Promise<NotificationFrequency> {
   const { data, error } = await supabase
@@ -24,8 +28,10 @@ export async function loadNotificationFrequency(userId: string): Promise<Notific
   const onboarding =
     (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
   const raw = onboarding[NOTIFICATION_FREQUENCY_KEY];
-  const match = NOTIFICATION_FREQUENCY_OPTIONS.find((option) => option.value === raw);
-  return match?.value ?? "weekly";
+  if (typeof raw === "string" && NOTIFICATION_FREQUENCY_OPTIONS.includes(raw as NotificationFrequency)) {
+    return raw as NotificationFrequency;
+  }
+  return NOTIFICATION_FREQUENCY_DEFAULT;
 }
 
 export async function saveNotificationFrequency(

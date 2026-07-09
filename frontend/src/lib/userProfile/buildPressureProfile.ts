@@ -1,63 +1,52 @@
-/** Bubble custom event bTIAw — load signals + nervous system → pressure profile text. */
+/** Bubble custom event bTIAw — load_signal_list + state_nervous_system → pressure profile text. */
 
-const LOAD_SEVERITY: Record<string, number> = {
-  manageable: 1,
-  mild: 1,
-  stable: 1,
-  secure: 1,
-  mind_feels_clear_most_of_the_time: 1,
-  relationships_feel_mostly_supportive: 1,
-  life_feels_mostly_manageable: 1,
-  financial_situation_feels_stable: 1,
-  moderate: 2,
-  some_strain: 2,
-  noticeable: 2,
-  tight: 2,
-  some_noise_but_manageable: 2,
-  some_friction_but_manageable: 2,
-  stretched_but_coping: 2,
-  some_financial_worry_but_not_consuming: 2,
-  heavy: 3,
-  significant: 3,
-  high: 3,
-  stressed: 3,
-  head_rarely_feels_quiet___constant: 3,
-  significant_conflict_or_strain_in_key_relationships: 3,
-  overwhelmed_by_practical_demands: 3,
-  financial_stress_is_significant_daily_presence: 3,
-  overwhelming: 4,
-  severe: 4,
-  crisis: 4,
-  critical: 4,
-};
+import {
+  getLoadSignalAnswerMeta,
+  LOAD_SIGNAL_HIGH_INTENSITY_TEXT,
+  LOAD_SIGNAL_QUESTIONS,
+} from "@/lib/enums/onboardingQuestions";
+import {
+  STATE_NERVOUS_SYSTEM,
+  STATE_NERVOUS_SYSTEM_LABELS,
+  type StateNervousSystemSlug,
+} from "@/lib/enums/wellnessState";
 
-const STATE_SEVERITY: Record<string, number> = {
-  grounded: 1,
-  regulated: 1,
-  wired: 3,
-  depleted: 4,
-  shut_down: 4,
-  strong: 1,
-  moderate: 2,
-  low: 3,
-};
-
-function averageSeverity(values: Record<string, string>, map: Record<string, number>): number {
-  const scores = Object.values(values).map((value) => map[value] ?? 2);
-  if (scores.length === 0) return 2;
-  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+function nervousSystemDisplay(slug: string): string {
+  return STATE_NERVOUS_SYSTEM_LABELS[slug as StateNervousSystemSlug] ?? slug;
 }
 
+/**
+ * Resolves pressure profile text matching bTIAw / bTIBB branch logic.
+ * @param loadSignalSlugs — answer slugs in LOAD_SIGNAL_QUESTIONS field order
+ * @param nervousSystemSlug — state_nervous_system_os slug (wired, regulated, depleted, shut_down)
+ */
 export function resolvePressureProfile(
-  loadSignals: Record<string, string>,
-  stateSignals: Record<string, string>,
+  loadSignalSlugs: string[],
+  nervousSystemSlug: string,
 ): string {
-  const avgLoad = averageSeverity(loadSignals, LOAD_SEVERITY);
-  const avgState = averageSeverity(stateSignals, STATE_SEVERITY);
-  const combined = (avgLoad + avgState) / 2;
+  const highIntensityTexts: string[] = [];
 
-  if (combined >= 3.5) return "System Overload";
-  if (combined >= 2.5) return "Elevated Pressure";
-  if (combined >= 1.5) return "Moderate Load";
-  return "Manageable Load";
+  for (const question of LOAD_SIGNAL_QUESTIONS) {
+    const slug = loadSignalSlugs.find((candidate) =>
+      question.answers.some((answer) => answer.slug === candidate),
+    );
+    if (!slug) continue;
+
+    const meta = getLoadSignalAnswerMeta(slug);
+    if (meta?.intensity === "high") {
+      highIntensityTexts.push(LOAD_SIGNAL_HIGH_INTENSITY_TEXT[meta.loadType]);
+    }
+  }
+
+  const nervousDisplay = nervousSystemDisplay(nervousSystemSlug);
+
+  if (highIntensityTexts.length > 0) {
+    return `${highIntensityTexts.join(" + ")} + ${nervousDisplay} Nervous System`;
+  }
+
+  if (nervousSystemSlug === STATE_NERVOUS_SYSTEM.WIRED) {
+    return "Low External Load / Wired Nervous System — investigate in session";
+  }
+
+  return `Low Pressure / ${nervousDisplay} Nervous System`;
 }
