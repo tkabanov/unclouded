@@ -1,10 +1,16 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { createConversation } from "@/lib/chat/chatConversationsApi";
+import {
+  canStartNewChatSession,
+  FREE_TIER_UPSELL_MESSAGE,
+} from "@/lib/chat/chatSessionLimit";
 
 interface UseNewConversationOptions {
   userId: string | undefined;
   onboardingData?: Record<string, unknown> | null;
+  tier?: string | null;
+  subscribed?: boolean | null;
   setConversationId: (id: string | null) => void;
   onCreated?: () => void;
 }
@@ -15,6 +21,8 @@ interface UseNewConversationOptions {
 export function useNewConversation({
   userId,
   onboardingData,
+  tier,
+  subscribed,
   setConversationId,
   onCreated,
 }: UseNewConversationOptions) {
@@ -22,6 +30,18 @@ export function useNewConversation({
 
   const createNew = useCallback(async () => {
     if (!userId || creating) return;
+
+    if (
+      !canStartNewChatSession({
+        tier,
+        subscribed,
+        onboardingData,
+      })
+    ) {
+      toast.error(FREE_TIER_UPSELL_MESSAGE);
+      return;
+    }
+
     setCreating(true);
     try {
       const created = await createConversation(userId, onboardingData ?? null);
@@ -32,7 +52,7 @@ export function useNewConversation({
     } finally {
       setCreating(false);
     }
-  }, [creating, onboardingData, onCreated, setConversationId, userId]);
+  }, [creating, onboardingData, onCreated, setConversationId, subscribed, tier, userId]);
 
   return { createNew, creating };
 }

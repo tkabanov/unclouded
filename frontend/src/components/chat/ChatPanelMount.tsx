@@ -8,6 +8,7 @@ import {
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
 import { generateAiReplyStub, type ChatAiProfileData, ChatEdgeError } from "@/lib/chat/chatAiReplyStub";
+import { FREE_TIER_UPSELL_MESSAGE } from "@/lib/chat/chatSessionLimit";
 import { touchConversationAfterMessage } from "@/lib/chat/chatConversationsApi";
 import {
   fetchMessagesForConversation,
@@ -56,7 +57,9 @@ export default function ChatPanelMount({
   const [awaitingAssistantReply, setAwaitingAssistantReply] = useState(false);
   const [awaitingCommitment, setAwaitingCommitment] = useState(false);
   const [sessionClosed, setSessionClosed] = useState(false);
+  const [sessionLimitBlocked, setSessionLimitBlocked] = useState(false);
   const openerSentForConversation = useRef<string | null>(null);
+  const sessionLimitToastShown = useRef(false);
 
   const modeBadgeText = useMemo(
     () => formatChatModeBadgeText(readPreferredCoachingMode(onboardingData)),
@@ -87,7 +90,9 @@ export default function ChatPanelMount({
   useEffect(() => {
     setAwaitingCommitment(false);
     setSessionClosed(false);
+    setSessionLimitBlocked(false);
     openerSentForConversation.current = null;
+    sessionLimitToastShown.current = false;
   }, [conversationId]);
 
   const sendAssistantMessage = useCallback(
@@ -119,10 +124,14 @@ export default function ChatPanelMount({
         const openingText = await requestSessionOpening(profileData, context, conversationId);
         await sendAssistantMessage(openingText, []);
       } catch (error) {
-        openerSentForConversation.current = null;
         if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
-          toast.error(error.message);
+          setSessionLimitBlocked(true);
+          if (!sessionLimitToastShown.current) {
+            sessionLimitToastShown.current = true;
+            toast.error(error.message);
+          }
         } else {
+          openerSentForConversation.current = null;
           toast.error("Couldn't start the session. Send a message when you're ready.");
         }
       } finally {
@@ -219,7 +228,11 @@ export default function ChatPanelMount({
           await sendAssistantMessage(assistantText, threadForAi);
         } catch (error) {
           if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
-            toast.error(error.message);
+            setSessionLimitBlocked(true);
+            if (!sessionLimitToastShown.current) {
+              sessionLimitToastShown.current = true;
+              toast.error(error.message);
+            }
           } else {
             toast.error("Couldn't get a reply. Please try again.");
           }
@@ -290,20 +303,27 @@ export default function ChatPanelMount({
           Loading conversation…
         </div>
       ) : (
-        <ChatReusable
-          conversation={conversation}
-          messages={messages}
-          composerValue={composerValue}
-          onComposerChange={setComposerValue}
-          onSend={handleSend}
-          onSuggestionSend={handleSuggestionSend}
-          composerDisabled={awaitingAssistantReply || sessionClosed}
-          isAssistantTyping={awaitingAssistantReply}
-          onEndSession={sessionClosed ? undefined : () => void handleEndSession()}
-          endSessionDisabled={awaitingAssistantReply || messages.length === 0}
-          endSessionLabel={awaitingCommitment ? "Waiting for commitment…" : "End session"}
-          className="flex-1 min-h-0"
-        />
+        <>
+          {sessionLimitBlocked ? (
+            <div className="border-b border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+              {FREE_TIER_UPSELL_MESSAGE}
+            </div>
+          ) : null}
+          <ChatReusable
+            conversation={conversation}
+            messages={messages}
+            composerValue={composerValue}
+            onComposerChange={setComposerValue}
+            onSend={handleSend}
+            onSuggestionSend={handleSuggestionSend}
+            composerDisabled={awaitingAssistantReply || sessionClosed || sessionLimitBlocked}
+            isAssistantTyping={awaitingAssistantReply}
+            onEndSession={sessionClosed ? undefined : () => void handleEndSession()}
+            endSessionDisabled={awaitingAssistantReply || messages.length === 0}
+            endSessionLabel={awaitingCommitment ? "Waiting for commitment…" : "End session"}
+            className="flex-1 min-h-0"
+          />
+        </>
       )}
     </div>
   );

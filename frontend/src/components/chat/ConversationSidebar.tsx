@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 export interface ConversationSidebarProps {
   userId: string | undefined;
   onboardingData?: Record<string, unknown> | null;
+  tier?: string | null;
+  subscribed?: boolean | null;
   onRenameRequest: (conversation: ConversationListItem) => void;
   onDeleteRequest: (conversation: ConversationListItem) => void;
   listVersion?: number;
@@ -21,6 +23,8 @@ export interface ConversationSidebarProps {
 export default function ConversationSidebar({
   userId,
   onboardingData,
+  tier,
+  subscribed,
   onRenameRequest,
   onDeleteRequest,
   listVersion = 0,
@@ -64,6 +68,8 @@ export default function ConversationSidebar({
     conversations,
     loading,
     onboardingData,
+    tier,
+    subscribed,
     setConversationId,
     onBootstrapped: loadConversations,
   });

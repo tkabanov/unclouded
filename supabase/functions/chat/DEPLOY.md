@@ -142,3 +142,84 @@ Only **committed** history is pushed (12 commits `30d4386`…`3bd3884`). Uncommi
 | Migrations | No down scripts — manual SQL revert if required (PM only) |
 | Frontend | Revert git + redeploy hosting |
 
+---
+
+## Frontend production hosting (T-018)
+
+CI (`.github/workflows/frontend-ci.yml`) runs **lint / test / build only** — publish is manual.
+
+### Production URL
+
+| Field | Value |
+| --- | --- |
+| **App URL** | https://uncloud360.vercel.app |
+| **Supabase project** | `szkextipgpupqoppccoy` |
+| **Chat edge** | `https://szkextipgpupqoppccoy.supabase.co/functions/v1/chat` (v9+, `verify_jwt=true`) |
+| **Vercel project** | `fiudls-projects/uncloud360` |
+
+Legacy interim (GitHub Pages): https://tkabanov.github.io/unclouded/ — superseded by Vercel.
+
+Custom domain `uncloud360.ai` is ops-gated (T-014 redirect URLs).
+
+### Build env (`frontend/.env` or Vercel Project → Settings → Environment Variables)
+
+```bash
+VITE_SUPABASE_URL=https://szkextipgpupqoppccoy.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<publishable key from Dashboard>
+VITE_APP_URL=https://uncloud360.vercel.app
+# VITE_BASE_PATH unset on Vercel (defaults to /)
+```
+
+### Manual publish (Vercel)
+
+Deploy from **repo root** (monorepo: frontend imports shared `supabase/functions/chat` modules).
+
+```bash
+# one-time: vercel link --project uncloud360
+npx vercel deploy --prod
+```
+
+Root `vercel.json` runs `npm ci` / `npm run build` in `frontend/` and serves `frontend/dist`.
+
+Set `VITE_*` in Vercel → Settings → Environment Variables (Production), or pass `--build-env` on CLI.
+
+### Manual publish (GitHub Pages, legacy)
+
+```bash
+cd frontend
+npm ci
+npm run build
+cp dist/index.html dist/404.html   # SPA fallback for GitHub Pages
+touch dist/.nojekyll               # skip Jekyll processing
+npx gh-pages -d dist -m "production frontend deploy"
+```
+
+On Windows if `gh-pages` fails with `ENAMETOOLONG`, publish from a short path (example):
+
+```powershell
+$dst = 'C:\gdp'
+Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $dst | Out-Null
+Copy-Item frontend\dist\* $dst -Recurse -Force
+New-Item -ItemType File -Path "$dst\.nojekyll" -Force | Out-Null
+cd $dst; git init; git checkout -b gh-pages; git add -A
+git commit -m "production frontend deploy"
+git remote add origin https://github.com/tkabanov/unclouded.git
+git push -u origin gh-pages --force
+```
+
+Repo settings: **Pages → Source: `gh-pages` branch → `/ (root)`**.
+
+If the site returns 404 after the first push, open **Settings → Pages** and confirm the source branch is `gh-pages` (GitHub does not auto-enable Pages on first `gh-pages` push).
+
+Include an empty `.nojekyll` at the deploy root so GitHub does not run Jekyll on the Vite bundle.
+
+### Post-deploy smoke (frontend)
+
+| # | Check | Pass criteria |
+| --- | --- | --- |
+| 1 | App loads | `GET /` returns 200 HTML shell |
+| 2 | Chat edge live | Unsigned `POST /functions/v1/chat` → `401` (not 404/500) |
+| 3 | Edge version | Supabase Dashboard → Edge Functions → `chat` ≥ v9 |
+
+

@@ -1,0 +1,30 @@
+{
+  "_comment": "Copy this to .claude/settings.json (or merge its 'hooks' block into your existing settings). All hooks are WARNING-ONLY + fail-open: they print reminders and ALWAYS exit 0, never blocking. OPTIONAL: to gate DB migrations or a deploy tool, add a PreToolUse entry whose matcher is that tool's name, pointing at gate-migration.mjs / gate-deploy-push.mjs (see README).",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/sessionstart.mjs\"" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-commit.mjs\"" },
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-deploy-push.mjs\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/post-commit.mjs\"" }
+        ]
+      }
+    ]
+  }
+}

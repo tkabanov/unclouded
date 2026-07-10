@@ -1,6 +1,45 @@
 {
   "version": 1,
   "hooks": {
+    "sessionStart": [
+      {
+        "command": "node .cursor/hooks/sessionstart.mjs",
+        "timeout": 20
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "node .cursor/hooks/guard-generated.mjs",
+        "matcher": "Write|StrReplace",
+        "failClosed": false
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "node .cursor/hooks/gate-commit.mjs",
+        "matcher": "git\\s+commit"
+      },
+      {
+        "command": "node .cursor/hooks/gate-deploy-push.mjs",
+        "matcher": "git\\s+push"
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "node .cursor/hooks/gate-migration.mjs",
+        "matcher": "apply_migration"
+      },
+      {
+        "command": "node .cursor/hooks/gate-deploy-push.mjs",
+        "matcher": "deploy_edge_function"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": "node .cursor/hooks/post-commit.mjs",
+        "matcher": "git\\s+commit"
+      }
+    ],
     "stop": [
       {
         "command": "node .cursor/hooks/run-stop.mjs",

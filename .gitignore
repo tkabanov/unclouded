@@ -8,6 +8,10 @@ Thumbs.db
 .env
 .env.*
 
+# Vercel local link metadata
+.vercel
+frontend/.vercel
+
 # Local AI agent memory (control plane)
 .ai/
 

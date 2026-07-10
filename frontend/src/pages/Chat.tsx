@@ -7,6 +7,7 @@ import ConversationSidebar from "@/components/chat/ConversationSidebar";
 import DeleteConversationPopup from "@/components/chat/DeleteConversationPopup";
 import RenameConversationPopup from "@/components/chat/RenameConversationPopup";
 import type { ConversationListItem } from "@/lib/chat/chatConversationsApi";
+import { isAtFreeTierSessionLimit } from "@/lib/chat/chatSessionLimit";
 import { useChatConversationParam } from "@/hooks/useChatConversationParam";
 import { useChatSignOutClear } from "@/hooks/useChatSignOutClear";
 import { useNewConversation } from "@/hooks/useNewConversation";
@@ -30,9 +31,21 @@ export default function Chat() {
   const { createNew } = useNewConversation({
     userId: user?.id,
     onboardingData: profile?.onboardingData ?? null,
+    tier: profile?.tier ?? null,
+    subscribed: profile?.subscribed ?? false,
     setConversationId,
     onCreated: bumpSidebar,
   });
+
+  const newConversationDisabled = useMemo(
+    () =>
+      isAtFreeTierSessionLimit({
+        tier: profile?.tier ?? null,
+        subscribed: profile?.subscribed ?? false,
+        onboardingData: profile?.onboardingData ?? null,
+      }),
+    [profile?.onboardingData, profile?.subscribed, profile?.tier],
+  );
 
   const context = useMemo(() => {
     if (!profile) return undefined;
@@ -91,10 +104,13 @@ export default function Chat() {
     <DashboardLayout>
       <ChatPageContent
         onNewConversation={createNew}
+        newConversationDisabled={newConversationDisabled}
         sidebar={
           <ConversationSidebar
             userId={user?.id}
             onboardingData={profile?.onboardingData ?? null}
+            tier={profile?.tier ?? null}
+            subscribed={profile?.subscribed ?? false}
             onRenameRequest={handleRenameRequest}
             onDeleteRequest={handleDeleteRequest}
             listVersion={sidebarListVersion}

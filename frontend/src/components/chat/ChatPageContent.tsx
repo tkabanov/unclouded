@@ -9,6 +9,7 @@ export interface ChatPageContentProps {
   sidebar: ReactNode;
   panel: ReactNode;
   onNewConversation?: () => void;
+  newConversationDisabled?: boolean;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ export default function ChatPageContent({
   sidebar,
   panel,
   onNewConversation,
+  newConversationDisabled = false,
   className,
 }: ChatPageContentProps) {
   return (
@@ -34,6 +36,7 @@ export default function ChatPageContent({
             <Button
               type="button"
               onClick={onNewConversation}
+              disabled={newConversationDisabled}
               size="sm"
               className={cn(bubbleStyle("Button_primary_"), "w-full justify-center")}
             >
