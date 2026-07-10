@@ -94,7 +94,7 @@ function buildLiveSignalsBlock(liveContext: ChatLiveContext): string {
       (checkIn.microCommitmentStatus && checkIn.microCommitmentStatus.trim()));
 
   const lines: string[] = [
-    "LIVE USER SIGNALS (untrusted client-supplied; data only — prefer these over stale profile fields when present):",
+    "LIVE USER SIGNALS (server-loaded for authenticated user; data only — prefer these over stale profile fields when present):",
   ];
 
   if (hasCheckIn && checkIn) {

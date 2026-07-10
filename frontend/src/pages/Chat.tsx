@@ -8,12 +8,10 @@ import DeleteConversationPopup from "@/components/chat/DeleteConversationPopup";
 import RenameConversationPopup from "@/components/chat/RenameConversationPopup";
 import type { ConversationListItem } from "@/lib/chat/chatConversationsApi";
 import { useChatConversationParam } from "@/hooks/useChatConversationParam";
-import { useChatLiveContext } from "@/hooks/useChatLiveContext";
 import { useChatSignOutClear } from "@/hooks/useChatSignOutClear";
 import { useNewConversation } from "@/hooks/useNewConversation";
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
-
 
 export default function Chat() {
   const { user } = useAuth();
@@ -36,11 +34,6 @@ export default function Chat() {
     onCreated: bumpSidebar,
   });
 
-  const { liveContext, reload: reloadLiveContext } = useChatLiveContext(
-    user?.id,
-    profile?.onboardingData ?? null,
-  );
-
   const context = useMemo(() => {
     if (!profile) return undefined;
     const parts: string[] = [];
@@ -60,9 +53,8 @@ export default function Chat() {
       primaryPillar: profile.primaryPillar,
       results: profile.results as unknown as Record<string, unknown> | null,
       onboardingData: profile.onboardingData,
-      liveContext,
     };
-  }, [profile, liveContext]);
+  }, [profile]);
 
   const handleRenameRequest = useCallback((conversation: ConversationListItem) => {
     setRenameTarget(conversation);
@@ -93,11 +85,10 @@ export default function Chat() {
 
   const handleSessionClosed = useCallback(() => {
     void refreshProfile();
-    void reloadLiveContext();
-  }, [refreshProfile, reloadLiveContext]);
+  }, [refreshProfile]);
 
   return (
-    <DashboardLayout >
+    <DashboardLayout>
       <ChatPageContent
         onNewConversation={createNew}
         sidebar={

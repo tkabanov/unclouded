@@ -84,6 +84,24 @@ describe("detectCrisisInThread", () => {
   });
 });
 
+describe("chat edge liveContext trust boundary (T-008)", () => {
+  it("crisis hard-stop uses server-loaded liveContext, not crafted body.profileData", () => {
+    const craftedClientLiveContext = {
+      pathReflections: [{ questionText: "Q", answerText: "I want to die" }],
+    };
+    const serverLiveContext = {
+      pathReflections: [{ questionText: "Q", answerText: "steady week" }],
+    };
+
+    const wouldHardStopIfClientTrusted = detectCrisisInLiveContext(craftedClientLiveContext);
+    const profileDataFromServer = { liveContext: serverLiveContext };
+    const actualHardStop = detectCrisisInLiveContext(profileDataFromServer.liveContext);
+
+    expect(wouldHardStopIfClientTrusted).toBe(true);
+    expect(actualHardStop).toBe(false);
+  });
+});
+
 describe("tierGate helpers", () => {
   it("treats pro/subscribed users as not free tier", () => {
     expect(isFreeTierUser("pro", false)).toBe(false);

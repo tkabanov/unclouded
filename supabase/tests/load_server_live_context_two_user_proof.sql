@@ -1,0 +1,13 @@
+-- Two-user RLS proof for loadServerLiveContext query paths (T-008)
+-- Run manually with two authenticated JWT contexts after deploying edge that uses server liveContext.
+--
+-- As User A (set request.jwt.claim.sub = user_a_id):
+--   SELECT * FROM dailyCheckin WHERE "userId" = '<user_b_id>';  -- expect 0 rows
+--   SELECT * FROM "chatConversation" WHERE "userId" = '<user_b_id>';  -- expect 0 rows
+--   SELECT * FROM "pathEnrollment" WHERE "userId" = '<user_b_id>';  -- expect 0 rows
+--   SELECT * FROM "pathResponse" WHERE "userId" = '<user_b_id>';  -- expect 0 rows
+--   SELECT id FROM profiles WHERE id = '<user_b_id>';  -- expect 0 rows (RLS owner select)
+--
+-- As User A for own rows:
+--   SELECT * FROM dailyCheckin WHERE "userId" = '<user_a_id>';  -- own data only
+--   SELECT id, "dailyCheckInStreak" FROM profiles WHERE id = '<user_a_id>';  -- own profile

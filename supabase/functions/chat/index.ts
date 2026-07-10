@@ -12,6 +12,7 @@ import {
 import {
   enforceFreeTierSessionGate,
 } from "./tierGate.ts";
+import { parseChatRequestBody } from "./parseChatRequestBody.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,19 +76,12 @@ Deno.serve(async (req: Request) => {
       return jsonError(500, message);
     }
 
-    const body = (await req.json()) as {
-      messages?: UIMessage[];
-      context?: string;
-      profileData?: ProfileData;
-      lifecycle?: ChatLifecycleMode;
-      conversationId?: string;
-    };
+    const body = parseChatRequestBody(await req.json());
 
     const lifecycle = body.lifecycle;
     let messages = body.messages;
     const context = body.context;
-    const conversationId =
-      typeof body.conversationId === "string" ? body.conversationId.trim() : undefined;
+    const conversationId = body.conversationId;
 
     if (!Array.isArray(messages)) {
       if (lifecycle === "session_open") {
@@ -102,11 +96,7 @@ Deno.serve(async (req: Request) => {
         ? sessionOpenMessages()
         : messages;
 
-    const profileData = await loadServerProfile(
-      supabase,
-      user.id,
-      body.profileData?.liveContext,
-    );
+    const profileData = await loadServerProfile(supabase, user.id);
 
     if (!profileData) {
       return jsonError(404, "Profile not found");
@@ -114,7 +104,7 @@ Deno.serve(async (req: Request) => {
 
     if (
       detectCrisisInThread(uiMessages, context) ||
-      detectCrisisInLiveContext(body.profileData?.liveContext)
+      detectCrisisInLiveContext(profileData.liveContext)
     ) {
       return crisisHardStopResponse();
     }

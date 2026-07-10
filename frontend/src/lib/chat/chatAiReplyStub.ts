@@ -110,9 +110,6 @@ export async function callChatEdge(
       messages: toUiMessages(params.messages),
       context: params.context,
       conversationId: params.conversationId,
-      profileData: params.profileData?.liveContext
-        ? { liveContext: params.profileData.liveContext }
-        : undefined,
     }),
   });
 

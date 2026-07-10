@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchChatLiveContext } from "@/lib/chat/chatLiveContextApi";
-import type { ChatLiveContext } from "../../supabase/functions/chat/prompt/types.ts";
+import type { ChatLiveContext } from "../../../supabase/functions/chat/prompt/types.ts";
 
 const EMPTY_LIVE_CONTEXT: ChatLiveContext = {
   latestCheckIn: null,

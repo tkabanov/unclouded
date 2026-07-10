@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
-import type { ChatLiveContext, ProfileData } from "./prompt/types.ts";
+import type { ProfileData } from "./prompt/types.ts";
+import { loadServerLiveContext } from "./loadServerLiveContext.ts";
 
 type ProfileRow = {
   firstName?: string | null;
@@ -16,13 +17,11 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 /**
- * Load profile fields for the authenticated user — server truth replaces client profileData.
- * liveContext remains client-supplied (labeled untrusted in prompt) until server aggregation ships.
+ * Load profile fields and liveContext for the authenticated user — all server truth.
  */
 export async function loadServerProfile(
   supabase: SupabaseClient,
   userId: string,
-  clientLiveContext?: ChatLiveContext | null,
 ): Promise<ProfileData | null> {
   const { data, error } = await supabase
     .from("profiles")
@@ -34,13 +33,15 @@ export async function loadServerProfile(
   if (!data || typeof data !== "object") return null;
 
   const row = data as ProfileRow;
+  const onboardingData = asRecord(row.onboardingData);
+  const liveContext = await loadServerLiveContext(supabase, userId, onboardingData);
 
   return {
     firstName: typeof row.firstName === "string" ? row.firstName : undefined,
     roleType: typeof row.roleType === "string" ? row.roleType : undefined,
     primaryPillar: typeof row.primaryPillar === "string" ? row.primaryPillar : undefined,
     results: asRecord(row.results),
-    onboardingData: asRecord(row.onboardingData),
-    liveContext: clientLiveContext ?? undefined,
+    onboardingData,
+    liveContext,
   };
 }
