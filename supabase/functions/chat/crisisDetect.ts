@@ -1,9 +1,9 @@
 import type { UIMessage } from "npm:ai";
 import type { ChatLiveContext } from "./prompt/types.ts";
+import { CRISIS_RESPONSE_MANDATORY } from "./prompt/library.ts";
 
-/** Build Brief §11 crisis protocol — fixed response; no continued coaching. */
-export const CRISIS_RESPONSE_TEXT =
-  "It sounds like you're carrying something really heavy right now. Please reach out for support immediately: Call or text 988 (Suicide & Crisis Lifeline) — available 24/7. Text HOME to 741741 (Crisis Text Line). Gidget is coaching only and can't provide crisis care. Please reach out now.";
+/** Prompt Library §10 mandatory hard-stop — returned verbatim by the edge (no stream). */
+export const CRISIS_RESPONSE_TEXT = CRISIS_RESPONSE_MANDATORY;
 
 const CRISIS_PATTERNS: RegExp[] = [
   /\bwant to die\b/i,

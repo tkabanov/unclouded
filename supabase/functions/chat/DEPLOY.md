@@ -51,5 +51,5 @@ Or redeploy the prior git commit’s function sources after PM review.
 
 - Monthly usage is stored in `profiles.onboardingData.chat_ai_monthly_usage` — **no migration applied** in T-005. Optional atomic RPC: `supabase/migrations/WRITTEN_NOT_APPLIED_chat_session_consume_rpc.sql`.
 - Client `profileData` identity fields are ignored server-side; only `liveContext` is accepted from the client and labeled untrusted in the prompt.
-- **Prototype limitation:** `profiles.subscribed` is owner-writable via RLS; tier gate reads it server-side with service role but a malicious client could flip it until billing-backed entitlements ship.
+- **Prototype limitation:** `profiles.subscribed` is owner-writable via RLS; tier gate reads it via the authenticated Supabase client but a malicious client could flip it until billing-backed entitlements ship.
 - Do not enable deploy in CI until T-005 is `accepted` and the user confirms go-live.

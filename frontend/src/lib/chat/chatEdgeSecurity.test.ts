@@ -37,6 +37,7 @@ describe("detectCrisisInThread", () => {
     expect(flagged).toBe(true);
     expect(CRISIS_RESPONSE_TEXT).toContain("988");
     expect(CRISIS_RESPONSE_TEXT).toContain("741741");
+    expect(CRISIS_RESPONSE_TEXT).toContain("What you just said");
   });
 
   it("flags crisis in earlier user message even when latest is benign", () => {
