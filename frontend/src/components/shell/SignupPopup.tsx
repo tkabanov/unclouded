@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  getSignUpErrorKind,
+  getSignUpErrorMessage,
+  signUpWithEmailPassword,
+} from "@/lib/auth/credentialsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,36 +127,23 @@ const SignupPopup = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: SignupP
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: {
-            full_name: name.trim(),
-            timezone,
-            primary_pillar: primaryMode,
-            sub_mode: subMode,
-            goals: goals.trim(),
-            preferences: preferences.trim(),
-            checkin_frequency: checkinFrequency,
-          },
-        },
+      await signUpWithEmailPassword(email, password, {
+        full_name: name.trim(),
+        timezone,
+        primary_pillar: primaryMode,
+        sub_mode: subMode,
+        goals: goals.trim(),
+        preferences: preferences.trim(),
+        checkin_frequency: checkinFrequency,
       });
-      if (error) throw error;
-      toast.success("Account created — let's get you set up.");
+      toast.success("Account created \u2014 let's get you set up.");
       handleOpenChange(false);
       onSuccess();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      if (message.toLowerCase().includes("already registered")) {
-        toast.error("This email is already registered. Try signing in instead.");
-        if (onSwitchToLogin) {
-          handleOpenChange(false);
-          onSwitchToLogin();
-        }
-      } else {
-        toast.error(message);
+      toast.error(getSignUpErrorMessage(err));
+      if (getSignUpErrorKind(err) === "already_registered" && onSwitchToLogin) {
+        handleOpenChange(false);
+        onSwitchToLogin();
       }
     } finally {
       setLoading(false);
@@ -188,7 +179,7 @@ const SignupPopup = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: SignupP
                   data-style-ref="Text_small_"
                   className={cn(bubbleStyle("Text_small_"), "text-base text-muted-foreground")}
                 >
-                  Private, AI-powered coaching — not therapy or medical advice
+                  Private, AI-powered coaching \u2014 not therapy or medical advice
                 </DialogDescription>
               </DialogHeader>
             </div>
@@ -272,7 +263,7 @@ const SignupPopup = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: SignupP
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className={cn(bubbleStyle("Input_default_"), "h-12 text-base")}
-                      placeholder="••••••••"
+                      placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                     />
                   </div>
 
@@ -517,7 +508,7 @@ const SignupPopup = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: SignupP
               data-style-ref="Text_disclaimer_"
               className={cn(bubbleStyle("Text_disclaimer_"), "text-xs text-muted-foreground leading-relaxed")}
             >
-              Uncloud360 is AI-powered coaching only — not therapy or medical advice. In an emergency,
+              Uncloud360 is AI-powered coaching only \u2014 not therapy or medical advice. In an emergency,
               call 988 or 911.
             </p>
           </div>

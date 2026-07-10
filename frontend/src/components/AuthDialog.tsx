@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { ArrowLeft, Loader2, X } from "lucide-react";
-import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { requestPasswordResetEmail } from "@/lib/auth/passwordResetApi";
+import {
+  authCredentialsSchema,
+  authEmailSchema,
+  getSignInErrorMessage,
+  signInWithEmailPassword,
+} from "@/lib/auth/credentialsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,14 +21,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
-const credentialsSchema = z.object({
-  email: z.string().trim().email({ message: "Enter a valid email address" }).max(255),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }).max(72),
-});
-
-const forgotPasswordEmailSchema = z.object({
-  email: z.string().trim().email({ message: "Enter a valid email address" }).max(255),
-});
+const forgotPasswordEmailSchema = authEmailSchema;
 
 type AuthDialogStep = "login" | "forgot-password";
 
@@ -61,7 +58,7 @@ const AuthDialog = ({ open, onOpenChange, onSuccess, onSwitchToSignup }: AuthDia
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const parsed = credentialsSchema.safeParse({ email, password });
+    const parsed = authCredentialsSchema.safeParse({ email, password });
     if (!parsed.success) {
       toast.error(parsed.error.errors[0].message);
       return;
@@ -69,21 +66,12 @@ const AuthDialog = ({ open, onOpenChange, onSuccess, onSwitchToSignup }: AuthDia
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: parsed.data.email,
-        password: parsed.data.password,
-      });
-      if (error) throw error;
+      await signInWithEmailPassword(parsed.data.email, parsed.data.password);
       toast.success("Welcome back.");
       resetFormState();
       onSuccess();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      if (message.toLowerCase().includes("invalid login")) {
-        toast.error("Incorrect email or password.");
-      } else {
-        toast.error(message);
-      }
+      toast.error(getSignInErrorMessage(err));
     } finally {
       setLoading(false);
     }
