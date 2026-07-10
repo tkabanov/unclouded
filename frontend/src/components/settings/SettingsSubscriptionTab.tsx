@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Mail, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CalendarDays, Mail, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,25 +12,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import SubscriptionPlanCard from "@/components/settings/SubscriptionPlanCard";
-import {
-  BILLING_ACTIONS_ROW_BUBBLE_ID,
-  BILLING_CARD_HEADER_BUBBLE_ID,
-  BILLING_CARD_SUBTITLE_BUBBLE_ID,
-  BILLING_CARD_TITLE_BUBBLE_ID,
-  BILLING_INVOICES_BTN_BUBBLE_ID,
-  BILLING_UPDATE_BTN_BUBBLE_ID,
-  SUBSCRIPTION_BADGE_WRAP_BUBBLE_ID,
-  SUBSCRIPTION_BILLING_CARD_BUBBLE_ID,
-  SUBSCRIPTION_CURRENT_CARD_BUBBLE_ID,
-  SUBSCRIPTION_CURRENT_HEADER_BUBBLE_ID,
-  SUBSCRIPTION_CURRENT_SUBTITLE_BUBBLE_ID,
-  SUBSCRIPTION_CURRENT_TEXT_BUBBLE_ID,
-  SUBSCRIPTION_CURRENT_TIER_BADGE_BUBBLE_ID,
-  SUBSCRIPTION_CURRENT_TITLE_BUBBLE_ID,
-  SUBSCRIPTION_PANEL_BUBBLE_ID,
-  SUBSCRIPTION_PLANS_GRID_BUBBLE_ID,
-  SUBSCRIPTION_TIER_TEXT_BUBBLE_ID,
-} from "@/lib/settings/routes";
 import {
   getCurrentTierLabel,
   loadSubscriptionPlans,
@@ -44,6 +26,7 @@ import {
 import type { PlanId } from "@/lib/plans";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/lib/userProfile";
+import { isReassessmentDue } from "@/lib/reassessment";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -60,8 +43,11 @@ export default function SettingsSubscriptionTab() {
   const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
 
   const subscribed = !!profile?.subscribed;
-  const currentTier = resolveCurrentTier(subscribed);
-  const currentPlanId: PlanId = subscribed ? "pro" : "free";
+  const currentTier = resolveCurrentTier(subscribed, profile?.tier);
+  const currentPlanId: PlanId =
+    currentTier === "premium" ? "premium" : currentTier === "pro" ? "pro" : "free";
+  const reassessmentDue =
+    subscribed && isReassessmentDue(profile?.onboardingCompletedAt ?? null) && !profile?.reassessmentResults;
 
   useEffect(() => {
     let cancelled = false;
@@ -86,11 +72,19 @@ export default function SettingsSubscriptionTab() {
       if (!user || busy) return;
       setBusy(true);
       try {
-        await selectSubscriptionPlan(user.id, planId);
+        const result = await selectSubscriptionPlan(planId);
+        if (result.status === "billing_required") {
+          toast.message(result.message ?? "Checkout is not connected yet.");
+          return;
+        }
+        if (result.status !== "ok") {
+          toast.error(result.message ?? "Couldn't update your subscription.");
+          return;
+        }
         await refresh();
         toast.success(
           planId === "pro"
-            ? "You're now on Pro (demo). Enjoy your upgraded coaching."
+            ? "You're now on Pro."
             : "Moved back to the Free plan.",
         );
       } catch (err) {
@@ -138,43 +132,38 @@ export default function SettingsSubscriptionTab() {
 
   if (loading) {
     return (
-      <div data-bubble-id={SUBSCRIPTION_PANEL_BUBBLE_ID} className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Loading subscription…
       </div>
     );
   }
 
   return (
-    <div data-bubble-id={SUBSCRIPTION_PANEL_BUBBLE_ID} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <div
-        data-bubble-id={SUBSCRIPTION_CURRENT_CARD_BUBBLE_ID}
         className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}
       >
         <header
-          data-bubble-id={SUBSCRIPTION_CURRENT_HEADER_BUBBLE_ID}
           className="flex flex-wrap items-start justify-between gap-4"
         >
-          <div data-bubble-id={SUBSCRIPTION_CURRENT_TEXT_BUBBLE_ID} className="space-y-1">
+          <div className="space-y-1">
             <h2
-              data-bubble-id={SUBSCRIPTION_CURRENT_TITLE_BUBBLE_ID}
               className={bubbleStyle("Text_heading_3_")}
             >
               Your subscription
             </h2>
             <p
-              data-bubble-id={SUBSCRIPTION_CURRENT_SUBTITLE_BUBBLE_ID}
               className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
             >
               Manage your plan and billing preferences.
             </p>
           </div>
-          <div data-bubble-id={SUBSCRIPTION_BADGE_WRAP_BUBBLE_ID}>
+          <div>
             <span
-              data-bubble-id={SUBSCRIPTION_CURRENT_TIER_BADGE_BUBBLE_ID}
               className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary"
             >
-              <span data-bubble-id={SUBSCRIPTION_TIER_TEXT_BUBBLE_ID}>
-                {getCurrentTierLabel(subscribed)}
+              <span>
+                {getCurrentTierLabel(subscribed, profile?.tier)}
               </span>
             </span>
           </div>
@@ -187,8 +176,26 @@ export default function SettingsSubscriptionTab() {
         </p>
       </div>
 
+      {reassessmentDue ? (
+        <div className="flex flex-col gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center">
+          <div className="flex flex-1 items-start gap-3">
+            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
+              <CalendarDays className="h-5 w-5 text-primary" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="font-semibold text-foreground">Your 90-day reassessment is ready</p>
+              <p className="text-sm text-muted-foreground">
+                Retake the assessment to see how your scores have changed since day one.
+              </p>
+            </div>
+          </div>
+          <Button variant="cta" className="shrink-0" asChild>
+            <Link to="/onboarding?reassessment=1">Start reassessment</Link>
+          </Button>
+        </div>
+      ) : null}
+
       <div
-        data-bubble-id={SUBSCRIPTION_PLANS_GRID_BUBBLE_ID}
         className={cn(bubbleStyle("RepeatingGroup_list_"), "grid items-start gap-4 md:grid-cols-3")}
       >
         {plans.map((plan) => (
@@ -204,15 +211,13 @@ export default function SettingsSubscriptionTab() {
       </div>
 
       <div
-        data-bubble-id={SUBSCRIPTION_BILLING_CARD_BUBBLE_ID}
         className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}
       >
-        <header data-bubble-id={BILLING_CARD_HEADER_BUBBLE_ID} className="space-y-1">
-          <h2 data-bubble-id={BILLING_CARD_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_3_")}>
+        <header className="space-y-1">
+          <h2 className={bubbleStyle("Text_heading_3_")}>
             Billing
           </h2>
           <p
-            data-bubble-id={BILLING_CARD_SUBTITLE_BUBBLE_ID}
             className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
           >
             Update payment method or download past invoices. Demo billing stubs return sample data
@@ -221,12 +226,10 @@ export default function SettingsSubscriptionTab() {
         </header>
 
         <div
-          data-bubble-id={BILLING_ACTIONS_ROW_BUBBLE_ID}
           className="flex flex-wrap gap-3"
         >
           <Button
             type="button"
-            data-bubble-id={BILLING_UPDATE_BTN_BUBBLE_ID}
             className={bubbleStyle("Button_primary_")}
             onClick={() => void handleBillingUpdate()}
           >
@@ -235,7 +238,6 @@ export default function SettingsSubscriptionTab() {
           <Button
             type="button"
             variant="outline"
-            data-bubble-id={BILLING_INVOICES_BTN_BUBBLE_ID}
             onClick={() => void handleInvoices()}
           >
             View invoices
@@ -264,7 +266,7 @@ export default function SettingsSubscriptionTab() {
             <DialogTitle>Invoice history</DialogTitle>
             <DialogDescription className="pt-2 text-left">
               {invoices.length
-                ? "Download or review your past invoices."
+                ? "Sample invoice rows from the billing stub — not real payment history until Stripe is connected."
                 : "No invoices are available yet."}
             </DialogDescription>
           </DialogHeader>

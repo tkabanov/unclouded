@@ -1,6 +1,14 @@
 import { PLANS, PREMIUM_CONTACT_EMAIL, type Plan, type PlanId } from "@/lib/plans";
 import { getTierSubscriptionLabel, type TierSlug } from "@/lib/enums/subscription";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  getCurrentTierLabel as getEntitlementTierLabel,
+  loadSubscriptionEntitlement,
+  requestSubscriptionPlanChange,
+  resolveCurrentTier as resolveEntitlementTier,
+  type SubscriptionEntitlement,
+  type SubscriptionPlanChangeResult,
+} from "@/lib/settings/subscriptionEntitlementApi";
 
 export type SubscriptionPlanRow = {
   id: PlanId;
@@ -23,7 +31,7 @@ function plansFromCatalog(): SubscriptionPlanRow[] {
  * otherwise falls back to static PLANS catalog aligned with ENUM-04 tier_os.
  */
 export async function loadSubscriptionPlans(): Promise<SubscriptionPlanRow[]> {
-  const { data, error } = await supabase.from("subscription_plan").select("*");
+  const { data, error } = await supabase.from("subscriptionPlan").select("*");
 
   if (error) {
     throw new Error("Couldn't load subscription plans from database.");
@@ -35,15 +43,15 @@ export async function loadSubscriptionPlans(): Promise<SubscriptionPlanRow[]> {
 
   return data.map((row) => {
     const record = row as Record<string, unknown>;
-    const name = String(record.name_text ?? record.name ?? "");
-    const priceNumber = record.price_number ?? record.price;
+    const name = String(record.name ?? record.name ?? "");
+    const priceNumber = record.price ?? record.price;
     const price =
       typeof priceNumber === "number"
         ? priceNumber === 0
           ? "$0"
           : `$${priceNumber}`
         : String(priceNumber ?? "");
-    const featuresRaw = record.features_text ?? record.features;
+    const featuresRaw = record.features ?? record.features;
     const features =
       typeof featuresRaw === "string"
         ? featuresRaw.split("\n").map((line) => line.trim()).filter(Boolean)
@@ -51,7 +59,7 @@ export async function loadSubscriptionPlans(): Promise<SubscriptionPlanRow[]> {
           ? featuresRaw.map(String)
           : [];
 
-    const slug = (record.tier_slug ?? record.id ?? name).toString().toLowerCase() as PlanId;
+    const slug = (record.tierSlug ?? record.id ?? name).toString().toLowerCase() as PlanId;
     const catalog = PLANS.find((plan) => plan.id === slug);
 
     return {
@@ -59,7 +67,7 @@ export async function loadSubscriptionPlans(): Promise<SubscriptionPlanRow[]> {
       name: name || catalog?.name || slug,
       price: price || catalog?.price || "",
       period: catalog?.period ?? "/month",
-      tagline: String(record.description_text ?? record.description ?? catalog?.tagline ?? ""),
+      tagline: String(record.description ?? record.description ?? catalog?.tagline ?? ""),
       badge: catalog?.badge,
       features: features.length ? features : (catalog?.features ?? []),
       cta: catalog?.cta ?? "current",
@@ -67,30 +75,39 @@ export async function loadSubscriptionPlans(): Promise<SubscriptionPlanRow[]> {
   });
 }
 
-export function resolveCurrentTier(subscribed: boolean): TierSlug {
+export function resolveCurrentTier(subscribed: boolean, tier?: string | null): TierSlug {
+  const normalized = (tier ?? "").toLowerCase();
+  if (normalized === "pro" || normalized === "premium" || normalized === "free") {
+    return normalized;
+  }
   return subscribed ? "pro" : "free";
 }
 
-export function getCurrentTierLabel(subscribed: boolean): string {
-  return getTierSubscriptionLabel(resolveCurrentTier(subscribed));
+export function resolveCurrentTierFromEntitlement(
+  entitlement: SubscriptionEntitlement,
+): TierSlug {
+  return resolveEntitlementTier(entitlement);
 }
 
-export async function selectSubscriptionPlan(
-  userId: string,
-  planId: PlanId,
-): Promise<void> {
+export function getCurrentTierLabel(subscribed: boolean, tier?: string | null): string {
+  return getTierSubscriptionLabel(resolveCurrentTier(subscribed, tier));
+}
+
+export function getCurrentTierLabelFromEntitlement(
+  entitlement: SubscriptionEntitlement,
+): string {
+  return getEntitlementTierLabel(entitlement);
+}
+
+export async function selectSubscriptionPlan(planId: PlanId): Promise<SubscriptionPlanChangeResult> {
   if (planId === "premium") {
     throw new Error("Premium requires a coaching match request.");
   }
 
-  const subscribed = planId === "pro";
-  const { error } = await supabase
-    .from("profiles")
-    .update({ subscribed })
-    .eq("id", userId);
-
-  if (error) throw error;
+  return requestSubscriptionPlanChange(planId);
 }
+
+export { loadSubscriptionEntitlement };
 
 export type BillingPortalResult = {
   status?: string;

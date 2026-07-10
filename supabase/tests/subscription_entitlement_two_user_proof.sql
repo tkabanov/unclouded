@@ -1,0 +1,20 @@
+-- Two-user proof for subscription entitlement protection (T-010)
+-- Run with SET LOCAL ROLE authenticated and request.jwt.claim.sub per user.
+--
+-- As User A:
+--   UPDATE profiles SET subscribed = true WHERE id = '<user_a_id>';
+--   -- expect permission denied (column REVOKE) or subscribed unchanged
+--
+--   DELETE FROM profiles WHERE id = '<user_a_id>';
+--   INSERT INTO profiles (id, subscribed, tier) VALUES ('<user_a_id>', true, 'pro');
+--   -- expect subscribed=false tier=free (INSERT trigger) or INSERT policy rejection
+--
+--   SELECT request_subscription_plan_change('pro');
+--   -- expect status billing_required; subscribed still false
+--
+--   SELECT request_subscription_plan_change('free');
+--   -- expect status ok; subscribed false, tier free
+--
+-- As service_role (webhook stub):
+--   SELECT billing_webhook_set_entitlement('<user_a_id>', true, 'pro');
+--   -- expect subscribed true, tier pro

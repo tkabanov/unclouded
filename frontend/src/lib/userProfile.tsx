@@ -20,6 +20,7 @@ export interface UserProfile {
   onboardingCompletedAt: string | null;
   onboardingData: Record<string, unknown> | null;
   subscribed: boolean;
+  tier: string | null;
   reassessmentResults: ResultsData | null;
   reassessmentReflections: ReflectionAnswers | null;
   reassessmentCompletedAt: string | null;
@@ -52,7 +53,6 @@ interface UserProfileContextType {
   saveOnboarding: (payload: OnboardingPayload) => Promise<void>;
   persistOnboardingDraft: (payload: OnboardingDraftPayload) => Promise<void>;
   saveReassessment: (payload: ReassessmentPayload) => Promise<void>;
-  setSubscribed: (subscribed: boolean) => Promise<void>;
   simulate90DaysElapsed: () => Promise<void>;
   loadDemoComparison: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -75,7 +75,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "first_name, role_type, primary_pillar, results, onboarding_completed, onboarding_completed_at, onboarding_data, subscribed, reassessment_results, reassessment_reflections, reassessment_completed_at"
+        "firstName, roleType, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, reassessmentResults, reassessmentReflections, reassessmentCompletedAt"
       )
       .eq("id", user.id)
       .maybeSingle();
@@ -85,20 +85,21 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       setProfileState(null);
     } else if (data) {
       setProfileState({
-        firstName: data.first_name ?? "",
-        roleType: data.role_type ?? "",
-        primaryPillar: data.primary_pillar ?? "",
+        firstName: data.firstName ?? "",
+        roleType: data.roleType ?? "",
+        primaryPillar: data.primaryPillar ?? "",
         results: (data.results as unknown as ResultsData | null) ?? null,
-        onboardingCompleted: data.onboarding_completed ?? false,
-        onboardingCompletedAt: data.onboarding_completed_at ?? null,
+        onboardingCompleted: data.onboardingCompleted ?? false,
+        onboardingCompletedAt: data.onboardingCompletedAt ?? null,
         onboardingData:
-          (data.onboarding_data as unknown as Record<string, unknown> | null) ?? null,
+          (data.onboardingData as unknown as Record<string, unknown> | null) ?? null,
         subscribed: data.subscribed ?? false,
+        tier: data.tier ?? null,
         reassessmentResults:
-          (data.reassessment_results as unknown as ResultsData | null) ?? null,
+          (data.reassessmentResults as unknown as ResultsData | null) ?? null,
         reassessmentReflections:
-          (data.reassessment_reflections as unknown as ReflectionAnswers | null) ?? null,
-        reassessmentCompletedAt: data.reassessment_completed_at ?? null,
+          (data.reassessmentReflections as unknown as ReflectionAnswers | null) ?? null,
+        reassessmentCompletedAt: data.reassessmentCompletedAt ?? null,
       });
     } else {
       setProfileState(null);
@@ -115,20 +116,27 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     async (payload: OnboardingPayload) => {
       if (!user) throw new Error("Not authenticated");
       const completedAt = new Date().toISOString();
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
-        .update({
-          first_name: payload.firstName,
-          role_type: payload.roleType,
-          primary_pillar: payload.primaryPillar,
-          results: payload.results as unknown as never,
-          onboarding_data: payload.onboardingData as unknown as never,
-          onboarding_completed: true,
-          onboarding_completed_at: completedAt,
-        })
-        .eq("id", user.id);
+        .upsert(
+          {
+            id: user.id,
+            email: user.email ?? null,
+            firstName: payload.firstName,
+            roleType: payload.roleType,
+            primaryPillar: payload.primaryPillar,
+            results: payload.results as unknown as never,
+            onboardingData: payload.onboardingData as unknown as never,
+            onboardingCompleted: true,
+            onboardingCompletedAt: completedAt,
+          },
+          { onConflict: "id" },
+        )
+        .select("id")
+        .single();
 
       if (error) throw error;
+      if (!data) throw new Error("Failed to persist onboarding profile");
       await loadProfile();
     },
     [user, loadProfile]
@@ -139,12 +147,12 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       if (!user) return;
 
       const updates: Record<string, unknown> = {};
-      if (payload.firstName !== undefined) updates.first_name = payload.firstName;
-      if (payload.roleType !== undefined) updates.role_type = payload.roleType;
-      if (payload.primaryPillar !== undefined) updates.primary_pillar = payload.primaryPillar;
+      if (payload.firstName !== undefined) updates.firstName = payload.firstName;
+      if (payload.roleType !== undefined) updates.roleType = payload.roleType;
+      if (payload.primaryPillar !== undefined) updates.primaryPillar = payload.primaryPillar;
       if (payload.onboardingData !== undefined) {
         const existing = profile?.onboardingData ?? {};
-        updates.onboarding_data = {
+        updates.onboardingData = {
           ...existing,
           ...payload.onboardingData,
         } as unknown as never;
@@ -165,10 +173,10 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from("profiles")
         .update({
-          reassessment_results: payload.results as unknown as never,
-          reassessment_data: payload.reassessmentData as unknown as never,
-          reassessment_reflections: payload.reflections as unknown as never,
-          reassessment_completed_at: new Date().toISOString(),
+          reassessmentResults: payload.results as unknown as never,
+          reassessmentData: payload.reassessmentData as unknown as never,
+          reassessmentReflections: payload.reflections as unknown as never,
+          reassessmentCompletedAt: new Date().toISOString(),
         })
         .eq("id", user.id);
 
@@ -178,27 +186,12 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     [user, loadProfile]
   );
 
-  const setSubscribed = useCallback(
-    async (subscribed: boolean) => {
-      if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase
-        .from("profiles")
-        .update({ subscribed })
-        .eq("id", user.id);
-      if (error) throw error;
-      await loadProfile();
-    },
-    [user, loadProfile]
-  );
-
-  // Demo helper: back-date the first assessment by 90+ days so the
-  // reassessment becomes available immediately for review.
   const simulate90DaysElapsed = useCallback(async () => {
     if (!user) throw new Error("Not authenticated");
     const backdated = new Date(Date.now() - 91 * 24 * 60 * 60 * 1000).toISOString();
     const { error } = await supabase
       .from("profiles")
-      .update({ onboarding_completed_at: backdated })
+      .update({ onboardingCompletedAt: backdated })
       .eq("id", user.id);
     if (error) throw error;
     await loadProfile();
@@ -251,14 +244,13 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from("profiles")
       .update({
-        subscribed: true,
-        first_name: profile?.firstName || "there",
+        firstName: profile?.firstName || "there",
         results: firstResults as unknown as never,
-        onboarding_completed: true,
-        onboarding_completed_at: backdated,
-        reassessment_results: secondResults as unknown as never,
-        reassessment_reflections: reflections as unknown as never,
-        reassessment_completed_at: new Date().toISOString(),
+        onboardingCompleted: true,
+        onboardingCompletedAt: backdated,
+        reassessmentResults: secondResults as unknown as never,
+        reassessmentReflections: reflections as unknown as never,
+        reassessmentCompletedAt: new Date().toISOString(),
       })
       .eq("id", user.id);
     if (error) throw error;
@@ -273,7 +265,6 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         saveOnboarding,
         persistOnboardingDraft,
         saveReassessment,
-        setSubscribed,
         simulate90DaysElapsed,
         loadDemoComparison,
         refresh: loadProfile,
