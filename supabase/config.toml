@@ -1,3 +1,15 @@
-project_id = "ijubhkropnjglazvhzhe"
+project_id = "szkextipgpupqoppccoy"
+
+[auth]
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = [
+  "http://127.0.0.1:3000/reset_pw",
+  "http://localhost:3000/reset_pw",
+]
+
+[auth.email]
+# Dev: skip confirmation emails (built-in SMTP allows only 2/hour project-wide).
+enable_confirmations = false
+
 [functions.chat]
-verify_jwt = false
+verify_jwt = true

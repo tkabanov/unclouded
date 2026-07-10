@@ -1,22 +1,37 @@
 import { convertToModelMessages, generateText, streamText, type UIMessage } from "npm:ai";
 import { createChatModel } from "../_shared/openai-provider.ts";
+import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { buildSystemPrompt, type ProfileData } from "./buildSystemPrompt.ts";
+import { CRISIS_RESPONSE_TEXT, detectCrisisInLiveContext, detectCrisisInThread } from "./crisisDetect.ts";
+import { loadServerProfile } from "./loadServerProfile.ts";
 import {
   buildSessionLifecycleInstruction,
   parseSessionFinalizePayload,
   type ChatLifecycleMode,
 } from "./prompt/sessionLifecycle.ts";
+import {
+  checkFreeTierSessionAllowance,
+  recordNewChatSession,
+} from "./tierGate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function jsonError(status: number, error: string): Response {
-  return new Response(JSON.stringify({ error }), {
+function jsonResponse(status: number, payload: Record<string, unknown>): Response {
+  return new Response(JSON.stringify(payload), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function jsonError(status: number, error: string, extra: Record<string, unknown> = {}): Response {
+  return jsonResponse(status, { error, ...extra });
+}
+
+function crisisHardStopResponse(): Response {
+  return jsonResponse(200, { crisis: true, text: CRISIS_RESPONSE_TEXT });
 }
 
 function buildSystemWithLifecycle(
@@ -46,6 +61,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const auth = await authenticateRequest(req);
+    if (!auth) {
+      return jsonError(401, "Unauthorized");
+    }
+
+    const { supabase, user } = auth;
+
     let model;
     try {
       model = createChatModel();
@@ -59,12 +81,14 @@ Deno.serve(async (req: Request) => {
       context?: string;
       profileData?: ProfileData;
       lifecycle?: ChatLifecycleMode;
+      conversationId?: string;
     };
 
     const lifecycle = body.lifecycle;
     let messages = body.messages;
     const context = body.context;
-    const profileData = body.profileData;
+    const conversationId =
+      typeof body.conversationId === "string" ? body.conversationId.trim() : undefined;
 
     if (!Array.isArray(messages)) {
       if (lifecycle === "session_open") {
@@ -79,6 +103,38 @@ Deno.serve(async (req: Request) => {
         ? sessionOpenMessages()
         : messages;
 
+    const profileData = await loadServerProfile(
+      supabase,
+      user.id,
+      body.profileData?.liveContext,
+    );
+
+    if (!profileData) {
+      return jsonError(404, "Profile not found");
+    }
+
+    if (
+      detectCrisisInThread(uiMessages, context) ||
+      detectCrisisInLiveContext(body.profileData?.liveContext)
+    ) {
+      return crisisHardStopResponse();
+    }
+
+    const tierGate = await checkFreeTierSessionAllowance(
+      supabase,
+      user.id,
+      conversationId,
+      lifecycle,
+    );
+    if (!tierGate.allowed) {
+      const status = tierGate.code === "conversation_required" ? 400 : 402;
+      return jsonError(status, tierGate.message, { code: tierGate.code });
+    }
+
+    if (tierGate.shouldRecordSession) {
+      await recordNewChatSession(supabase, user.id, conversationId, tierGate.usage);
+    }
+
     const system = buildSystemWithLifecycle(profileData, context, lifecycle);
 
     if (lifecycle === "session_finalize") {
@@ -91,9 +147,7 @@ Deno.serve(async (req: Request) => {
       if (!parsed) {
         return jsonError(500, "Failed to parse session finalize payload");
       }
-      return new Response(JSON.stringify(parsed), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse(200, parsed);
     }
 
     const result = streamText({

@@ -130,38 +130,44 @@ export async function saveSessionCloseRecord(
 export async function requestSessionOpening(
   profileData?: ProfileData,
   context?: string,
+  conversationId?: string,
 ): Promise<string> {
   return callChatEdge({
     lifecycle: "session_open",
     messages: [],
     profileData,
     context,
-  });
+    conversationId,
+  }) as Promise<string>;
 }
 
 export async function requestSessionClose(
   messages: ChatMessage[],
   profileData?: ProfileData,
   context?: string,
+  conversationId?: string,
 ): Promise<string> {
   return callChatEdge({
     lifecycle: "session_close",
     messages,
     profileData,
     context,
-  });
+    conversationId,
+  }) as Promise<string>;
 }
 
 export async function finalizeSessionFromThread(
   messages: ChatMessage[],
   profileData?: ProfileData,
   context?: string,
+  conversationId?: string,
 ): Promise<SessionFinalizePayload> {
   const response = await callChatEdge({
     lifecycle: "session_finalize",
     messages,
     profileData,
     context,
+    conversationId,
     expectJson: true,
   });
 

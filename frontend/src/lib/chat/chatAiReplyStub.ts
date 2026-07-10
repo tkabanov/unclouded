@@ -24,23 +24,53 @@ async function getAuthToken(): Promise<string> {
   return token;
 }
 
+export class ChatEdgeError extends Error {
+  code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = "ChatEdgeError";
+    this.code = code;
+  }
+}
+
+type ChatErrorPayload = {
+  error?: unknown;
+  code?: unknown;
+};
+
 async function parseChatError(response: Response): Promise<never> {
   let message = `chat edge function ${response.status}`;
+  let code: string | undefined;
+
   try {
-    const payload = (await response.json()) as { error?: unknown };
+    const payload = (await response.json()) as ChatErrorPayload;
     if (typeof payload.error === "string" && payload.error.trim()) {
       message = payload.error.trim();
+    }
+    if (typeof payload.code === "string") {
+      code = payload.code;
     }
   } catch {
     // Non-JSON error responses still surface the status.
   }
+
+  if (response.status === 401) {
+    throw new ChatEdgeError("Your session expired. Please sign in again.", "unauthorized");
+  }
   if (response.status === 402) {
-    throw new Error("AI credits are exhausted. Add credits in Settings to continue.");
+    if (code === "free_tier_session_limit") {
+      throw new ChatEdgeError(message, code);
+    }
+    throw new ChatEdgeError(
+      "AI credits are exhausted. Add credits in Settings to continue.",
+      "openai_quota",
+    );
   }
   if (response.status === 429) {
-    throw new Error("Too many requests — please wait a moment and try again.");
+    throw new ChatEdgeError("Too many requests — please wait a moment and try again.", "rate_limit");
   }
-  throw new Error(message);
+  throw new ChatEdgeError(message, code);
 }
 
 type CallChatEdgeParams = {
@@ -48,8 +78,20 @@ type CallChatEdgeParams = {
   messages: ChatMessage[];
   context?: string;
   profileData?: ChatAiProfileData;
+  conversationId?: string;
   expectJson?: boolean;
 };
+
+function isCrisisPayload(payload: Record<string, unknown>): payload is { crisis: true; text: string } {
+  return payload.crisis === true && typeof payload.text === "string";
+}
+
+function isFinalizePayload(payload: Record<string, unknown>): boolean {
+  return (
+    typeof payload.lastSessionTopic === "string" &&
+    typeof payload.summaryStub === "string"
+  );
+}
 
 export async function callChatEdge(
   params: CallChatEdgeParams,
@@ -67,16 +109,31 @@ export async function callChatEdge(
       lifecycle: params.lifecycle,
       messages: toUiMessages(params.messages),
       context: params.context,
-      profileData: params.profileData,
+      conversationId: params.conversationId,
+      profileData: params.profileData?.liveContext
+        ? { liveContext: params.profileData.liveContext }
+        : undefined,
     }),
   });
+
+  const contentType = response.headers.get("content-type") ?? "";
 
   if (!response.ok) {
     return parseChatError(response);
   }
 
-  if (params.expectJson) {
-    return (await response.json()) as Record<string, unknown>;
+  if (contentType.includes("application/json")) {
+    const payload = (await response.json()) as Record<string, unknown>;
+    if (params.expectJson && isFinalizePayload(payload)) {
+      return payload;
+    }
+    if (isCrisisPayload(payload)) {
+      return payload.text;
+    }
+    if (params.expectJson) {
+      return payload;
+    }
+    throw new ChatEdgeError("Unexpected JSON response from chat edge function");
   }
 
   return readChatStreamText(response);
@@ -90,10 +147,11 @@ export async function generateAiReplyStub(
   messages: ChatMessage[],
   context?: string,
   profileData?: ChatAiProfileData,
+  conversationId?: string,
 ): Promise<string> {
-  const result = await callChatEdge({ messages, context, profileData });
+  const result = await callChatEdge({ messages, context, profileData, conversationId });
   if (typeof result !== "string") {
-    throw new Error("Expected streamed AI reply");
+    throw new ChatEdgeError("Expected streamed AI reply");
   }
   return result;
 }
