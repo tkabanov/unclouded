@@ -102,4 +102,18 @@ describe("fetchChatLiveContext", () => {
     expect(result.sessionCount).toBeNull();
     expect(result.pathReflections).toEqual([]);
   });
+
+  it("falls back to chat-stored micro-commitment when path enrollment has none", async () => {
+    mockedLatestCheckIn.mockResolvedValue(null);
+    mockedStreak.mockResolvedValue(0);
+    mockedMicroCommitments.mockResolvedValue([]);
+    mockedConversations.mockResolvedValue([]);
+    mockedPathReflections.mockResolvedValue([]);
+
+    const result = await fetchChatLiveContext("user-1", {
+      micro_commitment_active_text: "Walk 10 minutes after lunch",
+    });
+
+    expect(result.activeMicroCommitment).toBe("Walk 10 minutes after lunch");
+  });
 });

@@ -1,4 +1,5 @@
 import { fetchConversations } from "@/lib/chat/chatConversationsApi";
+import { readSessionLifecycleState } from "@/lib/chat/chatSessionLifecycleApi";
 import { fetchRecentPathReflectionAnswers } from "@/lib/chat/pathsReflectionApi";
 import { fetchLatestDailyCheckIn, fetchDailyCheckInStreak } from "@/lib/dashboard/checkinApi";
 import { fetchMicroCommitments } from "@/lib/dashboard/microCommitmentsApi";
@@ -27,9 +28,11 @@ export async function fetchChatLiveContext(
   ]);
 
   const activeItem = microCommitments.find((item) => !item.isCompleted);
-  const activeMicroCommitment = activeItem?.microCommitmentText?.trim()
-    ? activeItem.microCommitmentText.trim()
-    : null;
+  const lifecycleState = readSessionLifecycleState(onboardingData);
+  const activeMicroCommitment =
+    activeItem?.microCommitmentText?.trim() ||
+    lifecycleState.activeMicroCommitment?.trim() ||
+    null;
 
   const sessionCount = conversations.length > 0 ? conversations.length : null;
 

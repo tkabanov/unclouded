@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Chat() {
   const { user } = useAuth();
-  const { profile } = useUserProfile();
+  const { profile, refresh: refreshProfile } = useUserProfile();
   const { conversationId, setConversationId } = useChatConversationParam();
   useChatSignOutClear();
 
@@ -36,7 +36,10 @@ export default function Chat() {
     onCreated: bumpSidebar,
   });
 
-  const { liveContext } = useChatLiveContext(user?.id, profile?.onboardingData ?? null);
+  const { liveContext, reload: reloadLiveContext } = useChatLiveContext(
+    user?.id,
+    profile?.onboardingData ?? null,
+  );
 
   const context = useMemo(() => {
     if (!profile) return undefined;
@@ -88,6 +91,11 @@ export default function Chat() {
     [bumpSidebar, conversationId, setConversationId],
   );
 
+  const handleSessionClosed = useCallback(() => {
+    void refreshProfile();
+    void reloadLiveContext();
+  }, [refreshProfile, reloadLiveContext]);
+
   return (
     <DashboardLayout >
       <ChatPageContent
@@ -112,6 +120,7 @@ export default function Chat() {
               profileData={profileData}
               listVersion={sidebarListVersion}
               onThreadUpdated={bumpSidebar}
+              onSessionClosed={handleSessionClosed}
             />
           ) : (
             <ChatWelcomePanel />

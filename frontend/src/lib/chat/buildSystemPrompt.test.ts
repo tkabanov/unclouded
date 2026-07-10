@@ -325,4 +325,26 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("What story are you running?");
     expect(prompt).toContain("handle everything alone");
   });
+
+  it("includes session memory stubs when stored in onboardingData", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          chat_session_memory: [
+            {
+              conversationId: "c1",
+              closedAt: "2026-07-01",
+              topic: "sleep",
+              summaryStub: "Named poor sleep patterns.",
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(prompt).toContain("SESSION MEMORY (Phase 2 stub");
+    expect(prompt).toContain("topic=sleep");
+    expect(prompt).toContain("Named poor sleep patterns");
+  });
 });

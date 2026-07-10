@@ -12,10 +12,13 @@ export type ChatReusableProps = {
   composerValue: string;
   onComposerChange: ChatComposerProps["onChange"];
   onSend: ChatComposerProps["onSend"];
-  selectedMode?: ChatComposerProps["selectedMode"];
-  onModeSelect?: ChatComposerProps["onModeSelect"];
+  onSuggestionSend?: ChatComposerProps["onSuggestionSend"];
   composerDisabled?: boolean;
+  isAssistantTyping?: boolean;
   disclaimerCollapsed?: boolean;
+  onEndSession?: () => void;
+  endSessionDisabled?: boolean;
+  endSessionLabel?: string;
   className?: string;
 };
 
@@ -28,20 +31,27 @@ export function ChatReusable({
   composerValue,
   onComposerChange,
   onSend,
-  selectedMode,
-  onModeSelect,
+  onSuggestionSend,
   composerDisabled,
+  isAssistantTyping,
   disclaimerCollapsed,
+  onEndSession,
+  endSessionDisabled,
+  endSessionLabel,
   className,
 }: ChatReusableProps) {
   return (
     <section
-      data-bubble-id="bTIRW"
       className={cn("flex h-full min-h-0 flex-col", className)}
     >
-      <ChatHeader conversation={conversation} />
+      <ChatHeader
+        conversation={conversation}
+        onEndSession={onEndSession}
+        endSessionDisabled={endSessionDisabled}
+        endSessionLabel={endSessionLabel}
+      />
 
-      <ChatMessagesList messages={messages} />
+      <ChatMessagesList messages={messages} isAssistantTyping={isAssistantTyping} />
 
       <div className="relative shrink-0">
         <ChatFloatingDisclaimer collapsed={disclaimerCollapsed} />
@@ -49,8 +59,7 @@ export function ChatReusable({
           value={composerValue}
           onChange={onComposerChange}
           onSend={onSend}
-          selectedMode={selectedMode}
-          onModeSelect={onModeSelect}
+          onSuggestionSend={onSuggestionSend}
           disabled={composerDisabled}
         />
       </div>
