@@ -138,8 +138,6 @@ function buildLiveSignalsBlock(liveContext: ChatLiveContext): string {
   return lines.join("\n");
 }
 
-import { buildSessionMemoryPromptBlock } from "./sessionMemory/sessionMemoryHelpers.ts";
-
 function isLiveContextWired(profile: ProfileData): boolean {
   return profile.liveContext !== undefined;
 }
