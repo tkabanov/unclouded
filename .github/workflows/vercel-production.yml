@@ -7,6 +7,7 @@ on:
       - "frontend/**"
       - "vercel.json"
       - ".github/workflows/vercel-production.yml"
+  workflow_dispatch:
 
 concurrency:
   group: vercel-production
