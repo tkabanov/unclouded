@@ -72,3 +72,22 @@ export function shouldRecordNewSession(
 }
 
 export type { MonthlyUsageRecord };
+
+export type ConsumeChatSessionResult = {
+  allowed: boolean;
+  recorded?: boolean;
+  code?: string;
+};
+
+export function parseConsumeChatSessionResult(data: unknown): ConsumeChatSessionResult {
+  if (!data || typeof data !== "object") {
+    return { allowed: false, code: "invalid_response" };
+  }
+
+  const row = data as Record<string, unknown>;
+  return {
+    allowed: row.allowed === true,
+    recorded: row.recorded === true,
+    code: typeof row.code === "string" ? row.code : undefined,
+  };
+}

@@ -10,8 +10,7 @@ import {
   type ChatLifecycleMode,
 } from "./prompt/sessionLifecycle.ts";
 import {
-  checkFreeTierSessionAllowance,
-  recordNewChatSession,
+  enforceFreeTierSessionGate,
 } from "./tierGate.ts";
 
 const corsHeaders = {
@@ -120,7 +119,7 @@ Deno.serve(async (req: Request) => {
       return crisisHardStopResponse();
     }
 
-    const tierGate = await checkFreeTierSessionAllowance(
+    const tierGate = await enforceFreeTierSessionGate(
       supabase,
       user.id,
       conversationId,
@@ -129,10 +128,6 @@ Deno.serve(async (req: Request) => {
     if (!tierGate.allowed) {
       const status = tierGate.code === "conversation_required" ? 400 : 402;
       return jsonError(status, tierGate.message, { code: tierGate.code });
-    }
-
-    if (tierGate.shouldRecordSession) {
-      await recordNewChatSession(supabase, user.id, conversationId, tierGate.usage);
     }
 
     const system = buildSystemWithLifecycle(profileData, context, lifecycle);

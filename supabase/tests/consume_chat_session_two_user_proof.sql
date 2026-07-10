@@ -1,0 +1,31 @@
+-- Two-user RLS proof for consume_chat_session (T-007)
+-- Run manually AFTER PM approves and applies 20260710130000_consume_chat_session_rpc.sql.
+--
+-- Expected: User A JWT cannot consume sessions for User B's profile id (raises forbidden).
+
+-- Setup (service role or SQL editor as postgres):
+--   SELECT id FROM auth.users LIMIT 2;  -- note user_a_id, user_b_id
+--
+-- As User A (authenticated JWT / set request.jwt.claim.sub):
+--   SELECT public.consume_chat_session(
+--     '<user_b_id>'::uuid,
+--     'conv-cross-user-attempt',
+--     true
+--   );
+-- Expected: ERROR forbidden
+--
+-- As User A for own id (record):
+--   SELECT public.consume_chat_session(
+--     '<user_a_id>'::uuid,
+--     'conv-own-session',
+--     true
+--   );
+-- Expected: {"allowed": true, "recorded": true} (first call in month)
+--
+-- As User A finalize check-only at limit (p_record false):
+--   SELECT public.consume_chat_session(
+--     '<user_a_id>'::uuid,
+--     'conv-not-yet-counted',
+--     false
+--   );
+-- Expected: {"allowed": false, "code": "free_tier_session_limit"} when month bucket is full

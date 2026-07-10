@@ -11,16 +11,17 @@ The `chat` function is **written in git only** until PM reviews this file and th
 - Platform env (automatic on Supabase Edge):
   - `SUPABASE_URL`
   - `SUPABASE_ANON_KEY`
-- Tier gate reads/writes `profiles.onboardingData` via the **authenticated** Supabase client (RLS owner scope), not service role.
+- Tier gate enforces Free tier limits via **`consume_chat_session` RPC** (atomic `FOR UPDATE` consume). Migration: `supabase/migrations/20260710130000_consume_chat_session_rpc.sql` — **PM review required before apply**.
 
 ## Pre-deploy PM review
 
 1. Read `supabase/functions/chat/index.ts` — auth, crisis hard-stop, tier gate, profile bind.
 2. Read `supabase/functions/chat/crisisDetect.ts` — keyword list + fixed 988/741741 response (full-thread scan).
-3. Read `supabase/functions/chat/tierGate.ts` — Free tier **3 sessions/month** tracked in `profiles.onboardingData.chat_ai_monthly_usage.sessionConversationIds`; first AI touch per new `conversationId` counts (not only `session_open`).
-4. Read `supabase/functions/_shared/supabase-auth.ts` — JWT verification via `auth.getUser`.
-5. Read `supabase/functions/chat/loadServerProfile.ts` — identity/results from DB; client may only supply `liveContext`.
-6. Confirm `supabase/config.toml` has `[functions.chat] verify_jwt = true`.
+3. Read `supabase/functions/chat/tierGate.ts` — calls `consume_chat_session` RPC (atomic session consume; migration PM-gated).
+4. Read `supabase/migrations/20260710130000_consume_chat_session_rpc.sql` — SECURITY DEFINER + `auth.uid()` bind.
+5. Read `supabase/functions/_shared/supabase-auth.ts` — JWT verification via `auth.getUser`.
+6. Read `supabase/functions/chat/loadServerProfile.ts` — identity/results from DB; client may only supply `liveContext`.
+7. Confirm `supabase/config.toml` has `[functions.chat] verify_jwt = true`.
 
 ## Deploy command (after PM accept + user go)
 
@@ -49,7 +50,7 @@ Or redeploy the prior git commit’s function sources after PM review.
 
 ## Notes
 
-- Monthly usage is stored in `profiles.onboardingData.chat_ai_monthly_usage` — **no migration applied** in T-005. Optional atomic RPC: `supabase/migrations/WRITTEN_NOT_APPLIED_chat_session_consume_rpc.sql`.
+- Monthly usage is stored in `profiles.onboardingData.chat_ai_monthly_usage` via **`consume_chat_session` RPC** — migration **written, not applied** until PM accepts `20260710130000_consume_chat_session_rpc.sql`. Two-user proof script: `supabase/tests/consume_chat_session_two_user_proof.sql`.
 - Client `profileData` identity fields are ignored server-side; only `liveContext` is accepted from the client and labeled untrusted in the prompt.
 - **Prototype limitation:** `profiles.subscribed` is owner-writable via RLS; tier gate reads it via the authenticated Supabase client but a malicious client could flip it until billing-backed entitlements ship.
 - Do not enable deploy in CI until T-005 is `accepted` and the user confirms go-live.
