@@ -55,3 +55,90 @@ Or redeploy the prior git commit’s function sources after PM review.
 - Client must not send `profileData` or `liveContext` — edge loads identity and live signals server-side (T-008).
 - Tier gate reads `profiles.subscribed` + `profiles.tier` inside **`consume_chat_session` RPC** (server truth). Entitlement columns are protected by trigger + billing RPCs — migration **written, not applied** until PM accepts `20260710140000_protect_subscription_entitlement.sql`. Two-user proof: `supabase/tests/subscription_entitlement_two_user_proof.sql`.
 - Do not enable deploy in CI until T-005 is `accepted` and the user confirms go-live.
+
+---
+
+## T-013 Go-live runbook (migrations → edge → push → smoke)
+
+**Requires explicit user go** for production changes (migrations, edge deploy, `git push`). PM-approved SQL: T-007 + T-010.
+
+### Pre-flight snapshot (2026-07-10)
+
+| Check | Status |
+| --- | --- |
+| Local `main` | `3bd3884` — **12 commits ahead** of `origin/main` |
+| Remote migrations | Through `20260709180000` — **T-007/T-010 not applied** |
+| Remote `chat` edge | **v8** ACTIVE, `verify_jwt=false` (git expects `verify_jwt=true`) |
+| Frontend gates | 137 tests pass, build pass |
+| Edge secret | Confirm `OPENAI_API_KEY` in Dashboard → Edge Functions → Secrets |
+
+Record rollback target before deploy: edge id `2b280ac2-6a45-4101-8623-e9c93743a7fe`, version **8**.
+
+### Execution order (do not push first)
+
+Pushing before migrations + edge deploy breaks chat (missing `consume_chat_session` RPC, old v8 handler vs new client lifecycle payloads).
+
+```text
+0. User explicit go + confirm OPENAI_API_KEY in Edge secrets
+1. Apply T-007 migration (consume_chat_session RPC)
+2. Apply T-010 migration (entitlement protection + billing RPCs)
+3. [Optional] Run two-user proof scripts in supabase/tests/
+4. Deploy chat edge (CLI — full bundle)
+5. Verify remote: verify_jwt=true, new handler active
+6. git push origin main
+7. Wait for production frontend deploy (CI does not auto-publish)
+8. Run post-deploy smoke (below); record results in T-013 finish summary
+```
+
+### Step 1–2: Apply PM-approved migrations
+
+Via Supabase CLI (linked project) or MCP `apply_migration` with full SQL bodies:
+
+- `supabase/migrations/20260710130000_consume_chat_session_rpc.sql`
+- `supabase/migrations/20260710140000_protect_subscription_entitlement.sql`
+
+**Order:** T-007 before T-010. T-010 must be live before new frontend (Settings uses `request_subscription_plan_change`).
+
+Optional proofs (manual, service-role / JWT):
+
+- `supabase/tests/consume_chat_session_two_user_proof.sql`
+- `supabase/tests/subscription_entitlement_two_user_proof.sql`
+- `supabase/tests/load_server_live_context_two_user_proof.sql`
+
+### Step 4: Deploy chat edge
+
+Prefer CLI (auto-bundles all imports):
+
+```bash
+cd supabase
+supabase functions deploy chat --project-ref szkextipgpupqoppccoy
+```
+
+Post-deploy: confirm Dashboard shows `verify_jwt=true` and version > 8.
+
+### Step 6: Push git
+
+```bash
+git push origin main
+```
+
+Only **committed** history is pushed (12 commits `30d4386`…`3bd3884`). Uncommitted working-tree changes stay local.
+
+### Step 8: Post-deploy smoke (record pass/fail)
+
+| # | Check | Pass criteria |
+| --- | --- | --- |
+| 1 | Auto opener | New Chat conversation receives opener (`session_open` lifecycle) |
+| 2 | Streamed reply | Normal message returns streamed AI reply |
+| 3 | No JWT | Unsigned request → `401 Unauthorized` |
+| 4 | Free tier gate | 4th new session in UTC month → `402` + `free_tier_session_limit` |
+| 5 | Crisis hard-stop | Crisis phrase → fixed 988/741741 JSON, no coaching continuation |
+
+### Rollback
+
+| Layer | Action |
+| --- | --- |
+| Edge | `supabase functions deploy chat --project-ref szkextipgpupqoppccoy --version <v8-id>` |
+| Migrations | No down scripts — manual SQL revert if required (PM only) |
+| Frontend | Revert git + redeploy hosting |
+
