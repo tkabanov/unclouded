@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import ReassessmentFlow from "@/components/ReassessmentFlow";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
 import OnboardingName from "@/components/OnboardingName";
 import OnboardingRole from "@/components/OnboardingRole";
@@ -21,7 +22,6 @@ import {
 } from "@/lib/enums/onboardingQuestions";
 import { ONBOARDING_STEP, type OnboardingStepSlug } from "@/lib/enums/onboardingSteps";
 import {
-  ONBOARDING_STEP_BUBBLE_GROUPS,
   ONBOARDING_WORKFLOW_EVENTS,
   advanceStep,
   canGoBack,
@@ -29,11 +29,13 @@ import {
 } from "@/lib/onboardingWizard";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/lib/userProfile";
+import { isOnboardingComplete } from "@/lib/userProfile/onboardingStatus";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { saveOnboarding, persistOnboardingDraft, refresh } = useUserProfile();
+  const { saveOnboarding, persistOnboardingDraft, refresh, profile, loading: profileLoading } = useUserProfile();
   const [step, setStep] = useState<OnboardingStepSlug>(ONBOARDING_STEP.WELCOME);
   const [firstName, setFirstName] = useState("");
   const [roleType, setRoleType] = useState("");
@@ -92,6 +94,13 @@ const Onboarding = () => {
     if (prev) setStep(prev);
   }, [step]);
 
+  useEffect(() => {
+    if (profileLoading || searchParams.get("reassessment") === "1") return;
+    if (isOnboardingComplete(profile)) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [profile, profileLoading, navigate, searchParams]);
+
   const handleComplete = async () => {
     if (!user) {
       console.error("Failed to complete onboarding: not authenticated");
@@ -112,23 +121,19 @@ const Onboarding = () => {
           behavioralPatterns,
           healthFlags,
         },
-        { userId: user.id, saveOnboarding, refreshProfile: refresh, navigate }
+        { userId: user.id, userEmail: user.email ?? undefined, saveOnboarding, refreshProfile: refresh, navigate }
       );
     } catch (err) {
       console.error("Failed to complete onboarding", err);
     }
   };
 
-  const stepGroupId = ONBOARDING_STEP_BUBBLE_GROUPS[step];
-
+  
   const renderStep = () => {
     switch (step) {
       case ONBOARDING_STEP.WELCOME:
         return (
-          <OnboardingWelcome
-            onNext={() => goNext(ONBOARDING_STEP.WELCOME)}
-            onSkip={() => navigate("/dashboard")}
-          />
+          <OnboardingWelcome onNext={() => goNext(ONBOARDING_STEP.WELCOME)} />
         );
       case ONBOARDING_STEP.NAME:
         return (
@@ -303,6 +308,10 @@ const Onboarding = () => {
     }
   };
 
+  if (searchParams.get("reassessment") === "1") {
+    return <ReassessmentFlow />;
+  }
+
   return (
     <OnboardingWizardShell
       step={step}
@@ -313,7 +322,6 @@ const Onboarding = () => {
         data-onboarding-step={step}
         data-workflow-next={ONBOARDING_WORKFLOW_EVENTS.NEXT_STEP}
         data-workflow-back={ONBOARDING_WORKFLOW_EVENTS.PREVIOUS_STEP}
-        {...(stepGroupId ? { "data-bubble-id": stepGroupId } : {})}
         className="flex flex-1 flex-col"
       >
         {renderStep()}

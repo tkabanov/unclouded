@@ -1,13 +1,10 @@
 import { computeResults } from "@/lib/classification";
-import { SIDEBAR_NAV_ROUTES } from "@/lib/enums/navigation";
+import { scheduleWelcomeEmailAfterOnboarding } from "@/lib/email/transactionalEmailHooks";
 import type { HealthFlagsPayload } from "@/lib/enums/onboardingQuestions";
 import { runOnboardingProfilePipeline } from "@/lib/userProfile/onboardingProfilePipeline";
 import type { OnboardingPayload } from "@/lib/userProfile";
 
-/** Bubble dashboard page id — post-onboarding destination (bTHDT) */
-export const ONBOARDING_COMPLETE_DESTINATION_BUBBLE_ID = "bTHDT" as const;
-
-export const ONBOARDING_COMPLETE_ROUTE = SIDEBAR_NAV_ROUTES.dashboard;
+export const ONBOARDING_COMPLETE_ROUTE = "/dashboard" as const;
 
 const REQUIRED_LOAD_SIGNAL_FIELDS = [
   "cognitive_load_signal",
@@ -32,6 +29,7 @@ export interface OnboardingCompletionData {
 
 export interface CompleteOnboardingDeps {
   userId: string;
+  userEmail?: string;
   saveOnboarding: (payload: OnboardingPayload) => Promise<void>;
   /** Reload profile context after pipeline patches coaching modes (API-05 / DASH-02). */
   refreshProfile?: () => Promise<void>;
@@ -50,7 +48,7 @@ export function canCompleteOnboarding(data: OnboardingCompletionData): boolean {
  */
 export async function completeOnboarding(
   data: OnboardingCompletionData,
-  { userId, saveOnboarding, refreshProfile, navigate }: CompleteOnboardingDeps
+  { userId, userEmail, saveOnboarding, refreshProfile, navigate }: CompleteOnboardingDeps
 ): Promise<void> {
   if (!canCompleteOnboarding(data)) {
     throw new Error("Required onboarding signals are not complete");
@@ -84,11 +82,24 @@ export async function completeOnboarding(
     },
   });
 
-  await runOnboardingProfilePipeline(userId);
-
   if (refreshProfile) {
     await refreshProfile();
   }
+
+  try {
+    await runOnboardingProfilePipeline(userId);
+    if (refreshProfile) {
+      await refreshProfile();
+    }
+  } catch (pipelineError) {
+    console.error("Onboarding profile pipeline failed", pipelineError);
+  }
+
+  scheduleWelcomeEmailAfterOnboarding({
+    userId,
+    email: userEmail,
+    firstName: data.firstName,
+  });
 
   navigate(ONBOARDING_COMPLETE_ROUTE);
 }

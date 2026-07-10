@@ -9,6 +9,7 @@ additional_redirect_urls = [
 
 [auth.email]
 # Dev: skip confirmation emails (built-in SMTP allows only 2/hour project-wide).
+# Production: enable confirmations + custom SMTP — see supabase/EMAIL_TEMPLATES.md (US-606).
 enable_confirmations = false
 
 [functions.chat]

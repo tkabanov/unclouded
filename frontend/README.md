@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-Dev server runs at http://localhost:8080.
+Dev server runs at http://localhost:3000.
 
 ## Scripts
 
@@ -22,3 +22,5 @@ Dev server runs at http://localhost:8080.
 ## Supabase
 
 Migrations and edge functions live in `../supabase/` at the repo root. Copy env vars from the Supabase project dashboard into `.env`.
+
+Transactional email (US-606): branded Auth templates and ops guide in `../supabase/EMAIL_TEMPLATES.md`. App hooks in `src/lib/email/`.
