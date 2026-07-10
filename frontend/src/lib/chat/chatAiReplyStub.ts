@@ -1,78 +1,66 @@
 import type { ChatMessage } from "@/components/chat/types";
+import { supabase } from "@/integrations/supabase/client";
+import { readChatStreamText } from "@/lib/chat/readChatStreamText";
+import type { ProfileData } from "../../../../supabase/functions/chat/prompt/types.ts";
 
 const CHAT_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
-const FALLBACK_REPLIES = [
-  "Thank you for sharing that. What feels most important to address first?",
-  "I hear you. What's one small step that might help right now?",
-  "That sounds like a lot to carry. Would it help to break this into one concrete next action?",
-] as const;
-
+export type ChatAiProfileData = ProfileData;
 function toUiMessages(messages: ChatMessage[]) {
   return messages.map((message) => ({
     id: message.id,
     role: message.role,
-    parts: [{ type: "text" as const, text: message.content_text }],
+    parts: [{ type: "text" as const, text: message.content }],
   }));
 }
 
 /**
- * ScheduleAPIEvent parity stub — tries project chat edge function, falls back locally.
+ * ScheduleAPIEvent parity — calls project chat edge function.
  * Handler: supabase/functions/chat/index.ts
  */
 export async function generateAiReplyStub(
   messages: ChatMessage[],
   context?: string,
+  profileData?: ChatAiProfileData,
 ): Promise<string> {
-  try {
-    const response = await fetch(CHAT_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({
-        messages: toUiMessages(messages),
-        context,
-      }),
-    });
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
 
-    if (!response.ok) {
-      throw new Error(`chat edge function ${response.status}`);
-    }
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error("Not authenticated");
 
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error("empty stream");
+  const response = await fetch(CHAT_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      messages: toUiMessages(messages),
+      context,
+      profileData,
+    }),
+  });
 
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let assistantText = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      for (const line of buffer.split("\n")) {
-        if (!line.startsWith("0:")) continue;
-        try {
-          const payload = JSON.parse(line.slice(2)) as string;
-          if (typeof payload === "string") assistantText += payload;
-        } catch {
-          // ignore malformed stream chunks
-        }
+  if (!response.ok) {
+    let message = `chat edge function ${response.status}`;
+    try {
+      const payload = (await response.json()) as { error?: unknown };
+      if (typeof payload.error === "string" && payload.error.trim()) {
+        message = payload.error.trim();
       }
-      buffer = buffer.split("\n").pop() ?? "";
+    } catch {
+      // Non-JSON error responses still surface the status.
     }
-
-    const trimmed = assistantText.trim();
-    if (trimmed) return trimmed;
-  } catch {
-    // fall through to local stub
+    if (response.status === 402) {
+      throw new Error("AI credits are exhausted. Add credits in Settings to continue.");
+    }
+    if (response.status === 429) {
+      throw new Error("Too many requests — please wait a moment and try again.");
+    }
+    throw new Error(message);
   }
 
-  const lastUser = [...messages].reverse().find((message) => message.role === "user");
-  const index = lastUser ? lastUser.content_text.length % FALLBACK_REPLIES.length : 0;
-  return FALLBACK_REPLIES[index];
+  return readChatStreamText(response);
 }

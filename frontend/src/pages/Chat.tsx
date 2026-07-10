@@ -5,23 +5,15 @@ import ChatPanelMount from "@/components/chat/ChatPanelMount";
 import ChatWelcomePanel from "@/components/chat/ChatWelcomePanel";
 import ConversationSidebar from "@/components/chat/ConversationSidebar";
 import DeleteConversationPopup from "@/components/chat/DeleteConversationPopup";
+import RenameConversationPopup from "@/components/chat/RenameConversationPopup";
 import type { ConversationListItem } from "@/lib/chat/chatConversationsApi";
 import { useChatConversationParam } from "@/hooks/useChatConversationParam";
+import { useChatLiveContext } from "@/hooks/useChatLiveContext";
 import { useChatSignOutClear } from "@/hooks/useChatSignOutClear";
 import { useNewConversation } from "@/hooks/useNewConversation";
-import {
-  CHAT_HEADER_INSTANCE_BUBBLE_ID,
-  CHAT_PAGE_BUBBLE_ID,
-  CHAT_SIDEBAR_INSTANCE_BUBBLE_ID,
-} from "@/lib/chat/routes";
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
 
-const chatShellProps = {
-  pageBubbleId: CHAT_PAGE_BUBBLE_ID,
-  headerBubbleId: CHAT_HEADER_INSTANCE_BUBBLE_ID,
-  sidebarBubbleId: CHAT_SIDEBAR_INSTANCE_BUBBLE_ID,
-} as const;
 
 export default function Chat() {
   const { user } = useAuth();
@@ -30,6 +22,7 @@ export default function Chat() {
   useChatSignOutClear();
 
   const [deleteTarget, setDeleteTarget] = useState<ConversationListItem | null>(null);
+  const [renameTarget, setRenameTarget] = useState<ConversationListItem | null>(null);
   const [sidebarListVersion, setSidebarListVersion] = useState(0);
 
   const bumpSidebar = useCallback(() => {
@@ -43,6 +36,8 @@ export default function Chat() {
     onCreated: bumpSidebar,
   });
 
+  const { liveContext } = useChatLiveContext(user?.id, profile?.onboardingData ?? null);
+
   const context = useMemo(() => {
     if (!profile) return undefined;
     const parts: string[] = [];
@@ -54,8 +49,24 @@ export default function Chat() {
     return parts.length ? parts.join(". ") : undefined;
   }, [profile]);
 
-  const handleRenameRequest = useCallback((_conversation: ConversationListItem) => {
-    // Rename popup flow is out of scope for CHAT-02; wired for IR bS parity.
+  const profileData = useMemo(() => {
+    if (!profile) return undefined;
+    return {
+      firstName: profile.firstName,
+      roleType: profile.roleType,
+      primaryPillar: profile.primaryPillar,
+      results: profile.results as unknown as Record<string, unknown> | null,
+      onboardingData: profile.onboardingData,
+      liveContext,
+    };
+  }, [profile, liveContext]);
+
+  const handleRenameRequest = useCallback((conversation: ConversationListItem) => {
+    setRenameTarget(conversation);
+  }, []);
+
+  const handleRenamePopupOpenChange = useCallback((open: boolean) => {
+    if (!open) setRenameTarget(null);
   }, []);
 
   const handleDeleteRequest = useCallback((conversation: ConversationListItem) => {
@@ -78,7 +89,7 @@ export default function Chat() {
   );
 
   return (
-    <DashboardLayout {...chatShellProps}>
+    <DashboardLayout >
       <ChatPageContent
         onNewConversation={createNew}
         sidebar={
@@ -98,6 +109,7 @@ export default function Chat() {
               userId={user.id}
               onboardingData={profile?.onboardingData ?? null}
               context={context}
+              profileData={profileData}
               listVersion={sidebarListVersion}
               onThreadUpdated={bumpSidebar}
             />
@@ -107,14 +119,23 @@ export default function Chat() {
         }
       />
       {user ? (
-        <DeleteConversationPopup
-          open={deleteTarget !== null}
-          onOpenChange={handleDeletePopupOpenChange}
-          conversation={deleteTarget}
-          userId={user.id}
-          onboardingData={profile?.onboardingData ?? null}
-          onDeleted={handleConversationDeleted}
-        />
+        <>
+          <DeleteConversationPopup
+            open={deleteTarget !== null}
+            onOpenChange={handleDeletePopupOpenChange}
+            conversation={deleteTarget}
+            userId={user.id}
+            onboardingData={profile?.onboardingData ?? null}
+            onDeleted={handleConversationDeleted}
+          />
+          <RenameConversationPopup
+            open={renameTarget !== null}
+            onOpenChange={handleRenamePopupOpenChange}
+            conversation={renameTarget}
+            userId={user.id}
+            onRenamed={bumpSidebar}
+          />
+        </>
       ) : null}
     </DashboardLayout>
   );

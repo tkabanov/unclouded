@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /** Bubble user field from workflow bTIWG streak update. */
-export const DAILY_CHECK_IN_STREAK_FIELD = "daily_check_in_streak_number" as const;
-export const STREAK_DAYS_FIELD = "streak_days_number" as const;
+export const DAILY_CHECK_IN_STREAK_FIELD = "dailyCheckInStreak" as const;
+export const STREAK_DAYS_FIELD = "streakDays" as const;
 
 /** Fallback history when `dailycheckin` table is absent from prototype schema. */
 export const DAILY_CHECKINS_ONBOARDING_KEY = "daily_checkins" as const;
@@ -21,6 +21,16 @@ export interface DailyCheckInRecord {
   reflection: string;
   date: string;
   user: string;
+  micro_commitment_status?: string | null;
+}
+
+/** Latest check-in snapshot for chat live context (Build Brief daily pulse fields). */
+export interface LatestDailyCheckIn {
+  date: string | null;
+  pulse: number | null;
+  feeling: string | null;
+  energyStressLevel: number | null;
+  microCommitmentStatus: string | null;
 }
 
 type UntypedSupabase = {
@@ -51,11 +61,17 @@ function readCheckinsFromOnboarding(
     .map((entry, index) => {
       if (!entry || typeof entry !== "object") return null;
       const row = entry as Record<string, unknown>;
-      const mood = Number(row.mood_number ?? row.mood);
-      const energy = Number(row.energy_stress_level_number ?? row.energy_stress_level);
-      const reflection = typeof row.reflection_text === "string" ? row.reflection_text : "";
-      const date = typeof row.date_date === "string" ? row.date_date : "";
-      const user = typeof row.user_user === "string" ? row.user_user : "";
+      const mood = Number(row.mood ?? row.mood);
+      const energy = Number(row.energyStressLevel ?? row.energy_stress_level);
+      const reflection = typeof row.reflection === "string" ? row.reflection : "";
+      const date = typeof row.date === "string" ? row.date : "";
+      const user = typeof row.userId === "string" ? row.userId : "";
+      const microCommitmentStatus =
+        typeof row.microCommitmentStatus === "string"
+          ? row.microCommitmentStatus
+          : typeof row.micro_commitment_status === "string"
+            ? row.micro_commitment_status
+            : null;
       if (!date || Number.isNaN(mood) || Number.isNaN(energy)) return null;
       return {
         id: typeof row.id === "string" ? row.id : `onboarding-${index}`,
@@ -64,6 +80,7 @@ function readCheckinsFromOnboarding(
         reflection,
         date,
         user,
+        micro_commitment_status: microCommitmentStatus,
       };
     })
     .filter((row): row is DailyCheckInRecord => row !== null);
@@ -108,10 +125,9 @@ function computeNextStreak(existingDates: string[], submitDate: Date): number {
 }
 
 async function tryFetchStreakFromTable(userId: string): Promise<number | null> {
-  const client = supabase as unknown as UntypedSupabase;
-  const { data, error } = await client
-    .from("user")
-    .select("daily_check_in_streak_number, streak_days_number")
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("dailyCheckInStreak, streakDays")
     .eq("id", userId)
     .maybeSingle();
 
@@ -123,7 +139,7 @@ async function tryFetchStreakFromTable(userId: string): Promise<number | null> {
   if (!data || typeof data !== "object") return 0;
   const row = data as Record<string, unknown>;
   const streak =
-    row.daily_check_in_streak_number ?? row.streak_days_number ?? 0;
+    row.dailyCheckInStreak ?? row.streakDays ?? 0;
   const parsed = Number(streak);
   return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
 }
@@ -134,12 +150,12 @@ async function tryInsertCheckinTable(
   date: Date,
 ): Promise<boolean> {
   const client = supabase as unknown as UntypedSupabase;
-  const { error } = await client.from("dailycheckin").insert({
-    mood_number: input.mood,
-    energy_stress_level_number: input.energyStressLevel,
-    reflection_text: input.reflection.trim(),
-    user_user: userId,
-    date_date: date.toISOString(),
+  const { error } = await client.from("dailyCheckin").insert({
+    mood: input.mood,
+    energyStressLevel: input.energyStressLevel,
+    reflection: input.reflection.trim(),
+    userId: userId,
+    date: date.toISOString(),
   });
 
   if (!error) return true;
@@ -148,12 +164,11 @@ async function tryInsertCheckinTable(
 }
 
 async function tryUpdateUserStreakTable(userId: string, streak: number): Promise<boolean> {
-  const client = supabase as unknown as UntypedSupabase;
-  const { error } = await client
-    .from("user")
+  const { error } = await supabase
+    .from("profiles")
     .update({
-      daily_check_in_streak_number: streak,
-      streak_days_number: streak,
+      dailyCheckInStreak: streak,
+      streakDays: streak,
     })
     .eq("id", userId);
 
@@ -162,8 +177,95 @@ async function tryUpdateUserStreakTable(userId: string, streak: number): Promise
   throw error;
 }
 
+function mapCheckinRecordToLatest(record: DailyCheckInRecord): LatestDailyCheckIn {
+  return {
+    date: record.date || null,
+    pulse: Number.isFinite(record.mood) ? record.mood : null,
+    feeling: record.reflection.trim() ? record.reflection.trim() : null,
+    energyStressLevel: Number.isFinite(record.energy_stress_level)
+      ? record.energy_stress_level
+      : null,
+    microCommitmentStatus: record.micro_commitment_status?.trim()
+      ? record.micro_commitment_status.trim()
+      : null,
+  };
+}
+
+async function tryFetchLatestCheckinFromTable(
+  userId: string,
+): Promise<LatestDailyCheckIn | null | undefined> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { data, error } = await client
+    .from("dailyCheckin")
+    .select("mood, energyStressLevel, reflection, date, createdAt")
+    .eq("userId", userId)
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return undefined;
+    throw error;
+  }
+
+  if (!data || typeof data !== "object") return null;
+
+  const row = data as Record<string, unknown>;
+  const mood = Number(row.mood);
+  const energy = Number(row.energyStressLevel);
+  const reflection = typeof row.reflection === "string" ? row.reflection : "";
+  const date =
+    typeof row.date === "string"
+      ? row.date
+      : typeof row.createdAt === "string"
+        ? row.createdAt
+        : null;
+  const microCommitmentStatus =
+    typeof row.microCommitmentStatus === "string"
+      ? row.microCommitmentStatus
+      : typeof row.micro_commitment_status === "string"
+        ? row.micro_commitment_status
+        : null;
+
+  if (Number.isNaN(mood) && Number.isNaN(energy) && !reflection.trim()) {
+    return null;
+  }
+
+  return {
+    date,
+    pulse: Number.isFinite(mood) ? mood : null,
+    feeling: reflection.trim() ? reflection.trim() : null,
+    energyStressLevel: Number.isFinite(energy) ? energy : null,
+    microCommitmentStatus: microCommitmentStatus?.trim() ? microCommitmentStatus.trim() : null,
+  };
+}
+
+function readLatestCheckinFromOnboarding(
+  userId: string,
+  onboardingData: Record<string, unknown> | null | undefined,
+): LatestDailyCheckIn | null {
+  const records = readCheckinsFromOnboarding(onboardingData)
+    .filter((row) => row.user === userId)
+    .sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+
+  if (records.length === 0) return null;
+  return mapCheckinRecordToLatest(records[0]);
+}
+
 /**
- * Read streak badge value — Bubble user.daily_check_in_streak_number with streak_days_number fallback.
+ * Most recent daily check-in for the current user — table first, onboarding fallback.
+ */
+export async function fetchLatestDailyCheckIn(
+  userId: string,
+  onboardingData?: Record<string, unknown> | null,
+): Promise<LatestDailyCheckIn | null> {
+  const fromTable = await tryFetchLatestCheckinFromTable(userId);
+  if (fromTable !== undefined) return fromTable;
+  return readLatestCheckinFromOnboarding(userId, onboardingData);
+}
+
+/**
+ * Read streak badge value — profiles.dailyCheckInStreak with streakDays fallback.
  */
 export async function fetchDailyCheckInStreak(
   userId: string,
@@ -206,24 +308,24 @@ export async function submitDailyCheckIn(
     const { error } = await supabase
       .from("profiles")
       .update({
-        onboarding_data: {
+        onboardingData: {
           ...(onboardingData ?? {}),
           [DAILY_CHECKINS_ONBOARDING_KEY]: [
             ...withoutToday.map((row) => ({
               id: row.id,
-              mood_number: row.mood,
-              energy_stress_level_number: row.energy_stress_level,
-              reflection_text: row.reflection,
-              date_date: row.date,
-              user_user: row.user,
+              mood: row.mood,
+              energyStressLevel: row.energy_stress_level,
+              reflection: row.reflection,
+              date: row.date,
+              userId: row.user,
             })),
             {
               id: nextRecord.id,
-              mood_number: nextRecord.mood,
-              energy_stress_level_number: nextRecord.energy_stress_level,
-              reflection_text: nextRecord.reflection,
-              date_date: nextRecord.date,
-              user_user: nextRecord.user,
+              mood: nextRecord.mood,
+              energyStressLevel: nextRecord.energy_stress_level,
+              reflection: nextRecord.reflection,
+              date: nextRecord.date,
+              userId: nextRecord.user,
             },
           ],
           [DAILY_CHECK_IN_STREAK_FIELD]: nextStreak,

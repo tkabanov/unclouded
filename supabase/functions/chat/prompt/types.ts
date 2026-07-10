@@ -4,7 +4,33 @@ export type ProfileData = {
   primaryPillar?: string;
   results?: Record<string, unknown> | null;
   onboardingData?: Record<string, unknown> | null;
+  liveContext?: ChatLiveContext | null;
 };
+
+export interface ChatLatestCheckIn {
+  date?: string | null;
+  pulse?: number | null;
+  feeling?: string | null;
+  energyStressLevel?: number | null;
+  microCommitmentStatus?: string | null;
+}
+
+export interface ChatPathReflectionAnswer {
+  pathName?: string;
+  sessionTitle?: string;
+  questionText: string;
+  answerText: string;
+  answeredAt?: string;
+}
+
+/** Live user signals wired from lib fetches (T-003). */
+export interface ChatLiveContext {
+  latestCheckIn?: ChatLatestCheckIn | null;
+  streakDays?: number | null;
+  activeMicroCommitment?: string | null;
+  sessionCount?: number | null;
+  pathReflections?: ChatPathReflectionAnswer[];
+}
 
 export type CoachingModeSlug =
   | "protector"
