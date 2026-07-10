@@ -1,15 +1,10 @@
 import { cn } from "@/lib/utils";
-import {
-  SETTINGS_TAB_BUTTON_BUBBLE_IDS,
-  SETTINGS_TAB_DISPLAY_LABELS,
-  SETTINGS_TAB_ORDER,
-  type SettingsTabSlug,
-} from "@/lib/settings/settingsTabStub";
-import { SETTINGS_TAB_BAR_BUBBLE_ID } from "@/lib/settings/routes";
+import { SETTINGS_TAB_DISPLAY_LABELS, SETTINGS_TAB_ORDER, type SettingsTabSlug } from "@/lib/settings/settingsTabStub";
 import { bubbleStyle } from "@/styles";
 
 export interface SettingsTabBarProps {
   activeTab: SettingsTabSlug;
+  tabs?: readonly SettingsTabSlug[];
   onSelectTab: (tab: SettingsTabSlug) => void;
   className?: string;
 }
@@ -20,12 +15,12 @@ function settingsTabPanelId(tab: SettingsTabSlug): string {
 
 export default function SettingsTabBar({
   activeTab,
+  tabs = SETTINGS_TAB_ORDER,
   onSelectTab,
   className,
 }: SettingsTabBarProps) {
   return (
     <div
-      data-bubble-id={SETTINGS_TAB_BAR_BUBBLE_ID}
       data-style-ref="Group_tab_bar_"
       className={cn(
         bubbleStyle("Group_tab_bar_"),
@@ -35,7 +30,7 @@ export default function SettingsTabBar({
       role="tablist"
       aria-label="Settings sections"
     >
-      {SETTINGS_TAB_ORDER.map((tab) => {
+      {tabs.map((tab) => {
         const isActive = activeTab === tab;
         return (
           <button
@@ -43,7 +38,6 @@ export default function SettingsTabBar({
             type="button"
             role="tab"
             id={`settings-tab-${tab}`}
-            data-bubble-id={SETTINGS_TAB_BUTTON_BUBBLE_IDS[tab]}
             data-tab-value={tab}
             aria-selected={isActive}
             aria-controls={settingsTabPanelId(tab)}

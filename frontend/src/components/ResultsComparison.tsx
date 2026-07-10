@@ -18,13 +18,13 @@ interface ResultsComparisonProps {
 }
 
 function scoreColor(score: number) {
-  return score < 3.2 ? "bg-destructive" : score < 3.8 ? "bg-amber-500" : "bg-emerald-500";
+  return score < 3.2 ? "bg-destructive" : score < 3.8 ? "bg-amber-500" : "bg-primary";
 }
 
 function DeltaBadge({ delta }: { delta: number }) {
   if (delta >= 0.2) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
+      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-primary">
         <ArrowUpRight className="h-3.5 w-3.5" /> +{delta.toFixed(1)}
       </span>
     );
@@ -128,7 +128,7 @@ const ResultsComparison = ({
           className={cn(
             "text-xs",
             summary.overallDelta >= 0.2
-              ? "bg-emerald-600 hover:bg-emerald-600 text-white"
+              ? "bg-primary hover:bg-primary text-primary-foreground"
               : summary.overallDelta <= -0.2
               ? "bg-destructive hover:bg-destructive text-destructive-foreground"
               : "bg-muted text-foreground hover:bg-muted"

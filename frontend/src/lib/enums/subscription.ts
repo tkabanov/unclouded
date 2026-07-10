@@ -5,19 +5,19 @@
  *
  * Bubble user_type `subscriptionplan` → future `subscription_plan` table
  *   - id (text PK) — Bubble row id
- *   - name_text — plan display name shown on subscription cards
- *   - price_number — monthly price
- *   - features_text — feature bullet list
- *   - description_text — plan tagline / summary
+ *   - name — plan display name shown on subscription cards
+ *   - price — monthly price
+ *   - features — feature bullet list
+ *   - description — plan tagline / summary
  *
  * tier_os slug → expected subscription_plan row correlation:
- *   | tier_os slug | Bubble id | subscription_plan.name_text (expected) |
+ *   | tier_os slug | Bubble id | subscription_plan.name (expected) |
  *   |--------------|-----------|----------------------------------------|
  *   | free         | bTIrS     | Free                                   |
  *   | pro          | bTIrT     | Pro                                    |
  *   | premium      | bTIrU     | Premium                                |
  *
- * User field `tier_option_tier_os` stores the tier_os slug (free | pro | premium).
+ * User field `tier` stores the tier_os slug (free | pro | premium).
  * Prototype PlanId values in @/lib/plans.ts align 1:1 with TierSlug for demo billing.
  */
 

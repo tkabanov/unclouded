@@ -4,13 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { Briefcase, GraduationCap, Heart, Users, HelpCircle } from "lucide-react";
-import {
-  CUSTOMER_ROLE_ORDER,
-  CUSTOMER_ROLE_LABELS,
-  CUSTOMER_ROLE_DESCRIPTIONS,
-  CUSTOMER_ROLE_BUBBLE_IDS,
-  type CustomerRoleSlug,
-} from "@/lib/enums/customerProfile";
+import { CUSTOMER_ROLE_ORDER, CUSTOMER_ROLE_LABELS, CUSTOMER_ROLE_DESCRIPTIONS, type CustomerRoleSlug } from "@/lib/enums/customerProfile";
 
 interface OnboardingRoleProps {
   onNext: (role: string) => void;
@@ -26,7 +20,6 @@ const ROLE_ICONS: Record<CustomerRoleSlug, typeof Briefcase> = {
 
 const roles = CUSTOMER_ROLE_ORDER.map((id) => ({
   id,
-  bubbleId: CUSTOMER_ROLE_BUBBLE_IDS[id],
   label: CUSTOMER_ROLE_LABELS[id],
   description: CUSTOMER_ROLE_DESCRIPTIONS[id],
   icon: ROLE_ICONS[id],
@@ -38,7 +31,6 @@ const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div
-        data-bubble-id="bTHJm"
         className={cn(bubbleStyle("Group_transparent_"), "max-w-xl w-full text-center space-y-8")}
       >
         <div className="space-y-3">
@@ -51,7 +43,6 @@ const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
         </div>
 
         <div
-          data-bubble-id="bTHOZ"
           className={cn(bubbleStyle("RepeatingGroup_chips_"), "grid gap-3 max-w-sm mx-auto text-left")}
         >
           {roles.map((role) => {
@@ -61,8 +52,6 @@ const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
               <button
                 key={role.id}
                 type="button"
-                data-bubble-id="bTGNh"
-                data-option-bubble-id={role.bubbleId}
                 onClick={() => setSelected(role.id)}
                 className={cn(
                   bubbleStyle(isSelected ? "Group_chip_active_" : "Group_chip_"),
@@ -80,11 +69,10 @@ const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
                   )}
                 />
                 <div className="min-w-0 flex-1">
-                  <div data-bubble-id="bTGNn" className={bubbleStyle("Text_label_copy_")}>
+                  <div className={bubbleStyle("Text_label_copy_")}>
                     {role.label}
                   </div>
                   <div
-                    data-bubble-id="bTGNo"
                     className={cn(
                       bubbleStyle("Text_small_"),
                       "text-xs font-normal",
@@ -95,7 +83,7 @@ const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
                   </div>
                 </div>
                 {isSelected && (
-                  <span data-bubble-id="bTHPt" className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
+                  <span className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
                     ✓
                   </span>
                 )}
@@ -105,17 +93,15 @@ const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
         </div>
 
         <div
-          data-bubble-id="bTHQR"
           className="flex items-start gap-2 max-w-sm mx-auto rounded-lg bg-primary/5 px-3 py-2.5 text-left"
         >
-          <p data-bubble-id="bTGOj" className={cn(bubbleStyle("Text_inter_13__400__white_copy_"), "text-xs text-muted-foreground")}>
+          <p className={cn(bubbleStyle("Text_inter_13__400__white_copy_"), "text-xs text-muted-foreground")}>
             Tap a card to select your role. You can update this later in your profile settings.
           </p>
         </div>
 
-        <div data-bubble-id="bTGOk" className="pt-2">
+        <div className="pt-2">
           <Button
-            data-bubble-id="bTGOp"
             variant="cta"
             size="lg"
             onClick={() => selected && onNext(selected)}

@@ -21,14 +21,12 @@ export function ChatFloatingDisclaimer({
 
   return (
     <div
-      data-bubble-id="bTIUh"
       className={cn(
         "pointer-events-none absolute bottom-full left-0 right-0 z-[4] mb-2",
         className,
       )}
     >
       <div
-        data-bubble-id="bTIne"
         className="sr-only"
         dangerouslySetInnerHTML={{ __html: CHAT_BEHAVIOR_HTML }}
       />

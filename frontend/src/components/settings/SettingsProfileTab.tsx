@@ -5,25 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
-  PROFILE_CARD_HEADER_BUBBLE_ID,
-  PROFILE_CARD_SUBTITLE_BUBBLE_ID,
-  PROFILE_CARD_TITLE_BUBBLE_ID,
-  PROFILE_EMAIL_INPUT_BUBBLE_ID,
-  PROFILE_EMAIL_LABEL_BUBBLE_ID,
-  PROFILE_EMAIL_PASSWORD_INPUT_BUBBLE_ID,
-  PROFILE_FIRST_NAME_INPUT_BUBBLE_ID,
-  PROFILE_FIRST_NAME_LABEL_BUBBLE_ID,
-  PROFILE_FORM_BUBBLE_ID,
-  PROFILE_FORM_CARD_BUBBLE_ID,
-  PROFILE_PANEL_BUBBLE_ID,
-  PROFILE_RECOVERY_SECTION_BUBBLE_ID,
-  PROFILE_RECOVERY_TITLE_BUBBLE_ID,
-  PROFILE_SAVE_BTN_BUBBLE_ID,
-  PROFILE_SOBRIETY_DATE_INPUT_BUBBLE_ID,
-  PROFILE_SOBRIETY_GROUP_BUBBLE_ID,
-  PROFILE_SOBRIETY_LABEL_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   loadProfileForm,
   ProfileSaveError,
   saveProfileForm,
@@ -118,27 +99,24 @@ export default function SettingsProfileTab() {
 
   if (loading) {
     return (
-      <div data-bubble-id={PROFILE_PANEL_BUBBLE_ID} className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Loading profile…
       </div>
     );
   }
 
   return (
-    <div data-bubble-id={PROFILE_PANEL_BUBBLE_ID} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <div
-        data-bubble-id={PROFILE_FORM_CARD_BUBBLE_ID}
         className={cn(bubbleStyle("Group_card_"), "flex flex-col gap-6 p-6")}
       >
-        <header data-bubble-id={PROFILE_CARD_HEADER_BUBBLE_ID} className="space-y-1">
+        <header className="space-y-1">
           <h2
-            data-bubble-id={PROFILE_CARD_TITLE_BUBBLE_ID}
             className={bubbleStyle("Text_heading_2_")}
           >
             Personal Information
           </h2>
           <p
-            data-bubble-id={PROFILE_CARD_SUBTITLE_BUBBLE_ID}
             className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}
           >
             Update your name, email, timezone, and coaching mode. Changes take effect immediately
@@ -146,18 +124,16 @@ export default function SettingsProfileTab() {
           </p>
         </header>
 
-        <div data-bubble-id={PROFILE_FORM_BUBBLE_ID} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label
               htmlFor="profile-first-name"
-              data-bubble-id={PROFILE_FIRST_NAME_LABEL_BUBBLE_ID}
               className={bubbleStyle("Text_label_")}
             >
               First Name
             </Label>
             <Input
               id="profile-first-name"
-              data-bubble-id={PROFILE_FIRST_NAME_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               placeholder="Your first name"
@@ -169,7 +145,6 @@ export default function SettingsProfileTab() {
           <div className="flex flex-col gap-2">
             <Label
               htmlFor="profile-email"
-              data-bubble-id={PROFILE_EMAIL_LABEL_BUBBLE_ID}
               className={bubbleStyle("Text_label_")}
             >
               Email Address
@@ -177,7 +152,6 @@ export default function SettingsProfileTab() {
             <Input
               id="profile-email"
               type="email"
-              data-bubble-id={PROFILE_EMAIL_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               placeholder="you@example.com"
@@ -195,7 +169,6 @@ export default function SettingsProfileTab() {
                 id="profile-current-password"
                 type="password"
                 autoComplete="current-password"
-                data-bubble-id={PROFILE_EMAIL_PASSWORD_INPUT_BUBBLE_ID}
                 data-style-ref="Input_default_"
                 className={bubbleStyle("Input_default_")}
                 value={currentPassword}
@@ -206,24 +179,20 @@ export default function SettingsProfileTab() {
         </div>
 
         <section
-          data-bubble-id={PROFILE_RECOVERY_SECTION_BUBBLE_ID}
           className="flex flex-col gap-4 border-t border-border pt-4"
         >
           <p
-            data-bubble-id={PROFILE_RECOVERY_TITLE_BUBBLE_ID}
             className={cn(bubbleStyle("Text_body_"), "text-sm font-medium")}
           >
             Recovery Fields (shown for Recovery sub-mode — all data is private)
           </p>
 
           <div
-            data-bubble-id={PROFILE_SOBRIETY_GROUP_BUBBLE_ID}
             className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4"
           >
             <div className="flex flex-1 flex-col gap-2">
               <Label
                 htmlFor="profile-sobriety-date"
-                data-bubble-id={PROFILE_SOBRIETY_LABEL_BUBBLE_ID}
                 className={bubbleStyle("Text_label_")}
               >
                 Sobriety Start Date
@@ -231,7 +200,6 @@ export default function SettingsProfileTab() {
               <Input
                 id="profile-sobriety-date"
                 type="date"
-                data-bubble-id={PROFILE_SOBRIETY_DATE_INPUT_BUBBLE_ID}
                 data-style-ref="Input_default_"
                 className={bubbleStyle("Input_default_")}
                 value={form.sobrietyStartDate}
@@ -255,7 +223,6 @@ export default function SettingsProfileTab() {
         <div className="flex justify-end">
           <Button
             type="button"
-            data-bubble-id={PROFILE_SAVE_BTN_BUBBLE_ID}
             data-style-ref="Button_primary_"
             className={bubbleStyle("Button_primary_")}
             disabled={saving}

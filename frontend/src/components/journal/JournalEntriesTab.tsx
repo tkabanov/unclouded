@@ -1,13 +1,5 @@
 import { BookOpenText, Plus, Smile } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  JOURNAL_ACTIONS_ROW_BUBBLE_ID,
-  JOURNAL_COUNT_LABEL_BUBBLE_ID,
-  JOURNAL_ENTRIES_GRID_BUBBLE_ID,
-  JOURNAL_ENTRIES_ICON_BUBBLE_ID,
-  JOURNAL_ENTRIES_LABEL_BUBBLE_ID,
-  NEW_ENTRY_BTN_BUBBLE_ID,
-} from "@/lib/journal/routes";
 import type { JournalEntryListItem } from "@/lib/journal/journalEntriesApi";
 import JournalEntryCard from "@/components/journal/JournalEntryCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,18 +23,15 @@ export default function JournalEntriesTab({
   return (
     <div className={cn("flex w-full flex-col gap-6", className)}>
       <div
-        data-bubble-id={JOURNAL_ACTIONS_ROW_BUBBLE_ID}
         className={cn(
           bubbleStyle("Group_transparent_"),
           "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
         )}
       >
         <div
-          data-bubble-id={JOURNAL_COUNT_LABEL_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-2")}
         >
           <span
-            data-bubble-id={JOURNAL_ENTRIES_ICON_BUBBLE_ID}
             data-style-ref="Icon_primary_"
             className={cn(bubbleStyle("Icon_primary_"), "shrink-0")}
             aria-hidden
@@ -50,7 +39,6 @@ export default function JournalEntriesTab({
             <BookOpenText className="h-5 w-5" />
           </span>
           <span
-            data-bubble-id={JOURNAL_ENTRIES_LABEL_BUBBLE_ID}
             data-style-ref="Text_label_"
             className={cn(bubbleStyle("Text_label_"), "text-base font-semibold")}
           >
@@ -63,7 +51,6 @@ export default function JournalEntriesTab({
 
         <button
           type="button"
-          data-bubble-id={NEW_ENTRY_BTN_BUBBLE_ID}
           data-style-ref="Button_primary_"
           className={cn(bubbleStyle("Button_primary_"), "inline-flex shrink-0 items-center gap-1.5")}
           onClick={onNewEntry}
@@ -74,7 +61,6 @@ export default function JournalEntriesTab({
       </div>
 
       <div
-        data-bubble-id={JOURNAL_ENTRIES_GRID_BUBBLE_ID}
         data-style-ref="RepeatingGroup_list_"
         className={cn(bubbleStyle("RepeatingGroup_list_"), "flex w-full flex-col gap-4")}
       >

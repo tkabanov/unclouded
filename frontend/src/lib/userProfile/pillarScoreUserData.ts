@@ -24,7 +24,10 @@ export function readQuestionScores(
   const readOne = (index: number): number => {
     const field = `${prefix}q${index}`;
     const bubbleField = `${field}_number`;
-    const raw = onboardingData[bubbleField] ?? nestedObj?.[field];
+    const raw =
+      onboardingData[bubbleField] ??
+      nestedObj?.[field] ??
+      nestedObj?.[bubbleField];
     if (typeof raw === "number" && !Number.isNaN(raw)) return raw;
     if (typeof raw === "string" && raw.trim() !== "") {
       const parsed = Number(raw);
@@ -45,25 +48,25 @@ export function readQuestionScores(
 export async function loadOnboardingData(userId: string): Promise<Record<string, unknown>> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .single();
 
   if (error) throw error;
   if (
-    !data?.onboarding_data ||
-    typeof data.onboarding_data !== "object" ||
-    Array.isArray(data.onboarding_data)
+    !data?.onboardingData ||
+    typeof data.onboardingData !== "object" ||
+    Array.isArray(data.onboardingData)
   ) {
-    throw new Error("Profile onboarding_data is missing");
+    throw new Error("Profile onboardingData is missing");
   }
 
-  return data.onboarding_data as Record<string, unknown>;
+  return data.onboardingData as Record<string, unknown>;
 }
 
-export const STABILITY_SCORE_NUMBER_FIELD = "stability_score_number" as const;
-export const ALIGNMENT_SCORE_NUMBER_FIELD = "alignment_score_number" as const;
-export const PERFORMANCE_SCORE_NUMBER_FIELD = "performance_score_number" as const;
+export const STABILITY_SCORE_NUMBER_FIELD = "stabilityScore" as const;
+export const ALIGNMENT_SCORE_NUMBER_FIELD = "alignmentScore" as const;
+export const PERFORMANCE_SCORE_NUMBER_FIELD = "performanceScore" as const;
 
 const RESULTS_KEY_BY_SCORE_FIELD = {
   [STABILITY_SCORE_NUMBER_FIELD]: "stability_score",
@@ -80,17 +83,17 @@ export async function patchPillarScoreNumber(
 ): Promise<void> {
   const { data, error: loadError } = await supabase
     .from("profiles")
-    .select("onboarding_data, results")
+    .select("onboardingData, results")
     .eq("id", userId)
     .single();
 
   if (loadError) throw loadError;
 
   const existingOnboarding =
-    data?.onboarding_data &&
-    typeof data.onboarding_data === "object" &&
-    !Array.isArray(data.onboarding_data)
-      ? (data.onboarding_data as Record<string, unknown>)
+    data?.onboardingData &&
+    typeof data.onboardingData === "object" &&
+    !Array.isArray(data.onboardingData)
+      ? (data.onboardingData as Record<string, unknown>)
       : {};
 
   const resultsKey = RESULTS_KEY_BY_SCORE_FIELD[scoreField];
@@ -100,7 +103,7 @@ export async function patchPillarScoreNumber(
       : null;
 
   const updates: Record<string, unknown> = {
-    onboarding_data: {
+    onboardingData: {
       ...existingOnboarding,
       [scoreField]: score,
     },

@@ -1,15 +1,5 @@
 import { CalendarDays, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  RELAPSE_CARD_ACTIONS_BUBBLE_ID,
-  RELAPSE_CARD_CONTENT_BUBBLE_ID,
-  RELAPSE_CARD_EDIT_BTN_BUBBLE_ID,
-  RELAPSE_CARD_ICON_BUBBLE_ID,
-  RELAPSE_CARD_META_ROW_BUBBLE_ID,
-  RELAPSE_CARD_NOTES_BUBBLE_ID,
-  RELAPSE_EVENT_CARD_TEMPLATE_BUBBLE_ID,
-  RELAPSE_EVENT_DATE_BUBBLE_ID,
-} from "@/lib/journal/routes";
 import type { RelapseEventListItem } from "@/lib/journal/relapseEventsApi";
 import { bubbleStyle } from "@/styles";
 
@@ -37,7 +27,6 @@ export default function RelapseEventCard({
 }: RelapseEventCardProps) {
   return (
     <article
-      data-bubble-id={RELAPSE_EVENT_CARD_TEMPLATE_BUBBLE_ID}
       data-style-ref="Group_panel_"
       className={cn(
         bubbleStyle("Group_panel_"),
@@ -46,18 +35,15 @@ export default function RelapseEventCard({
       )}
     >
       <div
-        data-bubble-id={RELAPSE_CARD_CONTENT_BUBBLE_ID}
         className={cn(
           bubbleStyle("Group_transparent_"),
           "flex items-start justify-between gap-3",
         )}
       >
         <div
-          data-bubble-id={RELAPSE_CARD_META_ROW_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "flex min-w-0 flex-1 items-center gap-3")}
         >
           <span
-            data-bubble-id={RELAPSE_CARD_ICON_BUBBLE_ID}
             data-style-ref="Icon_primary_"
             className={cn(bubbleStyle("Icon_primary_"), "shrink-0")}
             aria-hidden
@@ -65,21 +51,18 @@ export default function RelapseEventCard({
             <CalendarDays className="h-5 w-5" />
           </span>
           <p
-            data-bubble-id={RELAPSE_EVENT_DATE_BUBBLE_ID}
             data-style-ref="Text_label_"
             className={cn(bubbleStyle("Text_label_"), "text-sm font-semibold")}
           >
-            {formatEventDate(event.event_date_date)}
+            {formatEventDate(event.eventDate)}
           </p>
         </div>
 
         <div
-          data-bubble-id={RELAPSE_CARD_ACTIONS_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "shrink-0")}
         >
           <button
             type="button"
-            data-bubble-id={RELAPSE_CARD_EDIT_BTN_BUBBLE_ID}
             data-style-ref="Button_icon_"
             className={cn(
               bubbleStyle("Button_icon_"),
@@ -93,16 +76,15 @@ export default function RelapseEventCard({
         </div>
       </div>
 
-      {event.notes_text ? (
+      {event.notes ? (
         <p
-          data-bubble-id={RELAPSE_CARD_NOTES_BUBBLE_ID}
           data-style-ref="Text_body_muted_"
           className={cn(
             bubbleStyle("Text_body_muted_"),
             "whitespace-pre-wrap text-sm text-muted-foreground",
           )}
         >
-          {event.notes_text}
+          {event.notes}
         </p>
       ) : null}
     </article>

@@ -1,3 +1,4 @@
+import { getAppOrigin } from "@/lib/appUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { isRecoveryAuthorized } from "@/lib/auth/recoverySession";
 import { clearRecoveryAuthorization } from "@/lib/auth/recoverySessionState";
@@ -5,7 +6,7 @@ import { clearRecoveryAuthorization } from "@/lib/auth/recoverySessionState";
 const PASSWORD_RESET_REDIRECT_PATH = "/reset_pw";
 
 export function getPasswordResetRedirectUrl(): string {
-  return `${window.location.origin}${PASSWORD_RESET_REDIRECT_PATH}`;
+  return `${getAppOrigin()}${PASSWORD_RESET_REDIRECT_PATH}`;
 }
 
 export class PasswordRecoveryError extends Error {

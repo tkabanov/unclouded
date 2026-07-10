@@ -3,29 +3,29 @@ export type ChatConversation = {
   /** title binding → bTIRh */
   title: string;
   /** mode badge binding → bTIRi */
-  mode_badge_text: string;
+  modeBadgeText: string;
   /** coaching disclaimer badge caption → bTIRs */
-  disclaimer_badge_text: string;
+  disclaimerBadgeText: string;
 };
 
 /** Bubble custom.chatmessage row for RepeatingGroup bTISM. */
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
-  /** content_text binding → bTISS (user) / bTIUQ (assistant) */
-  content_text: string;
+  /** content binding → bTISS (user) / bTIUQ (assistant) */
+  content: string;
 };
 
 export const CHAT_CONVERSATION_DEFAULTS = {
   title: "Select a conversation",
-  mode_badge_text: "Professional • Executive Coaching",
-  disclaimer_badge_text: "Coaching only — not therapy or medical advice",
+  modeBadgeText: "Professional • Executive Coaching",
+  disclaimerBadgeText: "Coaching only — not therapy or medical advice",
 } as const;
 
 export const CHAT_ASSISTANT_DISCLAIMER =
   "This is coaching guidance, not therapy or medical advice. For crisis support, call 988.";
 
-/** Coaching mode quick-prompt ids from composer toolbar (bTITH). */
+/** Quick-prompt suggestion chips in composer toolbar (bTITH) — send as user message. */
 export type ChatComposerMode = "plan" | "reflect" | "goal" | "stress";
 
 export const CHAT_COMPOSER_MODES: ReadonlyArray<{

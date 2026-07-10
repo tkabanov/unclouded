@@ -26,11 +26,11 @@ const OnboardingWizardShell = ({
   const showChrome = showsWizardChrome(step);
 
   return (
-    <div data-bubble-id="bTGNI" className="min-h-screen flex flex-col bg-background">
-      <div data-bubble-id="bTIgV">
+    <div className="min-h-screen flex flex-col bg-background">
+      <div>
         <CrisisBar />
       </div>
-      <div data-bubble-id="bTGNP" className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col">
         {showChrome && (
           <header className="border-b border-border/60 bg-background/95 px-4 py-3">
             <div className="mx-auto flex max-w-2xl items-center gap-4">
@@ -51,13 +51,12 @@ const OnboardingWizardShell = ({
               )}
 
               <div className="min-w-0 flex-1 space-y-0.5 text-center">
-                <div data-bubble-id="bTHEL" className="truncate text-sm font-medium text-foreground">
+                <div className="truncate text-sm font-medium text-foreground">
                   {firstName ? `Hi, ${firstName}` : "\u00a0"}
                 </div>
-                <div data-bubble-id="bTHEQ" className="space-y-0.5">
+                <div className="space-y-0.5">
                   {displayNumber !== null && (
                     <p
-                      data-bubble-id="bTHER"
                       className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
                     >
                       Step {displayNumber} of {ONBOARDING_SCORED_STEP_COUNT}

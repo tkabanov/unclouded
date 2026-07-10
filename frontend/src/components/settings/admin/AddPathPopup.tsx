@@ -18,15 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  ADD_PATH_CLOSE_BTN_BUBBLE_ID,
-  ADD_PATH_FORM_BUBBLE_ID,
-  ADD_PATH_POPUP_BUBBLE_ID,
-  ADD_PATH_POPUP_TITLE_BUBBLE_ID,
-  ADD_PATH_SUBMIT_BTN_BUBBLE_ID,
-  ADD_PATH_TIER_SELECT_BUBBLE_ID,
-  ADD_PATH_TITLE_INPUT_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   AI_COACHING_MODE_ORDER,
   AI_COACHING_MODE_LABELS,
   type AiCoachingModeSlug,
@@ -66,19 +57,18 @@ export default function AddPathPopup({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-bubble-id={ADD_PATH_POPUP_BUBBLE_ID}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle data-bubble-id={ADD_PATH_POPUP_TITLE_BUBBLE_ID}>
+          <DialogTitle>
             {isEdit ? "Edit guided path" : "Add guided path"}
           </DialogTitle>
         </DialogHeader>
 
-        <div data-bubble-id={ADD_PATH_FORM_BUBBLE_ID} className="grid gap-4">
+        <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="add-path-title">Title</Label>
             <Input
               id="add-path-title"
-              data-bubble-id={ADD_PATH_TITLE_INPUT_BUBBLE_ID}
               className={bubbleStyle("Input_default_")}
               value={form.name}
               onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
@@ -95,7 +85,6 @@ export default function AddPathPopup({
             >
               <SelectTrigger
                 id="add-path-tier"
-                data-bubble-id={ADD_PATH_TIER_SELECT_BUBBLE_ID}
                 className={bubbleStyle("Input_default_")}
               >
                 <SelectValue />
@@ -184,7 +173,6 @@ export default function AddPathPopup({
           <Button
             type="button"
             variant="outline"
-            data-bubble-id={ADD_PATH_CLOSE_BTN_BUBBLE_ID}
             disabled={busy}
             onClick={() => onOpenChange(false)}
           >
@@ -192,7 +180,6 @@ export default function AddPathPopup({
           </Button>
           <Button
             type="button"
-            data-bubble-id={ADD_PATH_SUBMIT_BTN_BUBBLE_ID}
             className={bubbleStyle("Button_primary_")}
             disabled={busy}
             onClick={() => void onSubmit(form)}

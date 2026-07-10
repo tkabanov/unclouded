@@ -10,46 +10,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  AI_REFLECTION_CONTENT_BUBBLE_ID,
-  AI_REFLECTION_DISCLAIMER_BUBBLE_ID,
-  AI_REFLECTION_HEADER_ROW_BUBBLE_ID,
-  AI_REFLECTION_ICON_BUBBLE_ID,
-  AI_REFLECTION_INFO_TEXT_BUBBLE_ID,
-  AI_REFLECTION_TEXT_BUBBLE_ID,
-  AI_REFLECTION_TITLE_GROUP_BUBBLE_ID,
-  AI_REFLECTION_TITLE_TEXT_BUBBLE_ID,
-  ENTRY_AI_REFLECTION_SECTION_BUBBLE_ID,
-  ENTRY_DELETE_BTN_BUBBLE_ID,
-  ENTRY_DELETE_CANCEL_CONFIRM_BTN_BUBBLE_ID,
-  ENTRY_DELETE_CONFIRM_ACTIONS_BUBBLE_ID,
-  ENTRY_DELETE_CONFIRM_BTN_BUBBLE_ID,
-  ENTRY_DELETE_CONFIRM_SECTION_BUBBLE_ID,
-  ENTRY_DELETE_CONFIRM_TEXT_BUBBLE_ID,
-  ENTRY_DETAIL_ACTIONS_BUBBLE_ID,
-  ENTRY_DETAIL_BADGES_BUBBLE_ID,
-  ENTRY_DETAIL_CANCEL_BTN_BUBBLE_ID,
-  ENTRY_DETAIL_CLOSE_BTN_BUBBLE_ID,
-  ENTRY_DETAIL_CONTENT_GROUP_BUBBLE_ID,
-  ENTRY_DETAIL_DATE_TEXT_BUBBLE_ID,
-  ENTRY_DETAIL_FORM_BUBBLE_ID,
-  ENTRY_DETAIL_HEADER_BUBBLE_ID,
-  ENTRY_DETAIL_MOOD_BADGE_BUBBLE_ID,
-  ENTRY_DETAIL_MOOD_FIELD_BUBBLE_ID,
-  ENTRY_DETAIL_POPUP_BUBBLE_ID,
-  ENTRY_DETAIL_SAVE_ACTIONS_BUBBLE_ID,
-  ENTRY_DETAIL_TITLE_FIELD_BUBBLE_ID,
-  ENTRY_DETAIL_TITLE_GROUP_BUBBLE_ID,
-  ENTRY_DETAIL_TITLE_TEXT_BUBBLE_ID,
-  ENTRY_EDIT_CONTENT_INPUT_BUBBLE_ID,
-  ENTRY_EDIT_CONTENT_LABEL_BUBBLE_ID,
-  ENTRY_EDIT_MOOD_INPUT_BUBBLE_ID,
-  ENTRY_EDIT_MOOD_LABEL_BUBBLE_ID,
-  ENTRY_EDIT_TITLE_INPUT_BUBBLE_ID,
-  ENTRY_EDIT_TITLE_LABEL_BUBBLE_ID,
-  ENTRY_SAVE_CHANGES_BTN_BUBBLE_ID,
-  GENERATE_REFLECTION_BTN_BUBBLE_ID,
-} from "@/lib/journal/routes";
-import {
   deleteJournalEntry,
   type JournalEntryListItem,
   updateJournalEntry,
@@ -113,10 +73,10 @@ export default function EntryDetailPopup({
 
   useEffect(() => {
     if (!open || !entry) return;
-    setTitle(entry.title_text === "Untitled entry" ? "" : entry.title_text);
-    setMoodTag(entry.mood_tag_text ?? "");
-    setContent(entry.content_text);
-    setAiReflection(entry.ai_reflection_text);
+    setTitle(entry.title === "Untitled entry" ? "" : entry.title);
+    setMoodTag(entry.moodTag ?? "");
+    setContent(entry.content);
+    setAiReflection(entry.aiReflection);
     setShowDeleteConfirm(false);
   }, [open, entry]);
 
@@ -136,9 +96,9 @@ export default function EntryDetailPopup({
         userId,
         entry.id,
         {
-          title_text: title,
-          mood_tag_text: moodTag.trim() || null,
-          content_text: content,
+          title: title,
+          moodTag: moodTag.trim() || null,
+          content: content,
         },
         onboardingData,
       );
@@ -177,13 +137,13 @@ export default function EntryDetailPopup({
         userId,
         {
           ...entry,
-          title_text: title.trim() || entry.title_text,
-          mood_tag_text: moodTag.trim() || null,
-          content_text: content.trim() || entry.content_text,
+          title: title.trim() || entry.title,
+          moodTag: moodTag.trim() || null,
+          content: content.trim() || entry.content,
         },
         onboardingData,
       );
-      setAiReflection(updated.ai_reflection_text);
+      setAiReflection(updated.aiReflection);
       toast.success("AI reflection generated.");
       onSaved();
     } catch (error) {
@@ -197,54 +157,46 @@ export default function EntryDetailPopup({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        data-bubble-id={ENTRY_DETAIL_POPUP_BUBBLE_ID}
         data-style-ref="Popup_dialog_"
         className={cn(bubbleStyle("Popup_dialog_"), "max-h-[90vh] overflow-y-auto sm:max-w-lg")}
       >
         <header
-          data-bubble-id={ENTRY_DETAIL_HEADER_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-3 pr-8")}
         >
           <div
-            data-bubble-id={ENTRY_DETAIL_TITLE_GROUP_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}
           >
             <div
-              data-bubble-id={ENTRY_DETAIL_BADGES_BUBBLE_ID}
               className={cn(bubbleStyle("Group_transparent_"), "flex flex-wrap items-center gap-2")}
             >
               <span
-                data-bubble-id={ENTRY_DETAIL_MOOD_BADGE_BUBBLE_ID}
                 className={cn(
                   bubbleStyle("Text_caption_"),
                   "rounded-full bg-accent px-2.5 py-0.5 text-[11px] text-muted-foreground",
                 )}
               >
-                {moodBadgeLabel((entry?.mood_tag_text ?? moodTag.trim()) || null)}
+                {moodBadgeLabel((entry?.moodTag ?? moodTag.trim()) || null)}
               </span>
               {entry ? (
                 <span
-                  data-bubble-id={ENTRY_DETAIL_DATE_TEXT_BUBBLE_ID}
                   data-style-ref="Text_caption_"
                   className={cn(bubbleStyle("Text_caption_"), "text-[11px] text-muted-foreground")}
                 >
-                  {formatDetailDate(entry.created_at)}
+                  {formatDetailDate(entry.createdAt)}
                 </span>
               ) : null}
             </div>
 
             <h2
-              data-bubble-id={ENTRY_DETAIL_TITLE_TEXT_BUBBLE_ID}
               data-style-ref="Text_heading_2_"
               className={cn(bubbleStyle("Text_heading_2_"), "text-left text-xl font-semibold")}
             >
-              {title.trim() || entry?.title_text || "Journal Entry"}
+              {title.trim() || entry?.title || "Journal Entry"}
             </h2>
           </div>
 
           <button
             type="button"
-            data-bubble-id={ENTRY_DETAIL_CLOSE_BTN_BUBBLE_ID}
             data-style-ref="Button_icon_"
             className={cn(
               bubbleStyle("Button_icon_"),
@@ -260,11 +212,9 @@ export default function EntryDetailPopup({
 
         {showDeleteConfirm ? (
           <section
-            data-bubble-id={ENTRY_DELETE_CONFIRM_SECTION_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-4 py-2")}
           >
             <p
-              data-bubble-id={ENTRY_DELETE_CONFIRM_TEXT_BUBBLE_ID}
               data-style-ref="Text_body_"
               className={cn(bubbleStyle("Text_body_"), "text-sm text-muted-foreground")}
             >
@@ -272,13 +222,11 @@ export default function EntryDetailPopup({
             </p>
 
             <div
-              data-bubble-id={ENTRY_DELETE_CONFIRM_ACTIONS_BUBBLE_ID}
               className={cn(bubbleStyle("Group_transparent_"), "flex flex-wrap gap-2")}
             >
               <Button
                 type="button"
                 variant="outline"
-                data-bubble-id={ENTRY_DELETE_CANCEL_CONFIRM_BTN_BUBBLE_ID}
                 data-style-ref="Button_secondary_"
                 className={bubbleStyle("Button_secondary_")}
                 onClick={() => setShowDeleteConfirm(false)}
@@ -289,7 +237,6 @@ export default function EntryDetailPopup({
               <Button
                 type="button"
                 variant="destructive"
-                data-bubble-id={ENTRY_DELETE_CONFIRM_BTN_BUBBLE_ID}
                 data-style-ref="Button_destructive_"
                 className={bubbleStyle("Button_destructive_")}
                 onClick={handleDelete}
@@ -302,16 +249,13 @@ export default function EntryDetailPopup({
         ) : (
           <>
             <div
-              data-bubble-id={ENTRY_DETAIL_FORM_BUBBLE_ID}
               className={cn(bubbleStyle("Group_transparent_"), "space-y-4 py-1")}
             >
               <div
-                data-bubble-id={ENTRY_DETAIL_TITLE_FIELD_BUBBLE_ID}
                 className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
               >
                 <label
                   htmlFor="entry-edit-title"
-                  data-bubble-id={ENTRY_EDIT_TITLE_LABEL_BUBBLE_ID}
                   data-style-ref="Text_label_"
                   className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
                 >
@@ -319,7 +263,6 @@ export default function EntryDetailPopup({
                 </label>
                 <Input
                   id="entry-edit-title"
-                  data-bubble-id={ENTRY_EDIT_TITLE_INPUT_BUBBLE_ID}
                   data-style-ref="Input_default_"
                   className={bubbleStyle("Input_default_")}
                   value={title}
@@ -329,12 +272,10 @@ export default function EntryDetailPopup({
               </div>
 
               <div
-                data-bubble-id={ENTRY_DETAIL_MOOD_FIELD_BUBBLE_ID}
                 className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
               >
                 <label
                   htmlFor="entry-edit-mood"
-                  data-bubble-id={ENTRY_EDIT_MOOD_LABEL_BUBBLE_ID}
                   data-style-ref="Text_label_"
                   className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
                 >
@@ -342,7 +283,6 @@ export default function EntryDetailPopup({
                 </label>
                 <Input
                   id="entry-edit-mood"
-                  data-bubble-id={ENTRY_EDIT_MOOD_INPUT_BUBBLE_ID}
                   data-style-ref="Input_default_"
                   className={bubbleStyle("Input_default_")}
                   value={moodTag}
@@ -352,12 +292,10 @@ export default function EntryDetailPopup({
               </div>
 
               <div
-                data-bubble-id={ENTRY_DETAIL_CONTENT_GROUP_BUBBLE_ID}
                 className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
               >
                 <label
                   htmlFor="entry-edit-content"
-                  data-bubble-id={ENTRY_EDIT_CONTENT_LABEL_BUBBLE_ID}
                   data-style-ref="Text_label_"
                   className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
                 >
@@ -365,7 +303,6 @@ export default function EntryDetailPopup({
                 </label>
                 <Textarea
                   id="entry-edit-content"
-                  data-bubble-id={ENTRY_EDIT_CONTENT_INPUT_BUBBLE_ID}
                   data-style-ref="MultiLineInput_default_"
                   className={cn(bubbleStyle("MultiLineInput_default_"), "resize-none")}
                   value={content}
@@ -377,26 +314,22 @@ export default function EntryDetailPopup({
             </div>
 
             <section
-              data-bubble-id={ENTRY_AI_REFLECTION_SECTION_BUBBLE_ID}
               className={cn(
                 bubbleStyle("Group_transparent_"),
                 "space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4",
               )}
             >
               <div
-                data-bubble-id={AI_REFLECTION_HEADER_ROW_BUBBLE_ID}
                 className={cn(
                   bubbleStyle("Group_transparent_"),
                   "flex flex-wrap items-center justify-between gap-3",
                 )}
               >
                 <div
-                  data-bubble-id={AI_REFLECTION_TITLE_GROUP_BUBBLE_ID}
                   className={cn(bubbleStyle("Group_transparent_"), "space-y-1")}
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      data-bubble-id={AI_REFLECTION_ICON_BUBBLE_ID}
                       data-style-ref="Icon_primary_"
                       className={cn(bubbleStyle("Icon_primary_"), "inline-flex")}
                       aria-hidden
@@ -404,14 +337,12 @@ export default function EntryDetailPopup({
                       <Sparkles className="h-4 w-4" />
                     </span>
                     <span
-                      data-bubble-id={AI_REFLECTION_TITLE_TEXT_BUBBLE_ID}
                       data-style-ref="Text_label_"
                       className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
                     >
                       AI Coaching Reflection
                     </span>
                     <span
-                      data-bubble-id={AI_REFLECTION_INFO_TEXT_BUBBLE_ID}
                       data-style-ref="Text_caption_"
                       className={cn(
                         bubbleStyle("Text_caption_"),
@@ -428,7 +359,6 @@ export default function EntryDetailPopup({
                   type="button"
                   variant="outline"
                   size="sm"
-                  data-bubble-id={GENERATE_REFLECTION_BTN_BUBBLE_ID}
                   data-style-ref="Button_secondary_"
                   className={bubbleStyle("Button_secondary_")}
                   onClick={handleGenerateReflection}
@@ -439,12 +369,10 @@ export default function EntryDetailPopup({
               </div>
 
               <div
-                data-bubble-id={AI_REFLECTION_CONTENT_BUBBLE_ID}
                 className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}
               >
                 {aiReflection ? (
                   <p
-                    data-bubble-id={AI_REFLECTION_TEXT_BUBBLE_ID}
                     data-style-ref="Text_body_muted_"
                     className={cn(
                       bubbleStyle("Text_body_muted_"),
@@ -455,7 +383,6 @@ export default function EntryDetailPopup({
                   </p>
                 ) : (
                   <p
-                    data-bubble-id={AI_REFLECTION_TEXT_BUBBLE_ID}
                     data-style-ref="Text_body_muted_"
                     className={cn(
                       bubbleStyle("Text_body_muted_"),
@@ -467,7 +394,6 @@ export default function EntryDetailPopup({
                 )}
 
                 <p
-                  data-bubble-id={AI_REFLECTION_DISCLAIMER_BUBBLE_ID}
                   data-style-ref="Text_caption_"
                   className={cn(bubbleStyle("Text_caption_"), "text-xs text-muted-foreground")}
                 >
@@ -477,7 +403,6 @@ export default function EntryDetailPopup({
             </section>
 
             <DialogFooter
-              data-bubble-id={ENTRY_DETAIL_ACTIONS_BUBBLE_ID}
               className={cn(
                 bubbleStyle("Group_transparent_"),
                 "flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
@@ -486,7 +411,6 @@ export default function EntryDetailPopup({
               <Button
                 type="button"
                 variant="destructive"
-                data-bubble-id={ENTRY_DELETE_BTN_BUBBLE_ID}
                 data-style-ref="Button_destructive_"
                 className={bubbleStyle("Button_destructive_")}
                 onClick={() => setShowDeleteConfirm(true)}
@@ -496,13 +420,11 @@ export default function EntryDetailPopup({
               </Button>
 
               <div
-                data-bubble-id={ENTRY_DETAIL_SAVE_ACTIONS_BUBBLE_ID}
                 className={cn(bubbleStyle("Group_transparent_"), "flex w-full gap-2 sm:w-auto")}
               >
                 <Button
                   type="button"
                   variant="ghost"
-                  data-bubble-id={ENTRY_DETAIL_CANCEL_BTN_BUBBLE_ID}
                   data-style-ref="Button_ghost_"
                   className={cn(bubbleStyle("Button_ghost_"), "flex-1 sm:flex-none")}
                   onClick={dismiss}
@@ -513,7 +435,6 @@ export default function EntryDetailPopup({
                 <Button
                   type="button"
                   variant="cta"
-                  data-bubble-id={ENTRY_SAVE_CHANGES_BTN_BUBBLE_ID}
                   data-style-ref="Button_primary_"
                   className={cn(bubbleStyle("Button_primary_"), "flex-1 sm:flex-none")}
                   onClick={handleSave}

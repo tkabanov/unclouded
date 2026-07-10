@@ -6,18 +6,6 @@ import { Button } from "@/components/ui/button";
 import AddPlanPopup from "@/components/settings/admin/AddPlanPopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import {
-  ADMIN_ADD_PLAN_BTN_BUBBLE_ID,
-  ADMIN_PLAN_CARD_ACTIONS_BUBBLE_ID,
-  ADMIN_PLAN_CARD_NAME_BUBBLE_ID,
-  ADMIN_PLAN_CARD_TEMPLATE_BUBBLE_ID,
-  ADMIN_PLAN_DELETE_BTN_BUBBLE_ID,
-  ADMIN_PLAN_EDIT_BTN_BUBBLE_ID,
-  ADMIN_PLANS_GRID_BUBBLE_ID,
-  ADMIN_PLANS_TITLE_BUBBLE_ID,
-  ADMIN_PLANS_TOOLBAR_BUBBLE_ID,
-  ADMIN_TAB_PLANS_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   createAdminPlan,
   deleteAdminPlan,
   fetchAdminPlans,
@@ -112,24 +100,22 @@ export default function AdminPlansTab() {
 
   if (loading) {
     return (
-      <div data-bubble-id={ADMIN_TAB_PLANS_BUBBLE_ID} className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Loading plans…
       </div>
     );
   }
 
   return (
-    <div data-bubble-id={ADMIN_TAB_PLANS_BUBBLE_ID} className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div
-        data-bubble-id={ADMIN_PLANS_TOOLBAR_BUBBLE_ID}
         className="flex flex-wrap items-center justify-between gap-3"
       >
-        <h3 data-bubble-id={ADMIN_PLANS_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_3_")}>
+        <h3 className={bubbleStyle("Text_heading_3_")}>
           Subscription plans
         </h3>
         <Button
           type="button"
-          data-bubble-id={ADMIN_ADD_PLAN_BTN_BUBBLE_ID}
           className={bubbleStyle("Button_primary_")}
           onClick={() => setAddOpen(true)}
         >
@@ -139,16 +125,15 @@ export default function AdminPlansTab() {
 
       <AdminDataSourceNotice source={dataSource} entityLabel="subscription plans" />
 
-      <div data-bubble-id={ADMIN_PLANS_GRID_BUBBLE_ID} className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {plans.map((plan) => (
           <div
             key={plan.planId}
-            data-bubble-id={ADMIN_PLAN_CARD_TEMPLATE_BUBBLE_ID}
             className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-4")}
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h4 data-bubble-id={ADMIN_PLAN_CARD_NAME_BUBBLE_ID} className="font-semibold">
+                <h4 className="font-semibold">
                   {plan.name}
                 </h4>
                 <p className="text-2xl font-bold">{formatPlanPrice(plan)}</p>
@@ -162,14 +147,12 @@ export default function AdminPlansTab() {
               ))}
             </ul>
             <div
-              data-bubble-id={ADMIN_PLAN_CARD_ACTIONS_BUBBLE_ID}
               className="flex justify-end gap-2"
             >
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                data-bubble-id={ADMIN_PLAN_EDIT_BTN_BUBBLE_ID}
                 disabled={plan.isStatic || busy}
                 onClick={() => setEditPlan(plan)}
               >
@@ -179,7 +162,6 @@ export default function AdminPlansTab() {
                 type="button"
                 size="sm"
                 variant="outline"
-                data-bubble-id={ADMIN_PLAN_DELETE_BTN_BUBBLE_ID}
                 disabled={plan.isStatic || busy}
                 onClick={() => void handleDelete(plan)}
               >

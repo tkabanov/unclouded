@@ -7,10 +7,6 @@ import {
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
 import { useChatConversationParam } from "@/lib/chat/chatRouteStore";
-import {
-  CONVERSATION_SIDEBAR_BUBBLE_ID,
-  CONVERSATION_THREADS_RG_BUBBLE_ID,
-} from "@/lib/chat/routes";
 import { cn } from "@/lib/utils";
 
 export interface ConversationSidebarProps {
@@ -81,11 +77,9 @@ export default function ConversationSidebar({
 
   return (
     <div
-      data-bubble-id={CONVERSATION_SIDEBAR_BUBBLE_ID}
       className={cn("flex min-h-0 flex-1 flex-col", className)}
     >
       <div
-        data-bubble-id={CONVERSATION_THREADS_RG_BUBBLE_ID}
         className="flex-1 space-y-1 overflow-y-auto p-2"
       >
         {loading ? (

@@ -11,14 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  ADD_PLAN_CLOSE_BTN_BUBBLE_ID,
-  ADD_PLAN_FORM_BUBBLE_ID,
-  ADD_PLAN_NAME_INPUT_BUBBLE_ID,
-  ADD_PLAN_POPUP_BUBBLE_ID,
-  ADD_PLAN_POPUP_TITLE_BUBBLE_ID,
-  ADD_PLAN_SUBMIT_BTN_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   emptyAdminPlanForm,
   type AdminPlanFormState,
 } from "@/lib/settings/admin/adminPlansApi";
@@ -50,19 +42,18 @@ export default function AddPlanPopup({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-bubble-id={ADD_PLAN_POPUP_BUBBLE_ID}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle data-bubble-id={ADD_PLAN_POPUP_TITLE_BUBBLE_ID}>
+          <DialogTitle>
             {isEdit ? "Edit subscription plan" : "Add subscription plan"}
           </DialogTitle>
         </DialogHeader>
 
-        <div data-bubble-id={ADD_PLAN_FORM_BUBBLE_ID} className="grid gap-4">
+        <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="add-plan-name">Name</Label>
             <Input
               id="add-plan-name"
-              data-bubble-id={ADD_PLAN_NAME_INPUT_BUBBLE_ID}
               className={bubbleStyle("Input_default_")}
               value={form.name}
               onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
@@ -109,7 +100,6 @@ export default function AddPlanPopup({
           <Button
             type="button"
             variant="outline"
-            data-bubble-id={ADD_PLAN_CLOSE_BTN_BUBBLE_ID}
             disabled={busy}
             onClick={() => onOpenChange(false)}
           >
@@ -117,7 +107,6 @@ export default function AddPlanPopup({
           </Button>
           <Button
             type="button"
-            data-bubble-id={ADD_PLAN_SUBMIT_BTN_BUBBLE_ID}
             className={bubbleStyle("Button_primary_")}
             disabled={busy}
             onClick={() => void onSubmit(form)}

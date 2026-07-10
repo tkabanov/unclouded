@@ -36,30 +36,30 @@ function readCognitiveLoadSignalSlug(onboarding: Record<string, unknown>): strin
 
 /** Bubble API event calculate_user_ai_coaching_mode (bTIEN). */
 export async function calculateUserAiCoachingMode(userId: string): Promise<string[]> {
-  const { onboarding_data, results } = await loadProfileRow(userId);
+  const { onboardingData, results } = await loadProfileRow(userId);
 
   const modes = resolveAiCoachingModes({
     stability_score: readNumberField(
-      onboarding_data,
+      onboardingData,
       results,
       STABILITY_SCORE_NUMBER_FIELD,
       "stability_score",
     ),
     alignment_score: readNumberField(
-      onboarding_data,
+      onboardingData,
       results,
       ALIGNMENT_SCORE_NUMBER_FIELD,
       "alignment_score",
     ),
     performance_score: readNumberField(
-      onboarding_data,
+      onboardingData,
       results,
       PERFORMANCE_SCORE_NUMBER_FIELD,
       "performance_score",
     ),
-    recovery_mode_active: readHealthFlag(onboarding_data, results, "recovery_mode_active"),
-    grief_mode_active: readHealthFlag(onboarding_data, results, "grief_mode_active"),
-    cognitive_load_signal_slug: readCognitiveLoadSignalSlug(onboarding_data),
+    recovery_mode_active: readHealthFlag(onboardingData, results, "recovery_mode_active"),
+    grief_mode_active: readHealthFlag(onboardingData, results, "grief_mode_active"),
+    cognitive_load_signal_slug: readCognitiveLoadSignalSlug(onboardingData),
   });
 
   await patchOnboardingAndResults(userId, {

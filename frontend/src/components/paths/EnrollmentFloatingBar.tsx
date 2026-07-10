@@ -3,10 +3,6 @@ import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useAuth } from "@/hooks/useAuth";
 import { PATH_ENROLLMENT_STATUS_LABELS } from "@/lib/enums/pathEnrollment";
-import {
-  PATHS_ENROLLMENT_RG_BUBBLE_ID,
-  PATHS_FLOATING_BAR_BUBBLE_ID,
-} from "@/lib/paths/routes";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -20,13 +16,11 @@ export default function EnrollmentFloatingBar() {
 
   return (
     <div
-      data-bubble-id={PATHS_FLOATING_BAR_BUBBLE_ID}
       className="pointer-events-none fixed left-0 right-0 top-16 z-[60] w-full min-w-0 px-4 md:px-8"
       aria-label="Your enrolled paths"
     >
       <div className="pointer-events-auto mx-auto w-full max-w-5xl rounded-xl border border-border bg-card/95 p-2 shadow-lg backdrop-blur-sm">
         <div
-          data-bubble-id={PATHS_ENROLLMENT_RG_BUBBLE_ID}
           data-style-ref="RepeatingGroup_list_"
           className={cn(
             bubbleStyle("RepeatingGroup_list_"),

@@ -19,15 +19,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  ADD_RESOURCE_CLOSE_BTN_BUBBLE_ID,
-  ADD_RESOURCE_FORM_BUBBLE_ID,
-  ADD_RESOURCE_POPUP_BUBBLE_ID,
-  ADD_RESOURCE_POPUP_TITLE_BUBBLE_ID,
-  ADD_RESOURCE_SENSITIVITY_SELECT_BUBBLE_ID,
-  ADD_RESOURCE_SUBMIT_BTN_BUBBLE_ID,
-  ADD_RESOURCE_TITLE_INPUT_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   AI_COACHING_MODE_ORDER,
   AI_COACHING_MODE_LABELS,
   type AiCoachingModeSlug,
@@ -65,19 +56,18 @@ export default function AddResourcePopup({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-bubble-id={ADD_RESOURCE_POPUP_BUBBLE_ID}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle data-bubble-id={ADD_RESOURCE_POPUP_TITLE_BUBBLE_ID}>
+          <DialogTitle>
             {isEdit ? "Edit resource" : "Add resource"}
           </DialogTitle>
         </DialogHeader>
 
-        <div data-bubble-id={ADD_RESOURCE_FORM_BUBBLE_ID} className="grid gap-4">
+        <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="add-resource-title">Title</Label>
             <Input
               id="add-resource-title"
-              data-bubble-id={ADD_RESOURCE_TITLE_INPUT_BUBBLE_ID}
               className={bubbleStyle("Input_default_")}
               value={form.title}
               onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
@@ -137,7 +127,6 @@ export default function AddResourcePopup({
             >
               <SelectTrigger
                 id="add-resource-sensitivity"
-                data-bubble-id={ADD_RESOURCE_SENSITIVITY_SELECT_BUBBLE_ID}
                 className={bubbleStyle("Input_default_")}
               >
                 <SelectValue />
@@ -186,7 +175,6 @@ export default function AddResourcePopup({
           <Button
             type="button"
             variant="outline"
-            data-bubble-id={ADD_RESOURCE_CLOSE_BTN_BUBBLE_ID}
             disabled={busy}
             onClick={() => onOpenChange(false)}
           >
@@ -194,7 +182,6 @@ export default function AddResourcePopup({
           </Button>
           <Button
             type="button"
-            data-bubble-id={ADD_RESOURCE_SUBMIT_BTN_BUBBLE_ID}
             className={bubbleStyle("Button_primary_")}
             disabled={busy}
             onClick={() => void onSubmit(form)}

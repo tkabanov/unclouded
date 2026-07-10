@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const SOBRIETY_DATE_KEY = "sobriety_start_date_date";
+const SOBRIETY_DATE_KEY = "sobriety_start_date";
 const RECOVERY_MODE_KEY = "recovery_mode_active_boolean";
 
 export interface ProfileFormState {
@@ -33,17 +33,17 @@ export async function loadProfileForm(
 ): Promise<ProfileFormState> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("first_name, email, onboarding_data")
+    .select("firstName, email, onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   return {
-    firstName: data?.first_name ?? "",
+    firstName: data?.firstName ?? "",
     email: authEmail ?? data?.email ?? "",
     sobrietyStartDate:
       typeof onboarding[SOBRIETY_DATE_KEY] === "string" ? onboarding[SOBRIETY_DATE_KEY] : "",
@@ -91,21 +91,21 @@ export async function saveProfileForm(
 
   const { data: existing, error: readError } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (readError) throw readError;
 
   const onboarding =
-    (existing?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (existing?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      first_name: values.firstName.trim() || null,
+      firstName: values.firstName.trim() || null,
       email: nextEmail || null,
-      onboarding_data: {
+      onboardingData: {
         ...onboarding,
         [SOBRIETY_DATE_KEY]: values.sobrietyStartDate || null,
         [RECOVERY_MODE_KEY]: values.recoveryModeActive,

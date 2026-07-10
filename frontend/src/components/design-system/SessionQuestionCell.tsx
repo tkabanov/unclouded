@@ -5,8 +5,8 @@ import { bubbleStyle } from "@/styles";
 /** Bubble custom.pathquestion row bound to RepeatingGroup cell bTIzF. */
 export type PathQuestionData = {
   id: string;
-  /** q_text_text binding → label bTIzG */
-  q_text_text: string;
+  /** questionText binding → label bTIzG */
+  questionText: string;
 };
 
 export type SessionQuestionCellProps = {
@@ -31,19 +31,16 @@ export function SessionQuestionCell({
 }: SessionQuestionCellProps) {
   return (
     <div
-      data-bubble-id="bTIzF"
       className={cn("flex w-full flex-col gap-2", className)}
     >
       <label
-        data-bubble-id="bTIzG"
         className={bubbleStyle("Text_label_")}
         htmlFor={`session-answer-${question.id}`}
       >
-        {question.q_text_text}
+        {question.questionText}
       </label>
       <Textarea
         id={`session-answer-${question.id}`}
-        data-bubble-id="bTIzK"
         data-style-ref="MultiLineInput_default_"
         value={answer}
         onChange={(event) => onAnswerChange?.(event.target.value)}

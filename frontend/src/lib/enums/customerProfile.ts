@@ -32,12 +32,6 @@ export const CUSTOMER_PILLAR_ORDER: readonly CustomerPillarSlug[] = [
   CUSTOMER_PILLAR.HEALTH,
 ];
 
-export const CUSTOMER_PILLAR_BUBBLE_IDS: Record<CustomerPillarSlug, string> = {
-  emotional: "bTHQE",
-  professional: "bTHQF",
-  health: "bTHQG",
-};
-
 /** Bubble option set: customer_role_os (Customer Role OS) */
 
 export const CUSTOMER_ROLE_OPTION_SET_ID = "customer_role_os" as const;
@@ -80,14 +74,6 @@ export const CUSTOMER_ROLE_ORDER: readonly CustomerRoleSlug[] = [
   CUSTOMER_ROLE.TRANSITION,
   CUSTOMER_ROLE.RETIRED,
 ];
-
-export const CUSTOMER_ROLE_BUBBLE_IDS: Record<CustomerRoleSlug, string> = {
-  pro: "bTHKW",
-  student: "bTHKX",
-  caregiver: "bTHKY",
-  transition: "bTHKc",
-  retired: "bTHKd",
-};
 
 /** Bubble option set: customer_state_os (Customer State OS) */
 

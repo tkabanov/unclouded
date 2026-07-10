@@ -36,7 +36,6 @@ const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div
-        data-bubble-id="bTHJm"
         className={cn(bubbleStyle("Group_transparent_"), "max-w-2xl w-full text-center space-y-8")}
       >
         {stepNumber !== null && (
@@ -66,17 +65,14 @@ const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
         </div>
 
         <div
-          data-bubble-id="bTHVW"
           className={cn(bubbleStyle("RepeatingGroup_list_"), "grid gap-2 max-w-lg mx-auto text-left")}
         >
           {options.map((opt) => {
             const isSelected = selected.has(opt.slug);
             return (
               <button
-                key={opt.bubbleId}
+                key={opt.slug}
                 type="button"
-                data-bubble-id="bTHVi"
-                data-option-bubble-id={opt.bubbleId}
                 data-custom-state={opt.customStateKey}
                 onClick={() => handleToggle(opt.slug)}
                 className={cn(
@@ -105,7 +101,7 @@ const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
                     </svg>
                   )}
                 </span>
-                <span data-bubble-id="bTHVm" className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
+                <span className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
                   {opt.label}
                 </span>
               </button>
@@ -113,9 +109,8 @@ const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
           })}
         </div>
 
-        <div data-bubble-id="bTGOk" className="pt-2">
+        <div className="pt-2">
           <Button
-            data-bubble-id="bTGOp"
             variant="cta"
             size="lg"
             onClick={handleContinue}

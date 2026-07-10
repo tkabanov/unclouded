@@ -35,7 +35,7 @@ type UntypedSupabase = {
 };
 
 type ProfileRow = {
-  onboarding_data?: Record<string, unknown> | null;
+  onboardingData?: Record<string, unknown> | null;
 };
 
 const CHECKIN_LOOKBACK_DAYS = 7;
@@ -67,16 +67,16 @@ function countCheckinsFromOnboarding(
 ): number {
   let total = 0;
   for (const profile of profiles) {
-    const raw = profile.onboarding_data?.[DAILY_CHECKINS_ONBOARDING_KEY];
+    const raw = profile.onboardingData?.[DAILY_CHECKINS_ONBOARDING_KEY];
     if (!Array.isArray(raw)) continue;
     for (const entry of raw) {
       if (!entry || typeof entry !== "object") continue;
       const row = entry as Record<string, unknown>;
       const date =
-        typeof row.date_date === "string"
-          ? row.date_date
-          : typeof row.created_at === "string"
-            ? row.created_at
+        typeof row.date === "string"
+          ? row.date
+          : typeof row.createdAt === "string"
+            ? row.createdAt
             : null;
       if (date && isOnOrAfterCutoff(date, cutoff)) total += 1;
     }
@@ -87,7 +87,7 @@ function countCheckinsFromOnboarding(
 function countPathEnrollmentsFromOnboarding(profiles: ProfileRow[]): number {
   let total = 0;
   for (const profile of profiles) {
-    const raw = profile.onboarding_data?.[PATH_ENROLLMENT_ONBOARDING_KEY];
+    const raw = profile.onboardingData?.[PATH_ENROLLMENT_ONBOARDING_KEY];
     if (!raw || typeof raw !== "object") continue;
     const state = raw as Record<string, unknown>;
     if (typeof state.enrollment_id === "string" && state.enrollment_id.trim() !== "") {
@@ -100,7 +100,7 @@ function countPathEnrollmentsFromOnboarding(profiles: ProfileRow[]): number {
 function resolveMostActiveMode(profiles: ProfileRow[]): string {
   const modeCounts = new Map<string, number>();
   for (const profile of profiles) {
-    const mode = readCoachingMode(profile.onboarding_data ?? null);
+    const mode = readCoachingMode(profile.onboardingData ?? null);
     if (!mode) continue;
     modeCounts.set(mode, (modeCounts.get(mode) ?? 0) + 1);
   }
@@ -126,9 +126,9 @@ function resolveMostActiveMode(profiles: ProfileRow[]): string {
 async function tryCountCheckinsLast7Days(cutoffIso: string): Promise<number | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { count, error } = await client
-    .from("dailycheckin")
+    .from("dailyCheckin")
     .select("id", { count: "exact", head: true })
-    .gte("date_date", cutoffIso);
+    .gte("date", cutoffIso);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -141,7 +141,7 @@ async function tryCountCheckinsLast7Days(cutoffIso: string): Promise<number | nu
 async function tryCountPathEnrollments(): Promise<number | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { count, error } = await client
-    .from("pathenrollment1")
+    .from("pathEnrollment")
     .select("id", { count: "exact", head: true });
 
   if (error) {
@@ -156,7 +156,7 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalyticsSnapshot> {
   const cutoff = checkinCutoffDate();
   const cutoffIso = cutoff.toISOString();
 
-  const profilesResult = await supabase.from("profiles").select("onboarding_data");
+  const profilesResult = await supabase.from("profiles").select("onboardingData");
   if (profilesResult.error) throw profilesResult.error;
 
   const profiles = (profilesResult.data ?? []) as ProfileRow[];

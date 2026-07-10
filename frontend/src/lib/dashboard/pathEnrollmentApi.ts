@@ -20,7 +20,7 @@ export interface PathEnrollmentListItem {
   tier: TierSlug;
   pillarLabel: string;
   subMode?: string;
-  /** pathenrollment1.current_session_custom_pathsession — PATHS-07 URL session matching. */
+  /** pathenrollment1.currentSessionId — PATHS-07 URL session matching. */
   currentSessionId?: string;
   currentSessionTitle?: string;
 }
@@ -44,22 +44,22 @@ const EMPTY_ENROLLMENT: CurrentPathEnrollment = {
 
 type PathenrollmentRow = {
   id?: string;
-  status_option_path_enrollment_status?: string;
-  completed_sessions_count_number?: number | string | null;
-  completed_micro_commitment_session_list_list_custom_pathsession?: unknown;
-  current_session_custom_pathsession?:
-    | { id?: string; title_text?: string }
+  status?: string;
+  completedSessionsCount?: number | string | null;
+  completedMicroCommitmentSessionIds?: unknown;
+  currentSessionId?:
+    | { id?: string; title?: string }
     | string
     | null;
-  focused_m_commitment_custom_pathsession?: unknown;
-  path_custom_path?:
+  focusedMicroCommitmentSessionId?: unknown;
+  pathId?:
     | {
-        name_text?: string;
+        name?: string;
         slug?: string;
-        sessions_count_number?: number | string;
-        tier_option_tier_os?: string;
-        pillar_option_customer_pillar_os?: string;
-        sub_mode_text?: string;
+        sessionsCount?: number | string;
+        tier?: string;
+        pillar?: string;
+        subMode?: string;
       }
     | string
     | null;
@@ -124,14 +124,14 @@ function sessionTitleFromId(sessionId: string | undefined, pathSlug: string | un
 }
 
 function resolveNextStepTitle(
-  currentSession: PathenrollmentRow["current_session_custom_pathsession"],
+  currentSession: PathenrollmentRow["currentSessionId"],
   pathSlug: string | undefined,
   focusedSessionIds: string[],
   completedSessionIds: string[],
 ): string | null {
   if (currentSession && typeof currentSession === "object") {
-    if (typeof currentSession.title_text === "string" && currentSession.title_text.trim()) {
-      return currentSession.title_text;
+    if (typeof currentSession.title === "string" && currentSession.title.trim()) {
+      return currentSession.title;
     }
     return sessionTitleFromId(currentSession.id, pathSlug);
   }
@@ -160,7 +160,7 @@ function computeProgressPercent(
 }
 
 function parsePathenrollmentRow(row: PathenrollmentRow): CurrentPathEnrollment | null {
-  if (row.status_option_path_enrollment_status === PATH_ENROLLMENT_STATUS.COMPLETED) {
+  if (row.status === PATH_ENROLLMENT_STATUS.COMPLETED) {
     return null;
   }
 
@@ -168,18 +168,18 @@ function parsePathenrollmentRow(row: PathenrollmentRow): CurrentPathEnrollment |
   let pathSlug: string | undefined;
   let totalSessions = HARD_SEASONS_PATH.sessions.length;
 
-  if (row.path_custom_path && typeof row.path_custom_path === "object") {
-    pathName = row.path_custom_path.name_text ?? pathName;
+  if (row.pathId && typeof row.pathId === "object") {
+    pathName = row.pathId.name ?? pathName;
     pathSlug =
-      typeof row.path_custom_path.slug === "string" ? row.path_custom_path.slug : undefined;
-    const sessionsCount = toNumber(row.path_custom_path.sessions_count_number);
+      typeof row.pathId.slug === "string" ? row.pathId.slug : undefined;
+    const sessionsCount = toNumber(row.pathId.sessionsCount);
     if (sessionsCount !== null && sessionsCount > 0) {
       totalSessions = sessionsCount;
     } else if (pathSlug) {
       totalSessions = resolvePathFromSlug(pathSlug).sessions.length;
     }
-  } else if (typeof row.path_custom_path === "string") {
-    pathSlug = row.path_custom_path;
+  } else if (typeof row.pathId === "string") {
+    pathSlug = row.pathId;
     const path = getPathBySlug(pathSlug);
     if (path) {
       pathName = path.title;
@@ -187,16 +187,16 @@ function parsePathenrollmentRow(row: PathenrollmentRow): CurrentPathEnrollment |
     }
   }
 
-  const completedFromField = toNumber(row.completed_sessions_count_number);
+  const completedFromField = toNumber(row.completedSessionsCount);
   const completedIds = asStringArray(
-    row.completed_micro_commitment_session_list_list_custom_pathsession,
+    row.completedMicroCommitmentSessionIds,
   );
   const completedCount =
     completedFromField !== null ? completedFromField : completedIds.length;
 
-  const focusedIds = asStringArray(row.focused_m_commitment_custom_pathsession);
+  const focusedIds = asStringArray(row.focusedMicroCommitmentSessionId);
   const nextStepTitle = resolveNextStepTitle(
-    row.current_session_custom_pathsession,
+    row.currentSessionId,
     pathSlug,
     focusedIds,
     completedIds,
@@ -217,16 +217,16 @@ function deriveFromOnboardingData(
 ): CurrentPathEnrollment {
   const state = readEnrollmentState(onboardingData);
   if (
-    !state.status_option_path_enrollment_status ||
-    state.status_option_path_enrollment_status === PATH_ENROLLMENT_STATUS.COMPLETED
+    !state.status ||
+    state.status === PATH_ENROLLMENT_STATUS.COMPLETED
   ) {
     return EMPTY_ENROLLMENT;
   }
 
   const path = resolvePathFromSlug(state.path_slug);
   const completedIds =
-    state.completed_micro_commitment_session_list_list_custom_pathsession ?? [];
-  const focusedIds = state.focused_m_commitment_custom_pathsession ?? [];
+    state.completedMicroCommitmentSessionIds ?? [];
+  const focusedIds = state.focusedMicroCommitmentSessionId ?? [];
 
   return {
     enrollmentId: state.enrollment_id,
@@ -243,12 +243,12 @@ async function tryFetchFromPathenrollmentTable(
 ): Promise<CurrentPathEnrollment | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("pathenrollment1")
+    .from("pathEnrollment")
     .select(
-      "id, status_option_path_enrollment_status, completed_sessions_count_number, completed_micro_commitment_session_list_list_custom_pathsession, current_session_custom_pathsession, focused_m_commitment_custom_pathsession, path_custom_path",
+      "id, status, completedSessionsCount, completedMicroCommitmentSessionIds, currentSessionId, focusedMicroCommitmentSessionId, pathId",
     )
-    .eq("user_user", userId)
-    .eq("status_option_path_enrollment_status", PATH_ENROLLMENT_STATUS.ACTIVE)
+    .eq("userId", userId)
+    .eq("status", PATH_ENROLLMENT_STATUS.ACTIVE)
     .limit(1)
     .maybeSingle();
 
@@ -263,7 +263,7 @@ async function tryFetchFromPathenrollmentTable(
 
 /**
  * Bubble bTIrY binding: pathenrollment1 search for current user → path name, progress, next step.
- * Prototype schema may lack pathenrollment1; falls back to profiles.onboarding_data.path_enrollment1.
+ * Prototype schema may lack pathenrollment1; falls back to profiles.onboardingData.path_enrollment1.
  */
 export async function fetchCurrentPathEnrollment(
   userId: string,
@@ -280,7 +280,7 @@ function isTierSlug(value: string | undefined): value is TierSlug {
 
 function resolvePathMeta(
   pathSlug: string | undefined,
-  pathObject?: PathenrollmentRow["path_custom_path"],
+  pathObject?: PathenrollmentRow["pathId"],
 ): {
   pathName: string;
   pathSlug?: string;
@@ -296,19 +296,19 @@ function resolvePathMeta(
   let totalSessions = HARD_SEASONS_PATH.sessions.length;
 
   if (pathObject && typeof pathObject === "object") {
-    pathName = pathObject.name_text ?? pathName;
+    pathName = pathObject.name ?? pathName;
     pathSlug =
       typeof pathObject.slug === "string" ? pathObject.slug : pathSlug;
-    if (isTierSlug(pathObject.tier_option_tier_os)) {
-      tier = pathObject.tier_option_tier_os;
+    if (isTierSlug(pathObject.tier)) {
+      tier = pathObject.tier;
     }
-    if (typeof pathObject.pillar_option_customer_pillar_os === "string") {
-      pillarLabel = pathObject.pillar_option_customer_pillar_os;
+    if (typeof pathObject.pillar === "string") {
+      pillarLabel = pathObject.pillar;
     }
-    if (typeof pathObject.sub_mode_text === "string") {
-      subMode = pathObject.sub_mode_text;
+    if (typeof pathObject.subMode === "string") {
+      subMode = pathObject.subMode;
     }
-    const sessionsCount = toNumber(pathObject.sessions_count_number);
+    const sessionsCount = toNumber(pathObject.sessionsCount);
     if (sessionsCount !== null && sessionsCount > 0) {
       totalSessions = sessionsCount;
     }
@@ -332,13 +332,13 @@ function resolveCurrentSessionFields(
   row: PathenrollmentRow,
   pathSlug: string | undefined,
 ): Pick<PathEnrollmentListItem, "currentSessionId" | "currentSessionTitle"> {
-  const currentSession = row.current_session_custom_pathsession;
+  const currentSession = row.currentSessionId;
   if (currentSession && typeof currentSession === "object") {
     const currentSessionId =
       typeof currentSession.id === "string" ? currentSession.id : undefined;
     const titleFromRow =
-      typeof currentSession.title_text === "string" && currentSession.title_text.trim()
-        ? currentSession.title_text
+      typeof currentSession.title === "string" && currentSession.title.trim()
+        ? currentSession.title
         : undefined;
     return {
       currentSessionId,
@@ -361,9 +361,9 @@ function progressFromRow(
   row: PathenrollmentRow,
   totalSessions: number,
 ): number {
-  const completedFromField = toNumber(row.completed_sessions_count_number);
+  const completedFromField = toNumber(row.completedSessionsCount);
   const completedIds = asStringArray(
-    row.completed_micro_commitment_session_list_list_custom_pathsession,
+    row.completedMicroCommitmentSessionIds,
   );
   const completedCount =
     completedFromField !== null ? completedFromField : completedIds.length;
@@ -374,18 +374,18 @@ function toListItem(row: PathenrollmentRow): PathEnrollmentListItem | null {
   if (!row.id) return null;
 
   let pathSlug: string | undefined;
-  if (typeof row.path_custom_path === "string") {
-    pathSlug = row.path_custom_path;
-  } else if (row.path_custom_path && typeof row.path_custom_path === "object") {
+  if (typeof row.pathId === "string") {
+    pathSlug = row.pathId;
+  } else if (row.pathId && typeof row.pathId === "object") {
     pathSlug =
-      typeof row.path_custom_path.slug === "string"
-        ? row.path_custom_path.slug
+      typeof row.pathId.slug === "string"
+        ? row.pathId.slug
         : undefined;
   }
 
-  const meta = resolvePathMeta(pathSlug, row.path_custom_path);
+  const meta = resolvePathMeta(pathSlug, row.pathId);
 
-  const status = row.status_option_path_enrollment_status;
+  const status = row.status;
   if (
     status !== PATH_ENROLLMENT_STATUS.ACTIVE &&
     status !== PATH_ENROLLMENT_STATUS.PAUSED &&
@@ -412,13 +412,13 @@ function deriveListFromOnboardingData(
   onboardingData: Record<string, unknown> | null | undefined,
 ): PathEnrollmentListItem[] {
   const state = readEnrollmentState(onboardingData);
-  if (!state.status_option_path_enrollment_status || !state.enrollment_id) return [];
+  if (!state.status || !state.enrollment_id) return [];
 
   const path = resolvePathFromSlug(state.path_slug);
-  const status = state.status_option_path_enrollment_status;
+  const status = state.status;
   const completedIds =
-    state.completed_micro_commitment_session_list_list_custom_pathsession ?? [];
-  const focusedIds = state.focused_m_commitment_custom_pathsession ?? [];
+    state.completedMicroCommitmentSessionIds ?? [];
+  const focusedIds = state.focusedMicroCommitmentSessionId ?? [];
   const completedSet = new Set(completedIds);
   const currentSessionId =
     focusedIds.find((id) => !completedSet.has(id)) ??
@@ -455,11 +455,11 @@ async function tryFetchPathEnrollmentsFromTable(
 ): Promise<PathEnrollmentListItem[] | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("pathenrollment1")
+    .from("pathEnrollment")
     .select(
-      "id, status_option_path_enrollment_status, path_custom_path, completed_sessions_count_number, completed_micro_commitment_session_list_list_custom_pathsession, current_session_custom_pathsession",
+      "id, status, pathId, completedSessionsCount, completedMicroCommitmentSessionIds, currentSessionId",
     )
-    .eq("user_user", userId);
+    .eq("userId", userId);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;

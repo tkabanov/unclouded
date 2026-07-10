@@ -16,15 +16,7 @@ import { useUserProfile } from "@/lib/userProfile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
-import {
-  SIDEBAR_MODE_LABEL,
-  SIDEBAR_MODE_VALUE_PLACEHOLDER,
-  SIDEBAR_NAV_BUBBLE_IDS,
-  SIDEBAR_NAV_LABELS,
-  SIDEBAR_NAV_ORDER,
-  SIDEBAR_NAV_ROUTES,
-  type SidebarNavSlug,
-} from "@/lib/enums";
+import { SIDEBAR_MODE_LABEL, SIDEBAR_MODE_VALUE_PLACEHOLDER, SIDEBAR_NAV_LABELS, SIDEBAR_NAV_ORDER, SIDEBAR_NAV_ROUTES, type SidebarNavSlug } from "@/lib/enums";
 import {
   Sidebar,
   SidebarContent,
@@ -43,18 +35,12 @@ const NAV_ICONS: Record<SidebarNavSlug, LucideIcon> = {
 
 const navItems = SIDEBAR_NAV_ORDER.map((slug) => ({
   slug,
-  bubbleId: SIDEBAR_NAV_BUBBLE_IDS[slug],
   title: SIDEBAR_NAV_LABELS[slug],
   url: SIDEBAR_NAV_ROUTES[slug],
   icon: NAV_ICONS[slug],
 }));
 
-interface AppSidebarProps {
-  /** Page-level CustomElement instance id; defaults to reusable root ai_RNbBKLUe. */
-  bubbleId?: string;
-}
-
-export function AppSidebar({ bubbleId = "ai_RNbBKLUe" }: AppSidebarProps) {
+export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { profile } = useUserProfile();
@@ -70,35 +56,25 @@ export function AppSidebar({ bubbleId = "ai_RNbBKLUe" }: AppSidebarProps) {
   return (
     <Sidebar
       collapsible="icon"
-      data-bubble-id={bubbleId}
       data-style-ref="Group_sidebar_"
       className={cn(bubbleStyle("Group_sidebar_"), "border-r-0")}
     >
       <SidebarHeader className="p-0">
         <div
-          data-bubble-id="ai_RNbBHWkU"
           className={cn("flex w-full flex-col gap-4 p-4", collapsed && "items-center px-2")}
         >
           {!collapsed && (
             <div
-              data-bubble-id="ai_RNbBHWkV"
-              className="flex w-full flex-col gap-1 rounded-lg p-3"
-              style={{ backgroundColor: "var(--color_aiRNbAaxgt_default)" }}
+              className="flex w-full flex-col gap-1 rounded-lg bg-secondary p-3"
             >
               <p
-                data-bubble-id="ai_RNbBHWkW"
                 data-style-ref="Text_caption_"
                 className={cn(bubbleStyle("Text_caption_"), "font-medium")}
               >
                 {SIDEBAR_MODE_LABEL}
               </p>
               <p
-                data-bubble-id="ai_RNbBHWkX"
-                className="text-sm font-semibold leading-snug"
-                style={{
-                  color: "var(--color_aiRNbAaxgu_default)",
-                  fontFamily: "var(--font_aiRNbAaxhX_default), sans-serif",
-                }}
+                className="font-serif text-sm font-semibold leading-snug text-secondary-foreground"
               >
                 {modeValue}
               </p>
@@ -106,7 +82,6 @@ export function AppSidebar({ bubbleId = "ai_RNbBKLUe" }: AppSidebarProps) {
           )}
 
           <nav
-            data-bubble-id="ai_RNbBHWkY"
             className={cn("flex w-full flex-col gap-1", collapsed && "items-center")}
             aria-label="Primary"
           >
@@ -115,7 +90,6 @@ export function AppSidebar({ bubbleId = "ai_RNbBKLUe" }: AppSidebarProps) {
                 key={item.slug}
                 to={item.url}
                 end
-                data-bubble-id={item.bubbleId}
                 data-style-ref="Link_nav_"
                 title={item.title}
                 className={cn(
@@ -134,20 +108,20 @@ export function AppSidebar({ bubbleId = "ai_RNbBKLUe" }: AppSidebarProps) {
 
       <SidebarContent className="hidden" />
 
-      <SidebarFooter className="p-2" data-bubble-id="bTIfa">
+      <SidebarFooter className="p-2">
         {collapsed ? (
           <NavLink
             to="/dashboard"
             title="Crisis resources"
             aria-label="Crisis resources"
-            className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg text-primary hover:bg-[var(--color_aiRNbAaxgr_default)] transition-colors"
+            className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg text-primary transition-colors hover:bg-muted"
           >
             <LifeBuoy className="h-5 w-5" />
           </NavLink>
         ) : (
           <Collapsible open={crisisOpen} onOpenChange={setCrisisOpen}>
             <div className="overflow-hidden rounded-lg border border-border bg-card">
-              <CollapsibleTrigger className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-[var(--color_aiRNbAaxgr_default)]">
+              <CollapsibleTrigger className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-muted">
                 <LifeBuoy className="h-4 w-4 shrink-0 text-primary" />
                 <span className="flex-1 text-sm font-medium text-foreground">Crisis resources</span>
                 <ChevronDown

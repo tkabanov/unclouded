@@ -7,10 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionCompletionRoute } from "@/hooks/useSessionCompletionRoute";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import {
-  PATHS_SESSION_COMPLETION_BUBBLE_ID,
-  PATHS_SESSION_COMPLETION_MOUNT_BUBBLE_ID,
-} from "@/lib/paths/routes";
-import {
   fetchPathSession,
   schedulePathSessionCompletion,
 } from "@/lib/paths/pathsSessionApi";
@@ -94,11 +90,9 @@ export default function SessionCompletionRoute({
 
   return (
     <div
-      data-bubble-id={PATHS_SESSION_COMPLETION_MOUNT_BUBBLE_ID}
       className="flex w-full flex-col"
     >
       <div
-        data-bubble-id={PATHS_SESSION_COMPLETION_BUBBLE_ID}
         className={cn("w-full", submitting && "pointer-events-none opacity-70")}
       >
         {loading ? (

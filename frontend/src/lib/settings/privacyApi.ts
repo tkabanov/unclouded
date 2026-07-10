@@ -6,15 +6,20 @@ export interface UserDataExport {
   journal_entries: Record<string, unknown>[];
 }
 
+type UntypedSupabase = {
+  from: (table: string) => ReturnType<typeof supabase.from>;
+};
+
 /** privacy-export-btn — bundles profile and journal data for download. */
 export async function exportUserData(userId: string): Promise<Blob> {
+  const client = supabase as unknown as UntypedSupabase;
   const [profileResult, journalResult] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    supabase
-      .from("journal_entries")
+    client
+      .from("journalEntry")
       .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false }),
+      .eq("userId", userId)
+      .order("createdAt", { ascending: false }),
   ]);
 
   if (profileResult.error) throw profileResult.error;
@@ -35,10 +40,11 @@ export async function exportUserData(userId: string): Promise<Blob> {
  * Journal entries are removed explicitly; profile delete requires DELETE RLS policy.
  */
 export async function requestAccountDeletion(userId: string): Promise<void> {
-  const { error: journalError } = await supabase
-    .from("journal_entries")
+  const client = supabase as unknown as UntypedSupabase;
+  const { error: journalError } = await client
+    .from("journalEntry")
     .delete()
-    .eq("user_id", userId);
+    .eq("userId", userId);
   if (journalError) throw journalError;
 
   const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId);

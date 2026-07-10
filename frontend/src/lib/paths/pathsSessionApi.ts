@@ -9,14 +9,14 @@ import { incrementModulesCompletedCount } from "@/lib/userProfile/userProfileHoo
 
 type PathsessionRow = {
   id?: string;
-  title_text?: string;
-  coaching_text_text?: string;
-  micro_commitment_text?: string;
+  title?: string;
+  coachingText?: string;
+  microCommitment?: string;
 };
 
 type PathquestionRow = {
   id?: string;
-  q_text_text?: string;
+  questionText?: string;
 };
 
 type UntypedSupabase = {
@@ -36,12 +36,12 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
 
 function sessionToFormData(session: PathSession): PathSessionFormData {
   return {
-    title_text: session.title,
-    coaching_text_text: session.coaching_text,
-    micro_commitment_text: session.micro_commitment,
+    title: session.title,
+    coachingText: session.coaching_text,
+    microCommitment: session.micro_commitment,
     questions: session.questions.map((question, index) => ({
       id: `${session.id}-q${index + 1}`,
-      q_text_text: question,
+      questionText: question,
     })),
   };
 }
@@ -60,8 +60,8 @@ async function tryFetchPathSessionFromTable(
 ): Promise<PathSessionFormData | null | undefined> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("pathsession")
-    .select("id, title_text, coaching_text_text, micro_commitment_text")
+    .from("pathSession")
+    .select("id, title, coachingText, microCommitment")
     .eq("id", sessionId)
     .maybeSingle();
 
@@ -74,9 +74,9 @@ async function tryFetchPathSessionFromTable(
 
   const row = data as PathsessionRow;
   const { data: questionRows, error: questionError } = await client
-    .from("pathquestion")
-    .select("id, q_text_text")
-    .eq("pathsession_custom_pathsession", sessionId);
+    .from("pathQuestion")
+    .select("id, questionText")
+    .eq("sessionId", sessionId);
 
   if (questionError && !isSchemaUnavailable(questionError)) {
     throw questionError;
@@ -89,16 +89,16 @@ async function tryFetchPathSessionFromTable(
           if (!question.id) return null;
           return {
             id: question.id,
-            q_text_text: question.q_text_text ?? "",
+            questionText: question.questionText ?? "",
           };
         })
         .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
     : [];
 
   return {
-    title_text: row.title_text ?? "",
-    coaching_text_text: row.coaching_text_text ?? "",
-    micro_commitment_text: row.micro_commitment_text ?? "",
+    title: row.title ?? "",
+    coachingText: row.coachingText ?? "",
+    microCommitment: row.microCommitment ?? "",
     questions,
   };
 }

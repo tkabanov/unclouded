@@ -1,9 +1,4 @@
 import { cn } from "@/lib/utils";
-import {
-  JOURNAL_TAB_BAR_BUBBLE_ID,
-  JOURNAL_TAB_BTN_BUBBLE_ID,
-  MILESTONES_TAB_BTN_BUBBLE_ID,
-} from "@/lib/journal/routes";
 import type { JournalTabId } from "@/lib/journal/journalTabStore";
 import { bubbleStyle } from "@/styles";
 
@@ -24,7 +19,6 @@ export default function JournalTabBar({
 
   return (
     <div
-      data-bubble-id={JOURNAL_TAB_BAR_BUBBLE_ID}
       className={cn(
         bubbleStyle("Group_tab_bar_"),
         "inline-flex w-full max-w-md gap-1 sm:w-auto",
@@ -37,7 +31,6 @@ export default function JournalTabBar({
         type="button"
         role="tab"
         id="journal-tab-btn"
-        data-bubble-id={JOURNAL_TAB_BTN_BUBBLE_ID}
         aria-selected={journalActive}
         aria-controls="journal-tab-content"
         className={cn(
@@ -52,7 +45,6 @@ export default function JournalTabBar({
         type="button"
         role="tab"
         id="milestones-tab-btn"
-        data-bubble-id={MILESTONES_TAB_BTN_BUBBLE_ID}
         aria-selected={!journalActive}
         aria-controls="milestones-tab-content"
         className={cn(

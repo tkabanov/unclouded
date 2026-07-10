@@ -28,22 +28,11 @@ import BrandLogo from "@/components/BrandLogo";
 import CrisisBar from "@/components/CrisisBar";
 import AuthDialog from "@/components/AuthDialog";
 import SignupPopup from "@/components/shell/SignupPopup";
+import HeaderLogoutButton from "@/components/shell/HeaderLogoutButton";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/lib/bubbleStyles";
 import { useUserProfile } from "@/lib/userProfile";
-import {
-  INDEX_HEADER_BUBBLE_ID,
-  INDEX_LOGIN_BTN_BUBBLE_ID,
-  INDEX_MAIN_BUBBLE_ID,
-  INDEX_PAGE_BUBBLE_ID,
-  INDEX_SIGNUP_BTN_BUBBLE_ID,
-  INDEX_HERO_SECTION_BUBBLE_ID,
-  PRICING_FREE_CTA_BUBBLE_ID,
-  PRICING_PREMIUM_CTA_BUBBLE_ID,
-  PRICING_PRO_CTA_BUBBLE_ID,
-  WORKPLACE_CONTACT_CTA_BUBBLE_ID,
-  WORKPLACE_DEMO_CTA_BUBBLE_ID,
-} from "@/lib/pages/indexBubbleIds";
+import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/onboardingStatus";
 
 /* ── shared bits ─────────────────────────────────────── */
 
@@ -105,17 +94,26 @@ function FeatureCard({
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const authenticated = Boolean(user);
   const { profile, loading: profileLoading } = useUserProfile();
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
 
-  const destination = () =>
-    profile?.onboardingCompleted ? "/dashboard" : "/onboarding";
+  const destination = () => resolvePostAuthRoute(profile);
+
+  const appEntryLabel = isOnboardingComplete(profile)
+    ? "Go to Dashboard"
+    : "Continue Onboarding";
+
+  const goToApp = () => {
+    if (profileLoading) return;
+    navigate(destination());
+  };
 
   const start = (mode: "signin" | "signup" = "signup") => {
     if (user) {
-      navigate(destination());
+      navigate(resolvePostAuthRoute(profile));
       return;
     }
     if (mode === "signin") {
@@ -142,45 +140,88 @@ const Index = () => {
   }, [redirecting, user, profileLoading, profile]);
 
   return (
-    <div data-bubble-id={INDEX_PAGE_BUBBLE_ID} className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <CrisisBar />
 
       {/* Header */}
       <header
-        data-bubble-id={INDEX_HEADER_BUBBLE_ID}
         className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md"
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
           <BrandLogo />
+          <nav
+            className="hidden items-center gap-4 md:flex"
+            aria-label="Marketing"
+          >
+            <a
+              href="#how-it-works"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              How It Works
+            </a>
+            <a
+              href="#coaching-modes"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Coaching Modes
+            </a>
+            <a
+              href="#pricing"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Pricing
+            </a>
+            <a
+              href="#workplace"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Workplace
+            </a>
+          </nav>
           <div className="flex items-center gap-2">
-            <Button
-              data-bubble-id={INDEX_LOGIN_BTN_BUBBLE_ID}
-              data-style-ref="Button_outline_"
-              variant="outline"
-              size="sm"
-              className={bubbleStyle("Button_outline_")}
-              onClick={() => start("signin")}
-            >
-              Log In
-            </Button>
-            <Button
-              data-bubble-id={INDEX_SIGNUP_BTN_BUBBLE_ID}
-              data-style-ref="Button_primary_"
-              variant="cta"
-              size="sm"
-              className={bubbleStyle("Button_primary_")}
-              onClick={() => start("signup")}
-            >
-              Sign Up
-            </Button>
+            {authenticated ? (
+              <>
+                <Button
+                  data-style-ref="Button_primary_"
+                  variant="cta"
+                  size="sm"
+                  disabled={profileLoading}
+                  className={bubbleStyle("Button_primary_")}
+                  onClick={goToApp}
+                >
+                  {appEntryLabel}
+                </Button>
+                <HeaderLogoutButton />
+              </>
+            ) : (
+              <>
+                <Button
+                  data-style-ref="Button_outline_"
+                  variant="outline"
+                  size="sm"
+                  className={bubbleStyle("Button_outline_")}
+                  onClick={() => start("signin")}
+                >
+                  Log In
+                </Button>
+                <Button
+                  data-style-ref="Button_primary_"
+                  variant="cta"
+                  size="sm"
+                  className={bubbleStyle("Button_primary_")}
+                  onClick={() => start("signup")}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
 
-      <main data-bubble-id={INDEX_MAIN_BUBBLE_ID} className="flex-1">
+      <main className="flex-1">
         {/* Hero */}
         <section
-          data-bubble-id={INDEX_HERO_SECTION_BUBBLE_ID}
           data-style-ref="Group_hero_"
           className={cn("relative overflow-hidden", bubbleStyle("Group_hero_"))}
         >
@@ -189,10 +230,9 @@ const Index = () => {
             <div className="absolute right-[10%] bottom-[-20%] h-[360px] w-[360px] rounded-full bg-accent/40 blur-3xl" />
           </div>
           <div
-            data-bubble-id="ai_RNbBHWoN"
             className="mx-auto max-w-4xl px-4 py-20 text-center md:py-28 md:px-8"
           >
-            <div data-bubble-id="ai_RNbBHWoO" className="mb-8 flex justify-center">
+            <div className="mb-8 flex justify-center">
               <SectionTag
                 icon={ShieldCheck}
                 data-style-ref="Group_badge_"
@@ -202,7 +242,6 @@ const Index = () => {
               </SectionTag>
             </div>
             <h1
-              data-bubble-id="ai_RNbBHWoR"
               data-style-ref="Text_heading_1_"
               className={bubbleStyle("Text_heading_1_")}
             >
@@ -211,7 +250,6 @@ const Index = () => {
               <span className="bg-gradient-brand bg-clip-text text-transparent">Move forward.</span>
             </h1>
             <p
-              data-bubble-id="ai_RNbBHWoT"
               data-style-ref="Text_body_muted_"
               className={cn("mx-auto mt-7 max-w-2xl", bubbleStyle("Text_body_muted_"))}
             >
@@ -220,22 +258,33 @@ const Index = () => {
               coaching built around you.
             </p>
             <div
-              data-bubble-id="ai_RNbBHWoU"
               className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
             >
+              {authenticated ? (
+                <Button
+                  data-style-ref="Button_primary_"
+                  variant="cta"
+                  size="lg"
+                  disabled={profileLoading}
+                  className={cn("group w-full sm:w-auto", bubbleStyle("Button_primary_"))}
+                  onClick={goToApp}
+                >
+                  {appEntryLabel}
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              ) : (
+                <Button
+                  data-style-ref="Button_primary_"
+                  variant="cta"
+                  size="lg"
+                  className={cn("group w-full sm:w-auto", bubbleStyle("Button_primary_"))}
+                  onClick={() => start("signup")}
+                >
+                  Get Started Free
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              )}
               <Button
-                data-bubble-id="ai_RNbBHWoV"
-                data-style-ref="Button_primary_"
-                variant="cta"
-                size="lg"
-                className={cn("group w-full sm:w-auto", bubbleStyle("Button_primary_"))}
-                onClick={() => start("signup")}
-              >
-                Get Started Free
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Button>
-              <Button
-                data-bubble-id="ai_RNbBHWoW"
                 data-style-ref="Button_outline_"
                 variant="outline"
                 size="lg"
@@ -249,7 +298,7 @@ const Index = () => {
         </section>
 
         {/* How It Works */}
-        <section data-bubble-id="ai_RNbBHWof" id="how-it-works" className="border-t border-border/60 bg-muted/40">
+        <section id="how-it-works" className="border-t border-border/60 bg-muted/40">
           <div className="mx-auto max-w-6xl px-4 py-20 md:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <div className="mb-5 flex justify-center">
@@ -290,7 +339,7 @@ const Index = () => {
         </section>
 
         {/* Coaching Modes */}
-        <section data-bubble-id="ai_RNbBHWpH" className="mx-auto max-w-6xl px-4 py-20 md:px-8">
+        <section id="coaching-modes" className="mx-auto max-w-6xl px-4 py-20 md:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-5 flex justify-center">
               <SectionTag icon={SlidersHorizontal}>Coaching Modes</SectionTag>
@@ -361,7 +410,7 @@ const Index = () => {
         </section>
 
         {/* Pricing */}
-        <section data-bubble-id="ai_RNbBHWqJ" className="border-t border-border/60 bg-muted/40">
+        <section id="pricing" className="border-t border-border/60 bg-muted/40">
           <div className="mx-auto max-w-6xl px-4 py-20 md:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <div className="mb-5 flex justify-center">
@@ -396,15 +445,16 @@ const Index = () => {
                       )
                     )}
                   </ul>
-                  <Button
-                    data-bubble-id={PRICING_FREE_CTA_BUBBLE_ID}
-                    data-style-ref="Button_outline_"
-                    variant="outline"
-                    className={cn("w-full", bubbleStyle("Button_outline_"))}
-                    onClick={() => start("signup")}
-                  >
-                    Get Started Free
-                  </Button>
+                  {!authenticated && (
+                    <Button
+                      data-style-ref="Button_outline_"
+                      variant="outline"
+                      className={cn("w-full", bubbleStyle("Button_outline_"))}
+                      onClick={() => start("signup")}
+                    >
+                      Get Started Free
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -432,17 +482,18 @@ const Index = () => {
                       )
                     )}
                   </ul>
-                  <Button
-                    data-bubble-id={PRICING_PRO_CTA_BUBBLE_ID}
-                    data-style-ref="Button_primary_"
-                    className={cn(
-                      "w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90",
-                      bubbleStyle("Button_primary_"),
-                    )}
-                    onClick={() => start("signup")}
-                  >
-                    Start Pro
-                  </Button>
+                  {!authenticated && (
+                    <Button
+                      data-style-ref="Button_primary_"
+                      className={cn(
+                        "w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90",
+                        bubbleStyle("Button_primary_"),
+                      )}
+                      onClick={() => start("signup")}
+                    >
+                      Start Pro
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -467,15 +518,16 @@ const Index = () => {
                       )
                     )}
                   </ul>
-                  <Button
-                    data-bubble-id={PRICING_PREMIUM_CTA_BUBBLE_ID}
-                    data-style-ref="Button_outline_"
-                    variant="outline"
-                    className={cn("w-full", bubbleStyle("Button_outline_"))}
-                    onClick={() => start("signup")}
-                  >
-                    Start Premium
-                  </Button>
+                  {!authenticated && (
+                    <Button
+                      data-style-ref="Button_outline_"
+                      variant="outline"
+                      className={cn("w-full", bubbleStyle("Button_outline_"))}
+                      onClick={() => start("signup")}
+                    >
+                      Start Premium
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -483,7 +535,7 @@ const Index = () => {
         </section>
 
         {/* Workplace */}
-        <section data-bubble-id="ai_RNbBHWrq" className="mx-auto max-w-6xl px-4 py-20 md:px-8">
+        <section id="workplace" className="mx-auto max-w-6xl px-4 py-20 md:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-5 flex justify-center">
               <SectionTag icon={Building2}>Workplace</SectionTag>
@@ -510,30 +562,30 @@ const Index = () => {
             </FeatureCard>
           </div>
 
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button
-              data-bubble-id={WORKPLACE_CONTACT_CTA_BUBBLE_ID}
-              data-style-ref="Button_primary_"
-              variant="cta"
-              className={bubbleStyle("Button_primary_")}
-              onClick={() => start("signup")}
-            >
-              Contact Us About Workplace
-            </Button>
-            <Button
-              data-bubble-id={WORKPLACE_DEMO_CTA_BUBBLE_ID}
-              data-style-ref="Button_outline_"
-              variant="outline"
-              className={bubbleStyle("Button_outline_")}
-              onClick={() => start("signup")}
-            >
-              Request a Demo
-            </Button>
-          </div>
+          {!authenticated && (
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button
+                data-style-ref="Button_primary_"
+                variant="cta"
+                className={bubbleStyle("Button_primary_")}
+                onClick={() => start("signup")}
+              >
+                Contact Us About Workplace
+              </Button>
+              <Button
+                data-style-ref="Button_outline_"
+                variant="outline"
+                className={bubbleStyle("Button_outline_")}
+                onClick={() => start("signup")}
+              >
+                Request a Demo
+              </Button>
+            </div>
+          )}
         </section>
 
         {/* Crisis resources */}
-        <section data-bubble-id="ai_RNbBHWsR" className="bg-accent/40">
+        <section className="bg-accent/40">
           <div className="mx-auto max-w-5xl px-4 py-16 text-center md:px-8">
             <Heart className="mx-auto h-8 w-8 text-primary" />
             <h2 className="mt-4 text-2xl font-bold text-primary md:text-3xl">

@@ -10,17 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  NOTIFICATIONS_CARD_HEADER_BUBBLE_ID,
-  NOTIFICATIONS_CARD_SUBTITLE_BUBBLE_ID,
-  NOTIFICATIONS_CARD_TITLE_BUBBLE_ID,
-  NOTIFICATIONS_FORM_BUBBLE_ID,
-  NOTIFICATIONS_FORM_CARD_BUBBLE_ID,
-  NOTIFICATIONS_FREQ_LABEL_BUBBLE_ID,
-  NOTIFICATIONS_FREQ_SELECT_BUBBLE_ID,
-  NOTIFICATIONS_PANEL_BUBBLE_ID,
-  NOTIFICATIONS_SAVE_BTN_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   loadNotificationFrequency,
   NOTIFICATION_FREQUENCY_OPTIONS,
   NOTIFICATION_FREQUENCY_PLACEHOLDER,
@@ -73,37 +62,33 @@ export default function SettingsNotificationsTab() {
 
   if (loading) {
     return (
-      <div data-bubble-id={NOTIFICATIONS_PANEL_BUBBLE_ID} className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Loading notifications…
       </div>
     );
   }
 
   return (
-    <div data-bubble-id={NOTIFICATIONS_PANEL_BUBBLE_ID} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <div
-        data-bubble-id={NOTIFICATIONS_FORM_CARD_BUBBLE_ID}
         className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-6 p-6")}
       >
-        <header data-bubble-id={NOTIFICATIONS_CARD_HEADER_BUBBLE_ID} className="space-y-1">
+        <header className="space-y-1">
           <h2
-            data-bubble-id={NOTIFICATIONS_CARD_TITLE_BUBBLE_ID}
             className={bubbleStyle("Text_heading_3_")}
           >
             Notifications
           </h2>
           <p
-            data-bubble-id={NOTIFICATIONS_CARD_SUBTITLE_BUBBLE_ID}
             className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
           >
             Set how often you&apos;d like check-in reminders and other nudges from Unclouded.
           </p>
         </header>
 
-        <div data-bubble-id={NOTIFICATIONS_FORM_BUBBLE_ID} className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <Label
             htmlFor="notification-frequency"
-            data-bubble-id={NOTIFICATIONS_FREQ_LABEL_BUBBLE_ID}
             className={bubbleStyle("Text_label_")}
           >
             Check-In Reminder Frequency
@@ -114,7 +99,6 @@ export default function SettingsNotificationsTab() {
           >
             <SelectTrigger
               id="notification-frequency"
-              data-bubble-id={NOTIFICATIONS_FREQ_SELECT_BUBBLE_ID}
               className={bubbleStyle("Input_default_")}
             >
               <SelectValue placeholder={NOTIFICATION_FREQUENCY_PLACEHOLDER} />
@@ -132,7 +116,6 @@ export default function SettingsNotificationsTab() {
         <div className="flex justify-end">
           <Button
             type="button"
-            data-bubble-id={NOTIFICATIONS_SAVE_BTN_BUBBLE_ID}
             className={bubbleStyle("Button_primary_")}
             disabled={saving || !frequency}
             onClick={() => void handleSave()}

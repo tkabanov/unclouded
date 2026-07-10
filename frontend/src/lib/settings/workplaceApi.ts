@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
 
-const WORKPLACE_NAME_KEY = "workplace_name_text";
-const WORKPLACE_EMAIL_KEY = "workplace_contact_email_text";
+const WORKPLACE_NAME_KEY = "workplace_name";
+const WORKPLACE_EMAIL_KEY = "workplace_contactEmail";
 const WORKPLACE_LINKED_AT_KEY = "workplace_linked_at";
 
 /** Bubble ai_RNbBHYYP — workplace card title. */
@@ -64,14 +64,14 @@ function parseWorkplaceFromOnboarding(
 export async function loadWorkplaceLink(userId: string): Promise<WorkplaceLinkState> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
   return parseWorkplaceFromOnboarding(onboarding);
 }
 
@@ -113,10 +113,10 @@ async function upsertWorkplaceDirectory(name: string, email: string): Promise<vo
   const client = supabase as unknown as UntypedSupabase;
   const { error } = await client.from("workplace").upsert(
     {
-      name_text: name,
-      contact_email_text: email,
+      name: name,
+      contactEmail: email,
     } as never,
-    { onConflict: "contact_email_text" },
+    { onConflict: "contactEmail" },
   );
 
   if (!error) return;
@@ -137,24 +137,24 @@ export async function linkWorkplace(userId: string, form: WorkplaceFormState): P
 
   const { data, error: readError } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (readError) throw readError;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...onboarding,
         [WORKPLACE_NAME_KEY]: name,
         [WORKPLACE_EMAIL_KEY]: email,
         [WORKPLACE_LINKED_AT_KEY]: linkedAt,
-        workplace_custom_workplace: name,
+        workplaceId: name,
       } as never,
     })
     .eq("id", userId);

@@ -30,14 +30,14 @@ export type AdminResourceFormState = Omit<AdminResourceRecord, "resourceId">;
 
 type ResourceRow = {
   id?: string;
-  title_text?: string;
-  content_text?: string;
-  primary_mode_tag_text?: string;
-  sub_mode_tag_text?: string;
-  sensitivity_flag_text?: string;
-  is_free_boolean?: boolean | string | null;
-  is_crisis_boolean?: boolean | string | null;
-  external_link_text?: string;
+  title?: string;
+  content?: string;
+  primaryModeTag?: string;
+  subModeTag?: string;
+  sensitivityFlag?: string;
+  isFree?: boolean | string | null;
+  isCrisisResource?: boolean | string | null;
+  externalLink?: string;
 };
 
 type UntypedSupabase = {
@@ -74,10 +74,10 @@ function isSensitivityFromLabel(value: string | undefined): SensitivitySlug {
 
 function toAdminResource(row: ResourceRow): AdminResourceRecord | null {
   if (!row.id) return null;
-  const title = row.title_text?.trim();
+  const title = row.title?.trim();
   if (!title) return null;
 
-  const primaryRaw = row.primary_mode_tag_text?.trim().toLowerCase();
+  const primaryRaw = row.primaryModeTag?.trim().toLowerCase();
   const primaryMode = isCoachingModeSlug(primaryRaw)
     ? primaryRaw
     : AI_COACHING_MODE.STABILIZER;
@@ -85,27 +85,27 @@ function toAdminResource(row: ResourceRow): AdminResourceRecord | null {
   return {
     resourceId: row.id,
     title,
-    content: row.content_text?.trim() ?? "",
+    content: row.content?.trim() ?? "",
     primaryMode,
-    subMode: row.sub_mode_tag_text?.trim() ?? "",
-    sensitivity: isSensitivityFromLabel(row.sensitivity_flag_text),
-    isFree: parseBoolean(row.is_free_boolean),
-    isCrisis: parseBoolean(row.is_crisis_boolean),
-    externalLink: row.external_link_text?.trim() || undefined,
+    subMode: row.subModeTag?.trim() ?? "",
+    sensitivity: isSensitivityFromLabel(row.sensitivityFlag),
+    isFree: parseBoolean(row.isFree),
+    isCrisis: parseBoolean(row.isCrisisResource),
+    externalLink: row.externalLink?.trim() || undefined,
   };
 }
 
 async function readOnboardingResources(userId: string): Promise<AdminResourceRecord[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
   const raw = onboarding[ADMIN_RESOURCES_ONBOARDING_KEY];
   if (!Array.isArray(raw)) return [];
 
@@ -119,19 +119,19 @@ async function readOnboardingResources(userId: string): Promise<AdminResourceRec
 async function writeOnboardingResources(userId: string, rows: ResourceRow[]): Promise<void> {
   const { data, error: readError } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (readError) throw readError;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...onboarding,
         [ADMIN_RESOURCES_ONBOARDING_KEY]: rows,
       } as never,
@@ -146,7 +146,7 @@ async function tryFetchResourcesFromTable(): Promise<AdminResourceRecord[] | nul
   const { data, error } = await client
     .from("resource")
     .select(
-      "id, title_text, content_text, primary_mode_tag_text, sub_mode_tag_text, sensitivity_flag_text, is_free_boolean, is_crisis_boolean, external_link_text",
+      "id, title, content, primaryModeTag, subModeTag, sensitivityFlag, isFree, isCrisisResource, externalLink",
     );
 
   if (error) {
@@ -190,14 +190,14 @@ export async function createAdminResource(
 
   const row: ResourceRow = {
     id: `res-${Date.now()}`,
-    title_text: title,
-    content_text: form.content.trim(),
-    primary_mode_tag_text: form.primaryMode,
-    sub_mode_tag_text: form.subMode.trim(),
-    sensitivity_flag_text: sensitivityLabel,
-    is_free_boolean: form.isFree,
-    is_crisis_boolean: form.isCrisis,
-    external_link_text: form.externalLink?.trim() || undefined,
+    title: title,
+    content: form.content.trim(),
+    primaryModeTag: form.primaryMode,
+    subModeTag: form.subMode.trim(),
+    sensitivityFlag: sensitivityLabel,
+    isFree: form.isFree,
+    isCrisisResource: form.isCrisis,
+    externalLink: form.externalLink?.trim() || undefined,
   };
 
   const client = supabase as unknown as UntypedSupabase;
@@ -213,16 +213,16 @@ export async function createAdminResource(
   const existing = await readOnboardingResources(userId);
   const stored = existing.map((resource) => ({
     id: resource.resourceId,
-    title_text: resource.title,
-    content_text: resource.content,
-    primary_mode_tag_text: resource.primaryMode,
-    sub_mode_tag_text: resource.subMode,
-    sensitivity_flag_text:
+    title: resource.title,
+    content: resource.content,
+    primaryModeTag: resource.primaryMode,
+    subModeTag: resource.subMode,
+    sensitivityFlag:
       SENSITIVITY_OPTIONS.find((option) => option.value === resource.sensitivity)?.label ??
       "Low sensitivity",
-    is_free_boolean: resource.isFree,
-    is_crisis_boolean: resource.isCrisis,
-    external_link_text: resource.externalLink,
+    isFree: resource.isFree,
+    isCrisisResource: resource.isCrisis,
+    externalLink: resource.externalLink,
   }));
 
   await writeOnboardingResources(userId, [...stored, row]);
@@ -242,16 +242,16 @@ export async function deleteAdminResource(userId: string, resourceId: string): P
     .filter((resource) => resource.resourceId !== resourceId)
     .map((resource) => ({
       id: resource.resourceId,
-      title_text: resource.title,
-      content_text: resource.content,
-      primary_mode_tag_text: resource.primaryMode,
-      sub_mode_tag_text: resource.subMode,
-      sensitivity_flag_text:
+      title: resource.title,
+      content: resource.content,
+      primaryModeTag: resource.primaryMode,
+      subModeTag: resource.subMode,
+      sensitivityFlag:
         SENSITIVITY_OPTIONS.find((option) => option.value === resource.sensitivity)?.label ??
         "Low sensitivity",
-      is_free_boolean: resource.isFree,
-      is_crisis_boolean: resource.isCrisis,
-      external_link_text: resource.externalLink,
+      isFree: resource.isFree,
+      isCrisisResource: resource.isCrisis,
+      externalLink: resource.externalLink,
     }));
 
   await writeOnboardingResources(userId, next);
@@ -265,14 +265,14 @@ function resourceRowFromForm(form: AdminResourceFormState, resourceId: string): 
 
   return {
     id: resourceId,
-    title_text: title,
-    content_text: form.content.trim(),
-    primary_mode_tag_text: form.primaryMode,
-    sub_mode_tag_text: form.subMode.trim(),
-    sensitivity_flag_text: sensitivityLabel,
-    is_free_boolean: form.isFree,
-    is_crisis_boolean: form.isCrisis,
-    external_link_text: form.externalLink?.trim() || undefined,
+    title: title,
+    content: form.content.trim(),
+    primaryModeTag: form.primaryMode,
+    subModeTag: form.subMode.trim(),
+    sensitivityFlag: sensitivityLabel,
+    isFree: form.isFree,
+    isCrisisResource: form.isCrisis,
+    externalLink: form.externalLink?.trim() || undefined,
   };
 }
 

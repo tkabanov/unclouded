@@ -23,11 +23,3 @@ export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
   workplaces: "Workplaces",
   analytics: "Analytics",
 };
-
-export const ADMIN_SUB_TAB_BUTTON_BUBBLE_IDS: Record<AdminSubTabSlug, string> = {
-  paths: "ai_RNbBHYZL",
-  resources: "ai_RNbBHYZM",
-  plans: "ai_RNbBHYZN",
-  workplaces: "ai_RNbBHYZO",
-  analytics: "ai_RNbBHYZP",
-};

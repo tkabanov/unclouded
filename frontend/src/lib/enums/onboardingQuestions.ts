@@ -24,7 +24,6 @@ export interface OnboardingScaleQuestion {
 export const ALIGNMENT_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   {
     field: "aq1",
-    bubbleId: "bTHhE",
     slug: "how_aligned_do_your_daily_actions_feel_with_your_core_values_right_now_",
     question: "How aligned do your daily actions feel with your core values right now?",
     answers: [
@@ -37,7 +36,6 @@ export const ALIGNMENT_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "aq2",
-    bubbleId: "bTHhI",
     slug: "how_sustainable_are_your_current_daily_habits_and_routines_",
     question: "How sustainable are your current daily habits and routines?",
     answers: [
@@ -50,7 +48,6 @@ export const ALIGNMENT_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "aq3",
-    bubbleId: "bTHhJ",
     slug: "how_purposeful_does_your_life_feel_right_now_",
     question: "How purposeful does your life feel right now?",
     answers: [
@@ -63,7 +60,6 @@ export const ALIGNMENT_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "aq4",
-    bubbleId: "bTHhK",
     slug: "how_would_you_rate_your_physical_health_habits_over_the_past_few_weeks___sleep__movement__nutrition_",
     question: "How would you rate your physical health habits over the past few weeks — sleep, movement, nutrition?",
     answers: [
@@ -76,7 +72,6 @@ export const ALIGNMENT_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "aq5",
-    bubbleId: "bTHhO",
     slug: "how_satisfied_are_you_with_the_overall_direction_your_life_is_heading_",
     question: "How satisfied are you with the overall direction your life is heading?",
     answers: [
@@ -99,7 +94,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
   pro: [
     {
       field: "pq1",
-      bubbleId: "bTHYI",
       slug: "how_clear_are_your_goals_and_priorities_right_now_",
       question: "How clear are your goals and priorities right now?",
       answers: [
@@ -112,7 +106,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq2",
-      bubbleId: "bTHYJ",
       slug: "how_consistent_are_you_at_following_through_on_commitments_to_yourself_",
       question: "How consistent are you at following through on commitments to yourself?",
       answers: [
@@ -125,7 +118,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq3",
-      bubbleId: "bTHYK",
       slug: "how_effective_do_you_feel_in_your_professional_role_right_now_",
       question: "How effective do you feel in your professional role right now?",
       answers: [
@@ -138,7 +130,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq4",
-      bubbleId: "bTHYO",
       slug: "how_often_do_you_feel_productive_versus_just_busy_",
       question: "How often do you feel productive versus just busy?",
       answers: [
@@ -151,7 +142,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq5",
-      bubbleId: "bTHYP",
       slug: "how_would_you_describe_your_level_of_professional_confidence_right_now_",
       question: "How would you describe your level of professional confidence right now?",
       answers: [
@@ -166,7 +156,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
   student: [
     {
       field: "pq1",
-      bubbleId: "bTHYU",
       slug: "how_clear_are_you_on_what_you_re_working_toward_academically_right_now_",
       question: "How clear are you on what you're working toward academically right now?",
       answers: [
@@ -179,7 +168,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq2",
-      bubbleId: "bTHYV",
       slug: "how_consistent_are_you_at_keeping_up_with_your_coursework_and_commitments_",
       question: "How consistent are you at keeping up with your coursework and commitments?",
       answers: [
@@ -192,7 +180,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq3",
-      bubbleId: "bTHYW",
       slug: "how_effective_do_you_feel_as_a_student_right_now_",
       question: "How effective do you feel as a student right now?",
       answers: [
@@ -205,7 +192,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq4",
-      bubbleId: "bTHYa",
       slug: "how_often_does_your_study_time_feel_genuinely_productive_versus_just_time_spent_",
       question: "How often does your study time feel genuinely productive versus just time spent?",
       answers: [
@@ -218,7 +204,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq5",
-      bubbleId: "bTHYb",
       slug: "how_would_you_describe_your_academic_confidence_right_now_",
       question: "How would you describe your academic confidence right now?",
       answers: [
@@ -233,7 +218,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
   caregiver: [
     {
       field: "pq1",
-      bubbleId: "bTHYg",
       slug: "how_clear_are_you_on_your_priorities_and_what_matters_most_in_your_role_right_now_",
       question: "How clear are you on your priorities and what matters most in your role right now?",
       answers: [
@@ -246,7 +230,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq2",
-      bubbleId: "bTHYh",
       slug: "how_consistent_are_you_at_following_through_on_your_intentions_for_the_day_",
       question: "How consistent are you at following through on your intentions for the day?",
       answers: [
@@ -259,7 +242,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq3",
-      bubbleId: "bTHYi",
       slug: "how_effective_do_you_feel_in_your_role_as_a_caregiver_or_parent_right_now_",
       question: "How effective do you feel in your role as a caregiver or parent right now?",
       answers: [
@@ -272,7 +254,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq4",
-      bubbleId: "bTHYm",
       slug: "how_often_do_you_feel_like_you_re_making_real_progress_versus_just_keeping_up_",
       question: "How often do you feel like you're making real progress versus just keeping up?",
       answers: [
@@ -285,7 +266,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq5",
-      bubbleId: "bTHYn",
       slug: "how_would_you_describe_your_confidence_in_your_ability_to_manage_your_role_right_now_",
       question: "How would you describe your confidence in your ability to manage your role right now?",
       answers: [
@@ -300,7 +280,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
   transition: [
     {
       field: "pq1",
-      bubbleId: "bTHYs",
       slug: "how_clear_are_you_on_the_direction_you_want_to_move_toward_",
       question: "How clear are you on the direction you want to move toward?",
       answers: [
@@ -313,7 +292,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq2",
-      bubbleId: "bTHYt",
       slug: "how_consistent_are_you_at_taking_productive_steps_forward_during_this_time_",
       question: "How consistent are you at taking productive steps forward during this time?",
       answers: [
@@ -326,7 +304,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq3",
-      bubbleId: "bTHYu",
       slug: "how_effectively_do_you_feel_you_re_navigating_this_transition_",
       question: "How effectively do you feel you're navigating this transition?",
       answers: [
@@ -339,7 +316,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq4",
-      bubbleId: "bTHYy",
       slug: "how_often_do_your_days_feel_purposeful_and_structured_during_this_period_",
       question: "How often do your days feel purposeful and structured during this period?",
       answers: [
@@ -352,7 +328,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq5",
-      bubbleId: "bTHYz",
       slug: "how_would_you_describe_your_confidence_in_yourself_during_this_transition_",
       question: "How would you describe your confidence in yourself during this transition?",
       answers: [
@@ -367,7 +342,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
   retired: [
     {
       field: "pq1",
-      bubbleId: "bTHZE",
       slug: "how_clear_are_you_on_what_gives_your_days_meaning_and_purpose_right_now_",
       question: "How clear are you on what gives your days meaning and purpose right now?",
       answers: [
@@ -380,7 +354,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq2",
-      bubbleId: "bTHZF",
       slug: "how_consistent_are_you_at_engaging_with_the_things_that_matter_most_to_you_",
       question: "How consistent are you at engaging with the things that matter most to you?",
       answers: [
@@ -393,7 +366,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq3",
-      bubbleId: "bTHZG",
       slug: "how_effective_do_you_feel_at_shaping_this_chapter_of_your_life_",
       question: "How effective do you feel at shaping this chapter of your life?",
       answers: [
@@ -406,7 +378,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq4",
-      bubbleId: "bTHZK",
       slug: "how_often_does_your_time_feel_well_spent_and_meaningful_",
       question: "How often does your time feel well spent and meaningful?",
       answers: [
@@ -419,7 +390,6 @@ export const PERFORMANCE_QUESTIONS_BY_ROLE = {
     },
     {
       field: "pq5",
-      bubbleId: "bTHZL",
       slug: "how_would_you_describe_your_sense_of_confidence_and_capability_in_this_phase_",
       question: "How would you describe your sense of confidence and capability in this phase?",
       answers: [
@@ -460,24 +430,13 @@ export const PERFORMANCE_STEP_CAPTIONS: Record<CustomerRoleSlug, string> = {
   retired: "Think about your daily engagement, purpose, and sense of effectiveness in this phase of life", // bTHfQ
 };
 
-export const PERFORMANCE_STEP_HEADING_BUBBLE_IDS: Record<CustomerRoleSlug, string> = {
-  pro: "bTHfG",
-  student: "bTHfK",
-  caregiver: "bTHfM",
-  transition: "bTHfL",
-  retired: "bTHfQ",
-};
-
 export function getPerformanceStepCopyForRole(role: CustomerRoleSlug): {
   heading: string;
   caption: string;
-  headingBubbleId: string;
-} {
+  } {
   return {
     heading: PERFORMANCE_STEP_HEADINGS[role],
-    caption: PERFORMANCE_STEP_CAPTIONS[role],
-    headingBubbleId: PERFORMANCE_STEP_HEADING_BUBBLE_IDS[role],
-  };
+    caption: PERFORMANCE_STEP_CAPTIONS[role],  };
 }
 
 /** Bubble option set: customer_orientation_answer_os */
@@ -486,31 +445,26 @@ export const ORIENTATION_ANSWERS_OPTION_SET_ID = "customer_orientation_answer_os
 
 export const ORIENTATION_ANSWERS: readonly OnboardingScaleAnswer[] = [
   {
-    bubbleId: "bTHlj",
     slug: "i_need_to_stabilize___i_m_not_thinking_about_growth_right_now",
     label: "I need to stabilize — I'm not thinking about growth right now",
     score: 1,
   },
   {
-    bubbleId: "bTHlk",
     slug: "something_isn_t_working_and_i_need_to_figure_out_what",
     label: "Something isn't working and I need to figure out what",
     score: 2,
   },
   {
-    bubbleId: "bTHlo",
     slug: "things_are_okay___i_m_not_sure_i_need_much_to_change",
     label: "Things are okay — I'm not sure I need much to change",
     score: 3,
   },
   {
-    bubbleId: "bTHlp",
     slug: "i_want_to_be_meaningfully_further_along_than_i_am_now",
     label: "I want to be meaningfully further along than I am now",
     score: 4,
   },
   {
-    bubbleId: "bTHlq",
     slug: "i_m_ready_to_push_hard_to_the_next_level",
     label: "I'm ready to push hard to the next level",
     score: 5,
@@ -540,7 +494,6 @@ export interface OnboardingScaleQuestion {
 export const STABILITY_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   {
     field: "sq1",
-    bubbleId: "bTHSU",
     slug: "how_well_are_you_managing_your_stress_levels_day_to_day_",
     question: "How well are you managing your stress levels day to day?",
     answers: [
@@ -553,7 +506,6 @@ export const STABILITY_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "sq2",
-    bubbleId: "bTHSV",
     slug: "when_something_unexpected_hits__how_quickly_do_you_recover_emotionally_",
     question: "When something unexpected hits, how quickly do you recover emotionally?",
     answers: [
@@ -566,7 +518,6 @@ export const STABILITY_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "sq3",
-    bubbleId: "bTHSW",
     slug: "how_often_do_you_feel_like_you_re_carrying_more_than_you_can_sustainably_hold_",
     question: "How often do you feel like you're carrying more than you can sustainably hold?",
     answers: [
@@ -579,7 +530,6 @@ export const STABILITY_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "sq4",
-    bubbleId: "bTHSa",
     slug: "how_would_you_rate_your_ability_to_set_and_maintain_boundaries_with_others_",
     question: "How would you rate your ability to set and maintain boundaries with others?",
     answers: [
@@ -592,7 +542,6 @@ export const STABILITY_QUESTIONS: readonly OnboardingScaleQuestion[] = [
   },
   {
     field: "sq5",
-    bubbleId: "bTHSb",
     slug: "how_supported_do_you_feel_by_your_social_world_right_now___friendships__peers__community_",
     question: "How supported do you feel by your social world right now — friendships, peers, community?",
     answers: [
@@ -641,7 +590,6 @@ export interface LoadSignalQuestion {
 export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
   {
     field: "cognitive_load_signal",
-    bubbleId: "bTHlu",
     slug: "how_much_mental_noise_are_you_dealing_with___racing_thoughts__rumination__decision_fatigue_",
     question: "How much mental noise are you dealing with — racing thoughts, rumination, decision fatigue?",
     loadType: "cognitive",
@@ -653,7 +601,6 @@ export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
   },
   {
     field: "relational_load_signal",
-    bubbleId: "bTHlv",
     slug: "how_much_are_your_relationships_adding_to_your_stress_right_now_",
     question: "How much are your relationships adding to your stress right now?",
     loadType: "relational",
@@ -665,7 +612,6 @@ export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
   },
   {
     field: "environmental_load_signal",
-    bubbleId: "bTHlw",
     slug: "how_much_pressure_are_logistics_and_time_creating___schedule__responsibilities__deadlines_",
     question: "How much pressure are logistics and time creating — schedule, responsibilities, deadlines?",
     loadType: "evironmental",
@@ -677,7 +623,6 @@ export const LOAD_SIGNAL_QUESTIONS: readonly LoadSignalQuestion[] = [
   },
   {
     field: "financial_load_signal",
-    bubbleId: "bTHmA",
     slug: "how_much_is_financial_stress_affecting_your_day_to_day_mental_state_",
     question: "How much is financial stress affecting your day-to-day mental state?",
     loadType: "financial",
@@ -712,7 +657,7 @@ export function getLoadSignalAnswerMeta(slug: string): LoadSignalAnswerMeta | un
   return LOAD_SIGNAL_ANSWER_META[slug];
 }
 
-/** Ordered load signal slugs from onboarding_data.loadSignals (AUTH-05). */
+/** Ordered load signal slugs from onboardingData.loadSignals (AUTH-05). */
 export function extractLoadSignalSlugs(loadSignals: Record<string, string>): string[] {
   return LOAD_SIGNAL_QUESTIONS.map((question) => loadSignals[question.field]).filter(
     (slug): slug is string => typeof slug === "string" && slug.length > 0,
@@ -740,44 +685,37 @@ export interface HealthFlagOption {
 
 export const HEALTH_FLAG_OPTIONS: readonly HealthFlagOption[] = [
   {
-    bubbleId: "bTHuc",
     slug: "i_m_in_recovery_from_substance_use",
     label: "I'm in recovery from substance use",
     customStateKey: "health_recovery_mode_active",
   },
   {
-    bubbleId: "bTHud",
     slug: "i_m_navigating_a_significant_loss_or_life_disruption___divorce__bereavement__illness__family_crisis",
     label:
       "I'm navigating a significant loss or life disruption — divorce, bereavement, illness, family crisis",
     customStateKey: "health_grief_mode_active",
   },
   {
-    bubbleId: "bTHue",
     slug: "i_m_navigating_an_eating_or_body_image_challenge",
     label: "I'm navigating an eating or body image challenge",
     customStateKey: "health_flag3",
   },
   {
-    bubbleId: "bTHui",
     slug: "i_m_managing_a_chronic_health_condition",
     label: "I'm managing a chronic health condition",
     customStateKey: "health_flag4",
   },
   {
-    bubbleId: "bTHuj",
     slug: "i_m_supporting_a_family_member_through_something_difficult",
     label: "I'm supporting a family member through something difficult",
     customStateKey: "health_flag5",
   },
   {
-    bubbleId: "bTHuk",
     slug: "i_d_prefer_to_share_this_in_coaching_when_i_m_ready",
     label: "I'd prefer to share this in coaching when I'm ready",
     customStateKey: "health_flag6",
   },
   {
-    bubbleId: "bTIAe",
     slug: "none_of_the_above",
     label: "None of the above",
     customStateKey: "health_none_of_the_above",

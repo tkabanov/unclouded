@@ -1,17 +1,6 @@
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import {
-  DASHBOARD_CHAT_PREVIEW_SLOT_BUBBLE_ID,
-  DASHBOARD_CONTENT_BUBBLE_ID,
-  DASHBOARD_CRISIS_SLOT_BUBBLE_ID,
-  DASHBOARD_CURRENT_PATH_SLOT_BUBBLE_ID,
-  DASHBOARD_DAILY_CHECKIN_SLOT_BUBBLE_ID,
-  DASHBOARD_GRID_BUBBLE_ID,
-  DASHBOARD_GREETING_ROW_BUBBLE_ID,
-  DASHBOARD_JOURNAL_PREVIEW_SLOT_BUBBLE_ID,
-  DASHBOARD_MAIN_BUBBLE_ID,
-  DASHBOARD_MODULE_ID,
-} from "@/lib/dashboard/routes";
+import { DASHBOARD_MODULE_ID } from "@/lib/dashboard/routes";
 import { DashboardUserProvider } from "@/hooks/useDashboardUser";
 import { bubbleStyle } from "@/styles";
 
@@ -37,17 +26,14 @@ export interface DashboardMainProps {
   className?: string;
 }
 
-function DashboardSlot({
-  bubbleId,
-  children,
+function DashboardSlot({  children,
   className,
 }: {
-  bubbleId: string;
   children?: ReactNode;
   className?: string;
 }) {
   return (
-    <div data-bubble-id={bubbleId} className={className}>
+    <div className={className}>
       {children}
     </div>
   );
@@ -57,7 +43,6 @@ export default function DashboardMain({ slots = {}, className }: DashboardMainPr
   return (
     <DashboardUserProvider>
       <div
-        data-bubble-id={DASHBOARD_MAIN_BUBBLE_ID}
         data-module-owner={DASHBOARD_MODULE_ID}
         className={cn(
           bubbleStyle("Group_transparent_"),
@@ -66,37 +51,34 @@ export default function DashboardMain({ slots = {}, className }: DashboardMainPr
         )}
       >
         <div
-          data-bubble-id={DASHBOARD_CONTENT_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-8")}
         >
-          <DashboardSlot bubbleId={DASHBOARD_GREETING_ROW_BUBBLE_ID}>
+          <DashboardSlot>
             {slots.greetingRow}
           </DashboardSlot>
 
           {slots.beforeGrid}
 
           <div
-            data-bubble-id={DASHBOARD_GRID_BUBBLE_ID}
             className="grid w-full grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start"
           >
             <DashboardSlot
-              bubbleId={DASHBOARD_DAILY_CHECKIN_SLOT_BUBBLE_ID}
               className="flex min-w-0 flex-col gap-6"
             >
               {slots.dailyCheckIn}
             </DashboardSlot>
 
             <div className="flex min-w-0 flex-col gap-6">
-              <DashboardSlot bubbleId={DASHBOARD_CURRENT_PATH_SLOT_BUBBLE_ID}>
+              <DashboardSlot>
                 {slots.currentPath}
               </DashboardSlot>
-              <DashboardSlot bubbleId={DASHBOARD_CHAT_PREVIEW_SLOT_BUBBLE_ID}>
+              <DashboardSlot>
                 {slots.chatPreview}
               </DashboardSlot>
-              <DashboardSlot bubbleId={DASHBOARD_JOURNAL_PREVIEW_SLOT_BUBBLE_ID}>
+              <DashboardSlot>
                 {slots.journalPreview}
               </DashboardSlot>
-              <DashboardSlot bubbleId={DASHBOARD_CRISIS_SLOT_BUBBLE_ID}>
+              <DashboardSlot>
                 {slots.crisisSupport}
               </DashboardSlot>
             </div>

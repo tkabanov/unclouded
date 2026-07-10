@@ -5,10 +5,6 @@ import {
   PATH_PAGE_TAB_ORDER,
   type PathPageTabSlug,
 } from "@/lib/enums/pathPageTabs";
-import {
-  PATHS_TAB_BAR_BUBBLE_ID,
-  PATHS_TAB_BTN_BUBBLE_ID,
-} from "@/lib/paths/routes";
 import { bubbleStyle } from "@/styles";
 
 export interface PathsTabBarProps {
@@ -29,7 +25,6 @@ export default function PathsTabBar({
 }: PathsTabBarProps) {
   return (
     <div
-      data-bubble-id={PATHS_TAB_BAR_BUBBLE_ID}
       className={cn(
         bubbleStyle("Group_tab_bar_"),
         "inline-flex w-full max-w-md gap-1 sm:w-auto",
@@ -46,7 +41,6 @@ export default function PathsTabBar({
             type="button"
             role="tab"
             id={`paths-tab-${tab}`}
-            data-bubble-id={PATHS_TAB_BTN_BUBBLE_ID}
             data-tab-value={tab}
             aria-selected={isActive}
             aria-controls={TAB_PANEL_IDS[tab]}

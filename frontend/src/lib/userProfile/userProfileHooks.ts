@@ -3,7 +3,7 @@ import { loadProfileRow, patchOnboardingAndResults } from "./profileFieldPatch";
 
 export const MODULES_COMPLETED_COUNT_FIELD = "modules_completed_count_number" as const;
 export const AI_CONFIDENCE_LEVEL_FIELD =
-  "ai_confidence_level_option_ai_confidence_level_os" as const;
+  "aiConfidenceLevel" as const;
 
 function readModulesCompleted(onboarding: Record<string, unknown>): number {
   const raw = onboarding[MODULES_COMPLETED_COUNT_FIELD];
@@ -31,8 +31,8 @@ export async function onModulesCompletedCountChanged(
 }
 
 export async function incrementModulesCompletedCount(userId: string): Promise<number> {
-  const { onboarding_data } = await loadProfileRow(userId);
-  const previous = readModulesCompleted(onboarding_data);
+  const { onboardingData } = await loadProfileRow(userId);
+  const previous = readModulesCompleted(onboardingData);
   const current = previous + 1;
   await onModulesCompletedCountChanged(userId, previous, current);
   return current;

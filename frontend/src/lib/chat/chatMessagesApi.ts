@@ -22,25 +22,36 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
   );
 }
 
+function shouldUseOnboardingStorage(error: { code?: string; message?: string }): boolean {
+  if (isSchemaUnavailable(error)) return true;
+  const message = error.message?.toLowerCase() ?? "";
+  return (
+    error.code === "42501" ||
+    message.includes("row-level security") ||
+    message.includes("foreign key constraint") ||
+    message.includes("violates foreign key")
+  );
+}
+
 function mapMessageRow(row: Record<string, unknown>): ChatMessage | null {
   const id = typeof row.id === "string" ? row.id : null;
   if (!id) return null;
 
-  const sender = typeof row.sender_text === "string" ? row.sender_text.toLowerCase() : "";
+  const sender = typeof row.sender === "string" ? row.sender.toLowerCase() : "";
   const role: ChatMessage["role"] =
     sender === "assistant" || sender === "ai" ? "assistant" : "user";
 
   const content =
-    typeof row.content_text === "string"
-      ? row.content_text
-      : typeof row.sender_text === "string"
-        ? row.sender_text
+    typeof row.content === "string"
+      ? row.content
+      : typeof row.sender === "string"
+        ? row.sender
         : "";
 
   return {
     id,
     role,
-    content_text: content.trim(),
+    content: content.trim(),
   };
 }
 
@@ -65,15 +76,15 @@ async function persistOnboardingMessages(
   userId: string,
   updater: (store: Record<string, ChatMessage[]>) => Record<string, ChatMessage[]>,
 ): Promise<void> {
-  const { onboarding_data } = await loadProfileRow(userId);
-  const store = readOnboardingMessages(onboarding_data);
+  const { onboardingData } = await loadProfileRow(userId);
+  const store = readOnboardingMessages(onboardingData);
   const nextStore = updater(store);
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
-        ...onboarding_data,
+      onboardingData: {
+        ...onboardingData,
         [CHAT_MESSAGES_ONBOARDING_KEY]: nextStore,
       } as never,
     })
@@ -84,23 +95,26 @@ async function persistOnboardingMessages(
 
 async function tryInsertMessageRow(
   conversationId: string,
+  userId: string,
   role: ChatMessage["role"],
   content: string,
 ): Promise<ChatMessage | null> {
   const client = supabase as unknown as UntypedSupabase;
   const sender = role === "assistant" ? "assistant" : "user";
   const { data, error } = await client
-    .from("chatmessage")
+    .from("chatMessage")
     .insert({
-      conversation_custom_chatconversation: conversationId,
-      content_text: content,
-      sender_text: sender,
+      conversationId: conversationId,
+      content: content,
+      sender: sender,
+      userId: userId,
+      isFromUser: role === "user",
     })
-    .select("id, content_text, sender_text")
+    .select("id, content, sender")
     .single();
 
   if (error) {
-    if (isSchemaUnavailable(error)) return null;
+    if (shouldUseOnboardingStorage(error)) return null;
     throw error;
   }
 
@@ -116,10 +130,10 @@ export async function fetchMessagesForConversation(
 ): Promise<ChatMessage[]> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("chatmessage")
-    .select("id, content_text, sender_text, conversation_custom_chatconversation")
-    .eq("conversation_custom_chatconversation", conversationId)
-    .order("id", { ascending: true });
+    .from("chatMessage")
+    .select("id, content, sender, conversationId")
+    .eq("conversationId", conversationId)
+    .order("createdAt", { ascending: true });
 
   if (!error) {
     return (data ?? [])
@@ -132,7 +146,7 @@ export async function fetchMessagesForConversation(
 }
 
 /**
- * Insert a user chatmessage row (table or onboarding_data fallback).
+ * Insert a user chatmessage row (table or onboardingData fallback).
  */
 export async function insertUserMessage(params: {
   conversationId: string;
@@ -143,13 +157,13 @@ export async function insertUserMessage(params: {
   const trimmed = params.content.trim();
   if (!trimmed) throw new Error("Message content is required");
 
-  const fromTable = await tryInsertMessageRow(params.conversationId, "user", trimmed);
+  const fromTable = await tryInsertMessageRow(params.conversationId, params.userId, "user", trimmed);
   if (fromTable) return fromTable;
 
   const nextMessage: ChatMessage = {
     id: crypto.randomUUID(),
     role: "user",
-    content_text: trimmed,
+    content: trimmed,
   };
   await persistOnboardingMessages(params.userId, (store) => ({
     ...store,
@@ -159,7 +173,7 @@ export async function insertUserMessage(params: {
 }
 
 /**
- * Insert an assistant chatmessage row (table or onboarding_data fallback).
+ * Insert an assistant chatmessage row (table or onboardingData fallback).
  */
 export async function insertAssistantMessage(params: {
   conversationId: string;
@@ -170,13 +184,13 @@ export async function insertAssistantMessage(params: {
   const trimmed = params.content.trim();
   if (!trimmed) throw new Error("Assistant content is required");
 
-  const fromTable = await tryInsertMessageRow(params.conversationId, "assistant", trimmed);
+  const fromTable = await tryInsertMessageRow(params.conversationId, params.userId, "assistant", trimmed);
   if (fromTable) return fromTable;
 
   const nextMessage: ChatMessage = {
     id: crypto.randomUUID(),
     role: "assistant",
-    content_text: trimmed,
+    content: trimmed,
   };
   await persistOnboardingMessages(params.userId, (store) => ({
     ...store,
@@ -206,6 +220,6 @@ export async function sendMessageWithAiReply(params: {
   });
   await touchConversationAfterMessage(params.userId, params.conversationId, assistantText);
 
-  const { onboarding_data } = await loadProfileRow(params.userId);
-  return fetchMessagesForConversation(params.conversationId, onboarding_data);
+  const { onboardingData } = await loadProfileRow(params.userId);
+  return fetchMessagesForConversation(params.conversationId, onboardingData);
 }

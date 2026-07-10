@@ -37,10 +37,10 @@ function readPreviewFromOnboarding(
     const lastMessageText =
       typeof row.last_message_text === "string" ? row.last_message_text.trim() : "";
     const conversationTitle =
-      typeof row.conversation_title_text === "string"
-        ? row.conversation_title_text.trim()
-        : typeof row.title_text === "string"
-          ? row.title_text.trim()
+      typeof row.conversation_title === "string"
+        ? row.conversation_title.trim()
+        : typeof row.title === "string"
+          ? row.title.trim()
           : "";
     if (lastMessageText || conversationTitle) {
       return {
@@ -58,40 +58,40 @@ function readPreviewFromOnboarding(
       if (!entry || typeof entry !== "object") return null;
       const row = entry as Record<string, unknown>;
       const content =
-        typeof row.content_text === "string"
-          ? row.content_text
-          : typeof row.sender_text === "string"
-            ? row.sender_text
+        typeof row.content === "string"
+          ? row.content
+          : typeof row.sender === "string"
+            ? row.sender
             : "";
       if (!content.trim()) return null;
       return {
         id: typeof row.id === "string" ? row.id : `onboarding-${index}`,
-        content_text: content.trim(),
+        content: content.trim(),
         conversation_title:
-          typeof row.conversation_title_text === "string"
-            ? row.conversation_title_text
-            : typeof row.title_text === "string"
-              ? row.title_text
+          typeof row.conversation_title === "string"
+            ? row.conversation_title
+            : typeof row.title === "string"
+              ? row.title
               : "",
       };
     })
-    .filter((row): row is { id: string; content_text: string; conversation_title: string } => row !== null);
+    .filter((row): row is { id: string; content: string; conversation_title: string } => row !== null);
 
   if (parsed.length === 0) return null;
   const last = parsed[parsed.length - 1];
   return {
     conversationTitle: last.conversation_title.trim() || DEFAULT_CONVERSATION_TITLE,
-    lastMessageText: last.content_text,
+    lastMessageText: last.content,
   };
 }
 
 async function tryFetchConversationTitle(userId: string): Promise<string | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("chatconversation")
-    .select("title_text")
-    .eq("user_user", userId)
-    .order("id", { ascending: false })
+    .from("chatConversation")
+    .select("title")
+    .eq("userId", userId)
+    .order("updatedAt", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -101,17 +101,17 @@ async function tryFetchConversationTitle(userId: string): Promise<string | null>
   }
 
   if (!data || typeof data !== "object") return null;
-  const title = (data as Record<string, unknown>).title_text;
+  const title = (data as Record<string, unknown>).title;
   return typeof title === "string" && title.trim() ? title.trim() : null;
 }
 
 async function tryFetchLastMessage(userId: string): Promise<string | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("chatmessage")
-    .select("content_text, sender_text")
-    .eq("user_user", userId)
-    .order("id", { ascending: false })
+    .from("chatMessage")
+    .select("content, sender")
+    .eq("userId", userId)
+    .order("createdAt", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -123,17 +123,17 @@ async function tryFetchLastMessage(userId: string): Promise<string | null> {
   if (!data || typeof data !== "object") return null;
   const row = data as Record<string, unknown>;
   const content =
-    typeof row.content_text === "string"
-      ? row.content_text
-      : typeof row.sender_text === "string"
-        ? row.sender_text
+    typeof row.content === "string"
+      ? row.content
+      : typeof row.sender === "string"
+        ? row.sender
         : "";
   return content.trim() ? content.trim() : null;
 }
 
 /**
  * Load dashboard chat preview — last message text and conversation title for current user.
- * Tries Bubble chatmessage/chatconversation tables, then profiles.onboarding_data fallback.
+ * Tries Bubble chatmessage/chatconversation tables, then profiles.onboardingData fallback.
  */
 export async function fetchChatPreview(
   userId: string,

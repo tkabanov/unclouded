@@ -7,32 +7,7 @@ import {
   DialogPortal,
 } from "@/components/ui/dialog";
 import type { ResourceListItem } from "@/lib/paths/pathsResourcesApi";
-import {
-  PATHS_RESOURCE_DETAIL_BADGES_ROW_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_BODY_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_CLOSE_BTN_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_CONTENT_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_CONTENT_GROUP_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_CONTENT_LABEL_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY,
-  PATHS_RESOURCE_DETAIL_DISCLAIMER_ICON_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_DISCLAIMER_ROW_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_DISCLAIMER_TEXT_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_DONE_BTN_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_FOOTER_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_HEADER_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_LINK_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_LINK_GROUP_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_LINK_LABEL_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_LINK_LABEL_COPY,
-  PATHS_RESOURCE_DETAIL_MODE_BADGE_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_OVERLAY_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_POPUP_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_SENSITIVITY_BADGE_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_SUBMODE_BADGE_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_TITLE_BUBBLE_ID,
-  PATHS_RESOURCE_DETAIL_TITLE_GROUP_BUBBLE_ID,
-} from "@/lib/paths/routes";
+import { PATHS_RESOURCE_DETAIL_DISCLAIMER_COPY, PATHS_RESOURCE_DETAIL_LINK_LABEL_COPY } from "@/lib/paths/routes";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -54,11 +29,9 @@ export default function ResourceDetailPopup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay
-          data-bubble-id={PATHS_RESOURCE_DETAIL_OVERLAY_BUBBLE_ID}
           data-style-ref="Group_overlay_"
         />
         <DialogPrimitive.Content
-          data-bubble-id={PATHS_RESOURCE_DETAIL_POPUP_BUBBLE_ID}
           data-style-ref="Popup_dialog_"
           className={cn(
             bubbleStyle("Popup_dialog_"),
@@ -66,15 +39,12 @@ export default function ResourceDetailPopup({
           )}
         >
           <header
-            data-bubble-id={PATHS_RESOURCE_DETAIL_HEADER_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "relative space-y-3 pr-8")}
           >
             <div
-              data-bubble-id={PATHS_RESOURCE_DETAIL_TITLE_GROUP_BUBBLE_ID}
               className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}
             >
               <div
-                data-bubble-id={PATHS_RESOURCE_DETAIL_BADGES_ROW_BUBBLE_ID}
                 className={cn(
                   bubbleStyle("Group_transparent_"),
                   "flex flex-wrap items-center gap-2",
@@ -82,7 +52,6 @@ export default function ResourceDetailPopup({
               >
                 {resource?.primaryModeTag ? (
                   <span
-                    data-bubble-id={PATHS_RESOURCE_DETAIL_MODE_BADGE_BUBBLE_ID}
                     className={cn(bubbleStyle("Group_badge_"), "text-xs")}
                   >
                     {resource.primaryModeTag}
@@ -90,7 +59,6 @@ export default function ResourceDetailPopup({
                 ) : null}
                 {resource?.subModeTag ? (
                   <span
-                    data-bubble-id={PATHS_RESOURCE_DETAIL_SUBMODE_BADGE_BUBBLE_ID}
                     className={cn(bubbleStyle("Group_badge_"), "text-xs")}
                   >
                     {resource.subModeTag}
@@ -98,7 +66,6 @@ export default function ResourceDetailPopup({
                 ) : null}
                 {resource?.sensitivityFlag ? (
                   <span
-                    data-bubble-id={PATHS_RESOURCE_DETAIL_SENSITIVITY_BADGE_BUBBLE_ID}
                     className={cn(bubbleStyle("Group_badge_"), "text-xs")}
                   >
                     {resource.sensitivityFlag}
@@ -107,7 +74,6 @@ export default function ResourceDetailPopup({
               </div>
 
               <h2
-                data-bubble-id={PATHS_RESOURCE_DETAIL_TITLE_BUBBLE_ID}
                 data-style-ref="Text_heading_2_"
                 className={cn(
                   bubbleStyle("Text_heading_2_"),
@@ -120,7 +86,6 @@ export default function ResourceDetailPopup({
 
             <button
               type="button"
-              data-bubble-id={PATHS_RESOURCE_DETAIL_CLOSE_BTN_BUBBLE_ID}
               data-style-ref="Button_icon_"
               className={cn(
                 bubbleStyle("Button_icon_"),
@@ -134,23 +99,19 @@ export default function ResourceDetailPopup({
           </header>
 
           <section
-            data-bubble-id={PATHS_RESOURCE_DETAIL_BODY_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-4")}
           >
             <div
-              data-bubble-id={PATHS_RESOURCE_DETAIL_DISCLAIMER_ROW_BUBBLE_ID}
               className={cn(
                 bubbleStyle("Group_transparent_"),
                 "flex items-start gap-2 rounded-lg border border-border/60 bg-muted/20 p-3",
               )}
             >
               <AlertTriangle
-                data-bubble-id={PATHS_RESOURCE_DETAIL_DISCLAIMER_ICON_BUBBLE_ID}
                 className={cn(bubbleStyle("Icon_muted_"), "mt-0.5 h-4 w-4 shrink-0")}
                 aria-hidden
               />
               <p
-                data-bubble-id={PATHS_RESOURCE_DETAIL_DISCLAIMER_TEXT_BUBBLE_ID}
                 data-style-ref="Text_body_muted_"
                 className={cn(bubbleStyle("Text_body_muted_"), "text-sm leading-relaxed")}
               >
@@ -159,18 +120,15 @@ export default function ResourceDetailPopup({
             </div>
 
             <div
-              data-bubble-id={PATHS_RESOURCE_DETAIL_CONTENT_GROUP_BUBBLE_ID}
               className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}
             >
               <p
-                data-bubble-id={PATHS_RESOURCE_DETAIL_CONTENT_LABEL_BUBBLE_ID}
                 data-style-ref="Text_label_"
                 className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
               >
                 Resource Content
               </p>
               <p
-                data-bubble-id={PATHS_RESOURCE_DETAIL_CONTENT_BUBBLE_ID}
                 data-style-ref="Text_body_muted_"
                 className={cn(
                   bubbleStyle("Text_body_muted_"),
@@ -183,7 +141,6 @@ export default function ResourceDetailPopup({
           </section>
 
           <DialogFooter
-            data-bubble-id={PATHS_RESOURCE_DETAIL_FOOTER_BUBBLE_ID}
             className={cn(
               bubbleStyle("Group_transparent_"),
               "flex flex-col gap-3 sm:justify-stretch",
@@ -191,11 +148,9 @@ export default function ResourceDetailPopup({
           >
             {resource?.externalLink ? (
               <div
-                data-bubble-id={PATHS_RESOURCE_DETAIL_LINK_GROUP_BUBBLE_ID}
                 className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-1")}
               >
                 <p
-                  data-bubble-id={PATHS_RESOURCE_DETAIL_LINK_LABEL_BUBBLE_ID}
                   data-style-ref="Text_label_"
                   className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
                 >
@@ -205,7 +160,6 @@ export default function ResourceDetailPopup({
                   href={resource.externalLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  data-bubble-id={PATHS_RESOURCE_DETAIL_LINK_BUBBLE_ID}
                   className={cn(
                     bubbleStyle("Text_link_"),
                     "inline-flex items-center justify-center gap-1.5 text-sm text-primary hover:underline",
@@ -219,7 +173,6 @@ export default function ResourceDetailPopup({
             <Button
               type="button"
               variant="cta"
-              data-bubble-id={PATHS_RESOURCE_DETAIL_DONE_BTN_BUBBLE_ID}
               data-style-ref="Button_primary_"
               className={cn(bubbleStyle("Button_primary_"), "w-full")}
               onClick={dismiss}

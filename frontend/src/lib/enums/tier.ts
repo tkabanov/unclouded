@@ -13,13 +13,6 @@ export const TIER = {
 
 export type TierSlug = (typeof TIER)[keyof typeof TIER];
 
-/** Bubble option-set value ids keyed by tier slug */
-export const TIER_BUBBLE_IDS: Record<TierSlug, string> = {
-  free: "bTIrS",
-  pro: "bTIrT",
-  premium: "bTIrU",
-};
-
 /** Display strings from ir/inventory.json → tier_os (Bubble display field) */
 export const TIER_LABELS: Record<TierSlug, string> = {
   free: "free", // bTIrS

@@ -4,8 +4,8 @@ export function adminDataSourceNotice(source: AdminDataSource, entityLabel: stri
   if (source === "table") return null;
 
   if (source === "onboarding") {
-    return `Showing ${entityLabel} from your profile onboarding_data fallback — changes stay local until database tables are available.`;
+    return `Showing ${entityLabel} from your profile onboardingData fallback — changes stay local until database tables are available.`;
   }
 
-  return `Showing demo ${entityLabel} — apply Supabase migrations and set role_type = 'admin' on a profile for shared admin writes.`;
+  return `Showing demo ${entityLabel} — apply Supabase migrations and set roleType = 'admin' on a profile for shared admin writes.`;
 }

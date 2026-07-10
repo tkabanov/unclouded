@@ -9,9 +9,9 @@ import { fetchChatPreview } from "@/lib/dashboard/chatPreviewApi";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const CHAT_PROMPT_CHIPS = [
-  { bubbleId: "ai_RNbBHXSc", label: "Plan my day", href: "/chat" },
-  { bubbleId: "ai_RNbBHXSd", label: "Reflect on this week", href: "/chat" },
-  { bubbleId: "ai_RNbBHXSe", label: "Set a new goal", href: "/chat" },
+  { label: "Plan my day", href: "/chat" },
+  { label: "Reflect on this week", href: "/chat" },
+  { label: "Set a new goal", href: "/chat" },
 ] as const;
 
 export default function DashboardChatPreviewCard() {
@@ -49,23 +49,19 @@ export default function DashboardChatPreviewCard() {
 
   return (
     <div
-      data-bubble-id="ai_RNbBHXSN"
       data-style-ref="Group_card_"
       className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4 p-5")}
     >
       <div
-        data-bubble-id="ai_RNbBHXSO"
         className={cn(bubbleStyle("Group_transparent_"), "flex items-start justify-between gap-3")}
       >
         <div
-          data-bubble-id="ai_RNbBHXSP"
           className={cn(bubbleStyle("Group_transparent_"), "flex min-w-0 items-center gap-2")}
         >
-          <span data-bubble-id="ai_RNbBHXSQ" className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
+          <span className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
             <Bot className="h-5 w-5" />
           </span>
           <p
-            data-bubble-id="ai_RNbBHXSR"
             data-style-ref="Text_heading_3_"
             className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold leading-tight")}
           >
@@ -75,7 +71,6 @@ export default function DashboardChatPreviewCard() {
 
         <Link
           to="/chat"
-          data-bubble-id="ai_RNbBHXSS"
           data-style-ref="Text_link_"
           className={cn(
             bubbleStyle("Text_link_"),
@@ -87,21 +82,18 @@ export default function DashboardChatPreviewCard() {
       </div>
 
       <div
-        data-bubble-id="ai_RNbBHXST"
         className={cn(bubbleStyle("Group_transparent_"), "flex flex-col gap-2")}
       >
         <div
-          data-bubble-id="ai_RNbBHXSU"
           className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-3")}
         >
           <div
-            data-bubble-id="ai_RNbBHXSV"
             className={cn(
               bubbleStyle("Group_transparent_"),
               "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10",
             )}
           >
-            <span data-bubble-id="ai_RNbBHXSW" className={cn(bubbleStyle("Icon_primary_"))} aria-hidden>
+            <span className={cn(bubbleStyle("Icon_primary_"))} aria-hidden>
               <Bot className="h-4 w-4" />
             </span>
           </div>
@@ -110,7 +102,6 @@ export default function DashboardChatPreviewCard() {
             <Skeleton className="h-4 w-32" />
           ) : (
             <p
-              data-bubble-id="ai_RNbBHXSX"
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "min-w-0 text-sm font-medium")}
             >
@@ -123,7 +114,6 @@ export default function DashboardChatPreviewCard() {
           <Skeleton className="h-4 w-full" />
         ) : (
           <p
-            data-bubble-id="ai_RNbBHXSY"
             className={cn(bubbleStyle("Text_body_muted_"), "text-sm italic text-muted-foreground line-clamp-2")}
           >
             {lastMessageText}
@@ -132,11 +122,9 @@ export default function DashboardChatPreviewCard() {
       </div>
 
       <div
-        data-bubble-id="ai_RNbBHXSZ"
         className={cn(bubbleStyle("Group_transparent_"), "flex flex-col gap-2")}
       >
         <p
-          data-bubble-id="ai_RNbBHXSa"
           data-style-ref="Text_small_"
           className={cn(
             bubbleStyle("Text_small_"),
@@ -147,14 +135,12 @@ export default function DashboardChatPreviewCard() {
         </p>
 
         <div
-          data-bubble-id="ai_RNbBHXSb"
           className={cn(bubbleStyle("Group_transparent_"), "flex flex-wrap gap-1.5")}
         >
           {CHAT_PROMPT_CHIPS.map((chip) => (
             <Link
-              key={chip.bubbleId}
+              key={chip.label}
               to={chip.href}
-              data-bubble-id={chip.bubbleId}
               data-style-ref="Group_chip_"
               className={cn(
                 bubbleStyle("Group_chip_"),

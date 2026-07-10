@@ -38,18 +38,15 @@ function formatPreviewDate(iso: string): string {
 function JournalPreviewCell({ entry }: { entry: JournalPreviewEntry }) {
   return (
     <div
-      data-bubble-id="ai_RNbBHXTE"
       className={cn(
         bubbleStyle("Group_transparent_"),
         "flex items-start justify-between gap-3 border-b border-border py-3 last:border-b-0",
       )}
     >
       <div
-        data-bubble-id="ai_RNbBHXTF"
         className={cn(bubbleStyle("Group_transparent_"), "min-w-0 flex-1 space-y-1")}
       >
         <p
-          data-bubble-id="ai_RNbBHXTG"
           data-style-ref="Text_label_"
           className={cn(bubbleStyle("Text_label_"), "truncate text-sm font-medium")}
         >
@@ -57,7 +54,6 @@ function JournalPreviewCell({ entry }: { entry: JournalPreviewEntry }) {
         </p>
         {entry.preview ? (
           <p
-            data-bubble-id="ai_RNbBHXTH"
             data-style-ref="Text_small_"
             className={cn(bubbleStyle("Text_small_"), "line-clamp-2 text-xs text-muted-foreground")}
           >
@@ -67,11 +63,9 @@ function JournalPreviewCell({ entry }: { entry: JournalPreviewEntry }) {
       </div>
 
       <div
-        data-bubble-id="ai_RNbBHXTI"
         className={cn(bubbleStyle("Group_transparent_"), "flex shrink-0 flex-col items-end gap-1 text-right")}
       >
         <p
-          data-bubble-id="ai_RNbBHXTJ"
           className={cn(
             bubbleStyle("Text_caption_"),
             "rounded-full bg-accent px-2 py-0.5 text-[11px] text-muted-foreground",
@@ -80,7 +74,6 @@ function JournalPreviewCell({ entry }: { entry: JournalPreviewEntry }) {
           {moodLabel(entry.mood)}
         </p>
         <p
-          data-bubble-id="ai_RNbBHXTK"
           data-style-ref="Text_caption_"
           className={cn(bubbleStyle("Text_caption_"), "text-[11px] text-muted-foreground")}
         >
@@ -121,33 +114,19 @@ export default function DashboardJournalPreviewCard() {
 
   return (
     <div
-      data-bubble-id="ai_RNbBHXSx"
       data-style-ref="Group_card_"
       className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4 p-5")}
     >
-      {!loading && entries.length === 0 ? (
-        <p
-          data-bubble-id="bTIXy"
-          data-style-ref="Text_body_"
-          className={cn(bubbleStyle("Text_body_"), "text-center text-sm text-muted-foreground")}
-        >
-          No entries yet
-        </p>
-      ) : null}
-
       <div
-        data-bubble-id="ai_RNbBHXSy"
         className={cn(bubbleStyle("Group_transparent_"), "flex items-center justify-between gap-3")}
       >
         <div
-          data-bubble-id="ai_RNbBHXSz"
           className={cn(bubbleStyle("Group_transparent_"), "flex min-w-0 items-center gap-2")}
         >
-          <span data-bubble-id="ai_RNbBHXTA" className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
+          <span className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
             <BookOpen className="h-5 w-5" />
           </span>
           <p
-            data-bubble-id="ai_RNbBHXTB"
             data-style-ref="Text_heading_3_"
             className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold")}
           >
@@ -157,7 +136,6 @@ export default function DashboardJournalPreviewCard() {
 
         <Link
           to="/journal"
-          data-bubble-id="ai_RNbBHXTC"
           data-style-ref="Text_link_"
           className={cn(bubbleStyle("Text_link_"), "shrink-0 text-sm font-medium hover:underline")}
         >
@@ -166,7 +144,6 @@ export default function DashboardJournalPreviewCard() {
       </div>
 
       <div
-        data-bubble-id="ai_RNbBHXTD"
         data-style-ref="RepeatingGroup_list_"
         className={cn(bubbleStyle("RepeatingGroup_list_"), "flex flex-col")}
       >
@@ -181,7 +158,17 @@ export default function DashboardJournalPreviewCard() {
           </div>
         ) : entries.length > 0 ? (
           entries.map((entry) => <JournalPreviewCell key={entry.id} entry={entry} />)
-        ) : null}
+        ) : (
+          <p
+            data-style-ref="Text_body_"
+            className={cn(
+              bubbleStyle("Text_body_"),
+              "py-2 text-center text-sm text-muted-foreground",
+            )}
+          >
+            No entries yet
+          </p>
+        )}
       </div>
     </div>
   );

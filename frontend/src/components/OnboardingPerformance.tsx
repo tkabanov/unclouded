@@ -44,7 +44,6 @@ const OnboardingPerformance = ({ role, onNext }: OnboardingPerformanceProps) => 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div
-        data-bubble-id="bTHJm"
         className={cn(bubbleStyle("Group_transparent_"), "max-w-2xl w-full text-center space-y-8")}
       >
         <div className="space-y-1">
@@ -55,7 +54,6 @@ const OnboardingPerformance = ({ role, onNext }: OnboardingPerformanceProps) => 
 
         <div className="space-y-3">
           <h1
-            data-bubble-id={stepCopy.headingBubbleId}
             className={cn(bubbleStyle("Text_heading_1_"), "text-3xl md:text-4xl leading-tight tracking-tight")}
           >
             {stepCopy.heading}
@@ -65,27 +63,23 @@ const OnboardingPerformance = ({ role, onNext }: OnboardingPerformanceProps) => 
           </p>
         </div>
 
-        <div data-bubble-id="bTHOZ" className="space-y-6 text-left">
+        <div className="space-y-6 text-left">
           {questions.map((q, qIndex) => (
-            <div key={q.field} data-bubble-id="bTGNh" data-question-bubble-id={q.bubbleId} className="space-y-2">
+            <div key={q.field} className="space-y-2">
               <p
-                data-bubble-id="bTGNn"
                 className={cn(bubbleStyle("Text_label_copy_"), "text-sm font-semibold text-foreground")}
               >
                 {qIndex + 1}. {q.question}
               </p>
               <div
-                data-bubble-id="bTHVW"
                 className={cn(bubbleStyle("RepeatingGroup_list_"), "grid gap-1.5")}
               >
                 {q.answers.map((answer) => {
                   const isSelected = answers[q.field] === answer.score;
                   return (
                     <button
-                      key={answer.bubbleId}
+                      key={answer.slug}
                       type="button"
-                      data-bubble-id="bTHVi"
-                      data-option-bubble-id={answer.bubbleId}
                       onClick={() => handleSelect(q.field, answer.score)}
                       className={cn(
                         bubbleStyle("Group_transparent_"),
@@ -95,7 +89,7 @@ const OnboardingPerformance = ({ role, onNext }: OnboardingPerformanceProps) => 
                           : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
                       )}
                     >
-                      <span data-bubble-id="bTHVm" className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
+                      <span className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
                         {answer.label}
                       </span>
                     </button>
@@ -106,9 +100,8 @@ const OnboardingPerformance = ({ role, onNext }: OnboardingPerformanceProps) => 
           ))}
         </div>
 
-        <div data-bubble-id="bTGOk" className="pt-2">
+        <div className="pt-2">
           <Button
-            data-bubble-id="bTGOp"
             variant="cta"
             size="lg"
             onClick={handleContinue}

@@ -35,11 +35,11 @@ export type AdminPathFormState = Omit<AdminPathRecord, "pathId" | "isStatic">;
 type PathRow = {
   id?: string;
   slug?: string;
-  name_text?: string;
-  description_text?: string;
-  tier_option_tier_os?: string;
-  ai_coaching_mode_option_ai_coaching_mode_os?: string;
-  sub_mode_text?: string;
+  name?: string;
+  description?: string;
+  tier?: string;
+  aiCoachingMode?: string;
+  subMode?: string;
   sensitivity_text?: string;
 };
 
@@ -80,22 +80,22 @@ function slugify(name: string): string {
 
 function toAdminPath(row: PathRow, isStatic = false): AdminPathRecord | null {
   if (!row.id && !row.slug) return null;
-  const name = row.name_text?.trim();
+  const name = row.name?.trim();
   if (!name) return null;
 
-  const tier = isTierSlug(row.tier_option_tier_os) ? row.tier_option_tier_os : TIER.FREE;
-  const coachingMode = isCoachingModeSlug(row.ai_coaching_mode_option_ai_coaching_mode_os)
-    ? row.ai_coaching_mode_option_ai_coaching_mode_os
+  const tier = isTierSlug(row.tier) ? row.tier : TIER.FREE;
+  const coachingMode = isCoachingModeSlug(row.aiCoachingMode)
+    ? row.aiCoachingMode
     : AI_COACHING_MODE.STABILIZER;
 
   return {
     pathId: row.id ?? row.slug ?? slugify(name),
     slug: row.slug ?? slugify(name),
     name,
-    description: row.description_text?.trim() ?? "",
+    description: row.description?.trim() ?? "",
     tier,
     coachingMode,
-    subMode: row.sub_mode_text?.trim() ?? "",
+    subMode: row.subMode?.trim() ?? "",
     sensitivity: isSensitivitySlug(row.sensitivity_text) ? row.sensitivity_text : "low",
     isStatic,
   };
@@ -118,14 +118,14 @@ function staticPaths(): AdminPathRecord[] {
 async function readOnboardingPaths(userId: string): Promise<AdminPathRecord[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
   const raw = onboarding[ADMIN_PATHS_ONBOARDING_KEY];
   if (!Array.isArray(raw)) return [];
 
@@ -137,19 +137,19 @@ async function readOnboardingPaths(userId: string): Promise<AdminPathRecord[]> {
 async function writeOnboardingPaths(userId: string, paths: PathRow[]): Promise<void> {
   const { data, error: readError } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (readError) throw readError;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...onboarding,
         [ADMIN_PATHS_ONBOARDING_KEY]: paths,
       } as never,
@@ -164,7 +164,7 @@ async function tryFetchPathsFromTable(): Promise<AdminPathRecord[] | null> {
   const { data, error } = await client
     .from("path")
     .select(
-      "id, slug, name_text, description_text, tier_option_tier_os, ai_coaching_mode_option_ai_coaching_mode_os, sub_mode_text, sensitivity_text",
+      "id, slug, name, description, tier, aiCoachingMode, subMode, sensitivity_text",
     );
 
   if (error) {
@@ -211,11 +211,11 @@ export async function createAdminPath(
   const row: PathRow = {
     id: `path-${Date.now()}`,
     slug,
-    name_text: name,
-    description_text: form.description.trim(),
-    tier_option_tier_os: form.tier,
-    ai_coaching_mode_option_ai_coaching_mode_os: form.coachingMode,
-    sub_mode_text: form.subMode.trim(),
+    name: name,
+    description: form.description.trim(),
+    tier: form.tier,
+    aiCoachingMode: form.coachingMode,
+    subMode: form.subMode.trim(),
     sensitivity_text: form.sensitivity,
   };
 
@@ -233,11 +233,11 @@ export async function createAdminPath(
   const stored = existing.map((path) => ({
     id: path.pathId,
     slug: path.slug,
-    name_text: path.name,
-    description_text: path.description,
-    tier_option_tier_os: path.tier,
-    ai_coaching_mode_option_ai_coaching_mode_os: path.coachingMode,
-    sub_mode_text: path.subMode,
+    name: path.name,
+    description: path.description,
+    tier: path.tier,
+    aiCoachingMode: path.coachingMode,
+    subMode: path.subMode,
     sensitivity_text: path.sensitivity,
   }));
 
@@ -259,11 +259,11 @@ export async function deleteAdminPath(userId: string, pathId: string): Promise<v
     .map((path) => ({
       id: path.pathId,
       slug: path.slug,
-      name_text: path.name,
-      description_text: path.description,
-      tier_option_tier_os: path.tier,
-      ai_coaching_mode_option_ai_coaching_mode_os: path.coachingMode,
-      sub_mode_text: path.subMode,
+      name: path.name,
+      description: path.description,
+      tier: path.tier,
+      aiCoachingMode: path.coachingMode,
+      subMode: path.subMode,
       sensitivity_text: path.sensitivity,
     }));
 
@@ -275,11 +275,11 @@ function pathRowFromForm(form: AdminPathFormState, pathId: string, slug?: string
   return {
     id: pathId,
     slug: slug ?? slugify(name),
-    name_text: name,
-    description_text: form.description.trim(),
-    tier_option_tier_os: form.tier,
-    ai_coaching_mode_option_ai_coaching_mode_os: form.coachingMode,
-    sub_mode_text: form.subMode.trim(),
+    name: name,
+    description: form.description.trim(),
+    tier: form.tier,
+    aiCoachingMode: form.coachingMode,
+    subMode: form.subMode.trim(),
     sensitivity_text: form.sensitivity,
   };
 }

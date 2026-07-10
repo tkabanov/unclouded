@@ -10,13 +10,7 @@ import JournalPageContent from "@/components/journal/JournalPageContent";
 import LogRelapsePopup from "@/components/journal/LogRelapsePopup";
 import MilestonesTab from "@/components/journal/MilestonesTab";
 import NewEntryPopup from "@/components/journal/NewEntryPopup";
-import {
-  JOURNAL_HEADER_INSTANCE_BUBBLE_ID,
-  JOURNAL_MAIN_BUBBLE_ID,
-  JOURNAL_MODULE_ID,
-  JOURNAL_PAGE_BUBBLE_ID,
-  JOURNAL_SIDEBAR_INSTANCE_BUBBLE_ID,
-} from "@/lib/journal/routes";
+import { JOURNAL_MODULE_ID } from "@/lib/journal/routes";
 import {
   fetchJournalEntries,
   type JournalEntryListItem,
@@ -29,11 +23,6 @@ import {
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
 
-const journalShellProps = {
-  pageBubbleId: JOURNAL_PAGE_BUBBLE_ID,
-  headerBubbleId: JOURNAL_HEADER_INSTANCE_BUBBLE_ID,
-  sidebarBubbleId: JOURNAL_SIDEBAR_INSTANCE_BUBBLE_ID,
-} as const;
 
 export default function Journal() {
   const { user } = useAuth();
@@ -144,9 +133,8 @@ export default function Journal() {
   };
 
   return (
-    <DashboardLayout {...journalShellProps}>
+    <DashboardLayout >
       <div
-        data-bubble-id={JOURNAL_MAIN_BUBBLE_ID}
         data-module-owner={JOURNAL_MODULE_ID}
         className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:py-12"
       >

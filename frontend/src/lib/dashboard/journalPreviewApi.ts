@@ -19,19 +19,23 @@ function truncatePreview(body: string, maxLength = 120): string {
 
 function mapJournalRow(row: {
   id: string;
-  title: string;
-  body: string;
-  mood: string | null;
-  created_at: string;
+  title: string | null;
+  content: string | null;
+  moodTag: string | null;
+  createdAt: string;
 }): JournalPreviewEntry {
   return {
     id: row.id,
-    title: row.title.trim() || "Untitled entry",
-    preview: truncatePreview(row.body),
-    mood: row.mood,
-    date: row.created_at,
+    title: row.title?.trim() || "Untitled entry",
+    preview: truncatePreview(row.content ?? ""),
+    mood: row.moodTag,
+    date: row.createdAt,
   };
 }
+
+type UntypedSupabase = {
+  from: (table: string) => ReturnType<typeof supabase.from>;
+};
 
 /**
  * Recent journal entries for dashboard preview RG — current user, newest first.
@@ -40,13 +44,20 @@ export async function fetchJournalPreviewEntries(
   userId: string,
   limit: number = JOURNAL_PREVIEW_LIMIT,
 ): Promise<JournalPreviewEntry[]> {
-  const { data, error } = await supabase
-    .from("journal_entries")
-    .select("id, title, body, mood, created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
+  const client = supabase as unknown as UntypedSupabase;
+  const { data, error } = await client
+    .from("journalEntry")
+    .select("id, title, content, moodTag, createdAt")
+    .eq("userId", userId)
+    .order("createdAt", { ascending: false })
     .limit(limit);
 
   if (error) throw error;
-  return (data ?? []).map(mapJournalRow);
+  return (data ?? []).map((row) => mapJournalRow(row as {
+    id: string;
+    title: string | null;
+    content: string | null;
+    moodTag: string | null;
+    createdAt: string;
+  }));
 }

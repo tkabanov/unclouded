@@ -12,27 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  NEW_ENTRY_CANCEL_BTN_BUBBLE_ID,
-  NEW_ENTRY_CLOSE_BTN_BUBBLE_ID,
-  NEW_ENTRY_CONTENT_FIELD_BUBBLE_ID,
-  NEW_ENTRY_CONTENT_INPUT_BUBBLE_ID,
-  NEW_ENTRY_CONTENT_LABEL_BUBBLE_ID,
-  NEW_ENTRY_FORM_ACTIONS_BUBBLE_ID,
-  NEW_ENTRY_FORM_BUBBLE_ID,
-  NEW_ENTRY_HEADER_BUBBLE_ID,
-  NEW_ENTRY_MOOD_FIELD_BUBBLE_ID,
-  NEW_ENTRY_MOOD_INPUT_BUBBLE_ID,
-  NEW_ENTRY_MOOD_LABEL_BUBBLE_ID,
-  NEW_ENTRY_POPUP_BUBBLE_ID,
-  NEW_ENTRY_POPUP_SUBTITLE_BUBBLE_ID,
-  NEW_ENTRY_POPUP_TITLE_BUBBLE_ID,
-  NEW_ENTRY_SAVE_BTN_BUBBLE_ID,
-  NEW_ENTRY_TITLE_FIELD_BUBBLE_ID,
-  NEW_ENTRY_TITLE_GROUP_BUBBLE_ID,
-  NEW_ENTRY_TITLE_INPUT_BUBBLE_ID,
-  NEW_ENTRY_TITLE_LABEL_BUBBLE_ID,
-} from "@/lib/journal/routes";
 import { createJournalEntry } from "@/lib/journal/journalEntriesApi";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -77,9 +56,9 @@ export default function NewEntryPopup({
       await createJournalEntry(
         userId,
         {
-          title_text: title,
-          mood_tag_text: moodTag.trim() || null,
-          content_text: content,
+          title: title,
+          moodTag: moodTag.trim() || null,
+          content: content,
         },
         onboardingData,
       );
@@ -96,16 +75,13 @@ export default function NewEntryPopup({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        data-bubble-id={NEW_ENTRY_POPUP_BUBBLE_ID}
         data-style-ref="Popup_dialog_"
         className={cn(bubbleStyle("Popup_dialog_"), "sm:max-w-lg")}
       >
         <DialogHeader
-          data-bubble-id={NEW_ENTRY_HEADER_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-0")}
         >
           <div
-            data-bubble-id={NEW_ENTRY_TITLE_GROUP_BUBBLE_ID}
             className={cn(
               bubbleStyle("Group_transparent_"),
               "flex items-start justify-between gap-3 pr-8",
@@ -113,14 +89,12 @@ export default function NewEntryPopup({
           >
             <div className="space-y-1">
               <DialogTitle
-                data-bubble-id={NEW_ENTRY_POPUP_TITLE_BUBBLE_ID}
                 data-style-ref="Text_heading_2_"
                 className={cn(bubbleStyle("Text_heading_2_"), "text-left")}
               >
                 New Journal Entry
               </DialogTitle>
               <DialogDescription
-                data-bubble-id={NEW_ENTRY_POPUP_SUBTITLE_BUBBLE_ID}
                 data-style-ref="Text_small_"
                 className={cn(bubbleStyle("Text_small_"), "text-left")}
               >
@@ -130,7 +104,6 @@ export default function NewEntryPopup({
           </div>
           <button
             type="button"
-            data-bubble-id={NEW_ENTRY_CLOSE_BTN_BUBBLE_ID}
             data-style-ref="Button_icon_"
             className={cn(
               bubbleStyle("Button_icon_"),
@@ -145,16 +118,13 @@ export default function NewEntryPopup({
         </DialogHeader>
 
         <div
-          data-bubble-id={NEW_ENTRY_FORM_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-4 py-1")}
         >
           <div
-            data-bubble-id={NEW_ENTRY_TITLE_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="new-entry-title"
-              data-bubble-id={NEW_ENTRY_TITLE_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -162,7 +132,6 @@ export default function NewEntryPopup({
             </label>
             <Input
               id="new-entry-title"
-              data-bubble-id={NEW_ENTRY_TITLE_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={title}
@@ -173,12 +142,10 @@ export default function NewEntryPopup({
           </div>
 
           <div
-            data-bubble-id={NEW_ENTRY_MOOD_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="new-entry-mood"
-              data-bubble-id={NEW_ENTRY_MOOD_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -186,7 +153,6 @@ export default function NewEntryPopup({
             </label>
             <Input
               id="new-entry-mood"
-              data-bubble-id={NEW_ENTRY_MOOD_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={moodTag}
@@ -196,12 +162,10 @@ export default function NewEntryPopup({
           </div>
 
           <div
-            data-bubble-id={NEW_ENTRY_CONTENT_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="new-entry-content"
-              data-bubble-id={NEW_ENTRY_CONTENT_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -209,7 +173,6 @@ export default function NewEntryPopup({
             </label>
             <Textarea
               id="new-entry-content"
-              data-bubble-id={NEW_ENTRY_CONTENT_INPUT_BUBBLE_ID}
               data-style-ref="MultiLineInput_default_"
               className={cn(bubbleStyle("MultiLineInput_default_"), "resize-none")}
               value={content}
@@ -221,13 +184,11 @@ export default function NewEntryPopup({
         </div>
 
         <DialogFooter
-          data-bubble-id={NEW_ENTRY_FORM_ACTIONS_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "gap-2 sm:justify-end")}
         >
           <Button
             type="button"
             variant="ghost"
-            data-bubble-id={NEW_ENTRY_CANCEL_BTN_BUBBLE_ID}
             data-style-ref="Button_ghost_"
             className={bubbleStyle("Button_ghost_")}
             onClick={dismiss}
@@ -238,7 +199,6 @@ export default function NewEntryPopup({
           <Button
             type="button"
             variant="cta"
-            data-bubble-id={NEW_ENTRY_SAVE_BTN_BUBBLE_ID}
             data-style-ref="Button_primary_"
             className={bubbleStyle("Button_primary_")}
             onClick={handleSave}

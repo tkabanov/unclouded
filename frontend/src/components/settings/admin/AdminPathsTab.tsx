@@ -5,23 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AddPathPopup from "@/components/settings/admin/AddPathPopup";
 import {
-  ADMIN_ADD_PATH_BTN_BUBBLE_ID,
-  ADMIN_PATH_CARD_ACTIONS_BUBBLE_ID,
-  ADMIN_PATH_CARD_TEMPLATE_BUBBLE_ID,
-  ADMIN_PATH_DELETE_BTN_BUBBLE_ID,
-  ADMIN_PATH_DESC_BUBBLE_ID,
-  ADMIN_PATH_EDIT_BTN_BUBBLE_ID,
-  ADMIN_PATH_MODE_BADGE_BUBBLE_ID,
-  ADMIN_PATH_SENSITIVITY_BUBBLE_ID,
-  ADMIN_PATH_SENSITIVITY_ROW_BUBBLE_ID,
-  ADMIN_PATH_SUB_BADGE_BUBBLE_ID,
-  ADMIN_PATH_TIER_BADGE_BUBBLE_ID,
-  ADMIN_PATHS_GRID_BUBBLE_ID,
-  ADMIN_PATHS_TITLE_BUBBLE_ID,
-  ADMIN_PATHS_TOOLBAR_BUBBLE_ID,
-  ADMIN_TAB_PATHS_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   createAdminPath,
   deleteAdminPath,
   fetchAdminPaths,
@@ -115,24 +98,22 @@ export default function AdminPathsTab() {
 
   if (loading) {
     return (
-      <div data-bubble-id={ADMIN_TAB_PATHS_BUBBLE_ID} className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Loading paths…
       </div>
     );
   }
 
   return (
-    <div data-bubble-id={ADMIN_TAB_PATHS_BUBBLE_ID} className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div
-        data-bubble-id={ADMIN_PATHS_TOOLBAR_BUBBLE_ID}
         className="flex flex-wrap items-center justify-between gap-3"
       >
-        <h3 data-bubble-id={ADMIN_PATHS_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_3_")}>
+        <h3 className={bubbleStyle("Text_heading_3_")}>
           Guided paths
         </h3>
         <Button
           type="button"
-          data-bubble-id={ADMIN_ADD_PATH_BTN_BUBBLE_ID}
           className={bubbleStyle("Button_primary_")}
           onClick={() => setAddOpen(true)}
         >
@@ -141,13 +122,11 @@ export default function AdminPathsTab() {
       </div>
 
       <div
-        data-bubble-id={ADMIN_PATHS_GRID_BUBBLE_ID}
         className="grid gap-4 md:grid-cols-2"
       >
         {paths.map((path) => (
           <div
             key={path.pathId}
-            data-bubble-id={ADMIN_PATH_CARD_TEMPLATE_BUBBLE_ID}
             data-path-id={path.pathId}
             className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-4")}
           >
@@ -155,21 +134,20 @@ export default function AdminPathsTab() {
               <div>
                 <h4 className="font-semibold">{path.name}</h4>
                 <p
-                  data-bubble-id={ADMIN_PATH_DESC_BUBBLE_ID}
                   className="mt-1 line-clamp-2 text-sm text-muted-foreground"
                 >
                   {path.description}
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <Badge data-bubble-id={ADMIN_PATH_TIER_BADGE_BUBBLE_ID} variant="secondary">
+                <Badge variant="secondary">
                   {getPathTierLabel(path.tier)}
                 </Badge>
-                <Badge data-bubble-id={ADMIN_PATH_MODE_BADGE_BUBBLE_ID} variant="outline">
+                <Badge variant="outline">
                   {getPathModeLabel(path.coachingMode)}
                 </Badge>
                 {path.subMode && (
-                  <Badge data-bubble-id={ADMIN_PATH_SUB_BADGE_BUBBLE_ID} variant="outline">
+                  <Badge variant="outline">
                     {path.subMode}
                   </Badge>
                 )}
@@ -177,23 +155,20 @@ export default function AdminPathsTab() {
             </div>
 
             <div
-              data-bubble-id={ADMIN_PATH_SENSITIVITY_ROW_BUBBLE_ID}
               className="text-xs text-muted-foreground"
             >
-              <span data-bubble-id={ADMIN_PATH_SENSITIVITY_BUBBLE_ID}>
+              <span>
                 {getSensitivityLabel(path.sensitivity)}
               </span>
             </div>
 
             <div
-              data-bubble-id={ADMIN_PATH_CARD_ACTIONS_BUBBLE_ID}
               className="flex justify-end gap-2"
             >
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                data-bubble-id={ADMIN_PATH_EDIT_BTN_BUBBLE_ID}
                 disabled={path.isStatic || busy}
                 onClick={() =>
                   setEditPath({
@@ -207,7 +182,6 @@ export default function AdminPathsTab() {
                 type="button"
                 size="sm"
                 variant="outline"
-                data-bubble-id={ADMIN_PATH_DELETE_BTN_BUBBLE_ID}
                 disabled={path.isStatic || busy}
                 onClick={() => void handleDelete(path)}
               >

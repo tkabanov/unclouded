@@ -46,7 +46,7 @@ async function persistOnboardingEnrollment(
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...(onboardingData ?? {}),
         [PATH_ENROLLMENT_ONBOARDING_KEY]: state,
       } as never,
@@ -65,11 +65,11 @@ async function tryEnrollInPathenrollmentTable(
   pathSlug: string,
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
-  const { error } = await client.from("pathenrollment1").insert({
-    user_user: userId,
-    status_option_path_enrollment_status: PATH_ENROLLMENT_STATUS.ACTIVE,
-    path_custom_path: pathSlug,
-    completed_sessions_count_number: 0,
+  const { error } = await client.from("pathEnrollment").insert({
+    userId: userId,
+    status: PATH_ENROLLMENT_STATUS.ACTIVE,
+    pathId: pathSlug,
+    completedSessionsCount: 0,
   });
 
   if (!error) return true;
@@ -78,7 +78,7 @@ async function tryEnrollInPathenrollmentTable(
 }
 
 /**
- * Enroll current user in a path — pathenrollment1 row or onboarding_data fallback.
+ * Enroll current user in a path — pathenrollment1 row or onboardingData fallback.
  */
 export async function enrollInPath(
   userId: string,
@@ -94,12 +94,12 @@ export async function enrollInPath(
   const nextState: PathEnrollmentOnboardingState = {
     ...existing,
     enrollment_id: existing.enrollment_id ?? crypto.randomUUID(),
-    status_option_path_enrollment_status: PATH_ENROLLMENT_STATUS.ACTIVE,
+    status: PATH_ENROLLMENT_STATUS.ACTIVE,
     path_slug: path.slug,
-    completed_micro_commitment_session_list_list_custom_pathsession:
-      existing.completed_micro_commitment_session_list_list_custom_pathsession ?? [],
-    focused_m_commitment_custom_pathsession:
-      existing.focused_m_commitment_custom_pathsession ?? [path.sessions[0]?.id].filter(Boolean),
+    completedMicroCommitmentSessionIds:
+      existing.completedMicroCommitmentSessionIds ?? [],
+    focusedMicroCommitmentSessionId:
+      existing.focusedMicroCommitmentSessionId ?? [path.sessions[0]?.id].filter(Boolean),
   };
 
   await persistOnboardingEnrollment(userId, nextState, onboardingData);
@@ -111,12 +111,12 @@ async function tryUnenrollInPathenrollmentTable(
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { error } = await client
-    .from("pathenrollment1")
+    .from("pathEnrollment")
     .update({
-      status_option_path_enrollment_status: PATH_ENROLLMENT_STATUS.ABANDONED,
+      status: PATH_ENROLLMENT_STATUS.ABANDONED,
     })
     .eq("id", enrollmentId)
-    .eq("user_user", userId);
+    .eq("userId", userId);
 
   if (!error) return true;
   if (isSchemaUnavailable(error)) return null;
@@ -124,7 +124,7 @@ async function tryUnenrollInPathenrollmentTable(
 }
 
 /**
- * Unenroll from a path — updates pathenrollment1 status or onboarding_data fallback.
+ * Unenroll from a path — updates pathenrollment1 status or onboardingData fallback.
  */
 export async function unenrollFromPath(
   userId: string,
@@ -141,7 +141,7 @@ export async function unenrollFromPath(
 
   const nextState: PathEnrollmentOnboardingState = {
     ...existing,
-    status_option_path_enrollment_status: PATH_ENROLLMENT_STATUS.ABANDONED,
+    status: PATH_ENROLLMENT_STATUS.ABANDONED,
   };
 
   await persistOnboardingEnrollment(userId, nextState, onboardingData);

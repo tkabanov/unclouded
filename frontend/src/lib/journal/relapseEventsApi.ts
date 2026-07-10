@@ -3,17 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 /** Bubble uds_relapseevent field names surfaced in journal UI. */
 export interface RelapseEventListItem {
   id: string;
-  event_date_date: string | null;
-  notes_text: string | null;
+  eventDate: string | null;
+  notes: string | null;
 }
 
-/** Stored in profiles.onboarding_data when uds_relapseevent table is absent. */
+/** Stored in profiles.onboardingData when uds_relapseevent table is absent. */
 export const RELAPSE_EVENTS_ONBOARDING_KEY = "relapse_events" as const;
 
 type RelapseEventRow = {
   id: string;
-  event_date_date?: string | null;
-  notes_text?: string | null;
+  eventDate?: string | null;
+  notes?: string | null;
 };
 
 type UntypedSupabase = {
@@ -34,8 +34,8 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
 function mapRelapseEventRow(row: RelapseEventRow): RelapseEventListItem {
   return {
     id: row.id,
-    event_date_date: row.event_date_date ?? null,
-    notes_text: row.notes_text?.trim() || null,
+    eventDate: row.eventDate ?? null,
+    notes: row.notes?.trim() || null,
   };
 }
 
@@ -49,8 +49,8 @@ function readOnboardingRelapseEvents(
     .map((entry) =>
       mapRelapseEventRow({
         id: typeof entry.id === "string" ? entry.id : crypto.randomUUID(),
-        event_date_date: typeof entry.event_date_date === "string" ? entry.event_date_date : null,
-        notes_text: typeof entry.notes_text === "string" ? entry.notes_text : null,
+        eventDate: typeof entry.eventDate === "string" ? entry.eventDate : null,
+        notes: typeof entry.notes === "string" ? entry.notes : null,
       }),
     );
 }
@@ -58,10 +58,10 @@ function readOnboardingRelapseEvents(
 async function tryFetchFromRelapseTable(userId: string): Promise<RelapseEventListItem[] | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("uds_relapseevent")
-    .select("id, event_date_date, notes_text")
-    .eq("user_user", userId)
-    .order("event_date_date", { ascending: false });
+    .from("relapseEvent")
+    .select("id, eventDate, notes")
+    .eq("userId", userId)
+    .order("eventDate", { ascending: false });
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -73,7 +73,7 @@ async function tryFetchFromRelapseTable(userId: string): Promise<RelapseEventLis
 
 /**
  * Current user's relapse events — newest event date first.
- * Tries uds_relapseevent; falls back to profiles.onboarding_data.relapse_events when table is absent.
+ * Tries uds_relapseevent; falls back to profiles.onboardingData.relapse_events when table is absent.
  */
 export async function fetchRelapseEvents(
   userId: string,
@@ -85,21 +85,21 @@ export async function fetchRelapseEvents(
 }
 
 export interface RelapseEventInput {
-  event_date_date: string | null;
-  notes_text: string | null;
+  eventDate: string | null;
+  notes: string | null;
 }
 
 type RelapseEventOnboardingRow = {
   id: string;
-  event_date_date: string | null;
-  notes_text: string | null;
+  eventDate: string | null;
+  notes: string | null;
 };
 
 function toOnboardingRow(item: RelapseEventListItem): RelapseEventOnboardingRow {
   return {
     id: item.id,
-    event_date_date: item.event_date_date,
-    notes_text: item.notes_text,
+    eventDate: item.eventDate,
+    notes: item.notes,
   };
 }
 
@@ -111,7 +111,7 @@ async function persistOnboardingRelapseEvents(
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...(onboardingData ?? {}),
         [RELAPSE_EVENTS_ONBOARDING_KEY]: events,
       } as never,
@@ -123,8 +123,8 @@ async function persistOnboardingRelapseEvents(
 
 function normalizeRelapseEventInput(input: RelapseEventInput): RelapseEventInput {
   return {
-    event_date_date: input.event_date_date?.trim() || null,
-    notes_text: input.notes_text?.trim() || null,
+    eventDate: input.eventDate?.trim() || null,
+    notes: input.notes?.trim() || null,
   };
 }
 
@@ -134,13 +134,13 @@ async function tryCreateInRelapseTable(
 ): Promise<RelapseEventListItem | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("uds_relapseevent")
+    .from("relapseEvent")
     .insert({
-      event_date_date: input.event_date_date,
-      notes_text: input.notes_text,
-      user_user: userId,
+      eventDate: input.eventDate,
+      notes: input.notes,
+      userId: userId,
     })
-    .select("id, event_date_date, notes_text")
+    .select("id, eventDate, notes")
     .single();
 
   if (error) {
@@ -158,14 +158,14 @@ async function tryUpdateInRelapseTable(
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("uds_relapseevent")
+    .from("relapseEvent")
     .update({
-      event_date_date: input.event_date_date,
-      notes_text: input.notes_text,
+      eventDate: input.eventDate,
+      notes: input.notes,
     })
     .eq("id", eventId)
-    .eq("user_user", userId)
-    .select("id, event_date_date, notes_text")
+    .eq("userId", userId)
+    .select("id, eventDate, notes")
     .maybeSingle();
 
   if (error) {
@@ -182,10 +182,10 @@ async function tryDeleteFromRelapseTable(
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { error } = await client
-    .from("uds_relapseevent")
+    .from("relapseEvent")
     .delete()
     .eq("id", eventId)
-    .eq("user_user", userId);
+    .eq("userId", userId);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -196,7 +196,7 @@ async function tryDeleteFromRelapseTable(
 }
 
 /**
- * Create a relapse event — uds_relapseevent row or onboarding_data fallback.
+ * Create a relapse event — uds_relapseevent row or onboardingData fallback.
  */
 export async function createRelapseEvent(
   userId: string,
@@ -209,8 +209,8 @@ export async function createRelapseEvent(
 
   const nextItem = mapRelapseEventRow({
     id: crypto.randomUUID(),
-    event_date_date: normalized.event_date_date,
-    notes_text: normalized.notes_text,
+    eventDate: normalized.eventDate,
+    notes: normalized.notes,
   });
 
   const existing = readOnboardingRelapseEvents(onboardingData).map(toOnboardingRow);
@@ -223,7 +223,7 @@ export async function createRelapseEvent(
 }
 
 /**
- * Update a relapse event — uds_relapseevent row or onboarding_data fallback.
+ * Update a relapse event — uds_relapseevent row or onboardingData fallback.
  */
 export async function updateRelapseEvent(
   userId: string,
@@ -237,8 +237,8 @@ export async function updateRelapseEvent(
   if (tableResult === true) {
     return mapRelapseEventRow({
       id: eventId,
-      event_date_date: normalized.event_date_date,
-      notes_text: normalized.notes_text,
+      eventDate: normalized.eventDate,
+      notes: normalized.notes,
     });
   }
 
@@ -249,8 +249,8 @@ export async function updateRelapseEvent(
 
     const nextItem = mapRelapseEventRow({
       id: eventId,
-      event_date_date: normalized.event_date_date,
-      notes_text: normalized.notes_text,
+      eventDate: normalized.eventDate,
+      notes: normalized.notes,
     });
 
     const nextRows = existing.map((row, i) =>
@@ -264,7 +264,7 @@ export async function updateRelapseEvent(
 }
 
 /**
- * Delete a relapse event — uds_relapseevent row or onboarding_data fallback.
+ * Delete a relapse event — uds_relapseevent row or onboardingData fallback.
  */
 export async function deleteRelapseEvent(
   userId: string,

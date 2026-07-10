@@ -13,27 +13,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  EDIT_MILESTONE_CANCEL_BTN_BUBBLE_ID,
-  EDIT_MILESTONE_CLOSE_BTN_BUBBLE_ID,
-  EDIT_MILESTONE_DATE_FIELD_BUBBLE_ID,
-  EDIT_MILESTONE_DATE_INPUT_BUBBLE_ID,
-  EDIT_MILESTONE_DATE_LABEL_BUBBLE_ID,
-  EDIT_MILESTONE_DELETE_BTN_BUBBLE_ID,
-  EDIT_MILESTONE_DESC_FIELD_BUBBLE_ID,
-  EDIT_MILESTONE_DESC_INPUT_BUBBLE_ID,
-  EDIT_MILESTONE_DESC_LABEL_BUBBLE_ID,
-  EDIT_MILESTONE_FORM_ACTIONS_BUBBLE_ID,
-  EDIT_MILESTONE_FORM_BUBBLE_ID,
-  EDIT_MILESTONE_HEADER_BUBBLE_ID,
-  EDIT_MILESTONE_POPUP_BUBBLE_ID,
-  EDIT_MILESTONE_RIGHT_ACTIONS_BUBBLE_ID,
-  EDIT_MILESTONE_SAVE_BTN_BUBBLE_ID,
-  EDIT_MILESTONE_TITLE_FIELD_BUBBLE_ID,
-  EDIT_MILESTONE_TITLE_GROUP_BUBBLE_ID,
-  EDIT_MILESTONE_TITLE_INPUT_BUBBLE_ID,
-  EDIT_MILESTONE_TITLE_LABEL_BUBBLE_ID,
-} from "@/lib/journal/routes";
-import {
   deleteMilestone,
   type MilestoneListItem,
   updateMilestone,
@@ -74,9 +53,9 @@ export default function EditMilestonePopup({
 
   useEffect(() => {
     if (!open || !milestone) return;
-    setTitle(milestone.title_text === "Untitled milestone" ? "" : milestone.title_text);
-    setDescription(milestone.description_text ?? "");
-    setAchievedAtDate(toDateInputValue(milestone.achieved_at_date));
+    setTitle(milestone.title === "Untitled milestone" ? "" : milestone.title);
+    setDescription(milestone.description ?? "");
+    setAchievedAtDate(toDateInputValue(milestone.achievedAt));
   }, [open, milestone]);
 
   const dismiss = () => onOpenChange(false);
@@ -95,9 +74,9 @@ export default function EditMilestonePopup({
         userId,
         milestone.id,
         {
-          title_text: title,
-          description_text: description || null,
-          achieved_at_date: achievedAtDate || null,
+          title: title,
+          description: description || null,
+          achievedAt: achievedAtDate || null,
         },
         onboardingData,
       );
@@ -130,16 +109,13 @@ export default function EditMilestonePopup({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        data-bubble-id={EDIT_MILESTONE_POPUP_BUBBLE_ID}
         data-style-ref="Popup_dialog_"
         className={cn(bubbleStyle("Popup_dialog_"), "sm:max-w-lg")}
       >
         <DialogHeader
-          data-bubble-id={EDIT_MILESTONE_HEADER_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-0")}
         >
           <div
-            data-bubble-id={EDIT_MILESTONE_TITLE_GROUP_BUBBLE_ID}
             className={cn(
               bubbleStyle("Group_transparent_"),
               "flex items-start justify-between gap-3 pr-8",
@@ -162,7 +138,6 @@ export default function EditMilestonePopup({
           </div>
           <button
             type="button"
-            data-bubble-id={EDIT_MILESTONE_CLOSE_BTN_BUBBLE_ID}
             data-style-ref="Button_icon_"
             className={cn(
               bubbleStyle("Button_icon_"),
@@ -177,16 +152,13 @@ export default function EditMilestonePopup({
         </DialogHeader>
 
         <div
-          data-bubble-id={EDIT_MILESTONE_FORM_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-4 py-1")}
         >
           <div
-            data-bubble-id={EDIT_MILESTONE_TITLE_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="edit-milestone-title"
-              data-bubble-id={EDIT_MILESTONE_TITLE_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -194,7 +166,6 @@ export default function EditMilestonePopup({
             </label>
             <Input
               id="edit-milestone-title"
-              data-bubble-id={EDIT_MILESTONE_TITLE_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={title}
@@ -204,12 +175,10 @@ export default function EditMilestonePopup({
           </div>
 
           <div
-            data-bubble-id={EDIT_MILESTONE_DESC_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="edit-milestone-description"
-              data-bubble-id={EDIT_MILESTONE_DESC_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -217,7 +186,6 @@ export default function EditMilestonePopup({
             </label>
             <Textarea
               id="edit-milestone-description"
-              data-bubble-id={EDIT_MILESTONE_DESC_INPUT_BUBBLE_ID}
               data-style-ref="MultiLineInput_default_"
               className={cn(bubbleStyle("MultiLineInput_default_"), "resize-none")}
               value={description}
@@ -228,12 +196,10 @@ export default function EditMilestonePopup({
           </div>
 
           <div
-            data-bubble-id={EDIT_MILESTONE_DATE_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="edit-milestone-date"
-              data-bubble-id={EDIT_MILESTONE_DATE_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -242,7 +208,6 @@ export default function EditMilestonePopup({
             <Input
               id="edit-milestone-date"
               type="date"
-              data-bubble-id={EDIT_MILESTONE_DATE_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={achievedAtDate}
@@ -252,7 +217,6 @@ export default function EditMilestonePopup({
         </div>
 
         <DialogFooter
-          data-bubble-id={EDIT_MILESTONE_FORM_ACTIONS_BUBBLE_ID}
           className={cn(
             bubbleStyle("Group_transparent_"),
             "flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
@@ -261,7 +225,6 @@ export default function EditMilestonePopup({
           <Button
             type="button"
             variant="destructive"
-            data-bubble-id={EDIT_MILESTONE_DELETE_BTN_BUBBLE_ID}
             data-style-ref="Button_destructive_"
             className={bubbleStyle("Button_destructive_")}
             onClick={handleDelete}
@@ -271,13 +234,11 @@ export default function EditMilestonePopup({
           </Button>
 
           <div
-            data-bubble-id={EDIT_MILESTONE_RIGHT_ACTIONS_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "flex w-full gap-2 sm:w-auto")}
           >
             <Button
               type="button"
               variant="ghost"
-              data-bubble-id={EDIT_MILESTONE_CANCEL_BTN_BUBBLE_ID}
               data-style-ref="Button_ghost_"
               className={cn(bubbleStyle("Button_ghost_"), "flex-1 sm:flex-none")}
               onClick={dismiss}
@@ -288,7 +249,6 @@ export default function EditMilestonePopup({
             <Button
               type="button"
               variant="cta"
-              data-bubble-id={EDIT_MILESTONE_SAVE_BTN_BUBBLE_ID}
               data-style-ref="Button_primary_"
               className={cn(bubbleStyle("Button_primary_"), "flex-1 sm:flex-none")}
               onClick={handleSave}

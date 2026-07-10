@@ -6,24 +6,6 @@ import { Button } from "@/components/ui/button";
 import AddResourcePopup from "@/components/settings/admin/AddResourcePopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import {
-  ADMIN_ADD_RESOURCE_BTN_BUBBLE_ID,
-  ADMIN_RESOURCE_CARD_ACTIONS_BUBBLE_ID,
-  ADMIN_RESOURCE_CARD_TEMPLATE_BUBBLE_ID,
-  ADMIN_RESOURCE_DELETE_BTN_BUBBLE_ID,
-  ADMIN_RESOURCE_EDIT_BTN_BUBBLE_ID,
-  ADMIN_RESOURCE_FLAGS_ROW_BUBBLE_ID,
-  ADMIN_RESOURCE_FREE_BADGE_BUBBLE_ID,
-  ADMIN_RESOURCE_IS_CRISIS_TEXT_BUBBLE_ID,
-  ADMIN_RESOURCE_MODE_BADGE_BUBBLE_ID,
-  ADMIN_RESOURCE_SENSITIVITY_BADGE_BUBBLE_ID,
-  ADMIN_RESOURCE_SUBMODE_BADGE_BUBBLE_ID,
-  ADMIN_RESOURCE_TAGS_ROW_BUBBLE_ID,
-  ADMIN_RESOURCES_GRID_BUBBLE_ID,
-  ADMIN_RESOURCES_TITLE_BUBBLE_ID,
-  ADMIN_RESOURCES_TOOLBAR_BUBBLE_ID,
-  ADMIN_TAB_RESOURCES_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   AI_COACHING_MODE_LABELS,
 } from "@/lib/enums/coachingMode";
 import {
@@ -121,27 +103,24 @@ export default function AdminResourcesTab() {
 
   if (loading) {
     return (
-      <div data-bubble-id={ADMIN_TAB_RESOURCES_BUBBLE_ID} className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Loading resources…
       </div>
     );
   }
 
   return (
-    <div data-bubble-id={ADMIN_TAB_RESOURCES_BUBBLE_ID} className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div
-        data-bubble-id={ADMIN_RESOURCES_TOOLBAR_BUBBLE_ID}
         className="flex flex-wrap items-center justify-between gap-3"
       >
         <h3
-          data-bubble-id={ADMIN_RESOURCES_TITLE_BUBBLE_ID}
           className={bubbleStyle("Text_heading_3_")}
         >
           Resource library
         </h3>
         <Button
           type="button"
-          data-bubble-id={ADMIN_ADD_RESOURCE_BTN_BUBBLE_ID}
           className={bubbleStyle("Button_primary_")}
           onClick={() => setAddOpen(true)}
         >
@@ -152,13 +131,11 @@ export default function AdminResourcesTab() {
       <AdminDataSourceNotice source={dataSource} entityLabel="resources" />
 
       <div
-        data-bubble-id={ADMIN_RESOURCES_GRID_BUBBLE_ID}
         className="grid gap-4 md:grid-cols-2"
       >
         {resources.map((resource) => (
           <div
             key={resource.resourceId}
-            data-bubble-id={ADMIN_RESOURCE_CARD_TEMPLATE_BUBBLE_ID}
             data-resource-id={resource.resourceId}
             className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-4")}
           >
@@ -167,27 +144,26 @@ export default function AdminResourcesTab() {
                 <h4 className="font-semibold">{resource.title}</h4>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{resource.content}</p>
               </div>
-              <div data-bubble-id={ADMIN_RESOURCE_TAGS_ROW_BUBBLE_ID} className="flex flex-wrap gap-1.5">
-                <Badge data-bubble-id={ADMIN_RESOURCE_MODE_BADGE_BUBBLE_ID} variant="secondary">
+              <div className="flex flex-wrap gap-1.5">
+                <Badge variant="secondary">
                   {AI_COACHING_MODE_LABELS[resource.primaryMode]}
                 </Badge>
                 {resource.subMode && (
-                  <Badge data-bubble-id={ADMIN_RESOURCE_SUBMODE_BADGE_BUBBLE_ID} variant="outline">
+                  <Badge variant="outline">
                     {resource.subMode}
                   </Badge>
                 )}
               </div>
             </div>
 
-            <div data-bubble-id={ADMIN_RESOURCE_FLAGS_ROW_BUBBLE_ID} className="flex flex-wrap gap-1.5">
-              <Badge data-bubble-id={ADMIN_RESOURCE_SENSITIVITY_BADGE_BUBBLE_ID} variant="outline">
+            <div className="flex flex-wrap gap-1.5">
+              <Badge variant="outline">
                 {getSensitivityLabel(resource.sensitivity)}
               </Badge>
               <Badge
-                data-bubble-id={ADMIN_RESOURCE_FREE_BADGE_BUBBLE_ID}
                 variant={resource.isFree ? "default" : "secondary"}
               >
-                <span data-bubble-id={ADMIN_RESOURCE_IS_CRISIS_TEXT_BUBBLE_ID}>
+                <span>
                   {resource.isCrisis
                     ? "Crisis resources always available"
                     : resource.isFree
@@ -198,14 +174,12 @@ export default function AdminResourcesTab() {
             </div>
 
             <div
-              data-bubble-id={ADMIN_RESOURCE_CARD_ACTIONS_BUBBLE_ID}
               className="flex justify-end gap-2"
             >
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                data-bubble-id={ADMIN_RESOURCE_EDIT_BTN_BUBBLE_ID}
                 disabled={busy}
                 onClick={() => setEditResource(resource)}
               >
@@ -215,7 +189,6 @@ export default function AdminResourcesTab() {
                 type="button"
                 size="sm"
                 variant="outline"
-                data-bubble-id={ADMIN_RESOURCE_DELETE_BTN_BUBBLE_ID}
                 disabled={busy}
                 onClick={() => void handleDelete(resource)}
               >

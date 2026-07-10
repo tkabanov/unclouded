@@ -40,7 +40,6 @@ export function ScoreBar({ score, labels, onChange, className }: ScoreBarProps) 
 
   return (
     <div
-      data-bubble-id="bTIHr"
       className={cn("flex w-full flex-col gap-1", className)}
     >
       <div
@@ -51,15 +50,14 @@ export function ScoreBar({ score, labels, onChange, className }: ScoreBarProps) 
         {SEGMENTS.map((segment, index) => {
           const filled = clamped >= segment.value;
           const segmentClassName = cn(
-            "flex min-h-[8px] min-w-0 flex-1 flex-row overflow-hidden rounded-[4px] bg-[var(--color_aiRNbAaxgr_default)]",
+            "flex min-h-[8px] min-w-0 flex-1 flex-row overflow-hidden rounded-[4px] bg-muted",
             interactive && "cursor-pointer border-0 p-0",
           );
 
           const shape = (
             <div
-              data-bubble-id={segment.shapeId}
               className={cn(
-                "min-h-[8px] rounded-[4px] bg-[var(--color_primary_default)] transition-[max-width] duration-150",
+                "min-h-[8px] rounded-[4px] bg-primary transition-[max-width] duration-150",
                 filled ? "w-full max-w-full" : "max-w-0",
               )}
             />
@@ -70,7 +68,6 @@ export function ScoreBar({ score, labels, onChange, className }: ScoreBarProps) 
               <button
                 key={segment.groupId}
                 type="button"
-                data-bubble-id={segment.groupId}
                 role="radio"
                 aria-checked={clamped === segment.value}
                 aria-label={labels?.[index] ?? `Score ${segment.value}`}
@@ -85,7 +82,6 @@ export function ScoreBar({ score, labels, onChange, className }: ScoreBarProps) 
           return (
             <div
               key={segment.groupId}
-              data-bubble-id={segment.groupId}
               className={segmentClassName}
             >
               {shape}
@@ -94,7 +90,6 @@ export function ScoreBar({ score, labels, onChange, className }: ScoreBarProps) 
         })}
 
         <div
-          data-bubble-id="bTIJL"
           className="sr-only"
           aria-hidden="true"
           dangerouslySetInnerHTML={{ __html: BUBBLE_BAR_STYLE_HTML }}
@@ -106,7 +101,7 @@ export function ScoreBar({ score, labels, onChange, className }: ScoreBarProps) 
           {SEGMENTS.map((segment, index) => (
             <span
               key={`${segment.groupId}-label`}
-              className="min-w-0 flex-1 text-center text-xs text-[var(--color_text_default)]"
+              className="min-w-0 flex-1 text-center text-xs text-foreground"
             >
               {labels[index] ?? ""}
             </span>

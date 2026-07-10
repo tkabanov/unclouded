@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { readChatStreamText } from "@/lib/chat/readChatStreamText";
 import {
   saveJournalEntryReflection,
   type JournalEntryListItem,
@@ -7,64 +8,14 @@ import {
 const CHAT_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 function buildReflectionPrompt(
-  entry: Pick<JournalEntryListItem, "title_text" | "mood_tag_text" | "content_text">,
+  entry: Pick<JournalEntryListItem, "title" | "moodTag" | "content">,
 ): string {
   return `You are a warm, grounded coaching companion. Read this private journal entry and offer a brief, compassionate coaching reflection in 2–4 short paragraphs. Do not diagnose or give medical or psychiatric advice. Name patterns kindly and suggest one small, concrete next step.
 
-Title: ${entry.title_text}
-Mood: ${entry.mood_tag_text ?? "Not specified"}
+Title: ${entry.title}
+Mood: ${entry.moodTag ?? "Not specified"}
 Entry:
-${entry.content_text}`;
-}
-
-async function readChatStreamText(response: Response): Promise<string> {
-  if (!response.body) throw new Error("AI reflection response was empty");
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let text = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed === "data: [DONE]") continue;
-
-      if (trimmed.startsWith("data:")) {
-        try {
-          const json = JSON.parse(trimmed.slice(5).trim()) as {
-            type?: string;
-            delta?: string;
-          };
-          if (json.type === "text-delta" && typeof json.delta === "string") {
-            text += json.delta;
-          }
-        } catch {
-          // ignore malformed stream chunks
-        }
-        continue;
-      }
-
-      const legacy = trimmed.match(/^(\d+):"((?:\\.|[^"\\])*)"/);
-      if (legacy) {
-        text += legacy[2]
-          .replace(/\\"/g, '"')
-          .replace(/\\n/g, "\n")
-          .replace(/\\\\/g, "\\");
-      }
-    }
-  }
-
-  const reflection = text.trim();
-  if (!reflection) throw new Error("AI reflection response was empty");
-  return reflection;
+${entry.content}`;
 }
 
 /**

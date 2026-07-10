@@ -5,19 +5,6 @@ import { Button } from "@/components/ui/button";
 import AddWorkplacePopup from "@/components/settings/admin/AddWorkplacePopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import {
-  ADMIN_ADD_WORKPLACE_BTN_BUBBLE_ID,
-  ADMIN_TAB_WORKPLACES_BUBBLE_ID,
-  ADMIN_WORKPLACE_CARD_ACTIONS_BUBBLE_ID,
-  ADMIN_WORKPLACE_CARD_TEMPLATE_BUBBLE_ID,
-  ADMIN_WORKPLACE_DELETE_BTN_BUBBLE_ID,
-  ADMIN_WORKPLACE_EDIT_BTN_BUBBLE_ID,
-  ADMIN_WORKPLACE_EMAIL_BUBBLE_ID,
-  ADMIN_WORKPLACE_NAME_BUBBLE_ID,
-  ADMIN_WORKPLACES_GRID_BUBBLE_ID,
-  ADMIN_WORKPLACES_TITLE_BUBBLE_ID,
-  ADMIN_WORKPLACES_TOOLBAR_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   createAdminWorkplace,
   deleteAdminWorkplace,
   fetchAdminWorkplaces,
@@ -110,24 +97,22 @@ export default function AdminWorkplacesTab() {
 
   if (loading) {
     return (
-      <div data-bubble-id={ADMIN_TAB_WORKPLACES_BUBBLE_ID} className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Loading workplaces…
       </div>
     );
   }
 
   return (
-    <div data-bubble-id={ADMIN_TAB_WORKPLACES_BUBBLE_ID} className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div
-        data-bubble-id={ADMIN_WORKPLACES_TOOLBAR_BUBBLE_ID}
         className="flex flex-wrap items-center justify-between gap-3"
       >
-        <h3 data-bubble-id={ADMIN_WORKPLACES_TITLE_BUBBLE_ID} className={bubbleStyle("Text_heading_3_")}>
+        <h3 className={bubbleStyle("Text_heading_3_")}>
           Workplaces
         </h3>
         <Button
           type="button"
-          data-bubble-id={ADMIN_ADD_WORKPLACE_BTN_BUBBLE_ID}
           className={bubbleStyle("Button_primary_")}
           onClick={() => setAddOpen(true)}
         >
@@ -137,36 +122,32 @@ export default function AdminWorkplacesTab() {
 
       <AdminDataSourceNotice source={dataSource} entityLabel="workplaces" />
 
-      <div data-bubble-id={ADMIN_WORKPLACES_GRID_BUBBLE_ID} className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {workplaces.length === 0 ? (
           <p className="text-sm text-muted-foreground">No workplaces yet.</p>
         ) : (
           workplaces.map((workplace) => (
             <div
               key={workplace.workplaceId}
-              data-bubble-id={ADMIN_WORKPLACE_CARD_TEMPLATE_BUBBLE_ID}
               className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-4")}
             >
               <div>
-                <h4 data-bubble-id={ADMIN_WORKPLACE_NAME_BUBBLE_ID} className="font-semibold">
+                <h4 className="font-semibold">
                   {workplace.name}
                 </h4>
                 <p
-                  data-bubble-id={ADMIN_WORKPLACE_EMAIL_BUBBLE_ID}
                   className="text-sm text-muted-foreground"
                 >
                   {workplace.contactEmail}
                 </p>
               </div>
               <div
-                data-bubble-id={ADMIN_WORKPLACE_CARD_ACTIONS_BUBBLE_ID}
                 className="flex justify-end gap-2"
               >
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  data-bubble-id={ADMIN_WORKPLACE_EDIT_BTN_BUBBLE_ID}
                   disabled={busy}
                   onClick={() => setEditWorkplace(workplace)}
                 >
@@ -176,7 +157,6 @@ export default function AdminWorkplacesTab() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  data-bubble-id={ADMIN_WORKPLACE_DELETE_BTN_BUBBLE_ID}
                   disabled={busy}
                   onClick={() => void handleDelete(workplace)}
                 >

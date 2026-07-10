@@ -9,12 +9,12 @@ import {
 
 /** Bubble custom.pathsession fields used by RE - session completion form (bTIyi). */
 export type PathSessionFormData = {
-  /** title_text binding → bTIxC */
-  title_text: string;
-  /** coaching_text_text binding → bTIxG */
-  coaching_text_text: string;
-  /** micro_commitment_text binding → bTIzX */
-  micro_commitment_text: string;
+  /** title binding → bTIxC */
+  title: string;
+  /** coachingText binding → bTIxG */
+  coachingText: string;
+  /** microCommitment binding → bTIzX */
+  microCommitment: string;
   /** pathquestion list for RepeatingGroup bTIzA */
   questions: PathQuestionData[];
 };
@@ -50,7 +50,6 @@ export function SessionCompletionForm({
 
   return (
     <form
-      data-bubble-id="bTIyi"
       className={cn(
         bubbleStyle("Group_card_"),
         "flex w-full flex-col gap-6",
@@ -61,31 +60,28 @@ export function SessionCompletionForm({
         onSubmit?.();
       }}
     >
-      <div data-bubble-id="bTJBC" className="hidden" aria-hidden="true" />
+      <div className="hidden" aria-hidden="true" />
 
-      <div data-bubble-id="bTIyn" className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2">
         <h2
-          data-bubble-id="bTIxC"
           className={bubbleStyle("Text_heading_2_")}
         >
-          {session.title_text}
+          {session.title}
         </h2>
         <p
-          data-bubble-id="bTIxG"
           className={bubbleStyle("Text_body_muted_")}
         >
-          {session.coaching_text_text}
+          {session.coachingText}
         </p>
       </div>
 
       <div
-        data-bubble-id="bTIzA"
         className={cn(
           bubbleStyle("RepeatingGroup_list_"),
           "flex flex-col gap-5",
         )}
       >
-        <div data-bubble-id="bTJBI" className="hidden" aria-hidden="true" />
+        <div className="hidden" aria-hidden="true" />
 
         {session.questions.map((question) => (
           <SessionQuestionCell
@@ -101,20 +97,18 @@ export function SessionCompletionForm({
         ))}
       </div>
 
-      <div data-bubble-id="bTIzS" className="flex flex-col gap-2">
-        <span data-bubble-id="bTIzY" className={bubbleStyle("Text_label_")}>
+      <div className="flex flex-col gap-2">
+        <span className={bubbleStyle("Text_label_")}>
           {MICRO_COMMITMENT_LABEL}
         </span>
         <p
-          data-bubble-id="bTIzX"
           className={bubbleStyle("Text_inter_13__400__white_copy_")}
         >
-          {session.micro_commitment_text}
+          {session.microCommitment}
         </p>
         <div className="flex items-center gap-2">
           <Checkbox
             id={reflectionId}
-            data-bubble-id="bTIzc"
             data-style-ref="Checkbox_default_"
             checked={reflectionChecked}
             onCheckedChange={(checked) =>
@@ -134,7 +128,6 @@ export function SessionCompletionForm({
 
       <button
         type="submit"
-        data-bubble-id="bTIzk"
         data-style-ref="Button_primary_"
         className={cn(bubbleStyle("Button_primary_"), "w-full")}
         onClick={onSubmit ? undefined : (event) => event.preventDefault()}

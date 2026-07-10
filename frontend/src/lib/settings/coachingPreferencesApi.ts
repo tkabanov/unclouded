@@ -10,13 +10,13 @@ export async function loadCoachingPreference(
 ): Promise<AiCoachingModeSlug | ""> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
   return readPreferredCoachingMode(
-    (data?.onboarding_data as Record<string, unknown> | null) ?? null,
+    (data?.onboardingData as Record<string, unknown> | null) ?? null,
   ) ?? "";
 }
 
@@ -27,7 +27,7 @@ export async function saveCoachingPreference(
 ): Promise<void> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
@@ -36,6 +36,6 @@ export async function saveCoachingPreference(
   await updateCoachingModePreference(
     userId,
     mode,
-    (data?.onboarding_data as Record<string, unknown> | null) ?? null,
+    (data?.onboardingData as Record<string, unknown> | null) ?? null,
   );
 }

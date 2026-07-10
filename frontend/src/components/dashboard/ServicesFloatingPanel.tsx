@@ -47,7 +47,6 @@ export default function ServicesFloatingPanel() {
 
   return (
     <div
-      data-bubble-id="bTJEO"
       className="pointer-events-none fixed bottom-6 right-6 z-[60] hidden w-[min(280px,calc(100vw-2rem))] md:block"
       aria-label="Your path enrollments"
     >
@@ -57,7 +56,6 @@ export default function ServicesFloatingPanel() {
         </p>
 
         <div
-          data-bubble-id="bTJEQ"
           data-style-ref="RepeatingGroup_list_"
           className={cn(bubbleStyle("RepeatingGroup_list_"), "flex max-h-[232px] flex-col gap-1 overflow-y-auto")}
         >
@@ -85,9 +83,7 @@ export default function ServicesFloatingPanel() {
               <button
                 key={row.enrollmentId}
                 type="button"
-                onClick={() =>
-                  navigate(row.pathSlug ? `/paths/${row.pathSlug}` : "/paths")
-                }
+                onClick={() => navigate("/paths")}
                 className={cn(
                   bubbleStyle("Group_transparent_"),
                   "flex min-h-[56px] w-full items-center gap-2 rounded-lg border border-border/60 p-3 text-left transition-colors hover:bg-accent/50",

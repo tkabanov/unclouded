@@ -17,8 +17,8 @@ export type AdminWorkplaceFormState = {
 
 type WorkplaceRow = {
   id?: string;
-  name_text?: string;
-  contact_email_text?: string;
+  name?: string;
+  contactEmail?: string;
 };
 
 type UntypedSupabase = {
@@ -31,8 +31,8 @@ export type AdminWorkplacesLoadResult = {
 };
 
 function toAdminWorkplace(row: WorkplaceRow): AdminWorkplaceRecord | null {
-  const name = row.name_text?.trim();
-  const contactEmail = row.contact_email_text?.trim();
+  const name = row.name?.trim();
+  const contactEmail = row.contactEmail?.trim();
   if (!name || !contactEmail) return null;
 
   return {
@@ -45,14 +45,14 @@ function toAdminWorkplace(row: WorkplaceRow): AdminWorkplaceRecord | null {
 async function readOnboardingWorkplaces(userId: string): Promise<AdminWorkplaceRecord[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
   const raw = onboarding[ADMIN_WORKPLACES_ONBOARDING_KEY];
   if (!Array.isArray(raw)) return [];
 
@@ -66,19 +66,19 @@ async function readOnboardingWorkplaces(userId: string): Promise<AdminWorkplaceR
 async function writeOnboardingWorkplaces(userId: string, rows: WorkplaceRow[]): Promise<void> {
   const { data, error: readError } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (readError) throw readError;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...onboarding,
         [ADMIN_WORKPLACES_ONBOARDING_KEY]: rows,
       } as never,
@@ -90,7 +90,7 @@ async function writeOnboardingWorkplaces(userId: string, rows: WorkplaceRow[]): 
 
 async function tryFetchWorkplacesFromTable(): Promise<AdminWorkplaceRecord[] | null> {
   const client = supabase as unknown as UntypedSupabase;
-  const { data, error } = await client.from("workplace").select("id, name_text, contact_email_text");
+  const { data, error } = await client.from("workplace").select("id, name, contactEmail");
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -136,8 +136,8 @@ export async function createAdminWorkplace(
 
   const row: WorkplaceRow = {
     id: `workplace-${Date.now()}`,
-    name_text: form.name.trim(),
-    contact_email_text: form.contactEmail.trim(),
+    name: form.name.trim(),
+    contactEmail: form.contactEmail.trim(),
   };
 
   const client = supabase as unknown as UntypedSupabase;
@@ -153,8 +153,8 @@ export async function createAdminWorkplace(
   const existing = await readOnboardingWorkplaces(userId);
   const stored = existing.map((workplace) => ({
     id: workplace.workplaceId,
-    name_text: workplace.name,
-    contact_email_text: workplace.contactEmail,
+    name: workplace.name,
+    contactEmail: workplace.contactEmail,
   }));
 
   await writeOnboardingWorkplaces(userId, [...stored, row]);
@@ -174,8 +174,8 @@ export async function deleteAdminWorkplace(userId: string, workplaceId: string):
     .filter((workplace) => workplace.workplaceId !== workplaceId)
     .map((workplace) => ({
       id: workplace.workplaceId,
-      name_text: workplace.name,
-      contact_email_text: workplace.contactEmail,
+      name: workplace.name,
+      contactEmail: workplace.contactEmail,
     }));
 
   await writeOnboardingWorkplaces(userId, next);
@@ -184,8 +184,8 @@ export async function deleteAdminWorkplace(userId: string, workplaceId: string):
 function workplaceRowFromForm(form: AdminWorkplaceFormState, workplaceId: string): WorkplaceRow {
   return {
     id: workplaceId,
-    name_text: form.name.trim(),
-    contact_email_text: form.contactEmail.trim(),
+    name: form.name.trim(),
+    contactEmail: form.contactEmail.trim(),
   };
 }
 

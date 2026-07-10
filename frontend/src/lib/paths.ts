@@ -18,9 +18,9 @@ export interface CoachingPath {
   subtitle: string;
   description: string;
   pillar: "stability" | "performance" | "alignment" | "recovery" | "grief";
-  /** Bubble path.tier_option_tier_os — used by paths grid tier filter (PATHS-02). */
+  /** Bubble path.tier — used by paths grid tier filter (PATHS-02). */
   tier: TierSlug;
-  /** Bubble path.sub_mode_text — optional badge on path cards. */
+  /** Bubble path.subMode — optional badge on path cards. */
   subMode?: string;
   duration: string;
   image: string;

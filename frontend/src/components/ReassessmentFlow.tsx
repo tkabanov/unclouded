@@ -14,9 +14,10 @@ import type { ReflectionAnswers } from "@/lib/reassessment";
 import { useUserProfile } from "@/lib/userProfile";
 import { toast } from "sonner";
 
-const TOTAL_SCORED_STEPS = 4; // Stability, Performance, Alignment, Orientation (16 scored questions)
+const TOTAL_SCORED_STEPS = 4;
 
-const Reassessment = () => {
+/** 90-day reassessment flow — lives on the onboarding page in Bubble (bTGNJ). */
+export default function ReassessmentFlow() {
   const navigate = useNavigate();
   const { profile, loading, saveReassessment } = useUserProfile();
 
@@ -28,8 +29,6 @@ const Reassessment = () => {
   const [reflections, setReflections] = useState<ReflectionAnswers>({});
   const [saved, setSaved] = useState(false);
 
-  // Signals from the first assessment are reused so the pressure profile and
-  // classification can be recomputed from the fresh scored answers.
   const priorSignals = useMemo(() => {
     const data = (profile?.onboardingData ?? {}) as Record<string, unknown>;
     return {
@@ -55,11 +54,10 @@ const Reassessment = () => {
       priorSignals.loadSignals,
       priorSignals.stateSignals,
       priorSignals.behavioralPatterns,
-      priorSignals.healthFlags
+      priorSignals.healthFlags,
     );
   }, [step, stabilityScores, performanceScores, alignmentScores, orientationScore, priorSignals]);
 
-  // Persist the reassessment once we reach the comparison step.
   useEffect(() => {
     if (step === 6 && secondResults && !saved) {
       setSaved(true);
@@ -77,23 +75,32 @@ const Reassessment = () => {
         toast.error("Couldn't save your reassessment. Please try again.");
       });
     }
-  }, [step, secondResults, saved, saveReassessment, stabilityScores, performanceScores, alignmentScores, orientationScore, reflections]);
+  }, [
+    step,
+    secondResults,
+    saved,
+    saveReassessment,
+    stabilityScores,
+    performanceScores,
+    alignmentScores,
+    orientationScore,
+    reflections,
+  ]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         Loading…
       </div>
     );
   }
 
-  // Guard: reassessment is for subscribers who already have a first assessment.
   if (!profile?.results || !profile.subscribed) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex min-h-screen flex-col bg-background">
         <CrisisBar />
         <main className="flex flex-1 items-center justify-center px-4 py-12">
-          <div className="max-w-md text-center space-y-4">
+          <div className="max-w-md space-y-4 text-center">
             <h1 className="text-2xl font-bold text-foreground">Reassessment unavailable</h1>
             <p className="text-muted-foreground">
               The 90-day reassessment is available to subscribers who have completed their first
@@ -109,21 +116,22 @@ const Reassessment = () => {
   }
 
   const firstName = profile.firstName;
-  const scoredStepIndex = step; // 1..4 map to scored screens
+  const scoredStepIndex = step;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <CrisisBar />
       <main className="flex flex-1 flex-col">
-        {/* Progress bar for scored section */}
         {scoredStepIndex >= 1 && scoredStepIndex <= TOTAL_SCORED_STEPS && (
           <div className="px-4 pt-4">
-            <div className="max-w-2xl mx-auto">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+            <div className="mx-auto max-w-2xl">
+              <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
                 <span className="font-medium uppercase tracking-wide">90-Day Reassessment</span>
-                <span>Section {scoredStepIndex} of {TOTAL_SCORED_STEPS}</span>
+                <span>
+                  Section {scoredStepIndex} of {TOTAL_SCORED_STEPS}
+                </span>
               </div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-500"
                   style={{ width: `${(scoredStepIndex / TOTAL_SCORED_STEPS) * 100}%` }}
@@ -135,31 +143,31 @@ const Reassessment = () => {
 
         {step === 0 && (
           <div className="flex flex-1 items-center justify-center px-4 py-12">
-            <div className="max-w-lg w-full text-center space-y-6">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
+            <div className="w-full max-w-lg space-y-6 text-center">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                 <CalendarClock className="h-7 w-7 text-primary" />
               </div>
               <div className="space-y-3">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight tracking-tight">
+                <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground md:text-4xl">
                   Your 90-day reassessment, {firstName}
                 </h1>
-                <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+                <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
                   It's been about 90 days since your first assessment. You'll answer the same 16
                   scored questions, then 4 optional reflections. At the end you'll see exactly how
                   your scores have changed.
                 </p>
               </div>
-              <div className="rounded-xl border border-border bg-card p-4 text-left text-sm text-muted-foreground space-y-1.5">
+              <div className="space-y-1.5 rounded-xl border border-border bg-card p-4 text-left text-sm text-muted-foreground">
                 <p className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary shrink-0" /> 16 scored questions across
+                  <Sparkles className="h-4 w-4 shrink-0 text-primary" /> 16 scored questions across
                   Stability, Performance & Alignment
                 </p>
                 <p className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary shrink-0" /> 4 optional progress
+                  <Sparkles className="h-4 w-4 shrink-0 text-primary" /> 4 optional progress
                   reflections (not scored)
                 </p>
                 <p className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary shrink-0" /> A side-by-side comparison of
+                  <Sparkles className="h-4 w-4 shrink-0 text-primary" /> A side-by-side comparison of
                   your first and second results
                 </p>
               </div>
@@ -172,32 +180,55 @@ const Reassessment = () => {
         )}
 
         {step === 1 && (
-          <OnboardingStability onNext={(s) => { setStabilityScores(s); setStep(2); }} />
+          <OnboardingStability
+            onNext={(scores) => {
+              setStabilityScores(scores);
+              setStep(2);
+            }}
+          />
         )}
         {step === 2 && (
-          <OnboardingPerformance onNext={(s) => { setPerformanceScores(s); setStep(3); }} />
+          <OnboardingPerformance
+            onNext={(scores) => {
+              setPerformanceScores(scores);
+              setStep(3);
+            }}
+          />
         )}
         {step === 3 && (
-          <OnboardingAlignment onNext={(s) => { setAlignmentScores(s); setStep(4); }} />
+          <OnboardingAlignment
+            onNext={(scores) => {
+              setAlignmentScores(scores);
+              setStep(4);
+            }}
+          />
         )}
         {step === 4 && (
-          <OnboardingOrientation onNext={(s) => { setOrientationScore(s); setStep(5); }} />
+          <OnboardingOrientation
+            onNext={(score) => {
+              setOrientationScore(score);
+              setStep(5);
+            }}
+          />
         )}
         {step === 5 && (
           <ReassessmentReflections
             firstName={firstName}
-            onNext={(answers) => { setReflections(answers); setStep(6); }}
+            onNext={(answers) => {
+              setReflections(answers);
+              setStep(6);
+            }}
           />
         )}
 
         {step === 6 && secondResults && (
-          <div className="flex flex-1 items-start justify-center px-4 py-10 overflow-y-auto">
-            <div className="max-w-2xl w-full space-y-8 pb-12">
+          <div className="flex flex-1 items-start justify-center overflow-y-auto px-4 py-10">
+            <div className="w-full max-w-2xl space-y-8 pb-12">
               <div className="space-y-2 text-center">
-                <p className="text-sm font-medium text-muted-foreground tracking-wide uppercase">
+                <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                   90-Day Reassessment · Complete
                 </p>
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight tracking-tight">
+                <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground md:text-4xl">
                   Here's how far you've come, {firstName}
                 </h1>
               </div>
@@ -209,8 +240,13 @@ const Reassessment = () => {
                 reflections={reflections}
               />
 
-              <div className="text-center pt-2">
-                <Button variant="cta" size="lg" onClick={() => navigate("/dashboard")} className="group">
+              <div className="pt-2 text-center">
+                <Button
+                  variant="cta"
+                  size="lg"
+                  onClick={() => navigate("/dashboard")}
+                  className="group"
+                >
                   Back to my dashboard
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Button>
@@ -221,6 +257,4 @@ const Reassessment = () => {
       </main>
     </div>
   );
-};
-
-export default Reassessment;
+}

@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Info, Star, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Info, Star, X } from "lucide-react";
+import { settingsPath } from "@/lib/settings/navigation";
+import { SETTINGS_TAB } from "@/lib/settings/settingsTabStub";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,30 +22,7 @@ import { getPathBySlug, HARD_SEASONS_PATH } from "@/lib/paths";
 import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { useUserProfile } from "@/lib/userProfile";
-import {
-  PATHS_PATH_DETAIL_BADGES_ROW_BUBBLE_ID,
-  PATHS_PATH_DETAIL_BODY_BUBBLE_ID,
-  PATHS_PATH_DETAIL_CLOSE_BTN_BUBBLE_ID,
-  PATHS_PATH_DETAIL_DISCLAIMER_BUBBLE_ID,
-  PATHS_PATH_DETAIL_DISCLAIMER_ICON_BUBBLE_ID,
-  PATHS_PATH_DETAIL_DISCLAIMER_TEXT,
-  PATHS_PATH_DETAIL_DISCLAIMER_TEXT_BUBBLE_ID,
-  PATHS_PATH_DETAIL_ENROLL_BTN_BUBBLE_ID,
-  PATHS_PATH_DETAIL_FOOTER_BUBBLE_ID,
-  PATHS_PATH_DETAIL_HEADER_BUBBLE_ID,
-  PATHS_PATH_DETAIL_LAST_STEP_BUBBLE_ID,
-  PATHS_PATH_DETAIL_OVERLAY_BUBBLE_ID,
-  PATHS_PATH_DETAIL_POPUP_BUBBLE_ID,
-  PATHS_PATH_DETAIL_PROGRESS_BAR_BUBBLE_ID,
-  PATHS_PATH_DETAIL_PROGRESS_GROUP_BUBBLE_ID,
-  PATHS_PATH_DETAIL_PROGRESS_PCT_BUBBLE_ID,
-  PATHS_PATH_DETAIL_PROGRESS_WRAP_BUBBLE_ID,
-  PATHS_PATH_DETAIL_STEPS_LABEL_BUBBLE_ID,
-  PATHS_PATH_DETAIL_STEPS_TEXT_BUBBLE_ID,
-  PATHS_PATH_DETAIL_TITLE_BUBBLE_ID,
-  PATHS_PATH_DETAIL_UNENROLL_BTN_BUBBLE_ID,
-  PATHS_PATH_DETAIL_UPGRADE_BTN_BUBBLE_ID,
-} from "@/lib/paths/routes";
+import { PATHS_PATH_DETAIL_DISCLAIMER_TEXT } from "@/lib/paths/routes";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -64,9 +43,11 @@ function isTierSlug(value: string): value is TierSlug {
 
 function resolveUserTier(
   subscribed: boolean,
+  profileTier: string | null | undefined,
   onboardingData: Record<string, unknown> | null | undefined,
 ): TierSlug {
-  const raw = onboardingData?.tier_option_tier_os;
+  if (typeof profileTier === "string" && isTierSlug(profileTier)) return profileTier;
+  const raw = onboardingData?.tier;
   if (typeof raw === "string" && isTierSlug(raw)) return raw;
   return subscribed ? TIER.PRO : TIER.FREE;
 }
@@ -113,7 +94,11 @@ export default function PathDetailPopup({
 
   const pathSlug = enrollment?.pathSlug;
   const pathTier = enrollment?.tier ?? HARD_SEASONS_PATH.tier;
-  const userTier = resolveUserTier(profile?.subscribed ?? false, profile?.onboardingData ?? null);
+  const userTier = resolveUserTier(
+    profile?.subscribed ?? false,
+    profile?.tier ?? null,
+    profile?.onboardingData ?? null,
+  );
   const needsUpgrade = tierPriority(pathTier) > tierPriority(userTier);
   const enrolled = isActiveEnrollment(enrollment);
   const showEnroll = !enrolled && !needsUpgrade;
@@ -156,9 +141,8 @@ export default function PathDetailPopup({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <DialogOverlay data-bubble-id={PATHS_PATH_DETAIL_OVERLAY_BUBBLE_ID} />
+        <DialogOverlay />
         <DialogPrimitive.Content
-          data-bubble-id={PATHS_PATH_DETAIL_POPUP_BUBBLE_ID}
           data-style-ref="Popup_dialog_"
           className={cn(
             bubbleStyle("Popup_dialog_"),
@@ -166,11 +150,9 @@ export default function PathDetailPopup({
           )}
         >
           <header
-            data-bubble-id={PATHS_PATH_DETAIL_HEADER_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-3 pr-8")}
           >
             <div
-              data-bubble-id={PATHS_PATH_DETAIL_BADGES_ROW_BUBBLE_ID}
               className={cn(
                 bubbleStyle("Group_transparent_"),
                 "flex flex-wrap items-center gap-2",
@@ -194,7 +176,6 @@ export default function PathDetailPopup({
             </div>
 
             <h2
-              data-bubble-id={PATHS_PATH_DETAIL_TITLE_BUBBLE_ID}
               data-style-ref="Text_heading_2_"
               className={cn(
                 bubbleStyle("Text_heading_2_"),
@@ -206,7 +187,6 @@ export default function PathDetailPopup({
 
             <button
               type="button"
-              data-bubble-id={PATHS_PATH_DETAIL_CLOSE_BTN_BUBBLE_ID}
               data-style-ref="Button_icon_"
               className={cn(
                 bubbleStyle("Button_icon_"),
@@ -220,19 +200,16 @@ export default function PathDetailPopup({
           </header>
 
           <section
-            data-bubble-id={PATHS_PATH_DETAIL_BODY_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-4")}
           >
             <div className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}>
               <p
-                data-bubble-id={PATHS_PATH_DETAIL_STEPS_LABEL_BUBBLE_ID}
                 data-style-ref="Text_label_"
                 className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
               >
                 Steps
               </p>
               <p
-                data-bubble-id={PATHS_PATH_DETAIL_STEPS_TEXT_BUBBLE_ID}
                 data-style-ref="Text_body_muted_"
                 className={cn(
                   bubbleStyle("Text_body_muted_"),
@@ -244,7 +221,6 @@ export default function PathDetailPopup({
             </div>
 
             <div
-              data-bubble-id={PATHS_PATH_DETAIL_DISCLAIMER_BUBBLE_ID}
               data-style-ref="Group_alert_banner_"
               className={cn(
                 bubbleStyle("Group_alert_banner_"),
@@ -252,12 +228,10 @@ export default function PathDetailPopup({
               )}
             >
               <Info
-                data-bubble-id={PATHS_PATH_DETAIL_DISCLAIMER_ICON_BUBBLE_ID}
                 className={cn(bubbleStyle("Icon_muted_"), "mt-0.5 h-4 w-4 shrink-0")}
                 aria-hidden
               />
               <p
-                data-bubble-id={PATHS_PATH_DETAIL_DISCLAIMER_TEXT_BUBBLE_ID}
                 data-style-ref="Text_body_muted_"
                 className={cn(bubbleStyle("Text_body_muted_"), "text-sm leading-relaxed")}
               >
@@ -266,26 +240,22 @@ export default function PathDetailPopup({
             </div>
 
             <div
-              data-bubble-id={PATHS_PATH_DETAIL_PROGRESS_GROUP_BUBBLE_ID}
               className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
             >
               <div
-                data-bubble-id={PATHS_PATH_DETAIL_PROGRESS_WRAP_BUBBLE_ID}
                 className={cn(bubbleStyle("Group_transparent_"), "w-full")}
               >
-                <div data-bubble-id={PATHS_PATH_DETAIL_PROGRESS_BAR_BUBBLE_ID}>
+                <div>
                   <ProgressBar value={enrollment?.progressPercent ?? 0} />
                 </div>
               </div>
               <p
-                data-bubble-id={PATHS_PATH_DETAIL_PROGRESS_PCT_BUBBLE_ID}
                 className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
               >
                 {enrollment?.progressPercent ?? 0}%
               </p>
               {lastStepText ? (
                 <p
-                  data-bubble-id={PATHS_PATH_DETAIL_LAST_STEP_BUBBLE_ID}
                   className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
                 >
                   {lastStepText}
@@ -295,7 +265,6 @@ export default function PathDetailPopup({
           </section>
 
           <DialogFooter
-            data-bubble-id={PATHS_PATH_DETAIL_FOOTER_BUBBLE_ID}
             className={cn(
               bubbleStyle("Group_transparent_"),
               "flex flex-col gap-2 sm:flex-row sm:justify-between",
@@ -305,10 +274,9 @@ export default function PathDetailPopup({
               <Button
                 type="button"
                 variant="cta"
-                data-bubble-id={PATHS_PATH_DETAIL_UPGRADE_BTN_BUBBLE_ID}
                 data-style-ref="Button_primary_"
                 className={cn(bubbleStyle("Button_primary_"), "gap-1.5")}
-                onClick={() => navigate("/subscription")}
+                onClick={() => navigate(settingsPath(SETTINGS_TAB.SUBSCRIPTION))}
               >
                 <Star className="h-4 w-4 shrink-0" aria-hidden />
                 Upgrade Plan
@@ -320,7 +288,6 @@ export default function PathDetailPopup({
                 type="button"
                 variant="outline"
                 disabled={busy}
-                data-bubble-id={PATHS_PATH_DETAIL_UNENROLL_BTN_BUBBLE_ID}
                 data-style-ref="Button_secondary_"
                 className={cn(bubbleStyle("Button_secondary_"))}
                 onClick={() => void handleUnenroll()}
@@ -334,7 +301,6 @@ export default function PathDetailPopup({
                 type="button"
                 variant="cta"
                 disabled={busy}
-                data-bubble-id={PATHS_PATH_DETAIL_ENROLL_BTN_BUBBLE_ID}
                 data-style-ref="Button_primary_"
                 className={cn(bubbleStyle("Button_primary_"))}
                 onClick={() => void handleEnroll()}

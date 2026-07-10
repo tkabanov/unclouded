@@ -1,11 +1,5 @@
 import { cn } from "@/lib/utils";
 import { TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
-import {
-  PATHS_FILTER_ROW_BUBBLE_ID,
-  PATHS_FILTER_TIER_DD_BUBBLE_ID,
-  PATHS_FILTER_TIER_GROUP_BUBBLE_ID,
-  PATHS_FILTER_TIER_LABEL_BUBBLE_ID,
-} from "@/lib/paths/routes";
 import { bubbleStyle } from "@/styles";
 import {
   Select,
@@ -31,7 +25,6 @@ export default function PathsFilterRow({
 }: PathsFilterRowProps) {
   return (
     <div
-      data-bubble-id={PATHS_FILTER_ROW_BUBBLE_ID}
       className={cn(
         bubbleStyle("Group_transparent_"),
         "flex w-full flex-wrap items-center justify-end gap-3",
@@ -39,11 +32,9 @@ export default function PathsFilterRow({
       )}
     >
       <div
-        data-bubble-id={PATHS_FILTER_TIER_GROUP_BUBBLE_ID}
         className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-2")}
       >
         <span
-          data-bubble-id={PATHS_FILTER_TIER_LABEL_BUBBLE_ID}
           className={cn(bubbleStyle("Text_label_"), "text-sm font-medium text-foreground")}
         >
           Tier
@@ -53,7 +44,6 @@ export default function PathsFilterRow({
           onValueChange={(value) => onTierChange(value as PathsTierFilter)}
         >
           <SelectTrigger
-            data-bubble-id={PATHS_FILTER_TIER_DD_BUBBLE_ID}
             className="h-10 min-w-[114px] capitalize"
             aria-label="Filter paths by tier"
           >

@@ -3,19 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 /** Bubble uds_milestone field names surfaced in journal UI. */
 export interface MilestoneListItem {
   id: string;
-  title_text: string;
-  description_text: string | null;
-  achieved_at_date: string | null;
+  title: string;
+  description: string | null;
+  achievedAt: string | null;
 }
 
-/** Stored in profiles.onboarding_data when uds_milestone table is absent. */
+/** Stored in profiles.onboardingData when uds_milestone table is absent. */
 export const MILESTONES_ONBOARDING_KEY = "milestones" as const;
 
 type MilestoneRow = {
   id: string;
-  title_text?: string | null;
-  description_text?: string | null;
-  achieved_at_date?: string | null;
+  title?: string | null;
+  description?: string | null;
+  achievedAt?: string | null;
 };
 
 type UntypedSupabase = {
@@ -36,9 +36,9 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
 function mapMilestoneRow(row: MilestoneRow): MilestoneListItem {
   return {
     id: row.id,
-    title_text: (row.title_text ?? "").trim() || "Untitled milestone",
-    description_text: row.description_text?.trim() || null,
-    achieved_at_date: row.achieved_at_date ?? null,
+    title: (row.title ?? "").trim() || "Untitled milestone",
+    description: row.description?.trim() || null,
+    achievedAt: row.achievedAt ?? null,
   };
 }
 
@@ -52,11 +52,11 @@ function readOnboardingMilestones(
     .map((entry) =>
       mapMilestoneRow({
         id: typeof entry.id === "string" ? entry.id : crypto.randomUUID(),
-        title_text: typeof entry.title_text === "string" ? entry.title_text : null,
-        description_text:
-          typeof entry.description_text === "string" ? entry.description_text : null,
-        achieved_at_date:
-          typeof entry.achieved_at_date === "string" ? entry.achieved_at_date : null,
+        title: typeof entry.title === "string" ? entry.title : null,
+        description:
+          typeof entry.description === "string" ? entry.description : null,
+        achievedAt:
+          typeof entry.achievedAt === "string" ? entry.achievedAt : null,
       }),
     );
 }
@@ -64,10 +64,10 @@ function readOnboardingMilestones(
 async function tryFetchFromMilestoneTable(userId: string): Promise<MilestoneListItem[] | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("uds_milestone")
-    .select("id, title_text, description_text, achieved_at_date")
-    .eq("user_user", userId)
-    .order("achieved_at_date", { ascending: false });
+    .from("milestone")
+    .select("id, title, description, achievedAt")
+    .eq("userId", userId)
+    .order("achievedAt", { ascending: false });
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -79,7 +79,7 @@ async function tryFetchFromMilestoneTable(userId: string): Promise<MilestoneList
 
 /**
  * Current user's milestones — newest achieved date first.
- * Tries uds_milestone; falls back to profiles.onboarding_data.milestones when table is absent.
+ * Tries uds_milestone; falls back to profiles.onboardingData.milestones when table is absent.
  */
 export async function fetchMilestones(
   userId: string,
@@ -91,24 +91,24 @@ export async function fetchMilestones(
 }
 
 export interface MilestoneInput {
-  title_text: string;
-  description_text: string | null;
-  achieved_at_date: string | null;
+  title: string;
+  description: string | null;
+  achievedAt: string | null;
 }
 
 type MilestoneOnboardingRow = {
   id: string;
-  title_text: string;
-  description_text: string | null;
-  achieved_at_date: string | null;
+  title: string;
+  description: string | null;
+  achievedAt: string | null;
 };
 
 function toOnboardingRow(item: MilestoneListItem): MilestoneOnboardingRow {
   return {
     id: item.id,
-    title_text: item.title_text,
-    description_text: item.description_text,
-    achieved_at_date: item.achieved_at_date,
+    title: item.title,
+    description: item.description,
+    achievedAt: item.achievedAt,
   };
 }
 
@@ -120,7 +120,7 @@ async function persistOnboardingMilestones(
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...(onboardingData ?? {}),
         [MILESTONES_ONBOARDING_KEY]: milestones,
       } as never,
@@ -132,9 +132,9 @@ async function persistOnboardingMilestones(
 
 function normalizeMilestoneInput(input: MilestoneInput): MilestoneInput {
   return {
-    title_text: input.title_text.trim() || "Untitled milestone",
-    description_text: input.description_text?.trim() || null,
-    achieved_at_date: input.achieved_at_date?.trim() || null,
+    title: input.title.trim() || "Untitled milestone",
+    description: input.description?.trim() || null,
+    achievedAt: input.achievedAt?.trim() || null,
   };
 }
 
@@ -144,14 +144,14 @@ async function tryCreateInMilestoneTable(
 ): Promise<MilestoneListItem | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("uds_milestone")
+    .from("milestone")
     .insert({
-      title_text: input.title_text,
-      description_text: input.description_text,
-      achieved_at_date: input.achieved_at_date,
-      user_user: userId,
+      title: input.title,
+      description: input.description,
+      achievedAt: input.achievedAt,
+      userId: userId,
     })
-    .select("id, title_text, description_text, achieved_at_date")
+    .select("id, title, description, achievedAt")
     .single();
 
   if (error) {
@@ -169,15 +169,15 @@ async function tryUpdateInMilestoneTable(
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("uds_milestone")
+    .from("milestone")
     .update({
-      title_text: input.title_text,
-      description_text: input.description_text,
-      achieved_at_date: input.achieved_at_date,
+      title: input.title,
+      description: input.description,
+      achievedAt: input.achievedAt,
     })
     .eq("id", milestoneId)
-    .eq("user_user", userId)
-    .select("id, title_text, description_text, achieved_at_date")
+    .eq("userId", userId)
+    .select("id, title, description, achievedAt")
     .maybeSingle();
 
   if (error) {
@@ -194,10 +194,10 @@ async function tryDeleteFromMilestoneTable(
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { error } = await client
-    .from("uds_milestone")
+    .from("milestone")
     .delete()
     .eq("id", milestoneId)
-    .eq("user_user", userId);
+    .eq("userId", userId);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -208,7 +208,7 @@ async function tryDeleteFromMilestoneTable(
 }
 
 /**
- * Create a milestone — uds_milestone row or onboarding_data fallback.
+ * Create a milestone — uds_milestone row or onboardingData fallback.
  */
 export async function createMilestone(
   userId: string,
@@ -221,9 +221,9 @@ export async function createMilestone(
 
   const nextItem = mapMilestoneRow({
     id: crypto.randomUUID(),
-    title_text: normalized.title_text,
-    description_text: normalized.description_text,
-    achieved_at_date: normalized.achieved_at_date,
+    title: normalized.title,
+    description: normalized.description,
+    achievedAt: normalized.achievedAt,
   });
 
   const existing = readOnboardingMilestones(onboardingData).map(toOnboardingRow);
@@ -232,7 +232,7 @@ export async function createMilestone(
 }
 
 /**
- * Update a milestone — uds_milestone row or onboarding_data fallback.
+ * Update a milestone — uds_milestone row or onboardingData fallback.
  */
 export async function updateMilestone(
   userId: string,
@@ -246,9 +246,9 @@ export async function updateMilestone(
   if (tableResult === true) {
     return mapMilestoneRow({
       id: milestoneId,
-      title_text: normalized.title_text,
-      description_text: normalized.description_text,
-      achieved_at_date: normalized.achieved_at_date,
+      title: normalized.title,
+      description: normalized.description,
+      achievedAt: normalized.achievedAt,
     });
   }
 
@@ -259,9 +259,9 @@ export async function updateMilestone(
 
     const nextItem = mapMilestoneRow({
       id: milestoneId,
-      title_text: normalized.title_text,
-      description_text: normalized.description_text,
-      achieved_at_date: normalized.achieved_at_date,
+      title: normalized.title,
+      description: normalized.description,
+      achievedAt: normalized.achievedAt,
     });
 
     const nextRows = existing.map((row, i) =>
@@ -275,7 +275,7 @@ export async function updateMilestone(
 }
 
 /**
- * Delete a milestone — uds_milestone row or onboarding_data fallback.
+ * Delete a milestone — uds_milestone row or onboardingData fallback.
  */
 export async function deleteMilestone(
   userId: string,

@@ -6,43 +6,49 @@ import {
 } from "./pillarScoreUserData";
 import { loadProfileRow, patchOnboardingAndResults, readNumberField } from "./profileFieldPatch";
 
-export const CLASSIFICATION_OPTION_FIELD = "classification_option_classification_os" as const;
+export const CLASSIFICATION_OPTION_FIELD = "classification" as const;
 export const ORIENTATION_SCORE1_NUMBER_FIELD = "orientation_score1_number" as const;
 
 /** Bubble API event calculate_user_classification (bTHzC). */
 export async function calculateUserClassification(userId: string): Promise<string> {
-  const { onboarding_data, results } = await loadProfileRow(userId);
+  const { onboardingData, results } = await loadProfileRow(userId);
 
   const stability = readNumberField(
-    onboarding_data,
+    onboardingData,
     results,
     STABILITY_SCORE_NUMBER_FIELD,
     "stability_score",
   );
   const performance = readNumberField(
-    onboarding_data,
+    onboardingData,
     results,
     PERFORMANCE_SCORE_NUMBER_FIELD,
     "performance_score",
   );
   const alignment = readNumberField(
-    onboarding_data,
+    onboardingData,
     results,
     ALIGNMENT_SCORE_NUMBER_FIELD,
     "alignment_score",
   );
   const orientation = readNumberField(
-    onboarding_data,
+    onboardingData,
     results,
     ORIENTATION_SCORE1_NUMBER_FIELD,
     "orientation_score",
   );
 
+  const orientationFromCamel = onboardingData.orientationScore;
+  const resolvedOrientation =
+    typeof orientationFromCamel === "number" && !Number.isNaN(orientationFromCamel)
+      ? orientationFromCamel
+      : orientation;
+
   const { classification, classification_os } = resolveClassification({
     stability_score: stability,
     performance_score: performance,
     alignment_score: alignment,
-    orientation_score: orientation,
+    orientation_score: resolvedOrientation,
   });
 
   await patchOnboardingAndResults(

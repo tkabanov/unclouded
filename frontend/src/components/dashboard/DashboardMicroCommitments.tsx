@@ -65,12 +65,10 @@ export default function DashboardMicroCommitments() {
 
   return (
     <div
-      data-bubble-id="bTJFv"
       data-style-ref="Group_transparent_"
       className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
     >
       <p
-        data-bubble-id="bTJGB"
         data-style-ref="Text_heading_3_"
         className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold")}
       >
@@ -78,14 +76,12 @@ export default function DashboardMicroCommitments() {
       </p>
 
       <div
-        data-bubble-id="bTJGH"
         data-style-ref="RepeatingGroup_list_"
         className={cn(bubbleStyle("RepeatingGroup_list_"), "flex w-full flex-wrap gap-2")}
       >
         {items.map((item) => (
           <div
             key={item.id}
-            data-bubble-id="bTJGS"
             data-style-ref="Group_transparent_"
             className={cn(
               bubbleStyle("Group_transparent_"),
@@ -93,7 +89,6 @@ export default function DashboardMicroCommitments() {
             )}
           >
             <p
-              data-bubble-id="bTJGY"
               data-style-ref="Text_body_"
               className={cn(bubbleStyle("Text_body_"), "min-w-0 flex-1 text-sm leading-snug")}
             >
@@ -107,7 +102,7 @@ export default function DashboardMicroCommitments() {
               <span
                 className={cn(
                   bubbleStyle("Text_success_"),
-                  "inline-flex shrink-0 items-center gap-1 text-xs font-medium",
+                  "inline-flex shrink-0 items-center gap-1 text-xs font-medium text-primary",
                 )}
                 aria-label="Completed"
               >
@@ -117,7 +112,6 @@ export default function DashboardMicroCommitments() {
             ) : (
               <Button
                 type="button"
-                data-bubble-id="bTJGe"
                 data-style-ref="Button_primary_"
                 size="sm"
                 className={cn(bubbleStyle("Button_primary_"), "h-8 shrink-0 gap-1 px-2.5 text-xs")}

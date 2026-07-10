@@ -6,36 +6,30 @@ import { CrisisHotlineRow } from "./CrisisHotlineRow";
 /** RE - crisis support (bTIdW) — shared hotline card for dashboard, paths, and settings mounts. */
 export function CrisisSupportCard() {
   return (
-    <div data-bubble-id="bTIdW" className={cn(bubbleStyle("Group_transparent_"), "w-full")}>
+    <div className={cn(bubbleStyle("Group_transparent_"), "w-full")}>
       <div
-        data-bubble-id="bTIdb"
         className={cn(
-          "flex w-full flex-col gap-3 rounded-xl border border-[var(--color_primary_default)] bg-[var(--color_surface_default)] p-5 shadow-sm",
+          "flex w-full flex-col gap-3 rounded-xl border border-primary bg-card p-5 shadow-sm",
         )}
       >
         <div
-          data-bubble-id="bTIdg"
           className={cn(bubbleStyle("Group_transparent_"), "flex w-full items-start gap-3")}
         >
           <div
-            data-bubble-id="bTIdh"
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color_primary_default)]/10"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10"
           >
             <Heart
-              data-bubble-id="bTIdi"
               className={cn(bubbleStyle("Icon_primary_"), "h-5 w-5")}
               aria-hidden
             />
           </div>
           <div className={cn(bubbleStyle("Group_transparent_"), "min-w-0 flex-col gap-1")}>
             <h3
-              data-bubble-id="bTIdm"
               className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold text-foreground")}
             >
               Crisis Resources
             </h3>
             <p
-              data-bubble-id="bTIdn"
               className={cn(bubbleStyle("Text_caption_"), "text-xs leading-relaxed text-muted-foreground")}
             >
               Uncloud360 is coaching only. If you need immediate support, reach out to a professional.
@@ -44,7 +38,6 @@ export function CrisisSupportCard() {
         </div>
 
         <div
-          data-bubble-id="bTIdo"
           className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-wrap gap-2")}
         >
           <CrisisHotlineRow

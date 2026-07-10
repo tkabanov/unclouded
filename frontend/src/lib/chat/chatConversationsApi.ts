@@ -3,7 +3,7 @@ import type { ChatComposerMode } from "@/components/chat/types";
 import { CHAT_COMPOSER_MODES } from "@/components/chat/types";
 import { loadProfileRow } from "@/lib/userProfile/profileFieldPatch";
 
-/** Stored in profiles.onboarding_data when chatconversation table is absent. */
+/** Stored in profiles.onboardingData when chatconversation table is absent. */
 export const CHAT_CONVERSATIONS_ONBOARDING_KEY = "chat_conversations" as const;
 
 const DEFAULT_CONVERSATION_TITLE = "New conversation";
@@ -11,17 +11,18 @@ const DEFAULT_PREVIEW_TEXT = "Start a conversation when you're ready.";
 
 export interface ConversationListItem {
   id: string;
-  title_text: string;
-  preview_text: string;
-  modified_date: string | null;
+  title: string;
+  previewText: string;
+  modifiedDate: string | null;
   /** Composer quick-prompt mode stored on conversation context (bTIRi). */
   coaching_mode?: ChatComposerMode;
 }
 
 type ConversationRow = {
   id: string;
-  title_text?: string | null;
-  modified_date?: string | null;
+  title?: string | null;
+  modifiedDate?: string | null;
+  updatedAt?: string | null;
 };
 
 type UntypedSupabase = {
@@ -51,9 +52,9 @@ function mapConversationRow(
 ): ConversationListItem {
   return {
     id: row.id,
-    title_text: (row.title_text ?? "").trim() || DEFAULT_CONVERSATION_TITLE,
-    preview_text: previewText.trim() || DEFAULT_PREVIEW_TEXT,
-    modified_date: row.modified_date ?? null,
+    title: (row.title ?? "").trim() || DEFAULT_CONVERSATION_TITLE,
+    previewText: previewText.trim() || DEFAULT_PREVIEW_TEXT,
+    modifiedDate: row.modifiedDate ?? row.updatedAt ?? null,
     coaching_mode: coachingMode,
   };
 }
@@ -70,35 +71,35 @@ function readOnboardingConversations(
       mapConversationRow(
         {
           id: typeof entry.id === "string" ? entry.id : crypto.randomUUID(),
-          title_text: typeof entry.title_text === "string" ? entry.title_text : null,
-          modified_date:
-            typeof entry.modified_date === "string" ? entry.modified_date : null,
+          title: typeof entry.title === "string" ? entry.title : null,
+          modifiedDate:
+            typeof entry.modifiedDate === "string" ? entry.modifiedDate : null,
         },
-        typeof entry.preview_text === "string" ? entry.preview_text : "",
+        typeof entry.previewText === "string" ? entry.previewText : "",
         isChatComposerMode(entry.coaching_mode) ? entry.coaching_mode : undefined,
       ),
     )
     .sort((a, b) => {
-      const aTime = a.modified_date ? Date.parse(a.modified_date) : 0;
-      const bTime = b.modified_date ? Date.parse(b.modified_date) : 0;
+      const aTime = a.modifiedDate ? Date.parse(a.modifiedDate) : 0;
+      const bTime = b.modifiedDate ? Date.parse(b.modifiedDate) : 0;
       return bTime - aTime;
     });
 }
 
 type OnboardingConversationRow = {
   id: string;
-  title_text: string;
-  preview_text: string;
-  modified_date: string | null;
+  title: string;
+  previewText: string;
+  modifiedDate: string | null;
   coaching_mode?: ChatComposerMode;
 };
 
 function toOnboardingRow(item: ConversationListItem): OnboardingConversationRow {
   return {
     id: item.id,
-    title_text: item.title_text,
-    preview_text: item.preview_text,
-    modified_date: item.modified_date,
+    title: item.title,
+    previewText: item.previewText,
+    modifiedDate: item.modifiedDate,
     coaching_mode: item.coaching_mode,
   };
 }
@@ -107,15 +108,15 @@ async function persistOnboardingConversations(
   userId: string,
   updater: (rows: OnboardingConversationRow[]) => OnboardingConversationRow[],
 ): Promise<void> {
-  const { onboarding_data } = await loadProfileRow(userId);
-  const existing = readOnboardingConversations(onboarding_data).map(toOnboardingRow);
+  const { onboardingData } = await loadProfileRow(userId);
+  const existing = readOnboardingConversations(onboardingData).map(toOnboardingRow);
   const nextRows = updater(existing);
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
-        ...onboarding_data,
+      onboardingData: {
+        ...onboardingData,
         [CHAT_CONVERSATIONS_ONBOARDING_KEY]: nextRows,
       } as never,
     })
@@ -132,10 +133,10 @@ async function fetchPreviewByConversation(
 
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("chatmessage")
-    .select("conversation_custom_chatconversation, content_text, sender_text, id")
-    .in("conversation_custom_chatconversation", conversationIds)
-    .order("id", { ascending: false });
+    .from("chatMessage")
+    .select("conversationId, content, sender, id")
+    .in("conversationId", conversationIds)
+    .order("createdAt", { ascending: false });
 
   if (error) {
     if (isSchemaUnavailable(error)) return previews;
@@ -144,13 +145,13 @@ async function fetchPreviewByConversation(
 
   for (const row of data ?? []) {
     const record = row as Record<string, unknown>;
-    const conversationId = record.conversation_custom_chatconversation;
+    const conversationId = record.conversationId;
     if (typeof conversationId !== "string" || previews.has(conversationId)) continue;
     const content =
-      typeof record.content_text === "string"
-        ? record.content_text
-        : typeof record.sender_text === "string"
-          ? record.sender_text
+      typeof record.content === "string"
+        ? record.content
+        : typeof record.sender === "string"
+          ? record.sender
           : "";
     if (content.trim()) previews.set(conversationId, content.trim());
   }
@@ -164,16 +165,16 @@ async function tryFetchFromConversationTable(
   const client = supabase as unknown as UntypedSupabase;
 
   let { data, error } = await client
-    .from("chatconversation")
-    .select("id, title_text, modified_date")
-    .eq("user_user", userId)
-    .order("modified_date", { ascending: false });
+    .from("chatConversation")
+    .select("id, title, updatedAt")
+    .eq("userId", userId)
+    .order("updatedAt", { ascending: false });
 
   if (error && isSchemaUnavailable(error)) {
     const fallback = await client
-      .from("chatconversation")
-      .select("id, title_text")
-      .eq("user_user", userId)
+      .from("chatConversation")
+      .select("id, title")
+      .eq("userId", userId)
       .order("id", { ascending: false });
     data = fallback.data;
     error = fallback.error;
@@ -191,7 +192,7 @@ async function tryFetchFromConversationTable(
 
 /**
  * Current user's chat conversations — newest modified date first.
- * Tries chatconversation table; falls back to profiles.onboarding_data when absent.
+ * Tries chatconversation table; falls back to profiles.onboardingData when absent.
  */
 export async function fetchConversations(
   userId: string,
@@ -208,12 +209,12 @@ async function tryCreateInConversationTable(
 ): Promise<ConversationListItem | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("chatconversation")
+    .from("chatConversation")
     .insert({
-      title_text: title,
-      user_user: userId,
+      title: title,
+      userId: userId,
     })
-    .select("id, title_text, modified_date")
+    .select("id, title, updatedAt")
     .single();
 
   if (error) {
@@ -225,7 +226,7 @@ async function tryCreateInConversationTable(
 }
 
 /**
- * Create a chatconversation — table row or onboarding_data fallback (bTInY NewThing parity).
+ * Create a chatconversation — table row or onboardingData fallback (bTInY NewThing parity).
  */
 export async function createConversation(
   userId: string,
@@ -239,8 +240,8 @@ export async function createConversation(
   const nextItem = mapConversationRow(
     {
       id: crypto.randomUUID(),
-      title_text: title,
-      modified_date: now,
+      title: title,
+      modifiedDate: now,
     },
     DEFAULT_PREVIEW_TEXT,
   );
@@ -254,9 +255,9 @@ async function tryDeleteMessagesForConversation(
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { error } = await client
-    .from("chatmessage")
+    .from("chatMessage")
     .delete()
-    .eq("conversation_custom_chatconversation", conversationId);
+    .eq("conversationId", conversationId);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -278,10 +279,10 @@ async function tryDeleteFromConversationTable(
   }
 
   const { error } = await client
-    .from("chatconversation")
+    .from("chatConversation")
     .delete()
     .eq("id", conversationId)
-    .eq("user_user", userId);
+    .eq("userId", userId);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -292,7 +293,7 @@ async function tryDeleteFromConversationTable(
 }
 
 /**
- * Delete a chatconversation — table row or onboarding_data fallback.
+ * Delete a chatconversation — table row or onboardingData fallback.
  */
 export async function deleteConversation(
   userId: string,
@@ -321,18 +322,18 @@ async function tryFetchConversationFromTable(
   const client = supabase as unknown as UntypedSupabase;
 
   let { data, error } = await client
-    .from("chatconversation")
-    .select("id, title_text, modified_date")
+    .from("chatConversation")
+    .select("id, title, updatedAt")
     .eq("id", conversationId)
-    .eq("user_user", userId)
+    .eq("userId", userId)
     .maybeSingle();
 
   if (error && isSchemaUnavailable(error)) {
     const fallback = await client
-      .from("chatconversation")
-      .select("id, title_text")
+      .from("chatConversation")
+      .select("id, title")
       .eq("id", conversationId)
-      .eq("user_user", userId)
+      .eq("userId", userId)
       .maybeSingle();
     data = fallback.data;
     error = fallback.error;
@@ -351,7 +352,7 @@ async function tryFetchConversationFromTable(
 }
 
 /**
- * Fetch a single chatconversation by id — table row or onboarding_data fallback.
+ * Fetch a single chatconversation by id — table row or onboardingData fallback.
  */
 export async function fetchConversationById(
   userId: string,
@@ -385,8 +386,56 @@ export async function updateConversationCoachingMode(
   });
 }
 
+async function tryRenameInConversationTable(
+  userId: string,
+  conversationId: string,
+  title: string,
+): Promise<boolean | null> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { error } = await client
+    .from("chatConversation")
+    .update({ title: title })
+    .eq("id", conversationId)
+    .eq("userId", userId);
+
+  if (!error) return true;
+  if (isSchemaUnavailable(error)) return null;
+  throw error;
+}
+
 /**
- * Bump conversation preview + modified_date after a new message (sidebar parity).
+ * Rename a chatconversation — table row or onboardingData fallback.
+ */
+export async function renameConversation(
+  userId: string,
+  conversationId: string,
+  title: string,
+): Promise<void> {
+  const trimmedTitle = title.trim();
+  if (!trimmedTitle) throw new Error("Title is required");
+
+  const fromTable = await tryRenameInConversationTable(userId, conversationId, trimmedTitle);
+  if (fromTable === true) return;
+
+  if (fromTable === null) {
+    await persistOnboardingConversations(userId, (rows) => {
+      let found = false;
+      const nextRows = rows.map((row) => {
+        if (row.id !== conversationId) return row;
+        found = true;
+        return { ...row, title: trimmedTitle };
+      });
+      if (!found) throw new Error("Conversation not found");
+      return nextRows;
+    });
+    return;
+  }
+
+  throw new Error("Conversation not found");
+}
+
+/**
+ * Bump conversation preview + modifiedDate after a new message (sidebar parity).
  */
 export async function touchConversationAfterMessage(
   userId: string,
@@ -396,6 +445,17 @@ export async function touchConversationAfterMessage(
   const now = new Date().toISOString();
   const trimmedPreview = previewText.trim() || DEFAULT_PREVIEW_TEXT;
 
+  const client = supabase as unknown as UntypedSupabase;
+  const { error: tableError } = await client
+    .from("chatConversation")
+    .update({ updatedAt: now })
+    .eq("id", conversationId)
+    .eq("userId", userId);
+
+  if (tableError && !isSchemaUnavailable(tableError)) {
+    throw tableError;
+  }
+
   await persistOnboardingConversations(userId, (rows) => {
     let found = false;
     const nextRows = rows.map((row) => {
@@ -403,14 +463,14 @@ export async function touchConversationAfterMessage(
       found = true;
       return {
         ...row,
-        preview_text: trimmedPreview,
-        modified_date: now,
+        previewText: trimmedPreview,
+        modifiedDate: now,
       };
     });
     if (!found) return rows;
     return nextRows.sort((a, b) => {
-      const aTime = a.modified_date ? Date.parse(a.modified_date) : 0;
-      const bTime = b.modified_date ? Date.parse(b.modified_date) : 0;
+      const aTime = a.modifiedDate ? Date.parse(a.modifiedDate) : 0;
+      const bTime = b.modifiedDate ? Date.parse(b.modifiedDate) : 0;
       return bTime - aTime;
     });
   });

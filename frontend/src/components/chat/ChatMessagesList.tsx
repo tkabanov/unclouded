@@ -1,21 +1,29 @@
+import { StickToBottom } from "use-stick-to-bottom";
+
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
+import { ChatAssistantTypingCell } from "./ChatAssistantTypingCell";
 import { ChatMessageCell } from "./ChatMessageCell";
 import type { ChatMessage } from "./types";
 
 export type ChatMessagesListProps = {
   messages: ChatMessage[];
+  isAssistantTyping?: boolean;
   className?: string;
 };
 
 /**
  * Group chat-messages-area (bTISK): scrollable RepeatingGroup bTISM of message cells.
+ * Telegram-style — newest at bottom, viewport pinned to bottom without smooth scroll.
  */
-export function ChatMessagesList({ messages, className }: ChatMessagesListProps) {
+export function ChatMessagesList({
+  messages,
+  isAssistantTyping = false,
+  className,
+}: ChatMessagesListProps) {
   return (
     <div
-      data-bubble-id="bTISK"
       data-style-ref="Group_transparent_"
       className={cn(
         bubbleStyle("Group_transparent_"),
@@ -23,18 +31,28 @@ export function ChatMessagesList({ messages, className }: ChatMessagesListProps)
         className,
       )}
     >
-      <div
-        data-bubble-id="bTISM"
-        data-style-ref="RepeatingGroup_list_"
-        className={cn(
-          bubbleStyle("RepeatingGroup_list_"),
-          "flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4",
-        )}
+      <StickToBottom
+        className="relative flex min-h-0 flex-1 overflow-y-hidden"
+        initial="instant"
+        resize="instant"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
       >
-        {messages.map((message) => (
-          <ChatMessageCell key={message.id} message={message} />
-        ))}
-      </div>
+        <StickToBottom.Content
+          data-style-ref="RepeatingGroup_list_"
+          scrollClassName="[overflow-anchor:none] [scroll-behavior:auto]"
+          className={cn(
+            bubbleStyle("RepeatingGroup_list_"),
+            "flex min-h-full flex-col justify-end gap-4 px-4 py-4",
+          )}
+        >
+          {messages.map((message) => (
+            <ChatMessageCell key={message.id} message={message} />
+          ))}
+          {isAssistantTyping ? <ChatAssistantTypingCell /> : null}
+        </StickToBottom.Content>
+      </StickToBottom>
     </div>
   );
 }

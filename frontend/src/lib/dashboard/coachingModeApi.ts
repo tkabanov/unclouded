@@ -47,7 +47,7 @@ export async function updateCoachingModePreference(
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...(existingOnboardingData ?? {}),
         [COACHING_MODE_LIST_FIELD]: nextList,
       } as never,

@@ -9,7 +9,6 @@ export default function DashboardQuickActions() {
 
   return (
     <div
-      data-bubble-id="ai_RNbBHXRP"
       className={cn(
         bubbleStyle("Group_transparent_"),
         "flex w-full flex-wrap gap-2",
@@ -17,7 +16,6 @@ export default function DashboardQuickActions() {
     >
       <Button
         type="button"
-        data-bubble-id="ai_RNbBHXRQ"
         data-style-ref="Button_accent_"
         className={cn(bubbleStyle("Button_accent_"), "gap-1.5")}
         onClick={() => navigate("/paths")}
@@ -27,7 +25,6 @@ export default function DashboardQuickActions() {
       </Button>
       <Button
         type="button"
-        data-bubble-id="ai_RNbBHXRS"
         data-style-ref="Button_outline_"
         variant="outline"
         className={cn(bubbleStyle("Button_outline_"), "gap-1.5")}

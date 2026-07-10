@@ -13,19 +13,6 @@ import {
   deleteConversation,
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
-import {
-  DELETE_CONVERSATION_ACTIONS_BUBBLE_ID,
-  DELETE_CONVERSATION_BODY_BUBBLE_ID,
-  DELETE_CONVERSATION_CANCEL_BTN_BUBBLE_ID,
-  DELETE_CONVERSATION_CONFIRM_BTN_BUBBLE_ID,
-  DELETE_CONVERSATION_HEADER_BUBBLE_ID,
-  DELETE_CONVERSATION_ICON_BUBBLE_ID,
-  DELETE_CONVERSATION_ICON_WRAP_BUBBLE_ID,
-  DELETE_CONVERSATION_POPUP_BUBBLE_ID,
-  DELETE_CONVERSATION_SUBTITLE_BUBBLE_ID,
-  DELETE_CONVERSATION_TITLE_BUBBLE_ID,
-  DELETE_CONVERSATION_TITLE_WRAP_BUBBLE_ID,
-} from "@/lib/chat/routes";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
@@ -69,41 +56,34 @@ export default function DeleteConversationPopup({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        data-bubble-id={DELETE_CONVERSATION_POPUP_BUBBLE_ID}
         data-style-ref="Popup_dialog_"
         className={cn(bubbleStyle("Popup_dialog_"), "sm:max-w-md")}
       >
         <DialogHeader
-          data-bubble-id={DELETE_CONVERSATION_HEADER_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-0")}
         >
           <div className="flex items-start gap-3">
             <div
-              data-bubble-id={DELETE_CONVERSATION_ICON_WRAP_BUBBLE_ID}
               className={cn(
                 bubbleStyle("Group_transparent_"),
                 "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10",
               )}
             >
               <Trash2
-                data-bubble-id={DELETE_CONVERSATION_ICON_BUBBLE_ID}
                 className={cn(bubbleStyle("Icon_primary_"), "h-5 w-5 text-destructive")}
                 aria-hidden
               />
             </div>
             <div
-              data-bubble-id={DELETE_CONVERSATION_TITLE_WRAP_BUBBLE_ID}
               className={cn(bubbleStyle("Group_transparent_"), "space-y-1 text-left")}
             >
               <DialogTitle
-                data-bubble-id={DELETE_CONVERSATION_TITLE_BUBBLE_ID}
                 data-style-ref="Text_heading_2_"
                 className={cn(bubbleStyle("Text_heading_2_"), "text-left")}
               >
                 Delete Conversation
               </DialogTitle>
               <p
-                data-bubble-id={DELETE_CONVERSATION_SUBTITLE_BUBBLE_ID}
                 data-style-ref="Text_small_"
                 className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}
               >
@@ -114,7 +94,6 @@ export default function DeleteConversationPopup({
         </DialogHeader>
 
         <p
-          data-bubble-id={DELETE_CONVERSATION_BODY_BUBBLE_ID}
           data-style-ref="Text_body_"
           className={cn(bubbleStyle("Text_body_"), "text-sm text-muted-foreground")}
         >
@@ -123,13 +102,11 @@ export default function DeleteConversationPopup({
         </p>
 
         <DialogFooter
-          data-bubble-id={DELETE_CONVERSATION_ACTIONS_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "gap-2 sm:justify-end")}
         >
           <Button
             type="button"
             variant="ghost"
-            data-bubble-id={DELETE_CONVERSATION_CANCEL_BTN_BUBBLE_ID}
             data-style-ref="Button_ghost_"
             className={bubbleStyle("Button_ghost_")}
             onClick={dismiss}
@@ -140,7 +117,6 @@ export default function DeleteConversationPopup({
           <Button
             type="button"
             variant="cta"
-            data-bubble-id={DELETE_CONVERSATION_CONFIRM_BTN_BUBBLE_ID}
             data-delete-confirm-btn
             data-style-ref="Button_primary_"
             className={bubbleStyle("Button_primary_")}

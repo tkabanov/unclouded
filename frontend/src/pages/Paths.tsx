@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import PathsPageHeader from "@/components/paths/PathsPageHeader";
+import { CrisisSupportCard } from "@/components/crisis";
 import PathsTabBar from "@/components/paths/PathsTabBar";
 import PathsGridPanel from "@/components/paths/PathsGridPanel";
 import PathsResourcesPanel from "@/components/paths/PathsResourcesPanel";
@@ -13,25 +14,9 @@ import type { ResourceListItem } from "@/lib/paths/pathsResourcesApi";
 import type { PathEnrollmentListItem } from "@/lib/paths/pathsEnrollmentApi";
 import { PathsEnrollmentProvider } from "@/lib/paths/pathsEnrollmentStore";
 import { usePathsTabStore } from "@/lib/paths/pathsTabStore";
-import {
-  PATHS_CONTENT_BUBBLE_ID,
-  PATHS_GUIDED_PANEL_BUBBLE_ID,
-  PATHS_GUIDED_PANEL_ROOT_BUBBLE_ID,
-  PATHS_HEADER_INSTANCE_BUBBLE_ID,
-  PATHS_MAIN_BUBBLE_ID,
-  PATHS_MODULE_ID,
-  PATHS_PAGE_BUBBLE_ID,
-  PATHS_RESOURCES_PANEL_BUBBLE_ID,
-  PATHS_RESOURCES_PANEL_ROOT_BUBBLE_ID,
-  PATHS_SIDEBAR_INSTANCE_BUBBLE_ID,
-} from "@/lib/paths/routes";
+import { PATHS_MODULE_ID } from "@/lib/paths/routes";
 import { cn } from "@/lib/utils";
 
-const pathsShellProps = {
-  pageBubbleId: PATHS_PAGE_BUBBLE_ID,
-  headerBubbleId: PATHS_HEADER_INSTANCE_BUBBLE_ID,
-  sidebarBubbleId: PATHS_SIDEBAR_INSTANCE_BUBBLE_ID,
-} as const;
 
 function PathsPageBody() {
   const sessionCompletionVisible = useSessionCompletionVisible();
@@ -53,9 +38,8 @@ function PathsPageBody() {
   };
 
   return (
-    <DashboardLayout {...pathsShellProps}>
+    <DashboardLayout >
       <div
-        data-bubble-id={PATHS_MAIN_BUBBLE_ID}
         data-module-owner={PATHS_MODULE_ID}
         className="mx-auto w-full max-w-5xl px-4 pb-8 pt-24 md:px-8"
       >
@@ -63,21 +47,22 @@ function PathsPageBody() {
           <SessionCompletionRoute onReturnToMyPaths={selectMyPaths} />
         ) : (
           <div
-            data-bubble-id={PATHS_CONTENT_BUBBLE_ID}
             className="flex w-full flex-col gap-6"
           >
             <PathsPageHeader />
+            <div>
+              <CrisisSupportCard />
+            </div>
             <PathsTabBar activeTab={activeTab} onSelectTab={setActiveTab} />
 
             <div
               id="paths-guided-panel"
               role="tabpanel"
-              data-bubble-id={PATHS_GUIDED_PANEL_BUBBLE_ID}
               aria-labelledby="paths-tab-my_paths_"
               hidden={!isMyPathsActive}
               className={cn(!isMyPathsActive && "hidden")}
             >
-              <div data-bubble-id={PATHS_GUIDED_PANEL_ROOT_BUBBLE_ID}>
+              <div>
                 <PathsGridPanel onViewDetails={handleViewPathDetails} />
               </div>
             </div>
@@ -85,12 +70,11 @@ function PathsPageBody() {
             <div
               id="paths-resources-panel"
               role="tabpanel"
-              data-bubble-id={PATHS_RESOURCES_PANEL_BUBBLE_ID}
               aria-labelledby="paths-tab-paths_library"
               hidden={!isPathsLibraryActive}
               className={cn(!isPathsLibraryActive && "hidden")}
             >
-              <div data-bubble-id={PATHS_RESOURCES_PANEL_ROOT_BUBBLE_ID}>
+              <div>
                 <PathsResourcesPanel onViewResource={handleViewResource} />
               </div>
             </div>

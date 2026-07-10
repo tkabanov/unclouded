@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DEMO_RESOURCE_SEED } from "@/lib/resources/demoResourceSeed";
 import { isSchemaUnavailable, parseBoolean } from "@/lib/supabase/schemaFallback";
 
-/** Stored in profiles.onboarding_data when resource / uds_resource tables are absent. */
+/** Stored in profiles.onboardingData when resource / uds_resource tables are absent. */
 export const RESOURCES_ONBOARDING_KEY = "resources" as const;
 
 /** Row in paths resources RG (ai_RNbBHYIu) — custom.resource Search parity. */
@@ -20,14 +20,14 @@ export interface ResourceListItem {
 
 type ResourceRow = {
   id?: string;
-  title_text?: string;
-  content_text?: string;
-  primary_mode_tag_text?: string;
-  sub_mode_tag_text?: string;
-  is_free_boolean?: boolean | string | null;
-  sensitivity_flag_text?: string;
-  external_link_text?: string;
-  is_crisis_resource_boolean?: boolean | string | null;
+  title?: string;
+  content?: string;
+  primaryModeTag?: string;
+  subModeTag?: string;
+  isFree?: boolean | string | null;
+  sensitivityFlag?: string;
+  externalLink?: string;
+  isCrisisResource?: boolean | string | null;
 };
 
 type UntypedSupabase = {
@@ -48,19 +48,19 @@ const STATIC_FALLBACK_RESOURCES: ResourceListItem[] = DEMO_RESOURCE_SEED.map((se
 
 function toListItem(row: ResourceRow): ResourceListItem | null {
   if (!row.id) return null;
-  const title = row.title_text?.trim();
+  const title = row.title?.trim();
   if (!title) return null;
 
   return {
     resourceId: row.id,
     title,
-    content: row.content_text?.trim() ?? "",
-    primaryModeTag: row.primary_mode_tag_text?.trim() || undefined,
-    subModeTag: row.sub_mode_tag_text?.trim() || undefined,
-    isFree: parseBoolean(row.is_free_boolean),
-    sensitivityFlag: row.sensitivity_flag_text?.trim() || undefined,
-    externalLink: row.external_link_text?.trim() || undefined,
-    isCrisisResource: parseBoolean(row.is_crisis_resource_boolean),
+    content: row.content?.trim() ?? "",
+    primaryModeTag: row.primaryModeTag?.trim() || undefined,
+    subModeTag: row.subModeTag?.trim() || undefined,
+    isFree: parseBoolean(row.isFree),
+    sensitivityFlag: row.sensitivityFlag?.trim() || undefined,
+    externalLink: row.externalLink?.trim() || undefined,
+    isCrisisResource: parseBoolean(row.isCrisisResource),
   };
 }
 
@@ -83,9 +83,9 @@ async function tryFetchFromTable(table: string): Promise<ResourceListItem[] | nu
   const { data, error } = await client
     .from(table)
     .select(
-      "id, title_text, content_text, primary_mode_tag_text, sub_mode_tag_text, is_free_boolean, sensitivity_flag_text, external_link_text, is_crisis_resource_boolean",
+      "id, title, content, primaryModeTag, subModeTag, isFree, sensitivityFlag, externalLink, isCrisisResource",
     )
-    .eq("is_crisis_resource_boolean", false);
+    .eq("isCrisisResource", false);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -109,7 +109,7 @@ function deriveResources(
 
 /**
  * Bubble ai_RNbBHYIu binding: Search custom.resource rows for paths library cards.
- * Tries resource then uds_resource; falls back to onboarding_data.resources then static seed.
+ * Tries resource then uds_resource; falls back to onboardingData.resources then static seed.
  */
 export async function fetchResources(
   onboardingData?: Record<string, unknown> | null,

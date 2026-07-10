@@ -47,7 +47,6 @@ export default function HeaderProfileDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          data-bubble-id="ai_RNbBHWbH"
           data-style-ref="Button_ghost_"
           className={cn(
             bubbleStyle("Button_ghost_"),
@@ -67,15 +66,13 @@ export default function HeaderProfileDropdown() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        data-bubble-id="ai_RNbBHWfD"
         align="end"
         className="z-50 min-w-[10rem]"
       >
-        <div data-bubble-id="ai_RNbBHWbJ" className="flex flex-col">
+        <div className="flex flex-col">
           <DropdownMenuItem asChild>
             <NavLink
               to="/settings"
-              data-bubble-id="ai_RNbBHWbL"
               data-style-ref="Link_nav_"
               className={cn(
                 bubbleStyle("Link_nav_"),
@@ -88,7 +85,6 @@ export default function HeaderProfileDropdown() {
           </DropdownMenuItem>
 
           <DropdownMenuItem
-            data-bubble-id="ai_RNbBHWbO"
             disabled={loggingOut}
             onSelect={(event) => {
               event.preventDefault();

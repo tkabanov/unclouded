@@ -13,26 +13,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  EDIT_RELAPSE_CANCEL_BTN_BUBBLE_ID,
-  EDIT_RELAPSE_CLOSE_BTN_BUBBLE_ID,
-  EDIT_RELAPSE_DATE_FIELD_BUBBLE_ID,
-  EDIT_RELAPSE_DATE_INPUT_BUBBLE_ID,
-  EDIT_RELAPSE_DATE_LABEL_BUBBLE_ID,
-  EDIT_RELAPSE_DELETE_BTN_BUBBLE_ID,
-  EDIT_RELAPSE_FORM_ACTIONS_BUBBLE_ID,
-  EDIT_RELAPSE_FORM_BUBBLE_ID,
-  EDIT_RELAPSE_HEADER_BUBBLE_ID,
-  EDIT_RELAPSE_NOTES_FIELD_BUBBLE_ID,
-  EDIT_RELAPSE_NOTES_INPUT_BUBBLE_ID,
-  EDIT_RELAPSE_NOTES_LABEL_BUBBLE_ID,
-  EDIT_RELAPSE_POPUP_BUBBLE_ID,
-  EDIT_RELAPSE_POPUP_SUBTITLE_BUBBLE_ID,
-  EDIT_RELAPSE_POPUP_TITLE_BUBBLE_ID,
-  EDIT_RELAPSE_RIGHT_ACTIONS_BUBBLE_ID,
-  EDIT_RELAPSE_SAVE_BTN_BUBBLE_ID,
-  EDIT_RELAPSE_TITLE_GROUP_BUBBLE_ID,
-} from "@/lib/journal/routes";
-import {
   deleteRelapseEvent,
   type RelapseEventListItem,
   updateRelapseEvent,
@@ -72,8 +52,8 @@ export default function EditRelapsePopup({
 
   useEffect(() => {
     if (!open || !event) return;
-    setEventDate(toDateInputValue(event.event_date_date));
-    setNotes(event.notes_text ?? "");
+    setEventDate(toDateInputValue(event.eventDate));
+    setNotes(event.notes ?? "");
   }, [open, event]);
 
   const dismiss = () => onOpenChange(false);
@@ -92,8 +72,8 @@ export default function EditRelapsePopup({
         userId,
         event.id,
         {
-          event_date_date: eventDate || null,
-          notes_text: notes || null,
+          eventDate: eventDate || null,
+          notes: notes || null,
         },
         onboardingData,
       );
@@ -126,16 +106,13 @@ export default function EditRelapsePopup({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        data-bubble-id={EDIT_RELAPSE_POPUP_BUBBLE_ID}
         data-style-ref="Popup_dialog_"
         className={cn(bubbleStyle("Popup_dialog_"), "sm:max-w-lg")}
       >
         <DialogHeader
-          data-bubble-id={EDIT_RELAPSE_HEADER_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-0")}
         >
           <div
-            data-bubble-id={EDIT_RELAPSE_TITLE_GROUP_BUBBLE_ID}
             className={cn(
               bubbleStyle("Group_transparent_"),
               "flex items-start justify-between gap-3 pr-8",
@@ -143,14 +120,12 @@ export default function EditRelapsePopup({
           >
             <div className="space-y-1">
               <DialogTitle
-                data-bubble-id={EDIT_RELAPSE_POPUP_TITLE_BUBBLE_ID}
                 data-style-ref="Text_heading_2_"
                 className={cn(bubbleStyle("Text_heading_2_"), "text-left")}
               >
                 Edit Recovery Event
               </DialogTitle>
               <DialogDescription
-                data-bubble-id={EDIT_RELAPSE_POPUP_SUBTITLE_BUBBLE_ID}
                 data-style-ref="Text_small_"
                 className={cn(bubbleStyle("Text_small_"), "text-left")}
               >
@@ -160,7 +135,6 @@ export default function EditRelapsePopup({
           </div>
           <button
             type="button"
-            data-bubble-id={EDIT_RELAPSE_CLOSE_BTN_BUBBLE_ID}
             data-style-ref="Button_icon_"
             className={cn(
               bubbleStyle("Button_icon_"),
@@ -175,16 +149,13 @@ export default function EditRelapsePopup({
         </DialogHeader>
 
         <div
-          data-bubble-id={EDIT_RELAPSE_FORM_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "space-y-4 py-1")}
         >
           <div
-            data-bubble-id={EDIT_RELAPSE_DATE_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="edit-relapse-date"
-              data-bubble-id={EDIT_RELAPSE_DATE_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -193,7 +164,6 @@ export default function EditRelapsePopup({
             <Input
               id="edit-relapse-date"
               type="date"
-              data-bubble-id={EDIT_RELAPSE_DATE_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={eventDate}
@@ -202,12 +172,10 @@ export default function EditRelapsePopup({
           </div>
 
           <div
-            data-bubble-id={EDIT_RELAPSE_NOTES_FIELD_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
           >
             <label
               htmlFor="edit-relapse-notes"
-              data-bubble-id={EDIT_RELAPSE_NOTES_LABEL_BUBBLE_ID}
               data-style-ref="Text_label_"
               className={cn(bubbleStyle("Text_label_"), "block text-sm font-medium")}
             >
@@ -215,7 +183,6 @@ export default function EditRelapsePopup({
             </label>
             <Textarea
               id="edit-relapse-notes"
-              data-bubble-id={EDIT_RELAPSE_NOTES_INPUT_BUBBLE_ID}
               data-style-ref="MultiLineInput_default_"
               className={cn(bubbleStyle("MultiLineInput_default_"), "resize-none")}
               value={notes}
@@ -227,7 +194,6 @@ export default function EditRelapsePopup({
         </div>
 
         <DialogFooter
-          data-bubble-id={EDIT_RELAPSE_FORM_ACTIONS_BUBBLE_ID}
           className={cn(
             bubbleStyle("Group_transparent_"),
             "flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
@@ -236,7 +202,6 @@ export default function EditRelapsePopup({
           <Button
             type="button"
             variant="destructive"
-            data-bubble-id={EDIT_RELAPSE_DELETE_BTN_BUBBLE_ID}
             data-style-ref="Button_destructive_"
             className={bubbleStyle("Button_destructive_")}
             onClick={handleDelete}
@@ -246,13 +211,11 @@ export default function EditRelapsePopup({
           </Button>
 
           <div
-            data-bubble-id={EDIT_RELAPSE_RIGHT_ACTIONS_BUBBLE_ID}
             className={cn(bubbleStyle("Group_transparent_"), "flex w-full gap-2 sm:w-auto")}
           >
             <Button
               type="button"
               variant="ghost"
-              data-bubble-id={EDIT_RELAPSE_CANCEL_BTN_BUBBLE_ID}
               data-style-ref="Button_ghost_"
               className={cn(bubbleStyle("Button_ghost_"), "flex-1 sm:flex-none")}
               onClick={dismiss}
@@ -263,7 +226,6 @@ export default function EditRelapsePopup({
             <Button
               type="button"
               variant="cta"
-              data-bubble-id={EDIT_RELAPSE_SAVE_BTN_BUBBLE_ID}
               data-style-ref="Button_primary_"
               className={cn(bubbleStyle("Button_primary_"), "flex-1 sm:flex-none")}
               onClick={handleSave}

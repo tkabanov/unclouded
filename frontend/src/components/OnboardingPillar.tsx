@@ -3,13 +3,7 @@ import { ArrowRight, Heart, Briefcase, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
-import {
-  CUSTOMER_PILLAR_ORDER,
-  CUSTOMER_PILLAR_LABELS,
-  CUSTOMER_PILLAR_DESCRIPTIONS,
-  CUSTOMER_PILLAR_BUBBLE_IDS,
-  type CustomerPillarSlug,
-} from "@/lib/enums/customerProfile";
+import { CUSTOMER_PILLAR_ORDER, CUSTOMER_PILLAR_LABELS, CUSTOMER_PILLAR_DESCRIPTIONS, type CustomerPillarSlug } from "@/lib/enums/customerProfile";
 
 interface OnboardingPillarProps {
   firstName: string;
@@ -24,7 +18,6 @@ const PILLAR_ICONS: Record<CustomerPillarSlug, typeof Heart> = {
 
 const pillars = CUSTOMER_PILLAR_ORDER.map((id) => ({
   id,
-  bubbleId: CUSTOMER_PILLAR_BUBBLE_IDS[id],
   label: CUSTOMER_PILLAR_LABELS[id],
   description: CUSTOMER_PILLAR_DESCRIPTIONS[id],
   icon: PILLAR_ICONS[id],
@@ -36,7 +29,6 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div
-        data-bubble-id="bTHJm"
         className={cn(bubbleStyle("Group_transparent_"), "max-w-xl w-full text-center space-y-8")}
       >
         <div className="space-y-3">
@@ -49,7 +41,6 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
         </div>
 
         <div
-          data-bubble-id="bTHOZ"
           className={cn(bubbleStyle("RepeatingGroup_chips_"), "grid gap-3 max-w-sm mx-auto text-left")}
         >
           {pillars.map((pillar) => {
@@ -59,8 +50,6 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
               <button
                 key={pillar.id}
                 type="button"
-                data-bubble-id="bTGNh"
-                data-option-bubble-id={pillar.bubbleId}
                 onClick={() => setSelected(pillar.id)}
                 className={cn(
                   bubbleStyle(isSelected ? "Group_chip_active_" : "Group_chip_"),
@@ -78,11 +67,10 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
                   )}
                 />
                 <div className="min-w-0 flex-1">
-                  <div data-bubble-id="bTGNn" className={bubbleStyle("Text_label_copy_")}>
+                  <div className={bubbleStyle("Text_label_copy_")}>
                     {pillar.label}
                   </div>
                   <div
-                    data-bubble-id="bTGNo"
                     className={cn(
                       bubbleStyle("Text_small_"),
                       "text-xs font-normal",
@@ -93,7 +81,7 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
                   </div>
                 </div>
                 {isSelected && (
-                  <span data-bubble-id="bTHPt" className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
+                  <span className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
                     ✓
                   </span>
                 )}
@@ -103,17 +91,15 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
         </div>
 
         <div
-          data-bubble-id="bTHQR"
           className="flex items-start gap-2 max-w-sm mx-auto rounded-lg bg-primary/5 px-3 py-2.5 text-left"
         >
-          <p data-bubble-id="bTGOj" className={cn(bubbleStyle("Text_inter_13__400__white_copy_"), "text-xs text-muted-foreground")}>
+          <p className={cn(bubbleStyle("Text_inter_13__400__white_copy_"), "text-xs text-muted-foreground")}>
             Select one to continue. You can adjust your focus pillar at any time from your profile.
           </p>
         </div>
 
-        <div data-bubble-id="bTGOk" className="pt-2">
+        <div className="pt-2">
           <Button
-            data-bubble-id="bTGOp"
             variant="cta"
             size="lg"
             onClick={() => selected && onNext(selected)}

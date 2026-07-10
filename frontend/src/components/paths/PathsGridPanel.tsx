@@ -1,20 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { type PathEnrollmentListItem } from "@/lib/paths/pathsEnrollmentApi";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import { PATH_PAGE_TAB_LABELS, PATH_PAGE_TAB } from "@/lib/enums/pathPageTabs";
-import {
-  PATHS_ENROLLMENT_RG_BUBBLE_ID,
-  PATHS_GRID_EMPTY_TEXT,
-  PATHS_GRID_EMPTY_TEXT_BUBBLE_ID,
-  PATHS_GRID_RG_BUBBLE_ID,
-  PATHS_RECOMMENDED_INDICATOR_BUBBLE_ID,
-  PATHS_RECOMMENDED_INDICATOR_DOT_BUBBLE_ID,
-  PATHS_RECOMMENDED_SECTION_BUBBLE_ID,
-  PATHS_RECOMMENDED_TITLE_BUBBLE_ID,
-} from "@/lib/paths/routes";
+import { PATHS_GRID_EMPTY_TEXT } from "@/lib/paths/routes";
 import { Skeleton } from "@/components/ui/skeleton";
 import PathCard from "@/components/paths/PathCard";
 import PathsFilterRow, {
@@ -32,7 +22,6 @@ export default function PathsGridPanel({
   className,
   onViewDetails,
 }: PathsGridPanelProps) {
-  const navigate = useNavigate();
   const { enrollments, loading } = usePathsEnrollmentStore();
   const [selectedTier, setSelectedTier] = useState<PathsTierFilter>(PATHS_TIER_FILTER_ALL);
 
@@ -43,13 +32,9 @@ export default function PathsGridPanel({
 
   const handleViewDetails = useCallback(
     (enrollment: PathEnrollmentListItem) => {
-      if (onViewDetails) {
-        onViewDetails(enrollment);
-        return;
-      }
-      navigate(enrollment.pathSlug ? `/paths/${enrollment.pathSlug}` : "/paths");
+      onViewDetails?.(enrollment);
     },
-    [navigate, onViewDetails],
+    [onViewDetails],
   );
 
   return (
@@ -57,21 +42,17 @@ export default function PathsGridPanel({
       <PathsFilterRow selectedTier={selectedTier} onTierChange={setSelectedTier} />
 
       <div
-        data-bubble-id={PATHS_RECOMMENDED_SECTION_BUBBLE_ID}
         className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-2")}
       >
         <div
-          data-bubble-id={PATHS_RECOMMENDED_INDICATOR_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "flex items-center")}
         >
           <span
-            data-bubble-id={PATHS_RECOMMENDED_INDICATOR_DOT_BUBBLE_ID}
             className="h-2 w-2 rounded-full bg-primary"
             aria-hidden
           />
         </div>
         <h2
-          data-bubble-id={PATHS_RECOMMENDED_TITLE_BUBBLE_ID}
           className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold text-foreground")}
         >
           {PATH_PAGE_TAB_LABELS[PATH_PAGE_TAB.MY_PATHS]}
@@ -79,11 +60,9 @@ export default function PathsGridPanel({
       </div>
 
       <div
-        data-bubble-id={PATHS_ENROLLMENT_RG_BUBBLE_ID}
         className={cn(bubbleStyle("Group_transparent_"), "w-full")}
       >
         <div
-          data-bubble-id={PATHS_GRID_RG_BUBBLE_ID}
           className="grid grid-cols-1 gap-4 md:grid-cols-2"
         >
           {loading ? (
@@ -94,7 +73,6 @@ export default function PathsGridPanel({
           ) : filteredEnrollments.length === 0 ? (
             enrollments.length === 0 ? (
               <p
-                data-bubble-id={PATHS_GRID_EMPTY_TEXT_BUBBLE_ID}
                 className={cn(bubbleStyle("Text_body_"), "col-span-full text-sm")}
               >
                 {PATHS_GRID_EMPTY_TEXT}

@@ -26,6 +26,14 @@ export const AI_COACHING_MODE_LABELS: Record<AiCoachingModeSlug, string> = {
   strategist: "strategist", // bTIEM
 };
 
+/** Chat header badge from system-assigned coaching mode. */
+export function formatChatModeBadgeText(mode: AiCoachingModeSlug | null): string {
+  if (!mode) return "Professional • Executive Coaching";
+  const label = AI_COACHING_MODE_LABELS[mode];
+  const title = label.charAt(0).toUpperCase() + label.slice(1);
+  return `${title} • Executive Coaching`;
+}
+
 export const AI_COACHING_MODE_ORDER: readonly AiCoachingModeSlug[] = [
   AI_COACHING_MODE.PROTECTOR,
   AI_COACHING_MODE.STABILIZER,

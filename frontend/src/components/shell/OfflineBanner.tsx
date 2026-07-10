@@ -14,7 +14,6 @@ export default function OfflineBanner() {
 
   return (
     <div
-      data-bubble-id="bTHvT0"
       data-style-ref="Group_section_"
       className={cn(
         bubbleStyle("Group_section_"),
@@ -24,13 +23,11 @@ export default function OfflineBanner() {
       aria-live="polite"
     >
       <CloudOff
-        data-bubble-id="bTHEi"
         data-style-ref="Icon_muted_"
         aria-hidden
         className={cn(bubbleStyle("Icon_muted_"), "h-5 w-5 shrink-0")}
       />
       <span
-        data-bubble-id="bTHEc"
         data-style-ref="Text_caption_"
         className={bubbleStyle("Text_caption_")}
       >

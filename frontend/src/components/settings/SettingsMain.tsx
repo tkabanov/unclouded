@@ -8,24 +8,15 @@ import SettingsSecurityTab from "@/components/settings/SettingsSecurityTab";
 import SettingsSubscriptionTab from "@/components/settings/SettingsSubscriptionTab";
 import SettingsWorkplaceTab from "@/components/settings/SettingsWorkplaceTab";
 import SettingsAdminShell from "@/components/settings/admin/SettingsAdminShell";
-import {
-  SETTINGS_CONTENT_WRAPPER_BUBBLE_ID,
-  SETTINGS_MAIN_BUBBLE_ID,
-  SETTINGS_MODULE_ID,
-  SETTINGS_PAGE_HEADER_BUBBLE_ID,
-  SETTINGS_PAGE_SUBTITLE_BUBBLE_ID,
-  SETTINGS_PAGE_TITLE_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
-  SETTINGS_TAB,
-  SETTINGS_TAB_ORDER,
-  SETTINGS_TAB_PANEL_BUBBLE_IDS,
-  SETTINGS_TAB_PANELS_BUBBLE_ID,
-  type SettingsTabSlug,
-} from "@/lib/settings/settingsTabStub";
+import { SETTINGS_MODULE_ID } from "@/lib/settings/routes";
+import { SETTINGS_TAB, SETTINGS_TAB_ORDER, type SettingsTabSlug } from "@/lib/settings/settingsTabStub";
 import { useSettingsTabStore } from "@/lib/settings/settingsTabStore";
+import { isSettingsTabSlug } from "@/lib/settings/navigation";
+import { isSettingsAdminUser, visibleSettingsTabs } from "@/lib/settings/isSettingsAdminUser";
+import { useUserProfile } from "@/lib/userProfile";
 import { bubbleStyle } from "@/styles";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const TAB_CONTENT: Partial<Record<SettingsTabSlug, ReactNode>> = {
   [SETTINGS_TAB.PROFILE]: <SettingsProfileTab />,
@@ -39,40 +30,64 @@ const TAB_CONTENT: Partial<Record<SettingsTabSlug, ReactNode>> = {
 };
 
 export default function SettingsMain() {
-  const { activeTab, setActiveTab, isTabActive } = useSettingsTabStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { profile } = useUserProfile();
+  const tabParam = searchParams.get("tab");
+  const isAdmin = isSettingsAdminUser(profile?.roleType);
+  const tabs = visibleSettingsTabs(profile?.roleType);
+  const initialTab =
+    isSettingsTabSlug(tabParam) && tabs.includes(tabParam) ? tabParam : undefined;
+  const { activeTab, setActiveTab, isTabActive } = useSettingsTabStore(initialTab);
+
+  useEffect(() => {
+    if (isSettingsTabSlug(tabParam) && tabs.includes(tabParam) && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam, tabs, activeTab, setActiveTab]);
+
+  useEffect(() => {
+    if (activeTab === SETTINGS_TAB.ADMIN && !isAdmin) {
+      setActiveTab(SETTINGS_TAB.PROFILE);
+      setSearchParams({}, { replace: true });
+    }
+  }, [activeTab, isAdmin, setActiveTab, setSearchParams]);
+
+  const handleSelectTab = (tab: SettingsTabSlug) => {
+    setActiveTab(tab);
+    if (tab === SETTINGS_TAB.PROFILE) {
+      setSearchParams({}, { replace: true });
+      return;
+    }
+    setSearchParams({ tab }, { replace: true });
+  };
 
   return (
     <div
-      data-bubble-id={SETTINGS_MAIN_BUBBLE_ID}
       data-module-owner={SETTINGS_MODULE_ID}
       className="mx-auto w-full max-w-5xl px-4 pb-8 pt-24 md:px-8"
     >
       <div
-        data-bubble-id={SETTINGS_CONTENT_WRAPPER_BUBBLE_ID}
         className="flex w-full flex-col gap-6"
       >
         <header
-          data-bubble-id={SETTINGS_PAGE_HEADER_BUBBLE_ID}
           className="flex flex-col gap-2"
         >
           <h1
-            data-bubble-id={SETTINGS_PAGE_TITLE_BUBBLE_ID}
             className={bubbleStyle("Text_heading_1_")}
           >
             Account Settings
           </h1>
           <p
-            data-bubble-id={SETTINGS_PAGE_SUBTITLE_BUBBLE_ID}
             className={bubbleStyle("Text_body_muted_")}
           >
             Manage your profile, coaching preferences, privacy, and security.
           </p>
         </header>
 
-        <SettingsTabBar activeTab={activeTab} onSelectTab={setActiveTab} />
+        <SettingsTabBar activeTab={activeTab} tabs={tabs} onSelectTab={handleSelectTab} />
 
-        <div data-bubble-id={SETTINGS_TAB_PANELS_BUBBLE_ID} className="w-full">
-          {SETTINGS_TAB_ORDER.map((tab) => (
+        <div className="w-full">
+          {tabs.map((tab) => (
             <SettingsTabPanel key={tab} tab={tab} active={isTabActive(tab)} />
           ))}
         </div>
@@ -91,7 +106,6 @@ function SettingsTabPanel({ tab, active }: SettingsTabPanelProps) {
     <div
       id={settingsTabPanelId(tab)}
       role="tabpanel"
-      data-bubble-id={SETTINGS_TAB_PANEL_BUBBLE_IDS[tab]}
       aria-labelledby={`settings-tab-${tab}`}
       hidden={!active}
       className={cn(!active && "hidden")}

@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const NOTIFICATION_FREQUENCY_KEY = "notification_frequency_text";
+const NOTIFICATION_FREQUENCY_KEY = "notificationFrequency";
 
-/** Bubble ai_RNbBHYYG choices — stored as display text in notification_frequency_text. */
+/** Bubble ai_RNbBHYYG choices — stored as display text in notificationFrequency. */
 export const NOTIFICATION_FREQUENCY_OPTIONS = [
   "Daily — remind me every day",
   "Weekly — remind me once a week",
@@ -19,14 +19,14 @@ export const NOTIFICATION_FREQUENCY_DEFAULT: NotificationFrequency =
 export async function loadNotificationFrequency(userId: string): Promise<NotificationFrequency> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
   const raw = onboarding[NOTIFICATION_FREQUENCY_KEY];
   if (typeof raw === "string" && NOTIFICATION_FREQUENCY_OPTIONS.includes(raw as NotificationFrequency)) {
     return raw as NotificationFrequency;
@@ -40,19 +40,19 @@ export async function saveNotificationFrequency(
 ): Promise<void> {
   const { data, error: readError } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (readError) throw readError;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...onboarding,
         [NOTIFICATION_FREQUENCY_KEY]: frequency,
       } as never,

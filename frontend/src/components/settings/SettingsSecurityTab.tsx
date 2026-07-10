@@ -4,26 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  SECURITY_ACTIONS_ROW_BUBBLE_ID,
-  SECURITY_CARD_HEADER_BUBBLE_ID,
-  SECURITY_CARD_SUBTITLE_BUBBLE_ID,
-  SECURITY_CARD_TITLE_BUBBLE_ID,
-  SECURITY_CHANGE_PWD_BTN_BUBBLE_ID,
-  SECURITY_CONFIRM_PASSWORD_GROUP_BUBBLE_ID,
-  SECURITY_CONFIRM_PASSWORD_INPUT_BUBBLE_ID,
-  SECURITY_CONFIRM_PASSWORD_LABEL_BUBBLE_ID,
-  SECURITY_CURRENT_PASSWORD_GROUP_BUBBLE_ID,
-  SECURITY_CURRENT_PASSWORD_INPUT_BUBBLE_ID,
-  SECURITY_CURRENT_PASSWORD_LABEL_BUBBLE_ID,
-  SECURITY_FORM_BUBBLE_ID,
-  SECURITY_FORM_CARD_BUBBLE_ID,
-  SECURITY_NEW_PASSWORD_GROUP_BUBBLE_ID,
-  SECURITY_NEW_PASSWORD_INPUT_BUBBLE_ID,
-  SECURITY_NEW_PASSWORD_LABEL_BUBBLE_ID,
-  SECURITY_PANEL_BUBBLE_ID,
-  SECURITY_RESET_EMAIL_BTN_BUBBLE_ID,
-} from "@/lib/settings/routes";
-import {
   changePassword,
   SecurityChangePasswordError,
   sendPasswordResetEmail,
@@ -87,34 +67,29 @@ export default function SettingsSecurityTab() {
   }, [sendingReset, user?.email]);
 
   return (
-    <div data-bubble-id={SECURITY_PANEL_BUBBLE_ID} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <div
-        data-bubble-id={SECURITY_FORM_CARD_BUBBLE_ID}
         className={cn(bubbleStyle("Group_card_"), "flex flex-col gap-6 p-6")}
       >
-        <header data-bubble-id={SECURITY_CARD_HEADER_BUBBLE_ID} className="space-y-1">
+        <header className="space-y-1">
           <h2
-            data-bubble-id={SECURITY_CARD_TITLE_BUBBLE_ID}
             className={bubbleStyle("Text_heading_2_")}
           >
             Security
           </h2>
           <p
-            data-bubble-id={SECURITY_CARD_SUBTITLE_BUBBLE_ID}
             className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}
           >
             Update your password and manage active sessions.
           </p>
         </header>
 
-        <div data-bubble-id={SECURITY_FORM_BUBBLE_ID} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <div
-            data-bubble-id={SECURITY_CURRENT_PASSWORD_GROUP_BUBBLE_ID}
             className="flex flex-col gap-2"
           >
             <Label
               htmlFor="security-current"
-              data-bubble-id={SECURITY_CURRENT_PASSWORD_LABEL_BUBBLE_ID}
               className={bubbleStyle("Text_label_")}
             >
               Current Password
@@ -123,7 +98,6 @@ export default function SettingsSecurityTab() {
               id="security-current"
               type="password"
               autoComplete="current-password"
-              data-bubble-id={SECURITY_CURRENT_PASSWORD_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={currentPassword}
@@ -132,12 +106,10 @@ export default function SettingsSecurityTab() {
           </div>
 
           <div
-            data-bubble-id={SECURITY_NEW_PASSWORD_GROUP_BUBBLE_ID}
             className="flex flex-col gap-2"
           >
             <Label
               htmlFor="security-new"
-              data-bubble-id={SECURITY_NEW_PASSWORD_LABEL_BUBBLE_ID}
               className={bubbleStyle("Text_label_")}
             >
               New Password
@@ -146,7 +118,6 @@ export default function SettingsSecurityTab() {
               id="security-new"
               type="password"
               autoComplete="new-password"
-              data-bubble-id={SECURITY_NEW_PASSWORD_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={newPassword}
@@ -155,12 +126,10 @@ export default function SettingsSecurityTab() {
           </div>
 
           <div
-            data-bubble-id={SECURITY_CONFIRM_PASSWORD_GROUP_BUBBLE_ID}
             className="flex flex-col gap-2"
           >
             <Label
               htmlFor="security-confirm"
-              data-bubble-id={SECURITY_CONFIRM_PASSWORD_LABEL_BUBBLE_ID}
               className={bubbleStyle("Text_label_")}
             >
               Confirm New Password
@@ -169,7 +138,6 @@ export default function SettingsSecurityTab() {
               id="security-confirm"
               type="password"
               autoComplete="new-password"
-              data-bubble-id={SECURITY_CONFIRM_PASSWORD_INPUT_BUBBLE_ID}
               data-style-ref="Input_default_"
               className={bubbleStyle("Input_default_")}
               value={confirmPassword}
@@ -179,12 +147,10 @@ export default function SettingsSecurityTab() {
         </div>
 
         <div
-          data-bubble-id={SECURITY_ACTIONS_ROW_BUBBLE_ID}
           className="flex flex-wrap gap-3 border-t border-border pt-4"
         >
           <Button
             type="button"
-            data-bubble-id={SECURITY_CHANGE_PWD_BTN_BUBBLE_ID}
             className={bubbleStyle("Button_primary_")}
             disabled={saving}
             onClick={() => void handleChangePassword()}
@@ -193,7 +159,6 @@ export default function SettingsSecurityTab() {
           </Button>
           <Button
             type="button"
-            data-bubble-id={SECURITY_RESET_EMAIL_BTN_BUBBLE_ID}
             className={bubbleStyle("Button_outline_")}
             disabled={sendingReset || !user?.email}
             onClick={() => void handleResetEmail()}

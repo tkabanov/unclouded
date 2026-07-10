@@ -7,7 +7,7 @@ describe("adminDataSourceNotice", () => {
   });
 
   it("describes onboarding fallback", () => {
-    expect(adminDataSourceNotice("onboarding", "workplaces")).toContain("onboarding_data");
+    expect(adminDataSourceNotice("onboarding", "workplaces")).toContain("onboardingData");
   });
 
   it("describes static demo catalog", () => {

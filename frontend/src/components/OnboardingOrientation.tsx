@@ -15,7 +15,6 @@ const OnboardingOrientation = ({ onNext }: OnboardingOrientationProps) => {
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div
-        data-bubble-id="bTHJm"
         className={cn(bubbleStyle("Group_transparent_"), "max-w-xl w-full text-center space-y-8")}
       >
         <div className="space-y-3">
@@ -24,19 +23,16 @@ const OnboardingOrientation = ({ onNext }: OnboardingOrientationProps) => {
           </h1>
         </div>
 
-        <div data-bubble-id="bTHli" className="space-y-2">
+        <div className="space-y-2">
           <div
-            data-bubble-id="bTHVW"
             className={cn(bubbleStyle("RepeatingGroup_list_"), "grid gap-2 max-w-md mx-auto text-left")}
           >
             {ORIENTATION_ANSWERS.map((opt) => {
               const isSelected = selected === opt.score;
               return (
                 <button
-                  key={opt.bubbleId}
+                  key={opt.slug}
                   type="button"
-                  data-bubble-id="bTHVi"
-                  data-option-bubble-id={opt.bubbleId}
                   onClick={() => setSelected(opt.score)}
                   className={cn(
                     bubbleStyle("Group_transparent_"),
@@ -46,7 +42,7 @@ const OnboardingOrientation = ({ onNext }: OnboardingOrientationProps) => {
                       : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
                   )}
                 >
-                  <span data-bubble-id="bTHVm" className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
+                  <span className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
                     {opt.label}
                   </span>
                 </button>
@@ -55,9 +51,8 @@ const OnboardingOrientation = ({ onNext }: OnboardingOrientationProps) => {
           </div>
         </div>
 
-        <div data-bubble-id="bTGOk" className="pt-2">
+        <div className="pt-2">
           <Button
-            data-bubble-id="bTGOp"
             variant="cta"
             size="lg"
             onClick={() => selected !== null && onNext(selected)}

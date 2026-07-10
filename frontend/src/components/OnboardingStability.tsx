@@ -62,7 +62,7 @@ const OnboardingStability = ({ onNext }: OnboardingStabilityProps) => {
                   const isSelected = answers[q.field] === answer.score;
                   return (
                     <button
-                      key={answer.bubbleId}
+                      key={answer.slug}
                       onClick={() => handleSelect(q.field, answer.score)}
                       className={cn(
                         "w-full text-left px-3.5 py-2.5 rounded-lg border transition-all text-sm",

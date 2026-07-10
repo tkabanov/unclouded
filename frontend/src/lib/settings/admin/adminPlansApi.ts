@@ -26,10 +26,10 @@ export type AdminPlanFormState = {
 
 type PlanRow = {
   id?: string;
-  name_text?: string;
-  price_number?: number | string | null;
-  description_text?: string;
-  features_text?: string;
+  name?: string;
+  price?: number | string | null;
+  description?: string;
+  features?: string;
 };
 
 type UntypedSupabase = {
@@ -42,9 +42,9 @@ export type AdminPlansLoadResult = {
 };
 
 function toAdminPlan(row: PlanRow, isStatic = false): AdminPlanRecord | null {
-  const name = row.name_text?.trim();
+  const name = row.name?.trim();
   if (!name) return null;
-  const priceRaw = row.price_number;
+  const priceRaw = row.price;
   const price =
     typeof priceRaw === "number"
       ? priceRaw
@@ -53,8 +53,8 @@ function toAdminPlan(row: PlanRow, isStatic = false): AdminPlanRecord | null {
         : 0;
 
   const features =
-    typeof row.features_text === "string"
-      ? row.features_text.split("\n").map((line) => line.trim()).filter(Boolean)
+    typeof row.features === "string"
+      ? row.features.split("\n").map((line) => line.trim()).filter(Boolean)
       : [];
 
   const planId = row.id ?? name.toLowerCase().replace(/\s+/g, "-");
@@ -63,7 +63,7 @@ function toAdminPlan(row: PlanRow, isStatic = false): AdminPlanRecord | null {
     planId,
     name,
     price: Number.isFinite(price) ? price : 0,
-    description: row.description_text?.trim() ?? "",
+    description: row.description?.trim() ?? "",
     features,
     isStatic: isStatic || SEEDED_PLAN_IDS.has(planId as PlanId),
   };
@@ -83,14 +83,14 @@ function staticPlans(): AdminPlanRecord[] {
 async function readOnboardingPlans(userId: string): Promise<AdminPlanRecord[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
   const raw = onboarding[ADMIN_PLANS_ONBOARDING_KEY];
   if (!Array.isArray(raw)) return [];
 
@@ -102,19 +102,19 @@ async function readOnboardingPlans(userId: string): Promise<AdminPlanRecord[]> {
 async function writeOnboardingPlans(userId: string, rows: PlanRow[]): Promise<void> {
   const { data, error: readError } = await supabase
     .from("profiles")
-    .select("onboarding_data")
+    .select("onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
   if (readError) throw readError;
 
   const onboarding =
-    (data?.onboarding_data as Record<string, unknown> | null | undefined) ?? {};
+    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      onboarding_data: {
+      onboardingData: {
         ...onboarding,
         [ADMIN_PLANS_ONBOARDING_KEY]: rows,
       } as never,
@@ -127,8 +127,8 @@ async function writeOnboardingPlans(userId: string, rows: PlanRow[]): Promise<vo
 async function tryFetchPlansFromTable(): Promise<AdminPlanRecord[] | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
-    .from("subscription_plan")
-    .select("id, name_text, price_number, description_text, features_text");
+    .from("subscriptionPlan")
+    .select("id, name, price, description, features");
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -178,10 +178,10 @@ export async function createAdminPlan(
 
   const row: PlanRow = {
     id: `plan-${Date.now()}`,
-    name_text: name,
-    price_number: form.price,
-    description_text: form.description.trim(),
-    features_text: form.features
+    name: name,
+    price: form.price,
+    description: form.description.trim(),
+    features: form.features
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean)
@@ -189,7 +189,7 @@ export async function createAdminPlan(
   };
 
   const client = supabase as unknown as UntypedSupabase;
-  const { error: tableError } = await client.from("subscription_plan").insert(row as never);
+  const { error: tableError } = await client.from("subscriptionPlan").insert(row as never);
   if (!tableError) {
     const created = toAdminPlan(row);
     if (!created) throw new Error("Failed to create plan.");
@@ -201,10 +201,10 @@ export async function createAdminPlan(
   const existing = await readOnboardingPlans(userId);
   const stored = existing.map((plan) => ({
     id: plan.planId,
-    name_text: plan.name,
-    price_number: plan.price,
-    description_text: plan.description,
-    features_text: plan.features.join("\n"),
+    name: plan.name,
+    price: plan.price,
+    description: plan.description,
+    features: plan.features.join("\n"),
   }));
 
   await writeOnboardingPlans(userId, [...stored, row]);
@@ -215,7 +215,7 @@ export async function createAdminPlan(
 
 export async function deleteAdminPlan(userId: string, planId: string): Promise<void> {
   const client = supabase as unknown as UntypedSupabase;
-  const { error: tableError } = await client.from("subscription_plan").delete().eq("id", planId);
+  const { error: tableError } = await client.from("subscriptionPlan").delete().eq("id", planId);
   if (!tableError) return;
   if (!isSchemaUnavailable(tableError)) throw tableError;
 
@@ -224,10 +224,10 @@ export async function deleteAdminPlan(userId: string, planId: string): Promise<v
     .filter((plan) => plan.planId !== planId)
     .map((plan) => ({
       id: plan.planId,
-      name_text: plan.name,
-      price_number: plan.price,
-      description_text: plan.description,
-      features_text: plan.features.join("\n"),
+      name: plan.name,
+      price: plan.price,
+      description: plan.description,
+      features: plan.features.join("\n"),
     }));
 
   await writeOnboardingPlans(userId, next);
@@ -237,10 +237,10 @@ function planRowFromForm(form: AdminPlanFormState, planId: string): PlanRow {
   const name = form.name.trim();
   return {
     id: planId,
-    name_text: name,
-    price_number: form.price,
-    description_text: form.description.trim(),
-    features_text: form.features
+    name: name,
+    price: form.price,
+    description: form.description.trim(),
+    features: form.features
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean)
@@ -271,7 +271,7 @@ export async function updateAdminPlan(
   const row = planRowFromForm(form, planId);
 
   const client = supabase as unknown as UntypedSupabase;
-  const { error: tableError } = await client.from("subscription_plan").update(row as never).eq("id", planId);
+  const { error: tableError } = await client.from("subscriptionPlan").update(row as never).eq("id", planId);
   if (!tableError) {
     const updated = toAdminPlan(row);
     if (!updated) throw new Error("Failed to update plan.");

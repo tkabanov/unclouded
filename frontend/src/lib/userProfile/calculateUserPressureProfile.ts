@@ -3,7 +3,7 @@ import { STATE_NERVOUS_SYSTEM } from "@/lib/enums/wellnessState";
 import { resolvePressureProfile } from "./buildPressureProfile";
 import { loadProfileRow, patchOnboardingAndResults } from "./profileFieldPatch";
 
-export const PRESSURE_PROFILE_TEXT_FIELD = "pressure_profile_text" as const;
+export const PRESSURE_PROFILE_TEXT_FIELD = "pressureProfile" as const;
 
 function readSignalRecord(
   onboarding: Record<string, unknown>,
@@ -20,10 +20,10 @@ function readSignalRecord(
 
 /** Bubble API event calculate_user_pressure_profile (bTIBO). */
 export async function calculateUserPressureProfile(userId: string): Promise<string> {
-  const { onboarding_data } = await loadProfileRow(userId);
+  const { onboardingData } = await loadProfileRow(userId);
 
-  const loadSignals = readSignalRecord(onboarding_data, "loadSignals");
-  const stateSignals = readSignalRecord(onboarding_data, "stateSignals");
+  const loadSignals = readSignalRecord(onboardingData, "loadSignals");
+  const stateSignals = readSignalRecord(onboardingData, "stateSignals");
 
   const loadSignalSlugs = extractLoadSignalSlugs(loadSignals);
   const nervousSystemSlug =

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { UserProfileProvider } from "@/lib/userProfile";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import RecoveryHashRedirect from "@/components/RecoveryHashRedirect";
 import { authenticatedRouteDefs } from "@/lib/router/authenticatedRoutes";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -21,6 +22,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <RecoveryHashRedirect />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/reset_pw" element={<ResetPassword />} />

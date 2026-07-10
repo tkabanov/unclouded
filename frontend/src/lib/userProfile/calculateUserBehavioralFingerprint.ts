@@ -1,7 +1,7 @@
 import { resolveBehavioralFingerprint } from "./buildBehavioralFingerprint";
 import { loadProfileRow, patchOnboardingAndResults } from "./profileFieldPatch";
 
-export const BEHAVIORAL_FINGERPRINT_TEXT_FIELD = "behavioral_fingerprint_text" as const;
+export const BEHAVIORAL_FINGERPRINT_TEXT_FIELD = "behavioralFingerprint" as const;
 
 function readBehavioralPatterns(onboarding: Record<string, unknown>): Record<string, string> {
   const raw = onboarding.behavioralPatterns;
@@ -15,8 +15,8 @@ function readBehavioralPatterns(onboarding: Record<string, unknown>): Record<str
 
 /** Bubble API event calculate_user_behavioral_fingerprint (bTIDk). */
 export async function calculateUserBehavioralFingerprint(userId: string): Promise<string> {
-  const { onboarding_data } = await loadProfileRow(userId);
-  const patterns = readBehavioralPatterns(onboarding_data);
+  const { onboardingData } = await loadProfileRow(userId);
+  const patterns = readBehavioralPatterns(onboardingData);
 
   const fingerprint = resolveBehavioralFingerprint(
     patterns.pressure_response_pattern ?? "",

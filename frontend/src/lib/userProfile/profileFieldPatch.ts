@@ -1,22 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function loadProfileRow(userId: string): Promise<{
-  onboarding_data: Record<string, unknown>;
+  onboardingData: Record<string, unknown>;
   results: Record<string, unknown> | null;
 }> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("onboarding_data, results")
+    .select("onboardingData, results")
     .eq("id", userId)
     .single();
 
   if (error) throw error;
 
   const onboarding =
-    data?.onboarding_data &&
-    typeof data.onboarding_data === "object" &&
-    !Array.isArray(data.onboarding_data)
-      ? (data.onboarding_data as Record<string, unknown>)
+    data?.onboardingData &&
+    typeof data.onboardingData === "object" &&
+    !Array.isArray(data.onboardingData)
+      ? (data.onboardingData as Record<string, unknown>)
       : {};
 
   const results =
@@ -24,7 +24,7 @@ export async function loadProfileRow(userId: string): Promise<{
       ? (data.results as Record<string, unknown>)
       : null;
 
-  return { onboarding_data: onboarding, results };
+  return { onboardingData: onboarding, results };
 }
 
 export async function patchOnboardingAndResults(
@@ -32,11 +32,11 @@ export async function patchOnboardingAndResults(
   onboardingPatch: Record<string, unknown>,
   resultsPatch?: Record<string, unknown>,
 ): Promise<void> {
-  const { onboarding_data, results } = await loadProfileRow(userId);
+  const { onboardingData, results } = await loadProfileRow(userId);
 
   const updates: Record<string, unknown> = {
-    onboarding_data: {
-      ...onboarding_data,
+    onboardingData: {
+      ...onboardingData,
       ...onboardingPatch,
     },
   };

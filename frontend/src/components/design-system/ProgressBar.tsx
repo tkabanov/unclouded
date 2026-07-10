@@ -18,7 +18,6 @@ export function ProgressBar({ value, className }: ProgressBarProps) {
 
   return (
     <div
-      data-bubble-id="bTIuS"
       className={cn("w-full", className)}
       role="progressbar"
       aria-valuenow={percent}
@@ -26,12 +25,10 @@ export function ProgressBar({ value, className }: ProgressBarProps) {
       aria-valuemax={100}
     >
       <div
-        data-bubble-id="bTIua"
-        className="flex min-h-[8px] w-full flex-row overflow-hidden rounded-[4px] bg-[var(--color_aiRNbAaxgr_default)]"
+        className="flex min-h-[8px] w-full flex-row overflow-hidden rounded-[4px] bg-muted"
       >
         <div
-          data-bubble-id="bTIuZ"
-          className="min-h-[8px] rounded-[4px] bg-[var(--color_primary_default)]"
+          className="min-h-[8px] rounded-[4px] bg-primary"
           style={{ width: `${percent}%` }}
         />
       </div>

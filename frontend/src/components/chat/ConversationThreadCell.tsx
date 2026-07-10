@@ -1,15 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  CONVERSATION_THREAD_CELL_BUBBLE_ID,
-  CONVERSATION_THREAD_DATE_BUBBLE_ID,
-  CONVERSATION_THREAD_DELETE_ACTIONS_BUBBLE_ID,
-  CONVERSATION_THREAD_DELETE_CONFIRM_BTN_BUBBLE_ID,
-  CONVERSATION_THREAD_DELETE_GROUP_BUBBLE_ID,
-  CONVERSATION_THREAD_DELETE_TRIGGER_BTN_BUBBLE_ID,
-  CONVERSATION_THREAD_PREVIEW_BUBBLE_ID,
-  CONVERSATION_THREAD_TITLE_BUBBLE_ID,
-} from "@/lib/chat/routes";
 import type { ConversationListItem } from "@/lib/chat/chatConversationsApi";
 import { bubbleStyle } from "@/styles";
 
@@ -40,11 +30,10 @@ export default function ConversationThreadCell({
   onDeleteRequest,
   className,
 }: ConversationThreadCellProps) {
-  const formattedDate = formatModifiedDate(conversation.modified_date);
+  const formattedDate = formatModifiedDate(conversation.modifiedDate);
 
   return (
     <div
-      data-bubble-id={CONVERSATION_THREAD_CELL_BUBBLE_ID}
       className={cn(
         "group rounded-lg px-3 py-2.5 transition-colors",
         isActive ? "bg-accent text-foreground" : "hover:bg-accent/50",
@@ -52,17 +41,14 @@ export default function ConversationThreadCell({
       )}
     >
       <div
-        data-bubble-id={CONVERSATION_THREAD_DELETE_GROUP_BUBBLE_ID}
         className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-2")}
       >
         <div
-          data-bubble-id={CONVERSATION_THREAD_TITLE_BUBBLE_ID}
           className={cn(bubbleStyle("Group_transparent_"), "min-w-0 flex-1")}
         >
           <div className="flex items-start justify-between gap-2">
             <button
               type="button"
-              data-bubble-id={CONVERSATION_THREAD_PREVIEW_BUBBLE_ID}
               data-style-ref="Button_ghost_"
               className={cn(
                 bubbleStyle("Button_ghost_"),
@@ -74,7 +60,7 @@ export default function ConversationThreadCell({
                 data-style-ref="Text_body_"
                 className={cn(bubbleStyle("Text_body_"), "block truncate text-sm font-medium")}
               >
-                {conversation.title_text}
+                {conversation.title}
               </span>
               <span
                 data-style-ref="Text_caption_"
@@ -83,18 +69,17 @@ export default function ConversationThreadCell({
                   "mt-0.5 block line-clamp-2 text-xs text-muted-foreground",
                 )}
               >
-                {conversation.preview_text}
+                {conversation.previewText}
               </span>
             </button>
             {formattedDate ? (
               <time
-                data-bubble-id={CONVERSATION_THREAD_DATE_BUBBLE_ID}
                 data-style-ref="Text_caption_"
                 className={cn(
                   bubbleStyle("Text_caption_"),
                   "shrink-0 text-[11px] text-muted-foreground",
                 )}
-                dateTime={conversation.modified_date ?? undefined}
+                dateTime={conversation.modifiedDate ?? undefined}
               >
                 {formattedDate}
               </time>
@@ -103,7 +88,6 @@ export default function ConversationThreadCell({
         </div>
 
         <div
-          data-bubble-id={CONVERSATION_THREAD_DELETE_ACTIONS_BUBBLE_ID}
           className={cn(
             bubbleStyle("Group_transparent_"),
             "flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100",
@@ -112,7 +96,6 @@ export default function ConversationThreadCell({
         >
           <button
             type="button"
-            data-bubble-id={CONVERSATION_THREAD_DELETE_TRIGGER_BTN_BUBBLE_ID}
             data-style-ref="Button_icon_"
             className={cn(
               bubbleStyle("Button_icon_"),
@@ -125,7 +108,6 @@ export default function ConversationThreadCell({
           </button>
           <button
             type="button"
-            data-bubble-id={CONVERSATION_THREAD_DELETE_CONFIRM_BTN_BUBBLE_ID}
             data-style-ref="Button_icon_"
             className={cn(
               bubbleStyle("Button_icon_"),
