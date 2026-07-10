@@ -326,7 +326,7 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("handle everything alone");
   });
 
-  it("includes session memory stubs when stored in onboardingData", () => {
+  it("includes session memory depth when stored in onboardingData", () => {
     const prompt = buildSystemPrompt(
       baseProfile({
         onboardingData: {
@@ -337,14 +337,20 @@ describe("buildSystemPrompt", () => {
               closedAt: "2026-07-01",
               topic: "sleep",
               summaryStub: "Named poor sleep patterns.",
+              emotionalStart: "exhausted",
+              emotionalEnd: "hopeful",
+              keyPatternOrInsight: "evening scrolling loop",
             },
           ],
         },
       }),
     );
 
-    expect(prompt).toContain("SESSION MEMORY (Phase 2 stub");
+    expect(prompt).toContain("SESSION MEMORY (Phase 2 — server-loaded");
     expect(prompt).toContain("topic=sleep");
     expect(prompt).toContain("Named poor sleep patterns");
+    expect(prompt).toContain("emotional-start=exhausted");
+    expect(prompt).toContain("key-pattern=evening scrolling loop");
+    expect(prompt).toContain("resistance=not recorded");
   });
 });

@@ -1,0 +1,11 @@
+-- Two-user RLS proof for session memory persistence (T-009)
+-- Run manually with two authenticated JWT contexts.
+--
+-- As User A (SET LOCAL ROLE authenticated; request.jwt.claim.sub = user_a_id):
+--   UPDATE profiles SET onboardingData = onboardingData || '{"chat_session_memory":[]}'::jsonb
+--     WHERE id = '<user_b_id>';  -- expect 0 rows updated (RLS)
+--   SELECT onboardingData->'chat_session_memory' FROM profiles WHERE id = '<user_b_id>';  -- expect 0 rows
+--
+-- After User A session_finalize on edge:
+--   SELECT onboardingData->'chat_session_memory' FROM profiles WHERE id = '<user_a_id>';  -- expect appended record
+--   SELECT onboardingData->'chat_session_memory' FROM profiles WHERE id = '<user_b_id>';  -- expect unchanged / 0 rows

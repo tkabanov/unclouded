@@ -13,6 +13,8 @@ import {
   enforceFreeTierSessionGate,
 } from "./tierGate.ts";
 import { parseChatRequestBody } from "./parseChatRequestBody.ts";
+import { persistSessionMemory } from "./persistSessionMemory.ts";
+import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,6 +125,10 @@ Deno.serve(async (req: Request) => {
     const system = buildSystemWithLifecycle(profileData, context, lifecycle);
 
     if (lifecycle === "session_finalize") {
+      if (!conversationId) {
+        return jsonError(400, "conversationId is required for session finalize");
+      }
+
       const result = await generateText({
         model,
         system,
@@ -132,6 +138,10 @@ Deno.serve(async (req: Request) => {
       if (!parsed) {
         return jsonError(500, "Failed to parse session finalize payload");
       }
+
+      const coachingModeUsed = resolveCoachingModes(profileData).primary;
+      await persistSessionMemory(supabase, user.id, conversationId, parsed, coachingModeUsed);
+
       return jsonResponse(200, parsed);
     }
 

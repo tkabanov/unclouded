@@ -18,7 +18,6 @@ import {
   finalizeSessionFromThread,
   requestSessionClose,
   requestSessionOpening,
-  saveSessionCloseRecord,
 } from "@/lib/chat/chatSessionLifecycleApi";
 import { readPreferredCoachingMode } from "@/lib/dashboard/coachingModeApi";
 import { formatChatModeBadgeText } from "@/lib/enums/coachingMode";
@@ -155,31 +154,18 @@ export default function ChatPanelMount({
 
   const finalizeSession = useCallback(
     async (thread: ChatMessage[]) => {
-      const payload = await finalizeSessionFromThread(
+      await finalizeSessionFromThread(
         thread,
         profileData,
         context,
         conversationId,
-      );
-      await saveSessionCloseRecord(
-        userId,
-        conversationId,
-        payload,
-        profileData?.onboardingData ?? onboardingData ?? null,
       );
       setAwaitingCommitment(false);
       setSessionClosed(true);
       onSessionClosed?.();
       toast.success("Session saved. Your coach will remember this conversation.");
     },
-    [
-      context,
-      conversationId,
-      onboardingData,
-      onSessionClosed,
-      profileData,
-      userId,
-    ],
+    [context, conversationId, onSessionClosed, profileData],
   );
 
   const sendMessage = useCallback(

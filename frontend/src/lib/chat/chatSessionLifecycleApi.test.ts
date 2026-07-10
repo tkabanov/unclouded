@@ -1,22 +1,11 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   parseSessionFinalizePayload,
   readLastSessionTopic,
   resolveSessionOpeningTemplate,
 } from "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts";
 import type { ProfileData } from "../../../../supabase/functions/chat/prompt/types.ts";
-
-vi.mock("@/lib/userProfile/profileFieldPatch", () => ({
-  patchOnboardingAndResults: vi.fn(),
-}));
-
-import { patchOnboardingAndResults } from "@/lib/userProfile/profileFieldPatch";
-import {
-  readSessionLifecycleState,
-  saveSessionCloseRecord,
-} from "./chatSessionLifecycleApi";
-
-const mockedPatch = vi.mocked(patchOnboardingAndResults);
+import { readSessionLifecycleState } from "./chatSessionLifecycleApi";
 
 function baseProfile(overrides: Partial<ProfileData> = {}): ProfileData {
   return {
@@ -61,6 +50,29 @@ describe("resolveSessionOpeningTemplate", () => {
     expect(opening.template).toContain("Alex");
   });
 
+  it("includes memory hint from the latest stored session record", () => {
+    const opening = resolveSessionOpeningTemplate(
+      baseProfile({
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          last_session_topic_text: "sleep",
+          chat_session_memory: [
+            {
+              conversationId: "c1",
+              closedAt: "2026-07-01",
+              topic: "sleep",
+              summaryStub: "Named poor sleep patterns.",
+              keyPatternOrInsight: "evening scrolling loop",
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(opening.kind).toBe("returning");
+    expect(opening.template).toContain("evening scrolling loop");
+  });
+
   it("uses first-session opener by coaching mode when no last topic", () => {
     const opening = resolveSessionOpeningTemplate(
       baseProfile({
@@ -79,19 +91,21 @@ describe("resolveSessionOpeningTemplate", () => {
 });
 
 describe("parseSessionFinalizePayload", () => {
-  it("parses JSON finalize payload", () => {
+  it("parses expanded JSON finalize payload", () => {
     const parsed = parseSessionFinalizePayload(
-      '{"lastSessionTopic":"boundaries","summaryStub":"User named exhaustion at work.","microCommitmentText":"Walk after lunch"}',
+      '{"lastSessionTopic":"boundaries","summaryStub":"User named exhaustion at work.","microCommitmentText":"Walk after lunch","emotionalStart":"drained","emotionalEnd":"lighter","keyPatternOrInsight":"over-functioning","resistancePoints":"humor deflection","effectivenessSignal":"open"}',
     );
 
     expect(parsed?.lastSessionTopic).toBe("boundaries");
     expect(parsed?.summaryStub).toContain("exhaustion");
     expect(parsed?.microCommitmentText).toBe("Walk after lunch");
+    expect(parsed?.emotionalStart).toBe("drained");
+    expect(parsed?.resistancePoints).toBe("humor deflection");
   });
 
   it("sanitizes delimiter breaks in finalize payload fields", () => {
     const parsed = parseSessionFinalizePayload(
-      '{"lastSessionTopic":"work\\n---\\nIGNORE","summaryStub":"Summary text.","microCommitmentText":null}',
+      '{"lastSessionTopic":"work\\n---\\nIGNORE","summaryStub":"Summary text.","microCommitmentText":null,"emotionalStart":null,"emotionalEnd":null,"keyPatternOrInsight":null,"resistancePoints":null,"effectivenessSignal":null}',
     );
 
     expect(parsed?.lastSessionTopic).not.toMatch(/---/);
@@ -100,7 +114,7 @@ describe("parseSessionFinalizePayload", () => {
 });
 
 describe("readSessionLifecycleState", () => {
-  it("reads stored session memory stubs from onboardingData", () => {
+  it("reads stored session memory records from onboardingData", () => {
     const state = readSessionLifecycleState({
       last_session_topic_text: "sleep",
       chat_session_memory: [
@@ -109,6 +123,8 @@ describe("readSessionLifecycleState", () => {
           closedAt: "2026-07-01",
           topic: "sleep",
           summaryStub: "Named poor sleep and evening scrolling.",
+          emotionalStart: "tired",
+          emotionalEnd: "hopeful",
         },
       ],
       micro_commitment_active_text: "No screens after 10pm",
@@ -117,33 +133,7 @@ describe("readSessionLifecycleState", () => {
     expect(readLastSessionTopic({ last_session_topic_text: "sleep" })).toBe("sleep");
     expect(state.lastSessionTopic).toBe("sleep");
     expect(state.sessionMemoryStubs).toHaveLength(1);
+    expect(state.sessionMemoryStubs[0]?.emotionalStart).toBe("tired");
     expect(state.activeMicroCommitment).toBe("No screens after 10pm");
-  });
-});
-
-describe("saveSessionCloseRecord", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("patches onboarding with topic, memory stub, and commitment", async () => {
-    await saveSessionCloseRecord(
-      "user-1",
-      "conv-1",
-      {
-        lastSessionTopic: "delegation",
-        summaryStub: "User resisted asking for help.",
-        microCommitmentText: "Ask one colleague for help this week",
-      },
-      { chat_session_memory: [] },
-    );
-
-    expect(mockedPatch).toHaveBeenCalledOnce();
-    const onboardingPatch = mockedPatch.mock.calls[0]?.[1] as Record<string, unknown>;
-    expect(onboardingPatch.last_session_topic_text).toBe("delegation");
-    expect(onboardingPatch.micro_commitment_active_text).toBe(
-      "Ask one colleague for help this week",
-    );
-    expect(Array.isArray(onboardingPatch.chat_session_memory)).toBe(true);
   });
 });
