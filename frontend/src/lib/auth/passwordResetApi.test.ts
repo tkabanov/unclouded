@@ -7,6 +7,7 @@ import {
 const resetPasswordForEmail = vi.fn();
 const getSession = vi.fn();
 const updateUser = vi.fn();
+const getAppOrigin = vi.fn(() => "https://app.example.com");
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
@@ -18,17 +19,15 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
+vi.mock("@/lib/appUrl", () => ({
+  getAppOrigin: () => getAppOrigin(),
+}));
+
 describe("passwordResetApi", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     resetRecoveryAuthorizationState();
-    vi.stubGlobal("window", {
-      location: { origin: "https://app.example.com" },
-    });
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
+    getAppOrigin.mockReturnValue("https://app.example.com");
   });
 
   it("requestPasswordResetEmail resolves even when send fails", async () => {
@@ -46,6 +45,18 @@ describe("passwordResetApi", () => {
 
     expect(resetPasswordForEmail).toHaveBeenCalledWith("user@example.com", {
       redirectTo: "https://app.example.com/reset_pw",
+    });
+  });
+
+  it("sendPasswordResetEmail prefers configured app origin", async () => {
+    getAppOrigin.mockReturnValue("http://127.0.0.1:3000");
+    const { sendPasswordResetEmail } = await import("@/lib/auth/passwordResetApi");
+    resetPasswordForEmail.mockResolvedValue({ error: null });
+
+    await sendPasswordResetEmail("user@example.com");
+
+    expect(resetPasswordForEmail).toHaveBeenCalledWith("user@example.com", {
+      redirectTo: "http://127.0.0.1:3000/reset_pw",
     });
   });
 

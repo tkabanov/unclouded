@@ -1,64 +1,61 @@
-import { createLovableAiGatewayProvider } from "../_shared/ai-gateway.ts";
 import { convertToModelMessages, streamText, type UIMessage } from "npm:ai";
+import { createChatModel } from "../_shared/openai-provider.ts";
+import { buildSystemPrompt, type ProfileData } from "./buildSystemPrompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are the Uncloud360 AI coach — a warm, grounded, and practical coaching companion.
+function jsonError(status: number, error: string): Response {
+  return new Response(JSON.stringify({ error }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
-Core rules:
-- You provide COACHING ONLY. You are not a therapist, doctor, or crisis service. Never diagnose, never give medical, psychiatric, or medication advice.
-- If a person expresses thoughts of self-harm, suicide, abuse, or is in crisis, gently and clearly encourage them to reach immediate human help: call or text 988 (Suicide & Crisis Lifeline, US), text HOME to 741741 (Crisis Text Line), or call 911 in an emergency. Do not attempt to counsel them through the crisis yourself.
-- Keep responses focused, human, and concise. Ask one thoughtful question at a time rather than overwhelming the person.
-- Reflect what you hear, name patterns kindly, and offer small, concrete next steps the person can actually take.
-- Speak with calm confidence and warmth. Avoid clinical jargon and avoid toxic positivity.
-- Use light markdown (short paragraphs, occasional bullet points) so replies are easy to read.
-
-Your goal is to help the person gain clarity and move forward one small step at a time.`;
-
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const key = Deno.env.get("LOVABLE_API_KEY");
-    if (!key) {
-      return new Response(JSON.stringify({ error: "Missing LOVABLE_API_KEY" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let model;
+    try {
+      model = createChatModel();
+    } catch (configError) {
+      const message = configError instanceof Error ? configError.message : "AI not configured";
+      return jsonError(500, message);
     }
 
-    const { messages, context } = (await req.json()) as {
+    const { messages, context, profileData } = (await req.json()) as {
       messages?: UIMessage[];
       context?: string;
+      profileData?: ProfileData;
     };
 
     if (!Array.isArray(messages)) {
-      return new Response(JSON.stringify({ error: "Messages are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonError(400, "Messages are required");
     }
-
-    const gateway = createLovableAiGatewayProvider(key);
-    const model = gateway("google/gemini-3-flash-preview");
 
     const result = streamText({
       model,
-      system: context ? `${SYSTEM_PROMPT}\n\nContext about this person:\n${context}` : SYSTEM_PROMPT,
+      system: buildSystemPrompt(profileData, context),
       messages: await convertToModelMessages(messages),
     });
 
     return result.toUIMessageStreamResponse({ headers: corsHeaders });
   } catch (err) {
     console.error("chat error", err);
-    return new Response(JSON.stringify({ error: "Chat failed" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+
+    const message = err instanceof Error ? err.message.toLowerCase() : "";
+    if (message.includes("insufficient_quota") || message.includes("exceeded your current quota")) {
+      return jsonError(402, "OpenAI quota exceeded");
+    }
+    if (message.includes("rate limit")) {
+      return jsonError(429, "Rate limit exceeded");
+    }
+
+    return jsonError(500, "Chat failed");
   }
 });
