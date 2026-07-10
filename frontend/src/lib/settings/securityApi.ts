@@ -34,9 +34,4 @@ export async function changePassword(
   if (error) throw error;
 }
 
-export async function sendPasswordResetEmail(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset_pw`,
-  });
-  if (error) throw error;
-}
+export { sendPasswordResetEmail } from "@/lib/auth/passwordResetApi";

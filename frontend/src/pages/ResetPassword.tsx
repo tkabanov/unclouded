@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import CrisisBar from "@/components/CrisisBar";
 import { useAuth } from "@/hooks/useAuth";
+import { usePasswordRecoveryReady } from "@/hooks/usePasswordRecoveryReady";
+import { completePasswordRecovery, PasswordRecoveryError } from "@/lib/auth/passwordResetApi";
 import { bubbleStyle } from "@/lib/bubbleStyles";
 import { toast } from "sonner";
 
@@ -22,7 +24,8 @@ const resetSchema = z
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const { resetPassword, loading: authLoading } = useAuth();
+  const { signOut, loading: authLoading } = useAuth();
+  const recoveryReady = usePasswordRecoveryReady();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -38,14 +41,15 @@ const ResetPassword = () => {
 
     setSubmitting(true);
     try {
-      await resetPassword(parsed.data.password);
+      await completePasswordRecovery(parsed.data.password);
+      await signOut();
       toast.success("Password updated — you can sign in with your new password.");
       navigate("/");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to reset password";
-      if (message.toLowerCase().includes("session")) {
-        toast.error("This reset link is invalid or has expired. Request a new one.");
+      if (err instanceof PasswordRecoveryError) {
+        toast.error(err.message);
       } else {
+        const message = err instanceof Error ? err.message : "Failed to reset password";
         toast.error(message);
       }
     } finally {
@@ -53,18 +57,47 @@ const ResetPassword = () => {
     }
   };
 
-  const loading = authLoading || submitting;
+  const loading = authLoading || submitting || recoveryReady === "loading";
+
+  if (recoveryReady === "invalid") {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <CrisisBar />
+
+        <main className="mx-auto flex w-full max-w-[420px] flex-1 flex-col items-center gap-8 px-5 py-[100px]">
+          <h1
+            data-style-ref="Text_heading_1_"
+            className={`text-center ${bubbleStyle("Text_heading_1_")}`}
+          >
+            Reset link invalid or expired
+          </h1>
+
+          <div className="flex w-full flex-col gap-6 rounded-lg border border-border p-6">
+            <p className="text-base text-muted-foreground">
+              This password reset link is no longer valid. Request a new link from the sign-in page.
+            </p>
+            <Button
+              asChild
+              data-style-ref="Button_primary_"
+              variant="cta"
+              className={`h-12 w-full text-base ${bubbleStyle("Button_primary_")}`}
+            >
+              <Link to="/">Back to sign in</Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div data-bubble-id="AAL" className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <CrisisBar />
 
       <main
-        data-bubble-id="bTGyM0"
         className="mx-auto flex w-full max-w-[420px] flex-1 flex-col items-center gap-8 px-5 py-[100px]"
       >
         <h1
-          data-bubble-id="bTGyx0"
           data-style-ref="Text_heading_1_"
           className={`text-center ${bubbleStyle("Text_heading_1_")}`}
         >
@@ -72,46 +105,42 @@ const ResetPassword = () => {
         </h1>
 
         <div
-          data-bubble-id="bTGyf0"
           className="flex w-full flex-col gap-6 rounded-lg border border-border p-6"
         >
           <form
             id="reset-password-form"
-            data-bubble-id="bTGyg0"
             onSubmit={handleSubmit}
             className="flex flex-col gap-6"
           >
-            <div data-bubble-id="bTGyh0" className="flex flex-col gap-1">
-              <Label data-bubble-id="bTGyi0" htmlFor="reset-confirm-password" className="text-base">
-                Confirm new password
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="reset-password" className="text-base">
+                New password
               </Label>
               <Input
-                data-bubble-id="bTGyj0"
                 data-style-ref="Input_default_"
-                id="reset-confirm-password"
+                id="reset-password"
                 type="password"
                 autoComplete="new-password"
                 autoFocus
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className={bubbleStyle("Input_default_")}
                 placeholder="********"
                 disabled={loading}
               />
             </div>
 
-            <div data-bubble-id="bTGyn0" className="flex flex-col gap-1">
-              <Label data-bubble-id="bTGyo0" htmlFor="reset-password" className="text-base">
-                New password
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="reset-confirm-password" className="text-base">
+                Confirm new password
               </Label>
               <Input
-                data-bubble-id="bTGyp0"
                 data-style-ref="Input_default_"
-                id="reset-password"
+                id="reset-confirm-password"
                 type="password"
                 autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className={bubbleStyle("Input_default_")}
                 placeholder="********"
                 disabled={loading}
@@ -120,7 +149,6 @@ const ResetPassword = () => {
           </form>
 
           <Button
-            data-bubble-id="bTGyw0"
             data-style-ref="Button_primary_"
             type="submit"
             form="reset-password-form"

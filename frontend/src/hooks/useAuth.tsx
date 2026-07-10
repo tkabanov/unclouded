@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { completePasswordRecovery } from "@/lib/auth/passwordResetApi";
+import { clearRecoveryAuthorization, subscribePasswordRecovery } from "@/lib/auth/recoverySession";
 
 interface AuthContextType {
   user: User | null;
@@ -18,6 +20,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const unsubscribeRecovery = subscribePasswordRecovery();
+
     // Register listener first, then hydrate the existing session.
     const {
       data: { subscription },
@@ -33,16 +37,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      unsubscribeRecovery();
+    };
   }, []);
 
   const signOut = async () => {
+    clearRecoveryAuthorization();
     await supabase.auth.signOut();
   };
 
   const resetPassword = async (newPassword: string) => {
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) throw error;
+    await completePasswordRecovery(newPassword);
   };
 
   return (
