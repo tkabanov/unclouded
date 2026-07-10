@@ -35,8 +35,16 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { saveOnboarding, persistOnboardingDraft, refresh, profile, loading: profileLoading } = useUserProfile();
+  const {
+    saveOnboarding,
+    markOnboardingComplete,
+    persistOnboardingDraft,
+    refresh,
+    profile,
+    loading: profileLoading,
+  } = useUserProfile();
   const [step, setStep] = useState<OnboardingStepSlug>(ONBOARDING_STEP.WELCOME);
+  const [completingOnboarding, setCompletingOnboarding] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [roleType, setRoleType] = useState("");
   const [primaryPillar, setPrimaryPillar] = useState("");
@@ -95,17 +103,18 @@ const Onboarding = () => {
   }, [step]);
 
   useEffect(() => {
-    if (profileLoading || searchParams.get("reassessment") === "1") return;
+    if (profileLoading || completingOnboarding || searchParams.get("reassessment") === "1") return;
     if (isOnboardingComplete(profile)) {
       navigate("/dashboard", { replace: true });
     }
-  }, [profile, profileLoading, navigate, searchParams]);
+  }, [profile, profileLoading, completingOnboarding, navigate, searchParams]);
 
   const handleComplete = async () => {
     if (!user) {
       console.error("Failed to complete onboarding: not authenticated");
       return;
     }
+    setCompletingOnboarding(true);
     try {
       await completeOnboarding(
         {
@@ -121,10 +130,19 @@ const Onboarding = () => {
           behavioralPatterns,
           healthFlags,
         },
-        { userId: user.id, userEmail: user.email ?? undefined, saveOnboarding, refreshProfile: refresh, navigate }
+        {
+          userId: user.id,
+          userEmail: user.email ?? undefined,
+          saveOnboarding,
+          markOnboardingComplete,
+          refreshProfile: refresh,
+          navigate,
+        }
       );
     } catch (err) {
       console.error("Failed to complete onboarding", err);
+    } finally {
+      setCompletingOnboarding(false);
     }
   };
 

@@ -2,7 +2,7 @@ import { computeResults } from "@/lib/classification";
 import { scheduleWelcomeEmailAfterOnboarding } from "@/lib/email/transactionalEmailHooks";
 import type { HealthFlagsPayload } from "@/lib/enums/onboardingQuestions";
 import { runOnboardingProfilePipeline } from "@/lib/userProfile/onboardingProfilePipeline";
-import type { OnboardingPayload } from "@/lib/userProfile";
+import type { OnboardingPayload, SaveOnboardingOptions } from "@/lib/userProfile";
 
 export const ONBOARDING_COMPLETE_ROUTE = "/dashboard" as const;
 
@@ -30,7 +30,8 @@ export interface OnboardingCompletionData {
 export interface CompleteOnboardingDeps {
   userId: string;
   userEmail?: string;
-  saveOnboarding: (payload: OnboardingPayload) => Promise<void>;
+  saveOnboarding: (payload: OnboardingPayload, options?: SaveOnboardingOptions) => Promise<void>;
+  markOnboardingComplete: () => Promise<void>;
   /** Reload profile context after pipeline patches coaching modes (API-05 / DASH-02). */
   refreshProfile?: () => Promise<void>;
   navigate: (path: string) => void;
@@ -48,7 +49,14 @@ export function canCompleteOnboarding(data: OnboardingCompletionData): boolean {
  */
 export async function completeOnboarding(
   data: OnboardingCompletionData,
-  { userId, userEmail, saveOnboarding, refreshProfile, navigate }: CompleteOnboardingDeps
+  {
+    userId,
+    userEmail,
+    saveOnboarding,
+    markOnboardingComplete,
+    refreshProfile,
+    navigate,
+  }: CompleteOnboardingDeps
 ): Promise<void> {
   if (!canCompleteOnboarding(data)) {
     throw new Error("Required onboarding signals are not complete");
@@ -65,7 +73,7 @@ export async function completeOnboarding(
     data.healthFlags
   );
 
-  await saveOnboarding({
+  const payload: OnboardingPayload = {
     firstName: data.firstName,
     roleType: data.roleType,
     primaryPillar: data.primaryPillar,
@@ -80,20 +88,14 @@ export async function completeOnboarding(
       behavioralPatterns: data.behavioralPatterns,
       healthFlags: data.healthFlags,
     },
-  });
+  };
 
-  if (refreshProfile) {
-    await refreshProfile();
-  }
+  // Persist answers without marking complete — prevents dashboard redirect before pipeline runs.
+  await saveOnboarding(payload, { markComplete: false, refresh: false });
 
-  try {
-    await runOnboardingProfilePipeline(userId);
-    if (refreshProfile) {
-      await refreshProfile();
-    }
-  } catch (pipelineError) {
-    console.error("Onboarding profile pipeline failed", pipelineError);
-  }
+  await runOnboardingProfilePipeline(userId);
+
+  await markOnboardingComplete();
 
   scheduleWelcomeEmailAfterOnboarding({
     userId,

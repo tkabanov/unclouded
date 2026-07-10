@@ -1,5 +1,30 @@
 import { supabase } from "@/integrations/supabase/client";
 
+/** onboardingData keys mirrored onto profiles columns (Bubble user table parity). */
+const ONBOARDING_TO_PROFILE_COLUMN: Record<string, string> = {
+  stabilityScore: "stabilityScore",
+  alignmentScore: "alignmentScore",
+  performanceScore: "performanceScore",
+  orientationScore: "orientationScore",
+  orientation_score1_number: "orientationScore",
+  classification: "classification",
+  pressureProfile: "pressureProfile",
+  behavioralFingerprint: "behavioralFingerprint",
+  aiConfidenceLevel: "aiConfidenceLevel",
+};
+
+function profileColumnsFromOnboardingPatch(
+  onboardingPatch: Record<string, unknown>,
+): Record<string, unknown> {
+  const profilePatch: Record<string, unknown> = {};
+  for (const [onboardingKey, profileKey] of Object.entries(ONBOARDING_TO_PROFILE_COLUMN)) {
+    if (onboardingKey in onboardingPatch) {
+      profilePatch[profileKey] = onboardingPatch[onboardingKey];
+    }
+  }
+  return profilePatch;
+}
+
 export async function loadProfileRow(userId: string): Promise<{
   onboardingData: Record<string, unknown>;
   results: Record<string, unknown> | null;
@@ -35,6 +60,7 @@ export async function patchOnboardingAndResults(
   const { onboardingData, results } = await loadProfileRow(userId);
 
   const updates: Record<string, unknown> = {
+    ...profileColumnsFromOnboardingPatch(onboardingPatch),
     onboardingData: {
       ...onboardingData,
       ...onboardingPatch,

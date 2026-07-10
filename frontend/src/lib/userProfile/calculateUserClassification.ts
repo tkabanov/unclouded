@@ -53,7 +53,10 @@ export async function calculateUserClassification(userId: string): Promise<strin
 
   await patchOnboardingAndResults(
     userId,
-    { [CLASSIFICATION_OPTION_FIELD]: classification_os },
+    {
+      [CLASSIFICATION_OPTION_FIELD]: classification_os,
+      orientationScore: resolvedOrientation,
+    },
     { classification },
   );
 

@@ -22,7 +22,7 @@ export function readQuestionScores(
       : null;
 
   const readOne = (index: number): number => {
-    const field = `${prefix}q${index}`;
+    const field = `${prefix}${index}`;
     const bubbleField = `${field}_number`;
     const raw =
       onboardingData[bubbleField] ??
@@ -103,6 +103,7 @@ export async function patchPillarScoreNumber(
       : null;
 
   const updates: Record<string, unknown> = {
+    [scoreField]: score,
     onboardingData: {
       ...existingOnboarding,
       [scoreField]: score,

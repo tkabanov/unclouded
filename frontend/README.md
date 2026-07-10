@@ -21,6 +21,14 @@ Dev server runs at http://localhost:3000.
 
 ## Supabase
 
-Migrations and edge functions live in `../supabase/` at the repo root. Copy env vars from the Supabase project dashboard into `.env`.
+Migrations and edge functions live in `../supabase/` at the repo root. Copy env vars from `frontend/.env.example` into `.env` (publishable key from the Supabase Dashboard).
 
 Transactional email (US-606): branded Auth templates and ops guide in `../supabase/EMAIL_TEMPLATES.md`. App hooks in `src/lib/email/`.
+
+## Production deploy
+
+CI (`.github/workflows/frontend-ci.yml`) verifies lint/test/build only — **publish is manual**.
+
+**Production URL:** https://uncloud360.vercel.app
+
+See `../supabase/functions/chat/DEPLOY.md` § **Frontend production hosting** for Vercel publish steps and `VITE_*` env (`szkextipgpupqoppccoy`).

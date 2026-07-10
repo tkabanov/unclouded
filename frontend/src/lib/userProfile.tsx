@@ -34,6 +34,13 @@ export interface OnboardingPayload {
   onboardingData: Record<string, unknown>;
 }
 
+export interface SaveOnboardingOptions {
+  /** When false, keeps onboardingCompleted false until markOnboardingComplete runs. */
+  markComplete?: boolean;
+  /** When false, skips reloading profile context (avoids premature dashboard redirect). */
+  refresh?: boolean;
+}
+
 export interface OnboardingDraftPayload {
   firstName?: string;
   roleType?: string;
@@ -50,7 +57,8 @@ export interface ReassessmentPayload {
 interface UserProfileContextType {
   profile: UserProfile | null;
   loading: boolean;
-  saveOnboarding: (payload: OnboardingPayload) => Promise<void>;
+  saveOnboarding: (payload: OnboardingPayload, options?: SaveOnboardingOptions) => Promise<void>;
+  markOnboardingComplete: () => Promise<void>;
   persistOnboardingDraft: (payload: OnboardingDraftPayload) => Promise<void>;
   saveReassessment: (payload: ReassessmentPayload) => Promise<void>;
   simulate90DaysElapsed: () => Promise<void>;
@@ -113,8 +121,10 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   }, [authLoading, loadProfile]);
 
   const saveOnboarding = useCallback(
-    async (payload: OnboardingPayload) => {
+    async (payload: OnboardingPayload, options?: SaveOnboardingOptions) => {
       if (!user) throw new Error("Not authenticated");
+      const markComplete = options?.markComplete ?? true;
+      const refresh = options?.refresh ?? true;
       const completedAt = new Date().toISOString();
       const { data, error } = await supabase
         .from("profiles")
@@ -127,8 +137,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             primaryPillar: payload.primaryPillar,
             results: payload.results as unknown as never,
             onboardingData: payload.onboardingData as unknown as never,
-            onboardingCompleted: true,
-            onboardingCompletedAt: completedAt,
+            onboardingCompleted: markComplete,
+            onboardingCompletedAt: markComplete ? completedAt : null,
           },
           { onConflict: "id" },
         )
@@ -137,10 +147,26 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       if (!data) throw new Error("Failed to persist onboarding profile");
-      await loadProfile();
+      if (refresh) {
+        await loadProfile();
+      }
     },
     [user, loadProfile]
   );
+
+  const markOnboardingComplete = useCallback(async () => {
+    if (!user) throw new Error("Not authenticated");
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        onboardingCompleted: true,
+        onboardingCompletedAt: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (error) throw error;
+    await loadProfile();
+  }, [user, loadProfile]);
 
   const persistOnboardingDraft = useCallback(
     async (payload: OnboardingDraftPayload) => {
@@ -263,6 +289,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         profile,
         loading,
         saveOnboarding,
+        markOnboardingComplete,
         persistOnboardingDraft,
         saveReassessment,
         simulate90DaysElapsed,
