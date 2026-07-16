@@ -16,6 +16,7 @@ const REQUIRED_LOAD_SIGNAL_FIELDS = [
 
 export interface OnboardingCompletionData {
   firstName: string;
+  lastName: string;
   roleType: string;
   primaryPillar: string;
   stabilityScores: Record<string, number>;
@@ -76,6 +77,7 @@ export async function completeOnboarding(
 
   const payload: OnboardingPayload = {
     firstName: data.firstName,
+    lastName: data.lastName,
     roleType: data.roleType,
     primaryPillar: data.primaryPillar,
     results,

@@ -51,6 +51,8 @@ export interface EntryDetailPopupProps {
   entry: JournalEntryListItem | null;
   userId: string;
   onboardingData?: Record<string, unknown> | null;
+  /** Pro/Premium only — hides generate UI for free tier. */
+  canGenerateAiReflection?: boolean;
   onSaved: () => void;
 }
 
@@ -60,6 +62,7 @@ export default function EntryDetailPopup({
   entry,
   userId,
   onboardingData,
+  canGenerateAiReflection = false,
   onSaved,
 }: EntryDetailPopupProps) {
   const [title, setTitle] = useState("");
@@ -82,6 +85,8 @@ export default function EntryDetailPopup({
 
   const dismiss = () => onOpenChange(false);
   const busy = saving || deleting || generating;
+  const showAiReflectionSection =
+    canGenerateAiReflection || Boolean(aiReflection);
 
   const handleSave = async () => {
     if (!entry) return;
@@ -129,7 +134,7 @@ export default function EntryDetailPopup({
   };
 
   const handleGenerateReflection = async () => {
-    if (!entry) return;
+    if (!entry || !canGenerateAiReflection) return;
 
     setGenerating(true);
     try {
@@ -158,7 +163,10 @@ export default function EntryDetailPopup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-style-ref="Popup_dialog_"
-        className={cn(bubbleStyle("Popup_dialog_"), "max-h-[90vh] overflow-y-auto sm:max-w-lg")}
+        className={cn(
+          bubbleStyle("Popup_dialog_"),
+          "max-h-[90vh] overflow-y-auto sm:max-w-lg [&>button.absolute]:hidden",
+        )}
       >
         <header
           className={cn(bubbleStyle("Group_transparent_"), "space-y-3 pr-8")}
@@ -313,94 +321,98 @@ export default function EntryDetailPopup({
               </div>
             </div>
 
-            <section
-              className={cn(
-                bubbleStyle("Group_transparent_"),
-                "space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4",
-              )}
-            >
-              <div
+            {showAiReflectionSection ? (
+              <section
                 className={cn(
                   bubbleStyle("Group_transparent_"),
-                  "flex flex-wrap items-center justify-between gap-3",
+                  "space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4",
                 )}
               >
                 <div
-                  className={cn(bubbleStyle("Group_transparent_"), "space-y-1")}
+                  className={cn(
+                    bubbleStyle("Group_transparent_"),
+                    "flex flex-wrap items-center justify-between gap-3",
+                  )}
                 >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      data-style-ref="Icon_primary_"
-                      className={cn(bubbleStyle("Icon_primary_"), "inline-flex")}
-                      aria-hidden
-                    >
-                      <Sparkles className="h-4 w-4" />
-                    </span>
-                    <span
-                      data-style-ref="Text_label_"
-                      className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
-                    >
-                      AI Coaching Reflection
-                    </span>
-                    <span
-                      data-style-ref="Text_caption_"
-                      className={cn(
-                        bubbleStyle("Text_caption_"),
-                        "inline-flex items-center gap-1 text-xs text-muted-foreground",
-                      )}
-                    >
-                      <Info className="h-3 w-3" aria-hidden />
-                      Coaching only
-                    </span>
+                  <div
+                    className={cn(bubbleStyle("Group_transparent_"), "space-y-1")}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        data-style-ref="Icon_primary_"
+                        className={cn(bubbleStyle("Icon_primary_"), "inline-flex")}
+                        aria-hidden
+                      >
+                        <Sparkles className="h-4 w-4" />
+                      </span>
+                      <span
+                        data-style-ref="Text_label_"
+                        className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
+                      >
+                        AI Coaching Reflection
+                      </span>
+                      <span
+                        data-style-ref="Text_caption_"
+                        className={cn(
+                          bubbleStyle("Text_caption_"),
+                          "inline-flex items-center gap-1 text-xs text-muted-foreground",
+                        )}
+                      >
+                        <Info className="h-3 w-3" aria-hidden />
+                        Coaching only
+                      </span>
+                    </div>
                   </div>
+
+                  {canGenerateAiReflection ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      data-style-ref="Button_secondary_"
+                      className={bubbleStyle("Button_secondary_")}
+                      onClick={handleGenerateReflection}
+                      disabled={busy}
+                    >
+                      {generating ? "Generating…" : "Generate Reflection"}
+                    </Button>
+                  ) : null}
                 </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  data-style-ref="Button_secondary_"
-                  className={bubbleStyle("Button_secondary_")}
-                  onClick={handleGenerateReflection}
-                  disabled={busy}
+                <div
+                  className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}
                 >
-                  {generating ? "Generating…" : "Generate Reflection"}
-                </Button>
-              </div>
+                  {aiReflection ? (
+                    <p
+                      data-style-ref="Text_body_muted_"
+                      className={cn(
+                        bubbleStyle("Text_body_muted_"),
+                        "whitespace-pre-wrap text-sm leading-relaxed",
+                      )}
+                    >
+                      {aiReflection}
+                    </p>
+                  ) : canGenerateAiReflection ? (
+                    <p
+                      data-style-ref="Text_body_muted_"
+                      className={cn(
+                        bubbleStyle("Text_body_muted_"),
+                        "text-sm italic text-muted-foreground",
+                      )}
+                    >
+                      Generate a coaching reflection based on this entry.
+                    </p>
+                  ) : null}
 
-              <div
-                className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}
-              >
-                {aiReflection ? (
                   <p
-                    data-style-ref="Text_body_muted_"
-                    className={cn(
-                      bubbleStyle("Text_body_muted_"),
-                      "whitespace-pre-wrap text-sm leading-relaxed",
-                    )}
+                    data-style-ref="Text_caption_"
+                    className={cn(bubbleStyle("Text_caption_"), "text-xs text-muted-foreground")}
                   >
-                    {aiReflection}
+                    This reflection is coaching guidance only — not therapy or medical advice.
                   </p>
-                ) : (
-                  <p
-                    data-style-ref="Text_body_muted_"
-                    className={cn(
-                      bubbleStyle("Text_body_muted_"),
-                      "text-sm italic text-muted-foreground",
-                    )}
-                  >
-                    Generate a coaching reflection based on this entry.
-                  </p>
-                )}
-
-                <p
-                  data-style-ref="Text_caption_"
-                  className={cn(bubbleStyle("Text_caption_"), "text-xs text-muted-foreground")}
-                >
-                  This reflection is coaching guidance only — not therapy or medical advice.
-                </p>
-              </div>
-            </section>
+                </div>
+              </section>
+            ) : null}
 
             <DialogFooter
               className={cn(

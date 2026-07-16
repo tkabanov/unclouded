@@ -8,11 +8,13 @@ export {
   CHAT_AI_MONTHLY_USAGE_KEY,
   FREE_TIER_SESSION_LIMIT,
   FREE_TIER_UPSELL_MESSAGE,
+  canUseJournalAiReflection,
   currentMonthKey,
   isContinuingSession,
   isFreeTierUser,
   parseConsumeChatSessionResult,
   readMonthlyUsage,
+  resolveCurrentTier,
   shouldRecordNewSession,
 } from "./tierGateHelpers.ts";
 

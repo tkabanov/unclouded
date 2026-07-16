@@ -52,6 +52,26 @@ export function isFreeTierUser(
   return normalized === "free" || normalized === "explorer" || normalized === "";
 }
 
+export function resolveCurrentTier(
+  subscribed: boolean | null | undefined,
+  tier: string | null | undefined,
+): "free" | "pro" | "premium" {
+  const normalized = (tier ?? "").toLowerCase();
+  if (normalized === "pro" || normalized === "premium" || normalized === "free") {
+    return normalized;
+  }
+  return subscribed === true ? "pro" : "free";
+}
+
+/** AI journal reflection is Pro/Premium only (US-405). */
+export function canUseJournalAiReflection(
+  subscribed: boolean | null | undefined,
+  tier: string | null | undefined,
+): boolean {
+  const currentTier = resolveCurrentTier(subscribed, tier);
+  return currentTier === "pro" || currentTier === "premium";
+}
+
 export function isContinuingSession(
   conversationId: string | undefined,
   usage: MonthlyUsageRecord,

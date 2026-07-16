@@ -388,6 +388,7 @@ export type Database = {
           dailyCheckInStreak: number | null
           email: string | null
           firstName: string | null
+          lastName: string | null
           id: string
           isAdmin: boolean | null
           notificationFrequency: string | null
@@ -423,6 +424,7 @@ export type Database = {
           dailyCheckInStreak?: number | null
           email?: string | null
           firstName?: string | null
+          lastName?: string | null
           id: string
           isAdmin?: boolean | null
           notificationFrequency?: string | null
@@ -458,6 +460,7 @@ export type Database = {
           dailyCheckInStreak?: number | null
           email?: string | null
           firstName?: string | null
+          lastName?: string | null
           id?: string
           isAdmin?: boolean | null
           notificationFrequency?: string | null

@@ -73,7 +73,7 @@ export default function LogRelapsePopup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-style-ref="Popup_dialog_"
-        className={cn(bubbleStyle("Popup_dialog_"), "sm:max-w-lg")}
+        className={cn(bubbleStyle("Popup_dialog_"), "sm:max-w-lg [&>button.absolute]:hidden")}
       >
         <DialogHeader
           className={cn(bubbleStyle("Group_transparent_"), "space-y-0")}

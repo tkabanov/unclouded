@@ -24,11 +24,7 @@ export const DEFAULT_SETTINGS_TAB: SettingsTabSlug = SETTINGS_TAB.PROFILE;
 
 export const SETTINGS_TAB_DISPLAY_LABELS: Record<SettingsTabSlug, string> = {
   profile: "Profile",
-  coaching_preferences: "Coaching",
-  privacy: "Privacy",
   security: "Security",
-  workplace: "Workplace",
-  notifications: "Notifications",
   subscription: "Subscription",
   admin: "Admin",
 };

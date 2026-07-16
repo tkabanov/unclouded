@@ -5,6 +5,7 @@ import {
   readPreferredCoachingMode,
 } from "@/lib/dashboard/coachingModeApi";
 import type { AiCoachingModeSlug } from "@/lib/enums/coachingMode";
+import { resolveHealthModeFlags } from "@/lib/userProfile/healthModeFlags";
 
 /** Display fields for dashboard widget slots (IR current_user binding). */
 export interface DashboardUserDisplay {
@@ -28,6 +29,8 @@ export interface DashboardUserDisplay {
 const DashboardUserContext = createContext<DashboardUserDisplay | null>(null);
 
 export function mapProfileToDashboardUser(profile: UserProfile | null): DashboardUserDisplay {
+  const healthModes = resolveHealthModeFlags(profile);
+
   return {
     firstName: profile?.firstName?.trim() ?? "",
     roleType: profile?.roleType ?? "",
@@ -35,9 +38,9 @@ export function mapProfileToDashboardUser(profile: UserProfile | null): Dashboar
     classificationName: profile?.results?.classification.name ?? null,
     classificationKey: profile?.results?.classification.key ?? null,
     pressureProfile: profile?.results?.pressure_profile ?? null,
-    recoveryModeActive: profile?.results?.recovery_mode_active ?? false,
-    griefModeActive: profile?.results?.grief_mode_active ?? false,
-    traumaInformedMode: profile?.results?.trauma_informed_mode ?? false,
+    recoveryModeActive: healthModes.recoveryModeActive,
+    griefModeActive: healthModes.griefModeActive,
+    traumaInformedMode: healthModes.traumaInformedMode,
     subscribed: profile?.subscribed ?? false,
     onboardingCompleted: profile?.onboardingCompleted ?? false,
     hasResults: Boolean(profile?.results),

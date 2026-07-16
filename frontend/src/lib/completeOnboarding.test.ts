@@ -3,6 +3,7 @@ import { canCompleteOnboarding, type OnboardingCompletionData } from "./complete
 
 const BASE_DATA: OnboardingCompletionData = {
   firstName: "Sam",
+  lastName: "Taylor",
   roleType: "founder",
   primaryPillar: "stability",
   stabilityScores: { sleep: 3 },

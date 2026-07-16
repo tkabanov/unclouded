@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/credentialsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -240,10 +241,9 @@ const AuthDialog = ({ open, onOpenChange, onSuccess, onSwitchToSignup }: AuthDia
                       Forgot password?
                     </button>
                   </div>
-                  <Input
+                  <PasswordInput
                     id="login-password"
                     data-style-ref="Input_default_"
-                    type="password"
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

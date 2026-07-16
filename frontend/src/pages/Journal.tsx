@@ -20,6 +20,8 @@ import {
   fetchRelapseEvents,
   type RelapseEventListItem,
 } from "@/lib/journal/relapseEventsApi";
+import { canUseJournalAiReflection } from "@/lib/journal/journalEntitlements";
+import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -27,6 +29,9 @@ import { useAuth } from "@/hooks/useAuth";
 export default function Journal() {
   const { user } = useAuth();
   const { profile, refresh: refreshProfile } = useUserProfile();
+  const canGenerateAiReflection = canUseJournalAiReflection(
+    resolveCurrentTier(profile?.subscribed ?? false, profile?.tier),
+  );
   const [entries, setEntries] = useState<JournalEntryListItem[]>([]);
   const [milestones, setMilestones] = useState<MilestoneListItem[]>([]);
   const [relapseEvents, setRelapseEvents] = useState<RelapseEventListItem[]>([]);
@@ -178,6 +183,7 @@ export default function Journal() {
         entry={editingEntry}
         userId={user?.id ?? ""}
         onboardingData={profile?.onboardingData ?? null}
+        canGenerateAiReflection={canGenerateAiReflection}
         onSaved={handleEntriesChanged}
       />
 

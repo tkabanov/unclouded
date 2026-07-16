@@ -11,6 +11,7 @@ import {
 } from "./prompt/sessionLifecycle.ts";
 import {
   enforceFreeTierSessionGate,
+  canUseJournalAiReflection,
 } from "./tierGate.ts";
 import { parseChatRequestBody } from "./parseChatRequestBody.ts";
 import { persistSessionMemory } from "./persistSessionMemory.ts";
@@ -138,15 +139,23 @@ Deno.serve(async (req: Request) => {
       return crisisHardStopResponse();
     }
 
-    const tierGate = await enforceFreeTierSessionGate(
-      supabase,
-      user.id,
-      conversationId,
-      lifecycle,
-    );
-    if (!tierGate.allowed) {
-      const status = tierGate.code === "conversation_required" ? 400 : 402;
-      return jsonError(status, tierGate.message, { code: tierGate.code });
+    if (context === "journal-reflection") {
+      if (!canUseJournalAiReflection(profileData.subscribed, profileData.tier)) {
+        return jsonError(402, "AI journal reflection is available on Pro and Premium plans.", {
+          code: "journal_reflection_tier_required",
+        });
+      }
+    } else {
+      const tierGate = await enforceFreeTierSessionGate(
+        supabase,
+        user.id,
+        conversationId,
+        lifecycle,
+      );
+      if (!tierGate.allowed) {
+        const status = tierGate.code === "conversation_required" ? 400 : 402;
+        return jsonError(status, tierGate.message, { code: tierGate.code });
+      }
     }
 
     const system = buildSystemWithLifecycle(profileData, context, lifecycle);

@@ -3,6 +3,7 @@ import { Route } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useUserProfile } from "@/lib/userProfile";
+import { resolveHealthModeFlags } from "@/lib/userProfile/healthModeFlags";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { fetchPathCatalog, type PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import { pathVisibleInLibrary } from "@/lib/paths/pathEnrollmentMatching";
@@ -35,28 +36,6 @@ function resolveUserTier(
   return subscribed ? TIER.PRO : TIER.FREE;
 }
 
-function resolveHealthFlags(profile: {
-  onboardingData?: Record<string, unknown> | null;
-  results?: { recovery_mode_active?: boolean; grief_mode_active?: boolean } | null;
-} | null): { recoveryModeActive: boolean; griefModeActive: boolean } {
-  const raw = profile?.onboardingData?.healthFlags;
-  if (raw && typeof raw === "object") {
-    const flags = raw as { recovery_mode_active?: boolean; grief_mode_active?: boolean };
-    return {
-      recoveryModeActive:
-        flags.recovery_mode_active === true ||
-        profile?.results?.recovery_mode_active === true,
-      griefModeActive:
-        flags.grief_mode_active === true || profile?.results?.grief_mode_active === true,
-    };
-  }
-
-  return {
-    recoveryModeActive: profile?.results?.recovery_mode_active === true,
-    griefModeActive: profile?.results?.grief_mode_active === true,
-  };
-}
-
 export default function PathsLibraryCatalogPanel({
   className,
   onViewPath,
@@ -72,7 +51,7 @@ export default function PathsLibraryCatalogPanel({
     profile?.tier ?? null,
     profile?.onboardingData ?? null,
   );
-  const healthFlags = resolveHealthFlags(profile);
+  const healthFlags = resolveHealthModeFlags(profile);
 
   const enrollmentBySlug = useMemo(() => {
     const map = new Map<string, (typeof enrollments)[number]>();

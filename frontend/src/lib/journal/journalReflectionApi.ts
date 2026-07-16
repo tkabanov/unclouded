@@ -53,6 +53,18 @@ export async function generateJournalReflection(
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
+    let parsedCode: string | undefined;
+    try {
+      const parsed = JSON.parse(detail) as { code?: string; error?: string };
+      parsedCode = parsed.code;
+      if (parsedCode === "journal_reflection_tier_required") {
+        throw new Error("AI journal reflection is available on Pro and Premium plans.");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Pro and Premium")) {
+        throw error;
+      }
+    }
     if (response.status === 402) {
       throw new Error("AI credits are exhausted. Add credits in Settings to continue.");
     }

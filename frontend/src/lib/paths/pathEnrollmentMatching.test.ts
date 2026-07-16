@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  parsePathFlagRequirement,
   pathMatchesOnboardingEnrollment,
+  pathVisibleInLibrary,
   selectOnboardingEnrollmentPaths,
   type OnboardingEnrollmentContext,
   type PathEnrollmentCandidate,
@@ -75,6 +77,83 @@ describe("pathMatchesOnboardingEnrollment", () => {
         BASE_CONTEXT,
       ),
     ).toBe(false);
+  });
+});
+
+describe("parsePathFlagRequirement", () => {
+  it("detects mandatory recovery and grief triggers from seeded paths", () => {
+    expect(
+      parsePathFlagRequirement(
+        "enrollment:onboarding; flag:recovery_mode_active = yes — MANDATORY",
+      ),
+    ).toEqual({ kind: "recovery_required" });
+    expect(
+      parsePathFlagRequirement("enrollment:onboarding; flag:Requires grief_mode_active = yes"),
+    ).toEqual({ kind: "grief_required" });
+  });
+
+  it("does not treat recommended grief paths as mandatory", () => {
+    expect(
+      parsePathFlagRequirement(
+        "enrollment:onboarding; flag:Recommended with grief_mode_active = yes",
+      ),
+    ).toEqual({ kind: "none" });
+  });
+});
+
+describe("pathVisibleInLibrary", () => {
+  const RECOVERY_PATH = {
+    triggerSignals: "enrollment:onboarding; flag:recovery_mode_active = yes — MANDATORY",
+  };
+  const GRIEF_PATH = {
+    triggerSignals: "enrollment:onboarding; flag:Requires grief_mode_active = yes",
+  };
+  const OPEN_PATH = {
+    triggerSignals: "enrollment:onboarding; flag:None — all users matching classification",
+  };
+
+  it("hides flag-gated paths when the user flag is inactive", () => {
+    expect(
+      pathVisibleInLibrary(RECOVERY_PATH, {
+        userTier: TIER.FREE,
+        recoveryModeActive: false,
+        griefModeActive: false,
+      }),
+    ).toBe(false);
+    expect(
+      pathVisibleInLibrary(GRIEF_PATH, {
+        userTier: TIER.FREE,
+        recoveryModeActive: false,
+        griefModeActive: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("shows flag-gated paths when the matching flag is active", () => {
+    expect(
+      pathVisibleInLibrary(RECOVERY_PATH, {
+        userTier: TIER.FREE,
+        recoveryModeActive: true,
+        griefModeActive: false,
+      }),
+    ).toBe(true);
+    expect(
+      pathVisibleInLibrary(GRIEF_PATH, {
+        userTier: TIER.FREE,
+        recoveryModeActive: false,
+        griefModeActive: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("always shows paths without mandatory flag requirements", () => {
+    expect(
+      pathVisibleInLibrary(OPEN_PATH, {
+        userTier: TIER.FREE,
+        recoveryModeActive: false,
+        griefModeActive: false,
+      }),
+    ).toBe(true);
   });
 });
 

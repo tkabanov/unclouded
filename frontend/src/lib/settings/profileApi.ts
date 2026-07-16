@@ -1,39 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const SOBRIETY_DATE_KEY = "sobriety_start_date";
-const RECOVERY_MODE_KEY = "recovery_mode_active_boolean";
 
 export interface ProfileFormState {
   firstName: string;
-  email: string;
+  lastName: string;
   sobrietyStartDate: string;
-  recoveryModeActive: boolean;
 }
 
-export interface SaveProfileFormOptions {
-  /** Auth email at load time — used for bTIhq UpdateCredentials parity. */
-  originalEmail: string;
-  /** Required when email changes (Bubble bTIhj old_password). */
-  currentPassword?: string;
-}
-
-export class ProfileSaveError extends Error {
-  constructor(
-    message: string,
-    readonly code: "password_required" | "invalid_password" | "save_failed" = "save_failed",
-  ) {
-    super(message);
-    this.name = "ProfileSaveError";
-  }
-}
-
-export async function loadProfileForm(
-  userId: string,
-  authEmail?: string | null,
-): Promise<ProfileFormState> {
+export async function loadProfileForm(userId: string): Promise<ProfileFormState> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("firstName, email, onboardingData")
+    .select("firstName, lastName, onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
@@ -44,51 +22,13 @@ export async function loadProfileForm(
 
   return {
     firstName: data?.firstName ?? "",
-    email: authEmail ?? data?.email ?? "",
+    lastName: data?.lastName ?? "",
     sobrietyStartDate:
       typeof onboarding[SOBRIETY_DATE_KEY] === "string" ? onboarding[SOBRIETY_DATE_KEY] : "",
-    recoveryModeActive:
-      onboarding[RECOVERY_MODE_KEY] === true || onboarding[RECOVERY_MODE_KEY] === "true",
   };
 }
 
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-/** bTIhq profile-save-btn workflow parity: ChangeThing + conditional UpdateCredentials. */
-export async function saveProfileForm(
-  userId: string,
-  values: ProfileFormState,
-  options: SaveProfileFormOptions,
-): Promise<void> {
-  const nextEmail = values.email.trim();
-  const originalEmail = options.originalEmail.trim();
-  const emailChanged =
-    nextEmail.length > 0 &&
-    originalEmail.length > 0 &&
-    normalizeEmail(nextEmail) !== normalizeEmail(originalEmail);
-
-  if (emailChanged) {
-    if (!options.currentPassword) {
-      throw new ProfileSaveError(
-        "Enter your current password to change your email.",
-        "password_required",
-      );
-    }
-
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
-      email: originalEmail,
-      password: options.currentPassword,
-    });
-    if (reauthError) {
-      throw new ProfileSaveError("Current password is incorrect.", "invalid_password");
-    }
-
-    const { error: emailError } = await supabase.auth.updateUser({ email: nextEmail });
-    if (emailError) throw emailError;
-  }
-
+export async function saveProfileForm(userId: string, values: ProfileFormState): Promise<void> {
   const { data: existing, error: readError } = await supabase
     .from("profiles")
     .select("onboardingData")
@@ -104,11 +44,10 @@ export async function saveProfileForm(
     .from("profiles")
     .update({
       firstName: values.firstName.trim() || null,
-      email: nextEmail || null,
+      lastName: values.lastName.trim() || null,
       onboardingData: {
         ...onboarding,
         [SOBRIETY_DATE_KEY]: values.sobrietyStartDate || null,
-        [RECOVERY_MODE_KEY]: values.recoveryModeActive,
       } as never,
     })
     .eq("id", userId);

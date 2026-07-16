@@ -3,13 +3,30 @@ import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
   FREE_TIER_UPSELL_MESSAGE,
+  canUseJournalAiReflection,
   parseConsumeChatSessionResult,
+  resolveCurrentTier,
 } from "../../../../supabase/functions/chat/tierGateHelpers.ts";
 
 const MIGRATION_PATH = resolve(
   import.meta.dirname,
   "../../../../supabase/migrations/20260710130000_consume_chat_session_rpc.sql",
 );
+
+describe("journal reflection entitlements", () => {
+  it("allows Pro and Premium tiers", () => {
+    expect(canUseJournalAiReflection(false, "pro")).toBe(true);
+    expect(canUseJournalAiReflection(false, "premium")).toBe(true);
+    expect(canUseJournalAiReflection(true, "premium")).toBe(true);
+  });
+
+  it("denies Free tier and treats subscribed unknown tier as Pro", () => {
+    expect(canUseJournalAiReflection(false, "free")).toBe(false);
+    expect(canUseJournalAiReflection(false, null)).toBe(false);
+    expect(resolveCurrentTier(true, null)).toBe("pro");
+    expect(canUseJournalAiReflection(true, null)).toBe(true);
+  });
+});
 
 describe("parseConsumeChatSessionResult", () => {
   it("parses allowed + recorded responses from consume_chat_session", () => {

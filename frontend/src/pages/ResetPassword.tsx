@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import CrisisBar from "@/components/CrisisBar";
 import { useAuth } from "@/hooks/useAuth";
@@ -116,10 +116,9 @@ const ResetPassword = () => {
               <Label htmlFor="reset-password" className="text-base">
                 New password
               </Label>
-              <Input
+              <PasswordInput
                 data-style-ref="Input_default_"
                 id="reset-password"
-                type="password"
                 autoComplete="new-password"
                 autoFocus
                 value={password}
@@ -134,10 +133,9 @@ const ResetPassword = () => {
               <Label htmlFor="reset-confirm-password" className="text-base">
                 Confirm new password
               </Label>
-              <Input
+              <PasswordInput
                 data-style-ref="Input_default_"
                 id="reset-confirm-password"
-                type="password"
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

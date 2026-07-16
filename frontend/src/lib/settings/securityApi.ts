@@ -35,3 +35,23 @@ export async function changePassword(
 }
 
 export { sendPasswordResetEmail } from "@/lib/auth/passwordResetApi";
+
+type UntypedSupabase = {
+  from: (table: string) => ReturnType<typeof supabase.from>;
+};
+
+/** delete-confirm-btn workflow parity: erase user-owned rows then sign out. */
+export async function requestAccountDeletion(userId: string): Promise<void> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { error: journalError } = await client
+    .from("journalEntry")
+    .delete()
+    .eq("userId", userId);
+  if (journalError) throw journalError;
+
+  const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId);
+  if (profileError) throw profileError;
+
+  const { error: signOutError } = await supabase.auth.signOut();
+  if (signOutError) throw signOutError;
+}

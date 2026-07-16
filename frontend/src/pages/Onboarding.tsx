@@ -46,6 +46,7 @@ const Onboarding = () => {
   const [step, setStep] = useState<OnboardingStepSlug>(ONBOARDING_STEP.WELCOME);
   const [completingOnboarding, setCompletingOnboarding] = useState(false);
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [roleType, setRoleType] = useState("");
   const [primaryPillar, setPrimaryPillar] = useState("");
   const [stabilityScores, setStabilityScores] = useState<Record<string, number>>({});
@@ -119,6 +120,7 @@ const Onboarding = () => {
       await completeOnboarding(
         {
           firstName,
+          lastName,
           roleType,
           primaryPillar,
           stabilityScores,
@@ -156,8 +158,17 @@ const Onboarding = () => {
       case ONBOARDING_STEP.NAME:
         return (
           <OnboardingName
-            onNext={(name) => {
-              setFirstName(name);
+            onNext={async ({ firstName: nextFirstName, lastName: nextLastName }) => {
+              setFirstName(nextFirstName);
+              setLastName(nextLastName);
+              try {
+                await persistOnboardingDraft({
+                  firstName: nextFirstName,
+                  lastName: nextLastName,
+                });
+              } catch (err) {
+                console.error("Failed to persist name", err);
+              }
               goNext(ONBOARDING_STEP.NAME);
             }}
           />

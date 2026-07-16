@@ -28,6 +28,7 @@ export interface UserProfile {
 
 export interface OnboardingPayload {
   firstName: string;
+  lastName: string;
   roleType: string;
   primaryPillar: string;
   results: ResultsData;
@@ -43,6 +44,7 @@ export interface SaveOnboardingOptions {
 
 export interface OnboardingDraftPayload {
   firstName?: string;
+  lastName?: string;
   roleType?: string;
   primaryPillar?: string;
   onboardingData?: Record<string, unknown>;
@@ -63,7 +65,7 @@ interface UserProfileContextType {
   saveReassessment: (payload: ReassessmentPayload) => Promise<void>;
   simulate90DaysElapsed: () => Promise<void>;
   loadDemoComparison: () => Promise<void>;
-  refresh: () => Promise<void>;
+  refresh: (options?: { silent?: boolean }) => Promise<void>;
 }
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
@@ -73,13 +75,15 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfileState] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (options?: { silent?: boolean }) => {
     if (!user) {
       setProfileState(null);
       setLoading(false);
       return;
     }
-    setLoading(true);
+    if (!options?.silent) {
+      setLoading(true);
+    }
     const { data, error } = await supabase
       .from("profiles")
       .select(
@@ -133,6 +137,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             id: user.id,
             email: user.email ?? null,
             firstName: payload.firstName,
+            lastName: payload.lastName,
             roleType: payload.roleType,
             primaryPillar: payload.primaryPillar,
             results: payload.results as unknown as never,
@@ -174,6 +179,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
       const updates: Record<string, unknown> = {};
       if (payload.firstName !== undefined) updates.firstName = payload.firstName;
+      if (payload.lastName !== undefined) updates.lastName = payload.lastName;
       if (payload.roleType !== undefined) updates.roleType = payload.roleType;
       if (payload.primaryPillar !== undefined) updates.primaryPillar = payload.primaryPillar;
       if (payload.onboardingData !== undefined) {
@@ -188,7 +194,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
       const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
       if (error) throw error;
-      await loadProfile();
+      await loadProfile({ silent: true });
     },
     [user, loadProfile, profile?.onboardingData]
   );
