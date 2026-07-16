@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CrisisBar from "@/components/CrisisBar";
@@ -24,6 +24,10 @@ const OnboardingWizardShell = ({
 }: OnboardingWizardShellProps) => {
   const displayNumber = getStepDisplayNumber(step);
   const showChrome = showsWizardChrome(step);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
