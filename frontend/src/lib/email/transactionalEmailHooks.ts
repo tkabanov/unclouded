@@ -4,6 +4,7 @@ import {
   type TransactionalEmailDefinition,
   type TransactionalEmailId,
 } from "@/lib/email/transactionalEmailCatalog";
+import { listReassessmentDueCandidates } from "@/lib/reassessment/reassessmentDueNotify";
 
 export type TransactionalEmailHookStatus = "sent" | "placeholder" | "skipped";
 
@@ -90,7 +91,6 @@ export async function requestTransactionalEmail(
     case "payment_failed":
     case "subscription_cancelled":
     case "onboarding_dropoff":
-    case "reassessment_90_day":
     case "milestone_recovery":
     case "path_completion":
     case "reengagement_7_day_inactive":
@@ -100,10 +100,21 @@ export async function requestTransactionalEmail(
     case "notification_daily_checkin":
     case "notification_gidget_nudge":
     case "notification_path_progress":
-    case "notification_reassessment_due":
     case "notification_milestone":
     case "notification_streak":
       return placeholderResult(emailId);
+    case "reassessment_90_day":
+    case "notification_reassessment_due": {
+      // Cohort selection is live. Production send is cron → edge fn reassessment-due (Resend when keyed).
+      const candidates = await listReassessmentDueCandidates();
+      const inCohort = candidates.some((c) => c.userId === payload.userId);
+      return placeholderResult(
+        emailId,
+        inCohort
+          ? `User is in the due cohort (${candidates.length} total). Delivery runs via scheduled edge function reassessment-due (Resend when RESEND_API_KEY is set).`
+          : `Cohort selected (${candidates.length} due). This user was not due (or already emailed). Production path: cron → reassessment-due.`,
+      );
+    }
     default: {
       const exhaustive: never = emailId;
       throw new Error(`Unhandled transactional email id: ${exhaustive}`);

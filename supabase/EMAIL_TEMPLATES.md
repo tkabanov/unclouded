@@ -65,6 +65,17 @@ Catalog ids and triggers live in `transactionalEmailCatalog.ts`. Call sites shou
 
 Section 13 notification types (module unlock, daily check-in, reassessment, milestones, streaks) are mapped in the catalog with Build Brief trigger text. Re-engagement rules (max 1/day, no guilt framing) are product constraints for the future scheduler — not enforced in this slice.
 
+### 90-day reassessment due (Section 2 / US-300)
+
+Edge function: `supabase/functions/reassessment-due`.
+
+- Selects Pro/Premium profiles where `nextReassessmentDate <= now` and `reassessmentDueEmailedAt` is null or older than 5 days.
+- Stamps `reassessmentDueEmailedAt` after each attempt.
+- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
+- Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <REASSESSMENT_DUE_CRON_SECRET>`.
+
+**Schedule (ops):** configure a daily cron in Supabase Dashboard (or GitHub Action / pg_net) to `POST /functions/v1/reassessment-due` with the service-role bearer. Frontend hooks may also invoke the same function for dry-run/cohort checks.
+
 ## Verification checklist (developer / PM)
 
 1. Apply **recovery** template in Supabase Dashboard.

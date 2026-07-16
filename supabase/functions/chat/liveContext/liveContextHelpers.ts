@@ -3,6 +3,7 @@ import type {
   ChatLatestCheckIn,
   ChatLiveContext,
   ChatPathReflectionAnswer,
+  ChatReassessmentContext,
 } from "../prompt/types.ts";
 
 export const DAILY_CHECKINS_ONBOARDING_KEY = "daily_checkins" as const;
@@ -35,6 +36,7 @@ export function aggregateLiveContext(input: {
   sessionCount: number | null;
   pathReflections: ChatPathReflectionAnswer[];
   activePathProgress?: ChatActivePathProgress | null;
+  latestReassessment?: ChatReassessmentContext | null;
 }): ChatLiveContext {
   const activeMicroCommitment =
     input.activeMicroCommitmentCandidates
@@ -53,6 +55,7 @@ export function aggregateLiveContext(input: {
     sessionCount: input.sessionCount,
     pathReflections: input.pathReflections,
     activePathProgress: input.activePathProgress ?? null,
+    latestReassessment: input.latestReassessment ?? null,
   };
 }
 

@@ -105,6 +105,24 @@ export default function EditPathSessionPopup({
               }
             />
           </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="path-session-reassessment-q">
+              Reassessment reflection question (final session)
+            </Label>
+            <Textarea
+              id="path-session-reassessment-q"
+              rows={3}
+              placeholder="Path-adaptive question shown at 90-day reassessment when this path is completed…"
+              value={form.reassessmentReflectionQuestion}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  reassessmentReflectionQuestion: event.target.value,
+                }))
+              }
+            />
+          </div>
         </div>
 
         <DialogFooter className="gap-2">

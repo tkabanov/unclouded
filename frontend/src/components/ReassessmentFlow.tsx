@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, CalendarClock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,26 @@ import OnboardingPerformance from "@/components/OnboardingPerformance";
 import OnboardingAlignment from "@/components/OnboardingAlignment";
 import OnboardingOrientation from "@/components/OnboardingOrientation";
 import ReassessmentReflections from "@/components/ReassessmentReflections";
-import ResultsComparison from "@/components/ResultsComparison";
-import { computeResults } from "@/lib/classification";
+import ResultsComparison, {
+  type PdfDownloadState,
+} from "@/components/ResultsComparison";
+import { computeResults, type ResultsData } from "@/lib/classification";
 import type { ReflectionAnswers } from "@/lib/reassessment";
+import { PATH_ADAPTIVE_QUESTION_SLOT, reflectionQuestions } from "@/lib/reassessment";
+import { getPriorAssessmentResult } from "@/lib/reassessment/assessmentResultApi";
+import { canAccessReassessment } from "@/lib/reassessment/reassessmentEntitlements";
+import { fetchPathAdaptiveReflectionQuestion } from "@/lib/reassessment/pathAdaptiveReflectionApi";
+import type { CompleteReassessmentResult } from "@/lib/reassessment/completeReassessment";
+import {
+  downloadPupPdf,
+  pupPdfFilename,
+} from "@/lib/reassessment/pdf/downloadPupPdf";
+import { generateAndPersistPupPdf } from "@/lib/reassessment/pdf/generateAndPersistPupPdf";
+import type { GeneratedPupPdf } from "@/lib/reassessment/pdf/generateAndPersistPupPdf";
+import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
+import { TIER } from "@/lib/enums/tier";
 import { useUserProfile } from "@/lib/userProfile";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 const TOTAL_SCORED_STEPS = 4;
@@ -19,6 +35,7 @@ const TOTAL_SCORED_STEPS = 4;
 /** 90-day reassessment flow — lives on the onboarding page in Bubble (bTGNJ). */
 export default function ReassessmentFlow() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { profile, loading, saveReassessment } = useUserProfile();
 
   const [step, setStep] = useState(0);
@@ -27,7 +44,63 @@ export default function ReassessmentFlow() {
   const [alignmentScores, setAlignmentScores] = useState<Record<string, number>>({});
   const [orientationScore, setOrientationScore] = useState(0);
   const [reflections, setReflections] = useState<ReflectionAnswers>({});
+  const [pathAdaptiveQ, setPathAdaptiveQ] = useState<string | null>(null);
+  const [adaptiveQuestions, setAdaptiveQuestions] = useState(reflectionQuestions);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const [completeResult, setCompleteResult] = useState<CompleteReassessmentResult | null>(null);
+  const [pdfState, setPdfState] = useState<PdfDownloadState>("idle");
+  const [generatedPdf, setGeneratedPdf] = useState<GeneratedPupPdf | null>(null);
+
+  // Snapshot baseline at flow start so comparison survives promote of profile.results.
+  const [firstResultsSnapshot, setFirstResultsSnapshot] = useState<ResultsData | null>(null);
+  const [priorAssessmentDate, setPriorAssessmentDate] = useState<string | null>(null);
+  const [baselineReady, setBaselineReady] = useState(false);
+
+  const tier = resolveCurrentTier(!!profile?.subscribed, profile?.tier);
+  const accessAllowed = canAccessReassessment({
+    tier,
+    lastAssessmentDate: profile?.lastAssessmentDate ?? null,
+    nextReassessmentDate: profile?.nextReassessmentDate ?? null,
+    onboardingCompletedAt: profile?.onboardingCompletedAt ?? null,
+    canReassessOnDemand: profile?.canReassessOnDemand,
+    reassessmentCompletedAt: profile?.reassessmentCompletedAt ?? null,
+  });
+  /** After save, profile dates advance +90d — keep showing results until the user leaves. */
+  const flowInProgress = step > 0 || saved;
+
+  useEffect(() => {
+    if (!user?.id || !profile || baselineReady) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const prior = await getPriorAssessmentResult(user.id);
+        if (cancelled) return;
+        const fromHistory = prior?.rawResults ?? null;
+        setFirstResultsSnapshot(fromHistory ?? profile.results ?? null);
+        setPriorAssessmentDate(
+          prior?.assessmentDate ??
+            profile.lastAssessmentDate ??
+            profile.onboardingCompletedAt ??
+            null,
+        );
+      } catch (err) {
+        console.warn("Prior assessment lookup failed; using profile.results", err);
+        if (cancelled) return;
+        setFirstResultsSnapshot(profile.results ?? null);
+        setPriorAssessmentDate(
+          profile.lastAssessmentDate ?? profile.onboardingCompletedAt ?? null,
+        );
+      } finally {
+        if (!cancelled) setBaselineReady(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, profile, baselineReady]);
 
   const priorSignals = useMemo(() => {
     const data = (profile?.onboardingData ?? {}) as Record<string, unknown>;
@@ -59,10 +132,64 @@ export default function ReassessmentFlow() {
   }, [step, stabilityScores, performanceScores, alignmentScores, orientationScore, priorSignals]);
 
   useEffect(() => {
-    if (step === 6 && secondResults && !saved) {
+    if (step < 5 || !user?.id) return;
+    let cancelled = false;
+    fetchPathAdaptiveReflectionQuestion(user.id)
+      .then((adaptive) => {
+        if (cancelled || !adaptive) return;
+        setPathAdaptiveQ(adaptive.question);
+        setAdaptiveQuestions((prev) => {
+          const next = [...prev];
+          next[PATH_ADAPTIVE_QUESTION_SLOT] = {
+            ...next[PATH_ADAPTIVE_QUESTION_SLOT],
+            question: adaptive.question,
+            placeholder: `Reflecting on ${adaptive.pathName}…`,
+          };
+          return next;
+        });
+      })
+      .catch((err) => console.warn("Path-adaptive reflection lookup failed", err));
+    return () => {
+      cancelled = true;
+    };
+  }, [step, user?.id]);
+
+  const reflectionQuestionsForStep = useMemo(() => adaptiveQuestions, [adaptiveQuestions]);
+
+  const runPdfGeneration = useCallback(
+    async (assessmentId: string, force = false) => {
+      if (!user?.id) return;
+      if (tier !== TIER.PRO && tier !== TIER.PREMIUM) return;
+      setPdfState("generating");
+      try {
+        const generated = await generateAndPersistPupPdf({
+          userId: user.id,
+          assessmentResultId: assessmentId,
+          force,
+        });
+        setGeneratedPdf(generated);
+        setPdfState("ready");
+      } catch (err) {
+        console.error("Failed to generate PuP PDF", err);
+        setPdfState("error");
+        toast.error("Couldn't prepare your PuP 360 PDF. You can retry from the button.");
+      }
+    },
+    [tier, user?.id],
+  );
+
+  useEffect(() => {
+    if (step === 6 && secondResults && !saved && !saveError && firstResultsSnapshot) {
       setSaved(true);
+      const adaptiveField = reflectionQuestions[PATH_ADAPTIVE_QUESTION_SLOT]?.field;
+      const adaptiveAns =
+        pathAdaptiveQ && adaptiveField
+          ? (reflections[adaptiveField] ?? "").trim() || null
+          : null;
+
       saveReassessment({
         results: secondResults,
+        firstResults: firstResultsSnapshot,
         reassessmentData: {
           stabilityScores,
           performanceScores,
@@ -70,24 +197,59 @@ export default function ReassessmentFlow() {
           orientationScore,
         },
         reflections,
-      }).catch((err) => {
-        console.error("Failed to save reassessment", err);
-        toast.error("Couldn't save your reassessment. Please try again.");
-      });
+        pathAdaptiveQ,
+        pathAdaptiveAnswer: adaptiveAns,
+      })
+        .then((result) => {
+          setCompleteResult(result);
+          void runPdfGeneration(result.assessmentId);
+        })
+        .catch((err) => {
+          console.error("Failed to save reassessment", err);
+          setSaved(false);
+          setSaveError(true);
+          toast.error("Couldn't save your reassessment. Please try again.");
+        });
     }
   }, [
     step,
     secondResults,
     saved,
+    saveError,
     saveReassessment,
     stabilityScores,
     performanceScores,
     alignmentScores,
     orientationScore,
     reflections,
+    pathAdaptiveQ,
+    firstResultsSnapshot,
+    runPdfGeneration,
   ]);
 
-  if (loading) {
+  const handleDownloadPdf = useCallback(async () => {
+    if (!generatedPdf) return;
+    try {
+      await downloadPupPdf({
+        bytes: generatedPdf.bytes,
+        storagePath: generatedPdf.storagePath,
+        filename: pupPdfFilename(
+          generatedPdf.payload.tier,
+          generatedPdf.payload.assessmentDate,
+        ),
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't download your PDF.");
+    }
+  }, [generatedPdf]);
+
+  const handleRetryPdf = useCallback(() => {
+    if (!completeResult?.assessmentId) return;
+    void runPdfGeneration(completeResult.assessmentId, true);
+  }, [completeResult?.assessmentId, runPdfGeneration]);
+
+  if (loading && !flowInProgress) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         Loading…
@@ -95,7 +257,7 @@ export default function ReassessmentFlow() {
     );
   }
 
-  if (!profile?.results || !profile.subscribed) {
+  if (!flowInProgress && (!profile?.results || !accessAllowed)) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <CrisisBar />
@@ -103,8 +265,13 @@ export default function ReassessmentFlow() {
           <div className="max-w-md space-y-4 text-center">
             <h1 className="text-2xl font-bold text-foreground">Reassessment unavailable</h1>
             <p className="text-muted-foreground">
-              The 90-day reassessment is available to subscribers who have completed their first
-              assessment.
+              {!profile?.results
+                ? "Complete your first assessment before retaking the PuP 360."
+                : tier === "free"
+                  ? "The 90-day reassessment is available on Pro and Premium plans."
+                  : tier === "premium"
+                    ? "Premium on-demand reassessment unlocks 30 days after your last assessment."
+                    : "Your next 90-day reassessment isn’t due yet. We’ll notify you when it’s ready."}
             </p>
             <Button variant="cta" onClick={() => navigate("/dashboard")}>
               Back to dashboard
@@ -115,13 +282,14 @@ export default function ReassessmentFlow() {
     );
   }
 
-  const firstName = profile.firstName;
+  const firstName = profile?.firstName ?? "";
   const scoredStepIndex = step;
+  const baseline = firstResultsSnapshot ?? profile?.results ?? null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <CrisisBar />
-      <main className="flex flex-1 flex-col">
+      <main className="min-h-0 flex-1 overflow-y-auto">
         {scoredStepIndex >= 1 && scoredStepIndex <= TOTAL_SCORED_STEPS && (
           <div className="px-4 pt-4">
             <div className="mx-auto max-w-2xl">
@@ -152,9 +320,8 @@ export default function ReassessmentFlow() {
                   Your 90-day reassessment, {firstName}
                 </h1>
                 <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
-                  It's been about 90 days since your first assessment. You'll answer the same 16
-                  scored questions, then 4 optional reflections. At the end you'll see exactly how
-                  your scores have changed.
+                  You&apos;ll answer the same scored questions as onboarding, then 4 optional
+                  reflections. At the end you&apos;ll see exactly how your scores have changed.
                 </p>
               </div>
               <div className="space-y-1.5 rounded-xl border border-border bg-card p-4 text-left text-sm text-muted-foreground">
@@ -168,7 +335,7 @@ export default function ReassessmentFlow() {
                 </p>
                 <p className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 shrink-0 text-primary" /> A side-by-side comparison of
-                  your first and second results
+                  your first and latest results
                 </p>
               </div>
               <Button variant="cta" size="lg" onClick={() => setStep(1)} className="group">
@@ -214,6 +381,7 @@ export default function ReassessmentFlow() {
         {step === 5 && (
           <ReassessmentReflections
             firstName={firstName}
+            questions={reflectionQuestionsForStep}
             onNext={(answers) => {
               setReflections(answers);
               setStep(6);
@@ -221,7 +389,7 @@ export default function ReassessmentFlow() {
           />
         )}
 
-        {step === 6 && secondResults && (
+        {step === 6 && secondResults && baseline && (
           <div className="flex flex-1 items-start justify-center overflow-y-auto px-4 py-10">
             <div className="w-full max-w-2xl space-y-8 pb-12">
               <div className="space-y-2 text-center">
@@ -229,28 +397,29 @@ export default function ReassessmentFlow() {
                   90-Day Reassessment · Complete
                 </p>
                 <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground md:text-4xl">
-                  Here's how far you've come, {firstName}
+                  Here&apos;s how far you&apos;ve come, {firstName}
                 </h1>
               </div>
 
               <ResultsComparison
                 firstName={firstName}
-                first={profile.results}
+                first={baseline}
                 second={secondResults}
                 reflections={reflections}
+                tier={tier}
+                showWhatIsNext
+                priorAssessmentDate={priorAssessmentDate}
+                modeChanged={completeResult?.modeChanged}
+                previousMode={completeResult?.previousMode}
+                newMode={completeResult?.newMode}
+                recommendedPaths={completeResult?.recommendedPaths}
+                nextFocusText={completeResult?.nextFocusText}
+                pdfState={
+                  tier === TIER.PRO || tier === TIER.PREMIUM ? pdfState : "idle"
+                }
+                onDownloadPdf={() => void handleDownloadPdf()}
+                onRetryPdf={handleRetryPdf}
               />
-
-              <div className="pt-2 text-center">
-                <Button
-                  variant="cta"
-                  size="lg"
-                  onClick={() => navigate("/dashboard")}
-                  className="group"
-                >
-                  Back to my dashboard
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </div>
             </div>
           </div>
         )}

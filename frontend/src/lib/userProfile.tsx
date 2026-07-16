@@ -8,6 +8,12 @@ import {
 } from "react";
 import { classifications, type ResultsData } from "./classification";
 import type { ReflectionAnswers } from "./reassessment";
+import {
+  completeReassessment,
+  type CompleteReassessmentResult,
+} from "@/lib/reassessment/completeReassessment";
+import { addNinetyDaysIso } from "@/lib/reassessment/reassessmentEntitlements";
+import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -21,6 +27,9 @@ export interface UserProfile {
   onboardingData: Record<string, unknown> | null;
   subscribed: boolean;
   tier: string | null;
+  lastAssessmentDate: string | null;
+  nextReassessmentDate: string | null;
+  canReassessOnDemand: boolean;
   reassessmentResults: ResultsData | null;
   reassessmentReflections: ReflectionAnswers | null;
   reassessmentCompletedAt: string | null;
@@ -52,8 +61,12 @@ export interface OnboardingDraftPayload {
 
 export interface ReassessmentPayload {
   results: ResultsData;
+  /** Baseline scores captured at flow start (before promote). */
+  firstResults?: ResultsData;
   reassessmentData: Record<string, unknown>;
   reflections: ReflectionAnswers;
+  pathAdaptiveQ?: string | null;
+  pathAdaptiveAnswer?: string | null;
 }
 
 interface UserProfileContextType {
@@ -62,13 +75,16 @@ interface UserProfileContextType {
   saveOnboarding: (payload: OnboardingPayload, options?: SaveOnboardingOptions) => Promise<void>;
   markOnboardingComplete: () => Promise<void>;
   persistOnboardingDraft: (payload: OnboardingDraftPayload) => Promise<void>;
-  saveReassessment: (payload: ReassessmentPayload) => Promise<void>;
+  saveReassessment: (payload: ReassessmentPayload) => Promise<CompleteReassessmentResult>;
   simulate90DaysElapsed: () => Promise<void>;
   loadDemoComparison: () => Promise<void>;
   refresh: (options?: { silent?: boolean }) => Promise<void>;
 }
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
+
+const PROFILE_SELECT =
+  "firstName, roleType, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt";
 
 export function UserProfileProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -86,15 +102,15 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase
       .from("profiles")
-      .select(
-        "firstName, roleType, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, reassessmentResults, reassessmentReflections, reassessmentCompletedAt"
-      )
+      .select(PROFILE_SELECT)
       .eq("id", user.id)
       .maybeSingle();
 
     if (error) {
       console.error("Failed to load profile", error);
-      setProfileState(null);
+      if (!options?.silent) {
+        setProfileState(null);
+      }
     } else if (data) {
       setProfileState({
         firstName: data.firstName ?? "",
@@ -107,6 +123,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
           (data.onboardingData as unknown as Record<string, unknown> | null) ?? null,
         subscribed: data.subscribed ?? false,
         tier: data.tier ?? null,
+        lastAssessmentDate: data.lastAssessmentDate ?? null,
+        nextReassessmentDate: data.nextReassessmentDate ?? null,
+        canReassessOnDemand: data.canReassessOnDemand ?? false,
         reassessmentResults:
           (data.reassessmentResults as unknown as ResultsData | null) ?? null,
         reassessmentReflections:
@@ -144,6 +163,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             onboardingData: payload.onboardingData as unknown as never,
             onboardingCompleted: markComplete,
             onboardingCompletedAt: markComplete ? completedAt : null,
+            lastAssessmentDate: markComplete ? completedAt : null,
+            nextReassessmentDate: markComplete ? addNinetyDaysIso(completedAt) : null,
           },
           { onConflict: "id" },
         )
@@ -161,11 +182,14 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
   const markOnboardingComplete = useCallback(async () => {
     if (!user) throw new Error("Not authenticated");
+    const completedAt = new Date().toISOString();
     const { error } = await supabase
       .from("profiles")
       .update({
         onboardingCompleted: true,
-        onboardingCompletedAt: new Date().toISOString(),
+        onboardingCompletedAt: completedAt,
+        lastAssessmentDate: completedAt,
+        nextReassessmentDate: addNinetyDaysIso(completedAt),
       })
       .eq("id", user.id);
 
@@ -202,20 +226,25 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const saveReassessment = useCallback(
     async (payload: ReassessmentPayload) => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          reassessmentResults: payload.results as unknown as never,
-          reassessmentData: payload.reassessmentData as unknown as never,
-          reassessmentReflections: payload.reflections as unknown as never,
-          reassessmentCompletedAt: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+      if (!profile?.results) throw new Error("No prior assessment results");
 
-      if (error) throw error;
-      await loadProfile();
+      const tier = resolveCurrentTier(profile.subscribed, profile.tier);
+      const result = await completeReassessment({
+        userId: user.id,
+        tier,
+        firstResults: payload.firstResults ?? profile.results,
+        secondResults: payload.results,
+        reflections: payload.reflections,
+        reassessmentData: payload.reassessmentData,
+        pathAdaptiveQ: payload.pathAdaptiveQ,
+        pathAdaptiveAnswer: payload.pathAdaptiveAnswer,
+        primaryPillar: profile.primaryPillar,
+      });
+
+      await loadProfile({ silent: true });
+      return result;
     },
-    [user, loadProfile]
+    [user, loadProfile, profile]
   );
 
   const simulate90DaysElapsed = useCallback(async () => {
@@ -223,7 +252,11 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     const backdated = new Date(Date.now() - 91 * 24 * 60 * 60 * 1000).toISOString();
     const { error } = await supabase
       .from("profiles")
-      .update({ onboardingCompletedAt: backdated })
+      .update({
+        onboardingCompletedAt: backdated,
+        lastAssessmentDate: backdated,
+        nextReassessmentDate: new Date().toISOString(),
+      })
       .eq("id", user.id);
     if (error) throw error;
     await loadProfile();
@@ -265,14 +298,15 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     };
 
     const reflections: ReflectionAnswers = {
-      whats_different:
+      reflection_q1:
         "I'm sleeping better and I bounce back from small setbacks much faster than before.",
-      proud_of: "I set a boundary at work and actually held it for the whole quarter.",
-      still_hard: "Evenings still feel heavy and winding down takes longer than I'd like.",
-      focus_next: "Building a consistent morning routine and following through on it.",
+      reflection_q2: "Evenings still feel heavy and winding down takes longer than I'd like.",
+      reflection_q3: "I set a boundary at work and actually held it for the whole quarter.",
+      reflection_q4: "Building a consistent morning routine and following through on it.",
     };
 
     const backdated = new Date(Date.now() - 91 * 24 * 60 * 60 * 1000).toISOString();
+    const nowIso = new Date().toISOString();
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -280,9 +314,11 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         results: firstResults as unknown as never,
         onboardingCompleted: true,
         onboardingCompletedAt: backdated,
+        lastAssessmentDate: backdated,
+        nextReassessmentDate: nowIso,
         reassessmentResults: secondResults as unknown as never,
         reassessmentReflections: reflections as unknown as never,
-        reassessmentCompletedAt: new Date().toISOString(),
+        reassessmentCompletedAt: nowIso,
       })
       .eq("id", user.id);
     if (error) throw error;

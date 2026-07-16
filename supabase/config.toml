@@ -14,3 +14,11 @@ enable_confirmations = false
 
 [functions.chat]
 verify_jwt = true
+
+# Section 3 — PuP 360 PDF narrative assembly (Pro / Premium).
+[functions.generate-pup-pdf]
+verify_jwt = true
+
+# Cron / service-role scheduled job (Section 2 / US-300). Auth via Bearer service role or x-cron-secret.
+[functions.reassessment-due]
+verify_jwt = false

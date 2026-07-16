@@ -2,6 +2,7 @@ import { computeResults } from "@/lib/classification";
 import { scheduleWelcomeEmailAfterOnboarding } from "@/lib/email/transactionalEmailHooks";
 import type { HealthFlagsPayload } from "@/lib/enums/onboardingQuestions";
 import { autoEnrollPathsAfterOnboarding } from "@/lib/paths/pathsOnboardingEnrollmentApi";
+import { recordInitialAssessment } from "@/lib/reassessment/completeReassessment";
 import { runOnboardingProfilePipeline } from "@/lib/userProfile/onboardingProfilePipeline";
 import type { OnboardingPayload, SaveOnboardingOptions } from "@/lib/userProfile";
 
@@ -99,6 +100,12 @@ export async function completeOnboarding(
   await runOnboardingProfilePipeline(userId);
 
   await markOnboardingComplete();
+
+  try {
+    await recordInitialAssessment(userId, results);
+  } catch (err) {
+    console.warn("Failed to record initial assessmentResult row", err);
+  }
 
   await autoEnrollPathsAfterOnboarding({
     userId,

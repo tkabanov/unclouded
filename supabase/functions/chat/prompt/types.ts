@@ -35,6 +35,17 @@ export interface ChatActivePathProgress {
   hasActivePaths: boolean;
 }
 
+export interface ChatReassessmentContext {
+  trajectoryType?: string | null;
+  reflectionQ1?: string | null;
+  reflectionQ2?: string | null;
+  reflectionQ3?: string | null;
+  reflectionQ4?: string | null;
+  pathAdaptiveQ?: string | null;
+  pathAdaptiveAnswer?: string | null;
+  assessmentDate?: string | null;
+}
+
 /** Live user signals wired from lib fetches (T-003). */
 export interface ChatLiveContext {
   latestCheckIn?: ChatLatestCheckIn | null;
@@ -45,6 +56,7 @@ export interface ChatLiveContext {
   sessionCount?: number | null;
   pathReflections?: ChatPathReflectionAnswer[];
   activePathProgress?: ChatActivePathProgress | null;
+  latestReassessment?: ChatReassessmentContext | null;
 }
 
 export type CoachingModeSlug =

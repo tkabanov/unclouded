@@ -7,6 +7,16 @@ vi.mock("@/integrations/supabase/client", () => ({
     auth: {
       resetPasswordForEmail: (...args: unknown[]) => resetPasswordForEmail(...args),
     },
+    from: () => ({
+      select: () => ({
+        lte: () => ({
+          in: () => Promise.resolve({ data: [], error: null }),
+        }),
+      }),
+      update: () => ({
+        eq: () => Promise.resolve({ data: null, error: null }),
+      }),
+    }),
   },
 }));
 

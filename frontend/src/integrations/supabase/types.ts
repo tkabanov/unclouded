@@ -39,6 +39,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessmentResult: {
+        Row: {
+          alignmentScore: number | null
+          assessmentDate: string
+          classification: string | null
+          createdAt: string
+          id: string
+          isInitial: boolean
+          orientationScore: number | null
+          pathAdaptiveAnswer: string | null
+          pathAdaptiveQ: string | null
+          pdfGenerated: boolean
+          pdfNarrative: Json | null
+          pdfUrl: string | null
+          performanceScore: number | null
+          rawResults: Json | null
+          rawScores: Json | null
+          reflectionQ1: string | null
+          reflectionQ2: string | null
+          reflectionQ3: string | null
+          reflectionQ4: string | null
+          stabilityScore: number | null
+          trajectoryType: string | null
+          updatedAt: string
+          userId: string
+        }
+        Insert: {
+          alignmentScore?: number | null
+          assessmentDate?: string
+          classification?: string | null
+          createdAt?: string
+          id?: string
+          isInitial?: boolean
+          orientationScore?: number | null
+          pathAdaptiveAnswer?: string | null
+          pathAdaptiveQ?: string | null
+          pdfGenerated?: boolean
+          pdfNarrative?: Json | null
+          pdfUrl?: string | null
+          performanceScore?: number | null
+          rawResults?: Json | null
+          rawScores?: Json | null
+          reflectionQ1?: string | null
+          reflectionQ2?: string | null
+          reflectionQ3?: string | null
+          reflectionQ4?: string | null
+          stabilityScore?: number | null
+          trajectoryType?: string | null
+          updatedAt?: string
+          userId: string
+        }
+        Update: {
+          alignmentScore?: number | null
+          assessmentDate?: string
+          classification?: string | null
+          createdAt?: string
+          id?: string
+          isInitial?: boolean
+          orientationScore?: number | null
+          pathAdaptiveAnswer?: string | null
+          pathAdaptiveQ?: string | null
+          pdfGenerated?: boolean
+          pdfNarrative?: Json | null
+          pdfUrl?: string | null
+          performanceScore?: number | null
+          rawResults?: Json | null
+          rawScores?: Json | null
+          reflectionQ1?: string | null
+          reflectionQ2?: string | null
+          reflectionQ3?: string | null
+          reflectionQ4?: string | null
+          stabilityScore?: number | null
+          trajectoryType?: string | null
+          updatedAt?: string
+          userId?: string
+        }
+        Relationships: []
+      }
       chatConversation: {
         Row: {
           createdAt: string
@@ -341,6 +419,7 @@ export type Database = {
           index: number | null
           microCommitment: string | null
           pathId: string | null
+          reassessmentReflectionQuestion: string | null
           title: string | null
           updatedAt: string
         }
@@ -352,6 +431,7 @@ export type Database = {
           index?: number | null
           microCommitment?: string | null
           pathId?: string | null
+          reassessmentReflectionQuestion?: string | null
           title?: string | null
           updatedAt?: string
         }
@@ -363,6 +443,7 @@ export type Database = {
           index?: number | null
           microCommitment?: string | null
           pathId?: string | null
+          reassessmentReflectionQuestion?: string | null
           title?: string | null
           updatedAt?: string
         }
@@ -400,8 +481,12 @@ export type Database = {
           preferences: string | null
           pressureProfile: string | null
           primaryPillar: string | null
+          canReassessOnDemand: boolean
+          lastAssessmentDate: string | null
+          nextReassessmentDate: string | null
           reassessmentCompletedAt: string | null
           reassessmentData: Json | null
+          reassessmentDueEmailedAt: string | null
           reassessmentReflections: Json | null
           reassessmentResults: Json | null
           results: Json | null
@@ -436,8 +521,12 @@ export type Database = {
           preferences?: string | null
           pressureProfile?: string | null
           primaryPillar?: string | null
+          canReassessOnDemand?: boolean
+          lastAssessmentDate?: string | null
+          nextReassessmentDate?: string | null
           reassessmentCompletedAt?: string | null
           reassessmentData?: Json | null
+          reassessmentDueEmailedAt?: string | null
           reassessmentReflections?: Json | null
           reassessmentResults?: Json | null
           results?: Json | null
@@ -472,8 +561,12 @@ export type Database = {
           preferences?: string | null
           pressureProfile?: string | null
           primaryPillar?: string | null
+          canReassessOnDemand?: boolean
+          lastAssessmentDate?: string | null
+          nextReassessmentDate?: string | null
           reassessmentCompletedAt?: string | null
           reassessmentData?: Json | null
+          reassessmentDueEmailedAt?: string | null
           reassessmentReflections?: Json | null
           reassessmentResults?: Json | null
           results?: Json | null

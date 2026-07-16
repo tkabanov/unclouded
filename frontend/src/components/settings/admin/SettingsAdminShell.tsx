@@ -5,6 +5,7 @@ import AdminResourcesTab from "@/components/settings/admin/AdminResourcesTab";
 import AdminPlansTab from "@/components/settings/admin/AdminPlansTab";
 import AdminWorkplacesTab from "@/components/settings/admin/AdminWorkplacesTab";
 import AdminAnalyticsTab from "@/components/settings/admin/AdminAnalyticsTab";
+import AdminReassessmentsTab from "@/components/settings/admin/AdminReassessmentsTab";
 import {
   ADMIN_SUB_TAB,
   ADMIN_SUB_TAB_LABELS,
@@ -35,7 +36,7 @@ export default function SettingsAdminShell() {
           <p
             className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
           >
-            Manage guided paths, resources, plans, workplaces, and analytics.
+            Manage guided paths, resources, plans, workplaces, analytics, and reassessment history.
           </p>
         </div>
       </div>
@@ -73,6 +74,7 @@ export default function SettingsAdminShell() {
         {activeSubTab === ADMIN_SUB_TAB.PLANS && <AdminPlansTab />}
         {activeSubTab === ADMIN_SUB_TAB.WORKPLACES && <AdminWorkplacesTab />}
         {activeSubTab === ADMIN_SUB_TAB.ANALYTICS && <AdminAnalyticsTab />}
+        {activeSubTab === ADMIN_SUB_TAB.REASSESSMENTS && <AdminReassessmentsTab />}
       </div>
     </div>
   );

@@ -26,7 +26,12 @@ import {
 import type { PlanId } from "@/lib/plans";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/lib/userProfile";
-import { isReassessmentDue } from "@/lib/reassessment";
+import {
+  canShowPremiumOnDemandLocked,
+  canShowReassessNow,
+  daysUntilPremiumOnDemand,
+  isReassessmentDue,
+} from "@/lib/reassessment/reassessmentEntitlements";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +51,19 @@ export default function SettingsSubscriptionTab() {
   const currentTier = resolveCurrentTier(subscribed, profile?.tier);
   const currentPlanId: PlanId =
     currentTier === "premium" ? "premium" : currentTier === "pro" ? "pro" : "free";
-  const reassessmentDue =
-    subscribed && isReassessmentDue(profile?.onboardingCompletedAt ?? null) && !profile?.reassessmentResults;
+  const dateCtx = {
+    tier: currentTier,
+    lastAssessmentDate: profile?.lastAssessmentDate ?? null,
+    nextReassessmentDate: profile?.nextReassessmentDate ?? null,
+    onboardingCompletedAt: profile?.onboardingCompletedAt ?? null,
+    canReassessOnDemand: profile?.canReassessOnDemand,
+    reassessmentCompletedAt: profile?.reassessmentCompletedAt ?? null,
+  };
+  const reassessmentDue = isReassessmentDue(dateCtx);
+  const showReassessNow = !reassessmentDue && canShowReassessNow(dateCtx);
+  const showPremiumOnDemandLocked =
+    !reassessmentDue && !showReassessNow && canShowPremiumOnDemandLocked(dateCtx);
+  const daysUntilOnDemand = daysUntilPremiumOnDemand(dateCtx);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,21 +192,47 @@ export default function SettingsSubscriptionTab() {
         </p>
       </div>
 
-      {reassessmentDue ? (
+      {reassessmentDue || showReassessNow ? (
         <div className="flex flex-col gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center">
           <div className="flex flex-1 items-start gap-3">
             <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <CalendarDays className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-0.5">
-              <p className="font-semibold text-foreground">Your 90-day reassessment is ready</p>
+              <p className="font-semibold text-foreground">
+                {reassessmentDue
+                  ? "Your 90-day reassessment is ready"
+                  : "Reassess your PuP 360 anytime"}
+              </p>
               <p className="text-sm text-muted-foreground">
-                Retake the assessment to see how your scores have changed since day one.
+                {reassessmentDue
+                  ? "Retake the assessment to see how your scores have changed since your last assessment."
+                  : "Premium on-demand reassessment is available after day 30."}
               </p>
             </div>
           </div>
           <Button variant="cta" className="shrink-0" asChild>
-            <Link to="/onboarding?reassessment=1">Start reassessment</Link>
+            <Link to="/onboarding?reassessment=1">
+              {reassessmentDue ? "Start reassessment" : "Reassess now"}
+            </Link>
+          </Button>
+        </div>
+      ) : showPremiumOnDemandLocked ? (
+        <div className="flex flex-col gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center">
+          <div className="flex flex-1 items-start gap-3">
+            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
+              <CalendarDays className="h-5 w-5 text-primary" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="font-semibold text-foreground">Premium on-demand reassessment</p>
+              <p className="text-sm text-muted-foreground">
+                Unlocks in {daysUntilOnDemand} day{daysUntilOnDemand === 1 ? "" : "s"} — Premium
+                members can reassess on demand 30 days after their last assessment.
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" className="shrink-0" disabled>
+            Available in {daysUntilOnDemand} day{daysUntilOnDemand === 1 ? "" : "s"}
           </Button>
         </div>
       ) : null}

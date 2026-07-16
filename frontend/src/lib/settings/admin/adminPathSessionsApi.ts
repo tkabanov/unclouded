@@ -14,6 +14,7 @@ export interface AdminPathSessionRecord {
   title: string;
   coachingText: string;
   microCommitment: string;
+  reassessmentReflectionQuestion: string;
   questions: AdminPathQuestionRecord[];
 }
 
@@ -21,6 +22,7 @@ export interface AdminPathSessionFormState {
   title: string;
   coachingText: string;
   microCommitment: string;
+  reassessmentReflectionQuestion: string;
   questions: [string, string, string];
 }
 
@@ -31,6 +33,7 @@ type PathsessionRow = {
   title?: string;
   coachingText?: string;
   microCommitment?: string;
+  reassessmentReflectionQuestion?: string | null;
 };
 
 type PathquestionRow = {
@@ -111,7 +114,7 @@ export async function fetchAdminPathSessions(
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("pathSession")
-    .select("id, pathId, index, title, coachingText, microCommitment")
+    .select("id, pathId, index, title, coachingText, microCommitment, reassessmentReflectionQuestion")
     .eq("pathId", pathId)
     .order("index", { ascending: true });
 
@@ -134,6 +137,8 @@ export async function fetchAdminPathSessions(
       title: session.title?.trim() ?? "",
       coachingText: session.coachingText?.trim() ?? "",
       microCommitment: session.microCommitment?.trim() ?? "",
+      reassessmentReflectionQuestion:
+        session.reassessmentReflectionQuestion?.trim() ?? "",
       questions,
     });
   }
@@ -146,6 +151,7 @@ export function emptyAdminPathSessionForm(): AdminPathSessionFormState {
     title: "",
     coachingText: "",
     microCommitment: "",
+    reassessmentReflectionQuestion: "",
     questions: ["", "", ""],
   };
 }
@@ -162,6 +168,7 @@ export function adminPathSessionFormFromRecord(
     title: session.title,
     coachingText: session.coachingText,
     microCommitment: session.microCommitment,
+    reassessmentReflectionQuestion: session.reassessmentReflectionQuestion,
     questions,
   };
 }
@@ -222,6 +229,7 @@ export async function createAdminPathSession(
     title,
     coachingText: form.coachingText.trim(),
     microCommitment: form.microCommitment.trim(),
+    reassessmentReflectionQuestion: form.reassessmentReflectionQuestion.trim() || null,
   } as never);
 
   if (insertError) throw insertError;
@@ -250,6 +258,7 @@ export async function updateAdminPathSession(
       title,
       coachingText: form.coachingText.trim(),
       microCommitment: form.microCommitment.trim(),
+      reassessmentReflectionQuestion: form.reassessmentReflectionQuestion.trim() || null,
     } as never)
     .eq("id", sessionId)
     .eq("pathId", pathId);

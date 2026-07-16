@@ -4,6 +4,7 @@ import type {
   ChatLatestCheckIn,
   ChatLiveContext,
   ChatPathReflectionAnswer,
+  ChatReassessmentContext,
 } from "./prompt/types.ts";
 import {
   aggregateLiveContext,
@@ -459,6 +460,92 @@ async function fetchPathReflections(
     : readPathReflectionsFromOnboarding(onboardingData);
 }
 
+async function fetchLatestReassessment(
+  supabase: SupabaseClient,
+  userId: string,
+  onboardingData: Record<string, unknown> | null | undefined,
+): Promise<ChatReassessmentContext | null> {
+  try {
+    const { data, error } = await supabase
+      .from("assessmentResult")
+      .select(
+        "trajectoryType, reflectionQ1, reflectionQ2, reflectionQ3, reflectionQ4, pathAdaptiveQ, pathAdaptiveAnswer, assessmentDate, isInitial",
+      )
+      .eq("userId", userId)
+      .eq("isInitial", false)
+      .order("assessmentDate", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!error && data) {
+      const row = data as Record<string, unknown>;
+      return {
+        trajectoryType: typeof row.trajectoryType === "string" ? row.trajectoryType : null,
+        reflectionQ1: typeof row.reflectionQ1 === "string" ? row.reflectionQ1 : null,
+        reflectionQ2: typeof row.reflectionQ2 === "string" ? row.reflectionQ2 : null,
+        reflectionQ3: typeof row.reflectionQ3 === "string" ? row.reflectionQ3 : null,
+        reflectionQ4: typeof row.reflectionQ4 === "string" ? row.reflectionQ4 : null,
+        pathAdaptiveQ: typeof row.pathAdaptiveQ === "string" ? row.pathAdaptiveQ : null,
+        pathAdaptiveAnswer:
+          typeof row.pathAdaptiveAnswer === "string" ? row.pathAdaptiveAnswer : null,
+        assessmentDate: typeof row.assessmentDate === "string" ? row.assessmentDate : null,
+      };
+    }
+
+    if (error && !isSchemaUnavailable(error)) {
+      console.warn("assessmentResult fetch failed", error.message);
+    }
+  } catch (err) {
+    console.warn("assessmentResult fetch error", err);
+  }
+
+  const reflections = onboardingData?.reassessment_reflections;
+  if (reflections && typeof reflections === "object") {
+    const r = reflections as Record<string, unknown>;
+    return {
+      trajectoryType:
+        typeof onboardingData?.trajectory_type === "string"
+          ? onboardingData.trajectory_type
+          : null,
+      reflectionQ1:
+        typeof r.reflection_q1 === "string"
+          ? r.reflection_q1
+          : typeof r.whats_different === "string"
+            ? r.whats_different
+            : null,
+      reflectionQ2:
+        typeof r.reflection_q2 === "string"
+          ? r.reflection_q2
+          : typeof r.still_hard === "string"
+            ? r.still_hard
+            : null,
+      reflectionQ3:
+        typeof r.reflection_q3 === "string"
+          ? r.reflection_q3
+          : typeof r.proud_of === "string"
+            ? r.proud_of
+            : null,
+      reflectionQ4:
+        typeof r.reflection_q4 === "string"
+          ? r.reflection_q4
+          : typeof r.focus_next === "string"
+            ? r.focus_next
+            : null,
+      pathAdaptiveQ:
+        typeof onboardingData?.path_adaptive_q === "string"
+          ? onboardingData.path_adaptive_q
+          : null,
+      pathAdaptiveAnswer:
+        typeof onboardingData?.path_adaptive_answer === "string"
+          ? onboardingData.path_adaptive_answer
+          : null,
+      assessmentDate: null,
+    };
+  }
+
+  return null;
+}
+
 /** Server-side live signal aggregation for chat prompt (T-008). */
 export async function loadServerLiveContext(
   supabase: SupabaseClient,
@@ -473,6 +560,7 @@ export async function loadServerLiveContext(
     sessionCount,
     pathReflections,
     activePathProgress,
+    latestReassessment,
   ] = await Promise.all([
     fetchLatestCheckIn(supabase, userId, onboardingData),
     fetchStreakDays(supabase, userId, onboardingData),
@@ -481,6 +569,7 @@ export async function loadServerLiveContext(
     fetchSessionCount(supabase, userId, onboardingData),
     fetchPathReflections(supabase, userId, onboardingData),
     fetchActivePathProgress(supabase, userId),
+    fetchLatestReassessment(supabase, userId, onboardingData),
   ]);
 
   const microCommitmentCandidates = microCommitmentResult.usedOnboardingFallback
@@ -498,5 +587,6 @@ export async function loadServerLiveContext(
     sessionCount,
     pathReflections,
     activePathProgress,
+    latestReassessment,
   });
 }
