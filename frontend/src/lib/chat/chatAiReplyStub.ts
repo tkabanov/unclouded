@@ -86,6 +86,12 @@ function isCrisisPayload(payload: Record<string, unknown>): payload is { crisis:
   return payload.crisis === true && typeof payload.text === "string";
 }
 
+function isConversationTitlePayload(
+  payload: Record<string, unknown>,
+): payload is { title: string } {
+  return typeof payload.title === "string" && payload.title.trim().length > 0;
+}
+
 function isFinalizePayload(payload: Record<string, unknown>): boolean {
   return (
     typeof payload.lastSessionTopic === "string" &&
@@ -122,6 +128,9 @@ export async function callChatEdge(
   if (contentType.includes("application/json")) {
     const payload = (await response.json()) as Record<string, unknown>;
     if (params.expectJson && isFinalizePayload(payload)) {
+      return payload;
+    }
+    if (params.expectJson && isConversationTitlePayload(payload)) {
       return payload;
     }
     if (isCrisisPayload(payload)) {

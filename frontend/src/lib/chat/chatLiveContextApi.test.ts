@@ -48,9 +48,16 @@ describe("fetchChatLiveContext", () => {
     mockedStreak.mockResolvedValue(5);
     mockedMicroCommitments.mockResolvedValue([
       {
-        id: "s1",
+        id: "s0",
         pathName: "Hard Seasons",
         sessionIndex: 1,
+        microCommitmentText: "Wrote the honest answer",
+        isCompleted: true,
+      },
+      {
+        id: "s1",
+        pathName: "Hard Seasons",
+        sessionIndex: 2,
         microCommitmentText: "Text a friend",
         isCompleted: false,
       },
@@ -84,6 +91,7 @@ describe("fetchChatLiveContext", () => {
     expect(result.latestCheckIn?.microCommitmentStatus).toBe("partially");
     expect(result.streakDays).toBe(5);
     expect(result.activeMicroCommitment).toBe("Text a friend");
+    expect(result.completedMicroCommitments).toEqual(["Wrote the honest answer"]);
     expect(result.sessionCount).toBe(2);
     expect(result.pathReflections).toHaveLength(1);
   });

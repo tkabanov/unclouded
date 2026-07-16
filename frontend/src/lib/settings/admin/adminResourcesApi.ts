@@ -4,7 +4,6 @@ import {
   AI_COACHING_MODE_ORDER,
   type AiCoachingModeSlug,
 } from "@/lib/enums/coachingMode";
-import { DEMO_RESOURCE_SEED } from "@/lib/resources/demoResourceSeed";
 import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import {
   SENSITIVITY_OPTIONS,
@@ -48,18 +47,6 @@ export type AdminResourcesLoadResult = {
   resources: AdminResourceRecord[];
   dataSource: AdminDataSource;
 };
-
-const STATIC_FALLBACK: AdminResourceRecord[] = DEMO_RESOURCE_SEED.map((seed) => ({
-  resourceId: seed.resourceId,
-  title: seed.title,
-  content: seed.content,
-  primaryMode: seed.coachingMode,
-  subMode: seed.subModeTag,
-  sensitivity: seed.sensitivity,
-  isFree: seed.isFree,
-  isCrisis: seed.isCrisis,
-  externalLink: seed.externalLink,
-}));
 
 function isCoachingModeSlug(value: string | undefined): value is AiCoachingModeSlug {
   return AI_COACHING_MODE_ORDER.includes(value as AiCoachingModeSlug);
@@ -163,7 +150,7 @@ async function tryFetchResourcesFromTable(): Promise<AdminResourceRecord[] | nul
 
 export async function fetchAdminResources(userId: string): Promise<AdminResourcesLoadResult> {
   const fromTable = await tryFetchResourcesFromTable();
-  if (fromTable !== null && fromTable.length > 0) {
+  if (fromTable !== null) {
     return { resources: fromTable, dataSource: "table" };
   }
 
@@ -172,7 +159,7 @@ export async function fetchAdminResources(userId: string): Promise<AdminResource
     return { resources: custom, dataSource: "onboarding" };
   }
 
-  return { resources: STATIC_FALLBACK, dataSource: "static" };
+  return { resources: [], dataSource: "table" };
 }
 
 export { SENSITIVITY_OPTIONS };
@@ -189,7 +176,7 @@ export async function createAdminResource(
     "Low sensitivity";
 
   const row: ResourceRow = {
-    id: `res-${Date.now()}`,
+    id: crypto.randomUUID(),
     title: title,
     content: form.content.trim(),
     primaryModeTag: form.primaryMode,

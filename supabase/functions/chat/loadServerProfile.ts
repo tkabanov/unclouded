@@ -6,6 +6,8 @@ type ProfileRow = {
   firstName?: string | null;
   roleType?: string | null;
   primaryPillar?: string | null;
+  tier?: string | null;
+  subscribed?: boolean | null;
   results?: Record<string, unknown> | null;
   onboardingData?: Record<string, unknown> | null;
 };
@@ -25,7 +27,7 @@ export async function loadServerProfile(
 ): Promise<ProfileData | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("firstName, roleType, primaryPillar, results, onboardingData")
+    .select("firstName, roleType, primaryPillar, tier, subscribed, results, onboardingData")
     .eq("id", userId)
     .maybeSingle();
 
@@ -40,6 +42,8 @@ export async function loadServerProfile(
     firstName: typeof row.firstName === "string" ? row.firstName : undefined,
     roleType: typeof row.roleType === "string" ? row.roleType : undefined,
     primaryPillar: typeof row.primaryPillar === "string" ? row.primaryPillar : undefined,
+    tier: typeof row.tier === "string" ? row.tier : null,
+    subscribed: row.subscribed === true,
     results: asRecord(row.results),
     onboardingData,
     liveContext,

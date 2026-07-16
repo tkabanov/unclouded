@@ -82,6 +82,29 @@ export async function requestSessionClose(
   }) as Promise<string>;
 }
 
+export async function requestConversationTitle(
+  messages: ChatMessage[],
+  conversationId: string,
+): Promise<string> {
+  const response = await callChatEdge({
+    lifecycle: "conversation_title",
+    messages,
+    conversationId,
+    expectJson: true,
+  });
+
+  if (typeof response !== "object" || response === null) {
+    throw new Error("Invalid conversation title response");
+  }
+
+  const title = (response as { title?: unknown }).title;
+  if (typeof title !== "string" || !title.trim()) {
+    throw new Error("Conversation title missing from response");
+  }
+
+  return title.trim();
+}
+
 export async function finalizeSessionFromThread(
   messages: ChatMessage[],
   profileData?: ProfileData,

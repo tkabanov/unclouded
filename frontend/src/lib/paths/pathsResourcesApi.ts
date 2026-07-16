@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_RESOURCE_SEED } from "@/lib/resources/demoResourceSeed";
 import { isSchemaUnavailable, parseBoolean } from "@/lib/supabase/schemaFallback";
 
 /** Stored in profiles.onboardingData when resource / uds_resource tables are absent. */
@@ -33,18 +32,6 @@ type ResourceRow = {
 type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
-
-const STATIC_FALLBACK_RESOURCES: ResourceListItem[] = DEMO_RESOURCE_SEED.map((seed) => ({
-  resourceId: seed.resourceId,
-  title: seed.title,
-  content: seed.content,
-  primaryModeTag: seed.primaryModeTag,
-  subModeTag: seed.subModeTag,
-  isFree: seed.isFree,
-  sensitivityFlag: seed.sensitivityFlag,
-  externalLink: seed.externalLink,
-  isCrisisResource: seed.isCrisis,
-}));
 
 function toListItem(row: ResourceRow): ResourceListItem | null {
   if (!row.id) return null;
@@ -99,30 +86,18 @@ async function tryFetchFromTable(table: string): Promise<ResourceListItem[] | nu
     .filter((item): item is ResourceListItem => item !== null);
 }
 
-function deriveResources(
-  onboardingData: Record<string, unknown> | null | undefined,
-): ResourceListItem[] {
-  const fromOnboarding = readOnboardingResources(onboardingData);
-  if (fromOnboarding.length > 0) return fromOnboarding;
-  return STATIC_FALLBACK_RESOURCES;
-}
-
 /**
  * Bubble ai_RNbBHYIu binding: Search custom.resource rows for paths library cards.
- * Tries resource then uds_resource; falls back to onboardingData.resources then static seed.
+ * Tries resource then uds_resource; falls back to onboardingData.resources.
  */
 export async function fetchResources(
   onboardingData?: Record<string, unknown> | null,
 ): Promise<ResourceListItem[]> {
   const fromResource = await tryFetchFromTable("resource");
-  if (fromResource !== null && fromResource.length > 0) return fromResource;
+  if (fromResource !== null) return fromResource;
 
   const fromUds = await tryFetchFromTable("uds_resource");
-  if (fromUds !== null && fromUds.length > 0) return fromUds;
+  if (fromUds !== null) return fromUds;
 
-  if (fromResource !== null || fromUds !== null) {
-    return deriveResources(onboardingData);
-  }
-
-  return deriveResources(onboardingData);
+  return readOnboardingResources(onboardingData);
 }

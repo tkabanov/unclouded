@@ -1,16 +1,22 @@
 import { CheckCircle2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { Button } from "@/components/ui/button";
 import type { PathEnrollmentListItem } from "@/lib/dashboard/pathEnrollmentApi";
-import { PATH_ENROLLMENT_STATUS_LABELS } from "@/lib/enums/pathEnrollment";
+import { PATH_ENROLLMENT_STATUS, PATH_ENROLLMENT_STATUS_LABELS } from "@/lib/enums/pathEnrollment";
 import { TIER_LABELS } from "@/lib/enums/tier";
+import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 
 export interface PathCardProps {
   enrollment: PathEnrollmentListItem;
   onViewDetails?: (enrollment: PathEnrollmentListItem) => void;
   className?: string;
+}
+
+function sessionCompletionHref(sessionId: string): string {
+  return `${PATHS_ROUTE}?${SESSION_SEARCH_PARAM}=${encodeURIComponent(sessionId)}`;
 }
 
 export default function PathCard({
@@ -19,6 +25,10 @@ export default function PathCard({
   className,
 }: PathCardProps) {
   const statusLabel = PATH_ENROLLMENT_STATUS_LABELS[enrollment.status];
+  const canContinue =
+    Boolean(enrollment.currentSessionId) &&
+    (enrollment.status === PATH_ENROLLMENT_STATUS.ACTIVE ||
+      enrollment.status === PATH_ENROLLMENT_STATUS.PAUSED);
 
   return (
     <article
@@ -67,6 +77,11 @@ export default function PathCard({
         >
           {enrollment.pathName}
         </h3>
+        {enrollment.currentSessionTitle ? (
+          <p className={cn(bubbleStyle("Text_small_"), "mt-1 text-xs text-muted-foreground")}>
+            Next: {enrollment.currentSessionTitle}
+          </p>
+        ) : null}
       </div>
 
       <div
@@ -102,15 +117,31 @@ export default function PathCard({
           </span>
         </div>
 
-        <Button
-          type="button"
-          size="sm"
-          data-style-ref="Button_accent_"
-          className={cn(bubbleStyle("Button_accent_"), "shrink-0")}
-          onClick={() => onViewDetails?.(enrollment)}
-        >
-          View Path
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {canContinue && enrollment.currentSessionId ? (
+            <Button
+              asChild
+              type="button"
+              size="sm"
+              data-style-ref="Button_primary_"
+              className={cn(bubbleStyle("Button_primary_"), "shrink-0")}
+            >
+              <Link to={sessionCompletionHref(enrollment.currentSessionId)}>
+                Continue
+              </Link>
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-style-ref="Button_accent_"
+            className={cn(bubbleStyle("Button_accent_"), "shrink-0")}
+            onClick={() => onViewDetails?.(enrollment)}
+          >
+            View Path
+          </Button>
+        </div>
       </footer>
     </article>
   );

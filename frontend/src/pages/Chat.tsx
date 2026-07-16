@@ -125,7 +125,6 @@ export default function Chat() {
               onboardingData={profile?.onboardingData ?? null}
               context={context}
               profileData={profileData}
-              listVersion={sidebarListVersion}
               onThreadUpdated={bumpSidebar}
               onSessionClosed={handleSessionClosed}
             />

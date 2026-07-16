@@ -5,6 +5,8 @@ import type { ChatConversation, ChatMessage } from "./types";
 import { CHAT_CONVERSATION_DEFAULTS } from "./types";
 import {
   fetchConversationById,
+  isDefaultConversationTitle,
+  renameConversation,
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
 import { generateAiReplyStub, type ChatAiProfileData, ChatEdgeError } from "@/lib/chat/chatAiReplyStub";
@@ -17,6 +19,7 @@ import {
 } from "@/lib/chat/chatMessagesApi";
 import {
   finalizeSessionFromThread,
+  requestConversationTitle,
   requestSessionClose,
   requestSessionOpening,
 } from "@/lib/chat/chatSessionLifecycleApi";
@@ -30,7 +33,6 @@ export interface ChatPanelMountProps {
   onboardingData?: Record<string, unknown> | null;
   context?: string;
   profileData?: ChatAiProfileData;
-  listVersion?: number;
   onThreadUpdated?: () => void;
   onSessionClosed?: () => void;
   className?: string;
@@ -45,7 +47,6 @@ export default function ChatPanelMount({
   onboardingData,
   context,
   profileData,
-  listVersion = 0,
   onThreadUpdated,
   onSessionClosed,
   className,
@@ -85,7 +86,7 @@ export default function ChatPanelMount({
 
   useEffect(() => {
     void reload();
-  }, [reload, listVersion]);
+  }, [reload]);
 
   useEffect(() => {
     setAwaitingCommitment(false);
@@ -107,9 +108,37 @@ export default function ChatPanelMount({
       setMessages(nextThread);
       await touchConversationAfterMessage(userId, conversationId, assistantText);
       onThreadUpdated?.();
-      return assistantMessage;
+      return { assistantMessage, nextThread };
     },
     [conversationId, onboardingData, onThreadUpdated, userId],
+  );
+
+  const maybeGenerateConversationTitle = useCallback(
+    async (thread: ChatMessage[]) => {
+      if (!isDefaultConversationTitle(conversationMeta?.title)) return;
+
+      const userMessages = thread.filter((message) => message.role === "user");
+      if (userMessages.length !== 1) return;
+
+      const firstUserMessage = userMessages[0];
+      const lastAssistantMessage = [...thread].reverse().find((message) => message.role === "assistant");
+      if (!firstUserMessage || !lastAssistantMessage) return;
+
+      try {
+        const generatedTitle = await requestConversationTitle(
+          [firstUserMessage, lastAssistantMessage],
+          conversationId,
+        );
+        await renameConversation(userId, conversationId, generatedTitle);
+        setConversationMeta((current) =>
+          current ? { ...current, title: generatedTitle } : { id: conversationId, title: generatedTitle, previewText: "", modifiedDate: null },
+        );
+        onThreadUpdated?.();
+      } catch (error) {
+        console.error("Failed to generate conversation title", error);
+      }
+    },
+    [conversationId, conversationMeta?.title, onThreadUpdated, userId],
   );
 
   const maybeSendSessionOpener = useCallback(
@@ -225,7 +254,8 @@ export default function ChatPanelMount({
             profileData,
             conversationId,
           );
-          await sendAssistantMessage(assistantText, threadForAi);
+          const { nextThread } = await sendAssistantMessage(assistantText, threadForAi);
+          void maybeGenerateConversationTitle(nextThread);
         } catch (error) {
           if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
             setSessionLimitBlocked(true);
@@ -251,6 +281,7 @@ export default function ChatPanelMount({
       context,
       conversationId,
       finalizeSession,
+      maybeGenerateConversationTitle,
       messages,
       onboardingData,
       profileData,

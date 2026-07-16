@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
-import type { ChatLatestCheckIn, ChatLiveContext, ChatPathReflectionAnswer } from "./prompt/types.ts";
+import type {
+  ChatActivePathProgress,
+  ChatLatestCheckIn,
+  ChatLiveContext,
+  ChatPathReflectionAnswer,
+} from "./prompt/types.ts";
 import {
   aggregateLiveContext,
   isSchemaUnavailable,
@@ -8,12 +13,13 @@ import {
   readMicroCommitmentFromOnboardingEnrollment,
   readPathReflectionsFromOnboarding,
   readSessionCountFromOnboarding,
-  readStreakFromOnboarding,
 } from "./liveContext/liveContextHelpers.ts";
+import { resolveEffectiveCheckInStreak } from "./liveContext/streakHelpers.ts";
 
 const MAX_RECENT_REFLECTIONS = 9;
 
 function asStringArray(value: unknown): string[] {
+  if (typeof value === "string" && value.trim()) return [value.trim()];
   if (!Array.isArray(value)) return [];
   return value
     .filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0)
@@ -27,7 +33,7 @@ async function fetchLatestCheckIn(
 ): Promise<ChatLatestCheckIn | null> {
   const { data, error } = await supabase
     .from("dailyCheckin")
-    .select("mood, energyStressLevel, reflection, date, createdAt, microCommitmentStatus")
+    .select("mood, energyStressLevel, reflection, date, createdAt")
     .eq("userId", userId)
     .order("date", { ascending: false })
     .limit(1)
@@ -52,8 +58,7 @@ async function fetchLatestCheckIn(
       : typeof row.createdAt === "string"
         ? row.createdAt
         : null;
-  const microCommitmentStatus =
-    typeof row.microCommitmentStatus === "string" ? row.microCommitmentStatus : null;
+  const microCommitmentStatus = null;
 
   if (Number.isNaN(mood) && Number.isNaN(energy) && !reflection.trim()) {
     return readLatestCheckInFromOnboarding(userId, onboardingData);
@@ -68,37 +73,59 @@ async function fetchLatestCheckIn(
   };
 }
 
+async function fetchCheckInDateKeys(
+  supabase: SupabaseClient,
+  userId: string,
+  onboardingData: Record<string, unknown> | null | undefined,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("dailyCheckin")
+    .select("date")
+    .eq("userId", userId);
+
+  if (error) {
+    if (!isSchemaUnavailable(error)) throw error;
+    const raw = onboardingData?.daily_checkins;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((entry) => {
+        if (!entry || typeof entry !== "object") return null;
+        const row = entry as Record<string, unknown>;
+        const user = typeof row.userId === "string" ? row.userId : "";
+        const date = typeof row.date === "string" ? row.date : "";
+        return user === userId && date ? date.slice(0, 10) : null;
+      })
+      .filter((date): date is string => Boolean(date));
+  }
+
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((row) => {
+      const date = (row as { date?: string | null }).date;
+      return typeof date === "string" ? date.slice(0, 10) : null;
+    })
+    .filter((date): date is string => Boolean(date));
+}
+
 async function fetchStreakDays(
   supabase: SupabaseClient,
   userId: string,
   onboardingData: Record<string, unknown> | null | undefined,
 ): Promise<number> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("dailyCheckInStreak, streakDays")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (error) {
-    if (!isSchemaUnavailable(error)) throw error;
-    return readStreakFromOnboarding(onboardingData);
-  }
-
-  if (!data || typeof data !== "object") return readStreakFromOnboarding(onboardingData);
-  const row = data as Record<string, unknown>;
-  const streak = row.dailyCheckInStreak ?? row.streakDays ?? 0;
-  const parsed = Number(streak);
-  return Number.isFinite(parsed) ? Math.max(0, parsed) : readStreakFromOnboarding(onboardingData);
+  const dateKeys = await fetchCheckInDateKeys(supabase, userId, onboardingData);
+  return resolveEffectiveCheckInStreak(dateKeys);
 }
 
 async function fetchActiveMicroCommitment(
   supabase: SupabaseClient,
   userId: string,
   onboardingData: Record<string, unknown> | null | undefined,
-): Promise<string | null> {
+): Promise<{ value: string | null; usedOnboardingFallback: boolean }> {
   const { data, error } = await supabase
     .from("pathEnrollment")
-    .select("status, focusedMicroCommitmentSessionId, completedMicroCommitmentSessionIds")
+    .select(
+      "status, focusedMicroCommitmentSessionId, completedMicroCommitmentSessionIds, isMicroCommitmentInFocus",
+    )
     .eq("userId", userId)
     .eq("status", "active")
     .limit(1)
@@ -106,27 +133,36 @@ async function fetchActiveMicroCommitment(
 
   if (error) {
     if (!isSchemaUnavailable(error)) throw error;
-    return (
-      readMicroCommitmentFromOnboardingEnrollment(onboardingData) ??
-      readActiveMicroCommitmentFromOnboarding(onboardingData)
-    );
+    return {
+      value:
+        readMicroCommitmentFromOnboardingEnrollment(onboardingData) ??
+        readActiveMicroCommitmentFromOnboarding(onboardingData),
+      usedOnboardingFallback: true,
+    };
   }
 
   if (!data || typeof data !== "object") {
-    return (
-      readMicroCommitmentFromOnboardingEnrollment(onboardingData) ??
-      readActiveMicroCommitmentFromOnboarding(onboardingData)
-    );
+    return {
+      value:
+        readMicroCommitmentFromOnboardingEnrollment(onboardingData) ??
+        readActiveMicroCommitmentFromOnboarding(onboardingData),
+      usedOnboardingFallback: true,
+    };
   }
 
   const row = data as Record<string, unknown>;
-  if (row.status === "completed") return null;
+  if (row.status === "completed") {
+    return { value: null, usedOnboardingFallback: false };
+  }
+  if (row.isMicroCommitmentInFocus !== true) {
+    return { value: null, usedOnboardingFallback: false };
+  }
 
   const focusedIds = asStringArray(row.focusedMicroCommitmentSessionId);
   const completedIds = new Set(asStringArray(row.completedMicroCommitmentSessionIds));
   const nextFocusedId = focusedIds.find((id) => !completedIds.has(id));
   if (!nextFocusedId) {
-    return readActiveMicroCommitmentFromOnboarding(onboardingData);
+    return { value: null, usedOnboardingFallback: false };
   }
 
   const { data: sessionData, error: sessionError } = await supabase
@@ -137,7 +173,12 @@ async function fetchActiveMicroCommitment(
 
   if (sessionError) {
     if (!isSchemaUnavailable(sessionError)) throw sessionError;
-    return readActiveMicroCommitmentFromOnboarding(onboardingData);
+    return {
+      value:
+        readMicroCommitmentFromOnboardingEnrollment(onboardingData) ??
+        readActiveMicroCommitmentFromOnboarding(onboardingData),
+      usedOnboardingFallback: true,
+    };
   }
 
   const microCommitment =
@@ -146,10 +187,78 @@ async function fetchActiveMicroCommitment(
       : null;
 
   if (typeof microCommitment === "string" && microCommitment.trim()) {
-    return microCommitment.trim();
+    return { value: microCommitment.trim(), usedOnboardingFallback: false };
   }
 
-  return readActiveMicroCommitmentFromOnboarding(onboardingData);
+  return { value: null, usedOnboardingFallback: false };
+}
+
+async function fetchCompletedMicroCommitments(
+  supabase: SupabaseClient,
+  userId: string,
+  onboardingData: Record<string, unknown> | null | undefined,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("pathEnrollment")
+    .select("completedMicroCommitmentSessionIds")
+    .eq("userId", userId)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  let completedIds: string[] = [];
+
+  if (error) {
+    if (!isSchemaUnavailable(error)) throw error;
+  } else if (data && typeof data === "object") {
+    completedIds = asStringArray(
+      (data as Record<string, unknown>).completedMicroCommitmentSessionIds,
+    );
+  }
+
+  if (completedIds.length === 0) {
+    const raw = onboardingData?.path_enrollment1;
+    if (raw && typeof raw === "object") {
+      completedIds = asStringArray(
+        (raw as Record<string, unknown>).completedMicroCommitmentSessionIds,
+      );
+    }
+  }
+
+  if (completedIds.length === 0) return [];
+
+  const { data: sessions, error: sessionError } = await supabase
+    .from("pathSession")
+    .select("id, microCommitment, title, index")
+    .in("id", completedIds);
+
+  if (sessionError) {
+    if (!isSchemaUnavailable(sessionError)) throw sessionError;
+    return [];
+  }
+
+  if (!Array.isArray(sessions)) return [];
+
+  const byId = new Map<string, { text: string; index: number }>();
+  for (const entry of sessions) {
+    if (!entry || typeof entry !== "object") continue;
+    const row = entry as Record<string, unknown>;
+    const id = typeof row.id === "string" ? row.id : null;
+    const text =
+      typeof row.microCommitment === "string" ? row.microCommitment.trim() : "";
+    if (!id || !text) continue;
+    const index = Number(row.index);
+    byId.set(id, {
+      text,
+      index: Number.isFinite(index) ? index : 0,
+    });
+  }
+
+  // Preserve completion order from enrollment (most recently completed last in array).
+  return completedIds
+    .map((id) => byId.get(id)?.text)
+    .filter((text): text is string => Boolean(text))
+    .reverse();
 }
 
 async function fetchSessionCount(
@@ -171,14 +280,106 @@ async function fetchSessionCount(
   return count;
 }
 
+async function fetchActivePathProgress(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<ChatActivePathProgress | null> {
+  const { data, error } = await supabase
+    .from("pathEnrollment")
+    .select("status, completedSessionsCount, currentSessionId, pathId, path(name, sessionsCount)")
+    .eq("userId", userId)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    if (!isSchemaUnavailable(error)) throw error;
+    return null;
+  }
+
+  if (!data || typeof data !== "object") return null;
+
+  const row = data as Record<string, unknown>;
+  const path =
+    row.path && typeof row.path === "object"
+      ? (row.path as Record<string, unknown>)
+      : null;
+  const pathName =
+    typeof path?.name === "string" && path.name.trim() ? path.name.trim() : "Path";
+  const pathId =
+    typeof row.pathId === "string"
+      ? row.pathId
+      : path && typeof path.id === "string"
+        ? path.id
+        : null;
+  const completedSessionsCount = Number(row.completedSessionsCount);
+  const completedCount = Number.isFinite(completedSessionsCount)
+    ? Math.max(0, completedSessionsCount)
+    : 0;
+  const totalSessionsRaw = Number(path?.sessionsCount);
+  const totalSessionsCount = Number.isFinite(totalSessionsRaw) && totalSessionsRaw > 0
+    ? totalSessionsRaw
+    : null;
+
+  let sessions: Array<{ id: string; title: string | null; index: number | null }> = [];
+  if (pathId) {
+    const { data: sessionRows, error: sessionError } = await supabase
+      .from("pathSession")
+      .select("id, title, index")
+      .eq("pathId", pathId)
+      .order("index", { ascending: true });
+
+    if (sessionError) {
+      if (!isSchemaUnavailable(sessionError)) throw sessionError;
+    } else if (Array.isArray(sessionRows)) {
+      sessions = sessionRows
+        .map((entry) => {
+          if (!entry || typeof entry !== "object") return null;
+          const session = entry as Record<string, unknown>;
+          const id = typeof session.id === "string" ? session.id : null;
+          if (!id) return null;
+          return {
+            id,
+            title: typeof session.title === "string" ? session.title : null,
+            index: Number.isFinite(Number(session.index)) ? Number(session.index) : null,
+          };
+        })
+        .filter((entry): entry is { id: string; title: string | null; index: number | null } =>
+          entry !== null
+        );
+    }
+  }
+
+  const totalSessions = totalSessionsCount ?? (sessions.length > 0 ? sessions.length : null);
+  const currentSessionId =
+    typeof row.currentSessionId === "string" && row.currentSessionId.trim()
+      ? row.currentSessionId.trim()
+      : sessions[Math.min(completedCount, Math.max(0, sessions.length - 1))]?.id ?? null;
+  const currentSessionTitle =
+    sessions.find((session) => session.id === currentSessionId)?.title?.trim() ?? null;
+  const nextSessionTitle =
+    sessions[Math.min(completedCount, Math.max(0, sessions.length - 1))]?.title?.trim() ?? null;
+
+  return {
+    pathName,
+    status: typeof row.status === "string" && row.status.trim() ? row.status.trim() : "active",
+    completedSessionsCount: completedCount,
+    totalSessionsCount: totalSessions,
+    currentSessionTitle,
+    nextSessionTitle,
+    hasActivePaths: true,
+  };
+}
+
 async function fetchPathReflections(
   supabase: SupabaseClient,
   userId: string,
   onboardingData: Record<string, unknown> | null | undefined,
 ): Promise<ChatPathReflectionAnswer[]> {
+  // Flat select first — nested embeds can fail if PostgREST schema cache lags a new table.
   const { data, error } = await supabase
     .from("pathResponse")
-    .select("questionText, answerText, createdAt, pathSession(title, path(name))")
+    .select("questionText, answerText, createdAt, sessionId")
     .eq("userId", userId)
     .order("createdAt", { ascending: false })
     .limit(MAX_RECENT_REFLECTIONS);
@@ -192,6 +393,44 @@ async function fetchPathReflections(
     return readPathReflectionsFromOnboarding(onboardingData);
   }
 
+  const sessionIds = [
+    ...new Set(
+      data
+        .map((entry) => {
+          const row = entry as Record<string, unknown>;
+          return typeof row.sessionId === "string" ? row.sessionId : null;
+        })
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  const sessionMeta = new Map<string, { title?: string; pathName?: string }>();
+  if (sessionIds.length > 0) {
+    const { data: sessions, error: sessionError } = await supabase
+      .from("pathSession")
+      .select("id, title, path(name)")
+      .in("id", sessionIds);
+
+    if (sessionError) {
+      if (!isSchemaUnavailable(sessionError)) throw sessionError;
+    } else if (Array.isArray(sessions)) {
+      for (const entry of sessions) {
+        if (!entry || typeof entry !== "object") continue;
+        const row = entry as Record<string, unknown>;
+        const id = typeof row.id === "string" ? row.id : null;
+        if (!id) continue;
+        const path =
+          row.path && typeof row.path === "object"
+            ? (row.path as Record<string, unknown>)
+            : null;
+        sessionMeta.set(id, {
+          title: typeof row.title === "string" ? row.title.trim() : undefined,
+          pathName: typeof path?.name === "string" ? path.name.trim() : undefined,
+        });
+      }
+    }
+  }
+
   const reflections = data
     .map((entry) => {
       if (!entry || typeof entry !== "object") return null;
@@ -201,19 +440,12 @@ async function fetchPathReflections(
       const answerText = typeof row.answerText === "string" ? row.answerText.trim() : "";
       if (!questionText || !answerText) return null;
 
-      const pathSession =
-        row.pathSession && typeof row.pathSession === "object"
-          ? (row.pathSession as Record<string, unknown>)
-          : null;
-      const path =
-        pathSession?.path && typeof pathSession.path === "object"
-          ? (pathSession.path as Record<string, unknown>)
-          : null;
+      const sessionId = typeof row.sessionId === "string" ? row.sessionId : null;
+      const meta = sessionId ? sessionMeta.get(sessionId) : undefined;
 
       return {
-        pathName: typeof path?.name === "string" ? path.name.trim() : undefined,
-        sessionTitle:
-          typeof pathSession?.title === "string" ? pathSession.title.trim() : undefined,
+        pathName: meta?.pathName,
+        sessionTitle: meta?.title,
         questionText,
         answerText,
         answeredAt: typeof row.createdAt === "string" ? row.createdAt : undefined,
@@ -233,23 +465,38 @@ export async function loadServerLiveContext(
   userId: string,
   onboardingData: Record<string, unknown> | null | undefined,
 ): Promise<ChatLiveContext> {
-  const [latestCheckIn, streakDays, activeMicroCommitment, sessionCount, pathReflections] =
-    await Promise.all([
-      fetchLatestCheckIn(supabase, userId, onboardingData),
-      fetchStreakDays(supabase, userId, onboardingData),
-      fetchActiveMicroCommitment(supabase, userId, onboardingData),
-      fetchSessionCount(supabase, userId, onboardingData),
-      fetchPathReflections(supabase, userId, onboardingData),
-    ]);
+  const [
+    latestCheckIn,
+    streakDays,
+    microCommitmentResult,
+    completedMicroCommitments,
+    sessionCount,
+    pathReflections,
+    activePathProgress,
+  ] = await Promise.all([
+    fetchLatestCheckIn(supabase, userId, onboardingData),
+    fetchStreakDays(supabase, userId, onboardingData),
+    fetchActiveMicroCommitment(supabase, userId, onboardingData),
+    fetchCompletedMicroCommitments(supabase, userId, onboardingData),
+    fetchSessionCount(supabase, userId, onboardingData),
+    fetchPathReflections(supabase, userId, onboardingData),
+    fetchActivePathProgress(supabase, userId),
+  ]);
+
+  const microCommitmentCandidates = microCommitmentResult.usedOnboardingFallback
+    ? [
+        microCommitmentResult.value,
+        readActiveMicroCommitmentFromOnboarding(onboardingData),
+      ]
+    : [microCommitmentResult.value];
 
   return aggregateLiveContext({
     latestCheckIn,
     streakDays,
-    activeMicroCommitmentCandidates: [
-      activeMicroCommitment,
-      readActiveMicroCommitmentFromOnboarding(onboardingData),
-    ],
+    activeMicroCommitmentCandidates: microCommitmentCandidates,
+    completedMicroCommitments,
     sessionCount,
     pathReflections,
+    activePathProgress,
   });
 }

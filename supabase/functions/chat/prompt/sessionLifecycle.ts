@@ -5,7 +5,11 @@ import {
   formatReturningMemoryHint,
 } from "../sessionMemory/sessionMemoryHelpers.ts";
 
-export type ChatLifecycleMode = "session_open" | "session_close" | "session_finalize";
+export type ChatLifecycleMode =
+  | "session_open"
+  | "session_close"
+  | "session_finalize"
+  | "conversation_title";
 
 const FIRST_SESSION_OPENINGS: Record<CoachingModeSlug, string> = {
   stabilizer:

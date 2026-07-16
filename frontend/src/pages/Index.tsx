@@ -32,6 +32,7 @@ import HeaderLogoutButton from "@/components/shell/HeaderLogoutButton";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/lib/bubbleStyles";
 import { useUserProfile } from "@/lib/userProfile";
+import { isSettingsAdminUser } from "@/lib/settings/isSettingsAdminUser";
 import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/onboardingStatus";
 
 /* ── shared bits ─────────────────────────────────────── */
@@ -102,9 +103,11 @@ const Index = () => {
 
   const destination = () => resolvePostAuthRoute(profile);
 
-  const appEntryLabel = isOnboardingComplete(profile)
-    ? "Go to Dashboard"
-    : "Continue Onboarding";
+  const appEntryLabel = isSettingsAdminUser(profile?.roleType)
+    ? "Go to Admin Console"
+    : isOnboardingComplete(profile)
+      ? "Go to Dashboard"
+      : "Continue Onboarding";
 
   const goToApp = () => {
     if (profileLoading) return;

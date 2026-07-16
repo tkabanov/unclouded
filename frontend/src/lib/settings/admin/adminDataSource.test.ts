@@ -10,7 +10,7 @@ describe("adminDataSourceNotice", () => {
     expect(adminDataSourceNotice("onboarding", "workplaces")).toContain("onboardingData");
   });
 
-  it("describes static demo catalog", () => {
-    expect(adminDataSourceNotice("static", "resources")).toContain("demo resources");
+  it("returns null for empty table-backed catalog", () => {
+    expect(adminDataSourceNotice("table", "resources")).toBeNull();
   });
 });

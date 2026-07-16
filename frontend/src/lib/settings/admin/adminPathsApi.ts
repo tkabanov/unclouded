@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ALL_PATHS } from "@/lib/paths";
+import { slugifyPathName } from "@/lib/paths/pathsCatalogApi";
 import {
   AI_COACHING_MODE,
   AI_COACHING_MODE_LABELS,
@@ -7,6 +7,7 @@ import {
 } from "@/lib/enums/coachingMode";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
+import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
 
 export const ADMIN_PATHS_ONBOARDING_KEY = "admin_paths" as const;
 
@@ -27,19 +28,25 @@ export interface AdminPathRecord {
   coachingMode: AiCoachingModeSlug;
   subMode: string;
   sensitivity: SensitivitySlug;
-  isStatic?: boolean;
+  sessionsCount: number;
 }
 
-export type AdminPathFormState = Omit<AdminPathRecord, "pathId" | "isStatic">;
+export type AdminPathFormState = Omit<AdminPathRecord, "pathId" | "sessionsCount">;
 
-type PathRow = {
+type PathDbRow = {
   id?: string;
-  slug?: string;
   name?: string;
   description?: string;
   tier?: string;
   aiCoachingMode?: string;
   subMode?: string;
+  triggerSignals?: string | null;
+  sessionsCount?: number | string | null;
+};
+
+/** Onboarding JSON fallback keeps slug/sensitivity outside the DB schema. */
+type PathOnboardingRow = PathDbRow & {
+  slug?: string;
   sensitivity_text?: string;
 };
 
@@ -47,15 +54,23 @@ type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
 
-function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
-  const message = error.message?.toLowerCase() ?? "";
-  return (
-    error.code === "42P01" ||
-    error.code === "PGRST205" ||
-    message.includes("relation") ||
-    message.includes("does not exist") ||
-    message.includes("could not find the table")
-  );
+const PATH_SENSITIVITY_PREFIX = "sensitivity:";
+
+function parseSensitivityFromTriggerSignals(value: string | undefined | null): SensitivitySlug {
+  const match = value?.match(/sensitivity:(low|moderate|high)/);
+  if (match && isSensitivitySlug(match[1])) return match[1];
+  return "low";
+}
+
+function encodeSensitivityInTriggerSignals(
+  sensitivity: SensitivitySlug,
+  existing?: string | null,
+): string {
+  const without = (existing ?? "")
+    .replace(/\bsensitivity:(?:low|moderate|high)\b/g, "")
+    .trim();
+  const token = `${PATH_SENSITIVITY_PREFIX}${sensitivity}`;
+  return without ? `${without} ${token}` : token;
 }
 
 function isTierSlug(value: string | undefined): value is TierSlug {
@@ -70,15 +85,16 @@ function isSensitivitySlug(value: string | undefined): value is SensitivitySlug 
   return SENSITIVITY_OPTIONS.some((option) => option.value === value);
 }
 
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function toNumber(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
 }
 
-function toAdminPath(row: PathRow, isStatic = false): AdminPathRecord | null {
+function toAdminPath(row: PathOnboardingRow): AdminPathRecord | null {
   if (!row.id && !row.slug) return null;
   const name = row.name?.trim();
   if (!name) return null;
@@ -87,32 +103,53 @@ function toAdminPath(row: PathRow, isStatic = false): AdminPathRecord | null {
   const coachingMode = isCoachingModeSlug(row.aiCoachingMode)
     ? row.aiCoachingMode
     : AI_COACHING_MODE.STABILIZER;
+  const slug = row.slug?.trim() || slugifyPathName(name);
+  const sensitivity = isSensitivitySlug(row.sensitivity_text)
+    ? row.sensitivity_text
+    : parseSensitivityFromTriggerSignals(row.triggerSignals);
 
   return {
-    pathId: row.id ?? row.slug ?? slugify(name),
-    slug: row.slug ?? slugify(name),
+    pathId: row.id ?? slug,
+    slug,
     name,
     description: row.description?.trim() ?? "",
     tier,
     coachingMode,
     subMode: row.subMode?.trim() ?? "",
-    sensitivity: isSensitivitySlug(row.sensitivity_text) ? row.sensitivity_text : "low",
-    isStatic,
+    sensitivity,
+    sessionsCount: toNumber(row.sessionsCount),
   };
 }
 
-function staticPaths(): AdminPathRecord[] {
-  return ALL_PATHS.map((path) => ({
-    pathId: path.slug,
-    slug: path.slug,
-    name: path.title,
-    description: path.description,
-    tier: path.tier,
-    coachingMode: AI_COACHING_MODE.STABILIZER,
-    subMode: path.subMode ?? "",
-    sensitivity: "low" as const,
-    isStatic: true,
-  }));
+function pathDbRowFromForm(
+  form: AdminPathFormState,
+  pathId: string,
+  existingTriggerSignals?: string | null,
+): PathDbRow {
+  const name = form.name.trim();
+  return {
+    id: pathId,
+    name: name,
+    description: form.description.trim(),
+    tier: form.tier,
+    aiCoachingMode: form.coachingMode,
+    subMode: form.subMode.trim(),
+    triggerSignals: encodeSensitivityInTriggerSignals(form.sensitivity, existingTriggerSignals),
+  };
+}
+
+function pathOnboardingRowFromForm(
+  form: AdminPathFormState,
+  pathId: string,
+  slug?: string,
+): PathOnboardingRow {
+  const name = form.name.trim();
+  const resolvedSlug = slug?.trim() || slugifyPathName(name);
+  return {
+    ...pathDbRowFromForm(form, pathId),
+    slug: resolvedSlug,
+    sensitivity_text: form.sensitivity,
+  };
 }
 
 async function readOnboardingPaths(userId: string): Promise<AdminPathRecord[]> {
@@ -130,11 +167,11 @@ async function readOnboardingPaths(userId: string): Promise<AdminPathRecord[]> {
   if (!Array.isArray(raw)) return [];
 
   return raw
-    .map((entry) => (entry && typeof entry === "object" ? toAdminPath(entry as PathRow) : null))
+    .map((entry) => (entry && typeof entry === "object" ? toAdminPath(entry as PathOnboardingRow) : null))
     .filter((item): item is AdminPathRecord => item !== null);
 }
 
-async function writeOnboardingPaths(userId: string, paths: PathRow[]): Promise<void> {
+async function writeOnboardingPaths(userId: string, paths: PathOnboardingRow[]): Promise<void> {
   const { data, error: readError } = await supabase
     .from("profiles")
     .select("onboardingData")
@@ -163,9 +200,7 @@ async function tryFetchPathsFromTable(): Promise<AdminPathRecord[] | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("path")
-    .select(
-      "id, slug, name, description, tier, aiCoachingMode, subMode, sensitivity_text",
-    );
+    .select("id, name, description, tier, aiCoachingMode, subMode, triggerSignals, sessionsCount");
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -175,17 +210,15 @@ async function tryFetchPathsFromTable(): Promise<AdminPathRecord[] | null> {
   if (!Array.isArray(data)) return [];
 
   return data
-    .map((row) => toAdminPath(row as PathRow))
+    .map((row) => toAdminPath(row as PathDbRow))
     .filter((item): item is AdminPathRecord => item !== null);
 }
 
 export async function fetchAdminPaths(userId: string): Promise<AdminPathRecord[]> {
   const fromTable = await tryFetchPathsFromTable();
-  if (fromTable !== null && fromTable.length > 0) return fromTable;
+  if (fromTable !== null) return fromTable;
 
-  const custom = await readOnboardingPaths(userId);
-  if (custom.length > 0) return [...staticPaths(), ...custom];
-  return staticPaths();
+  return readOnboardingPaths(userId);
 }
 
 export function getPathTierLabel(tier: TierSlug): string {
@@ -207,20 +240,11 @@ export async function createAdminPath(
   const name = form.name.trim();
   if (!name) throw new Error("Path title is required.");
 
-  const slug = slugify(name);
-  const row: PathRow = {
-    id: `path-${Date.now()}`,
-    slug,
-    name: name,
-    description: form.description.trim(),
-    tier: form.tier,
-    aiCoachingMode: form.coachingMode,
-    subMode: form.subMode.trim(),
-    sensitivity_text: form.sensitivity,
-  };
+  const pathId = crypto.randomUUID();
+  const row = pathOnboardingRowFromForm(form, pathId);
 
   const client = supabase as unknown as UntypedSupabase;
-  const { error: tableError } = await client.from("path").insert(row as never);
+  const { error: tableError } = await client.from("path").insert(pathDbRowFromForm(form, pathId) as never);
   if (!tableError) {
     const created = toAdminPath(row);
     if (!created) throw new Error("Failed to create path.");
@@ -230,16 +254,7 @@ export async function createAdminPath(
   if (!isSchemaUnavailable(tableError)) throw tableError;
 
   const existing = await readOnboardingPaths(userId);
-  const stored = existing.map((path) => ({
-    id: path.pathId,
-    slug: path.slug,
-    name: path.name,
-    description: path.description,
-    tier: path.tier,
-    aiCoachingMode: path.coachingMode,
-    subMode: path.subMode,
-    sensitivity_text: path.sensitivity,
-  }));
+  const stored = existing.map((path) => pathOnboardingRowFromRecord(path));
 
   await writeOnboardingPaths(userId, [...stored, row]);
   const created = toAdminPath(row);
@@ -256,36 +271,13 @@ export async function deleteAdminPath(userId: string, pathId: string): Promise<v
   const existing = await readOnboardingPaths(userId);
   const next = existing
     .filter((path) => path.pathId !== pathId)
-    .map((path) => ({
-      id: path.pathId,
-      slug: path.slug,
-      name: path.name,
-      description: path.description,
-      tier: path.tier,
-      aiCoachingMode: path.coachingMode,
-      subMode: path.subMode,
-      sensitivity_text: path.sensitivity,
-    }));
+    .map((path) => pathOnboardingRowFromRecord(path));
 
   await writeOnboardingPaths(userId, next);
 }
 
-function pathRowFromForm(form: AdminPathFormState, pathId: string, slug?: string): PathRow {
-  const name = form.name.trim();
-  return {
-    id: pathId,
-    slug: slug ?? slugify(name),
-    name: name,
-    description: form.description.trim(),
-    tier: form.tier,
-    aiCoachingMode: form.coachingMode,
-    subMode: form.subMode.trim(),
-    sensitivity_text: form.sensitivity,
-  };
-}
-
-function pathRowFromRecord(path: AdminPathRecord): PathRow {
-  return pathRowFromForm(
+function pathOnboardingRowFromRecord(path: AdminPathRecord): PathOnboardingRow {
+  return pathOnboardingRowFromForm(
     {
       slug: path.slug,
       name: path.name,
@@ -308,10 +300,23 @@ export async function updateAdminPath(
   const name = form.name.trim();
   if (!name) throw new Error("Path title is required.");
 
-  const row = pathRowFromForm(form, pathId, form.slug.trim() || slugify(name));
-
   const client = supabase as unknown as UntypedSupabase;
-  const { error: tableError } = await client.from("path").update(row as never).eq("id", pathId);
+  const { data: existingRow, error: readError } = await client
+    .from("path")
+    .select("triggerSignals")
+    .eq("id", pathId)
+    .maybeSingle();
+
+  if (readError && !isSchemaUnavailable(readError)) throw readError;
+
+  const row = pathOnboardingRowFromForm(form, pathId, form.slug.trim() || slugifyPathName(name));
+  const dbRow = pathDbRowFromForm(
+    form,
+    pathId,
+    (existingRow as PathDbRow | null)?.triggerSignals,
+  );
+
+  const { error: tableError } = await client.from("path").update(dbRow as never).eq("id", pathId);
   if (!tableError) {
     const updated = toAdminPath(row);
     if (!updated) throw new Error("Failed to update path.");
@@ -323,7 +328,7 @@ export async function updateAdminPath(
   const existing = await readOnboardingPaths(userId);
   let found = false;
   const next = existing.map((path) => {
-    if (path.pathId !== pathId) return pathRowFromRecord(path);
+    if (path.pathId !== pathId) return pathOnboardingRowFromRecord(path);
     found = true;
     return row;
   });

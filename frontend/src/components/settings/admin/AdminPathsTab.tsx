@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { List, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AddPathPopup from "@/components/settings/admin/AddPathPopup";
+import PathSessionsEditor from "@/components/settings/admin/PathSessionsEditor";
 import {
   createAdminPath,
   deleteAdminPath,
@@ -24,6 +25,7 @@ export default function AdminPathsTab() {
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editPath, setEditPath] = useState<AdminPathRecord | null>(null);
+  const [sessionsPath, setSessionsPath] = useState<AdminPathRecord | null>(null);
   const [busy, setBusy] = useState(false);
 
   const popupOpen = addOpen || editPath !== null;
@@ -81,7 +83,7 @@ export default function AdminPathsTab() {
 
   const handleDelete = useCallback(
     async (path: AdminPathRecord) => {
-      if (!user || path.isStatic || busy) return;
+      if (!user || busy) return;
       setBusy(true);
       try {
         await deleteAdminPath(user.id, path.pathId);
@@ -160,6 +162,8 @@ export default function AdminPathsTab() {
               <span>
                 {getSensitivityLabel(path.sensitivity)}
               </span>
+              <span className="mx-2">·</span>
+              <span>{path.sessionsCount} session(s)</span>
             </div>
 
             <div
@@ -169,7 +173,16 @@ export default function AdminPathsTab() {
                 type="button"
                 size="sm"
                 variant="outline"
-                disabled={path.isStatic || busy}
+                disabled={busy}
+                onClick={() => setSessionsPath(path)}
+              >
+                <List className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy}
                 onClick={() =>
                   setEditPath({
                     ...path,
@@ -182,7 +195,7 @@ export default function AdminPathsTab() {
                 type="button"
                 size="sm"
                 variant="outline"
-                disabled={path.isStatic || busy}
+                disabled={busy}
                 onClick={() => void handleDelete(path)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -213,6 +226,15 @@ export default function AdminPathsTab() {
               }
             : null
         }
+      />
+
+      <PathSessionsEditor
+        open={sessionsPath !== null}
+        onOpenChange={(open) => {
+          if (!open) setSessionsPath(null);
+        }}
+        path={sessionsPath}
+        onSessionsChanged={() => void reload()}
       />
     </div>
   );

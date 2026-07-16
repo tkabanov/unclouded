@@ -4,7 +4,18 @@ import {
   type PathEnrollmentStatusSlug,
 } from "@/lib/enums/pathEnrollment";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
-import { getPathBySlug, HARD_SEASONS_PATH } from "@/lib/paths";
+import {
+  fetchPathSessionTitle,
+  fetchPathSessions,
+  type PathSessionSummary,
+} from "@/lib/paths/pathsCatalogApi";
+import {
+  remapSessionToCatalog,
+  recoverPathIdFromPathResponses,
+  resolveEnrollmentPathCatalog,
+  resolvePathKeyFromEnrollment,
+  tryRepairEnrollmentPathId,
+} from "@/lib/paths/enrollmentPathResolver";
 import {
   PATH_ENROLLMENT_ONBOARDING_KEY,
   type PathEnrollmentOnboardingState,
@@ -32,6 +43,8 @@ export interface CurrentPathEnrollment {
   pathSlug?: string;
   progressPercent: number;
   nextStepTitle: string | null;
+  /** Opens session completion form at /paths?session= */
+  currentSessionId?: string;
   hasActiveEnrollment: boolean;
 }
 
@@ -81,6 +94,7 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
 }
 
 function asStringArray(value: unknown): string[] {
+  if (typeof value === "string" && value.trim()) return [value.trim()];
   if (!Array.isArray(value)) return [];
   return value
     .map((entry) => {
@@ -110,45 +124,94 @@ function readEnrollmentState(
   return raw as PathEnrollmentOnboardingState;
 }
 
-function resolvePathFromSlug(slug: string | undefined) {
-  if (slug) {
-    return getPathBySlug(slug) ?? HARD_SEASONS_PATH;
-  }
-  return HARD_SEASONS_PATH;
-}
-
-function sessionTitleFromId(sessionId: string | undefined, pathSlug: string | undefined): string | null {
-  if (!sessionId) return null;
-  const path = resolvePathFromSlug(pathSlug);
-  return path.sessions.find((session) => session.id === sessionId)?.title ?? null;
-}
-
-function resolveNextStepTitle(
-  currentSession: PathenrollmentRow["currentSessionId"],
+function resolvePathKey(
   pathSlug: string | undefined,
-  focusedSessionIds: string[],
-  completedSessionIds: string[],
-): string | null {
+  pathObject?: PathenrollmentRow["pathId"],
+  onboardingData?: Record<string, unknown> | null,
+): string | undefined {
+  return resolvePathKeyFromEnrollment(pathObject ?? pathSlug, onboardingData);
+}
+
+async function resolvePathMetaFromDb(
+  pathKey: string | undefined,
+  pathObject?: PathenrollmentRow["pathId"],
+  onboardingData?: Record<string, unknown> | null,
+): Promise<ReturnType<typeof resolvePathMeta>> {
+  const catalog = await resolveEnrollmentPathCatalog(pathObject ?? pathKey ?? null, onboardingData);
+  if (catalog) {
+    return {
+      pathName: catalog.name,
+      pathSlug: catalog.slug,
+      tier: catalog.tier,
+      pillarLabel: catalog.pillar,
+      subMode: catalog.subMode,
+      totalSessions: catalog.sessionsCount,
+    };
+  }
+
+  return resolvePathMeta(pathKey, pathObject);
+}
+
+async function sessionTitleFromId(
+  sessionId: string | undefined,
+): Promise<string | null> {
+  if (!sessionId) return null;
+  return fetchPathSessionTitle(sessionId);
+}
+
+async function resolveNextStepTitle(
+  currentSession: PathenrollmentRow["currentSessionId"],
+  completedSessionsCount: number,
+  sessions: PathSessionSummary[],
+): Promise<string | null> {
   if (currentSession && typeof currentSession === "object") {
     if (typeof currentSession.title === "string" && currentSession.title.trim()) {
       return currentSession.title;
     }
-    return sessionTitleFromId(currentSession.id, pathSlug);
+    return sessionTitleFromId(currentSession.id);
   }
 
   if (typeof currentSession === "string") {
-    return sessionTitleFromId(currentSession, pathSlug);
+    return sessionTitleFromId(currentSession);
   }
 
-  const path = resolvePathFromSlug(pathSlug);
-  const completed = new Set(completedSessionIds);
-  const focusedId = focusedSessionIds.find(Boolean);
-  if (focusedId) {
-    return sessionTitleFromId(focusedId, pathSlug);
+  // Progress is session-based (answered questions), not micro-commitment based.
+  const nextByCount = sessions[Math.max(0, completedSessionsCount)];
+  return nextByCount?.title ?? sessions[0]?.title ?? null;
+}
+
+function resolveCurrentSessionId(
+  currentSession: PathenrollmentRow["currentSessionId"],
+  completedSessionsCount: number,
+  completedSessionIds: string[],
+  sessions: PathSessionSummary[],
+  sessionTitleHint?: string,
+): string | undefined {
+  let sessionId: string | undefined;
+  let sessionTitle = sessionTitleHint;
+
+  if (currentSession && typeof currentSession === "object") {
+    sessionId = typeof currentSession.id === "string" ? currentSession.id : undefined;
+    if (typeof currentSession.title === "string" && currentSession.title.trim()) {
+      sessionTitle = currentSession.title;
+    }
+  } else if (typeof currentSession === "string" && currentSession.trim()) {
+    sessionId = currentSession;
   }
 
-  const nextSession = path.sessions.find((session) => !completed.has(session.id));
-  return nextSession?.title ?? path.sessions[0]?.title ?? null;
+  // Prefer an explicit currentSessionId when it still exists in the catalog.
+  if (sessionId && sessions.some((session) => session.id === sessionId)) {
+    return sessionId;
+  }
+
+  // Use completed session IDs when available; otherwise fall back to count index.
+  if (completedSessionIds.length > 0) {
+    const completed = new Set(completedSessionIds);
+    const nextUnanswered = sessions.find((session) => !completed.has(session.id));
+    if (nextUnanswered) return nextUnanswered.id;
+  }
+
+  return remapSessionToCatalog(sessionId, sessionTitle, sessions, completedSessionsCount);
 }
 
 function computeProgressPercent(
@@ -159,47 +222,73 @@ function computeProgressPercent(
   return Math.min(100, Math.max(0, Math.round((completedCount / totalSessions) * 100)));
 }
 
-function parsePathenrollmentRow(row: PathenrollmentRow): CurrentPathEnrollment | null {
+function storedPathIdFromRow(row: PathenrollmentRow): string | null {
+  if (typeof row.pathId === "string" && row.pathId.trim()) return row.pathId.trim();
+  if (row.pathId && typeof row.pathId === "object" && typeof row.pathId.id === "string") {
+    return row.pathId.id;
+  }
+  return null;
+}
+
+async function resolveCatalogForEnrollmentRow(
+  row: PathenrollmentRow,
+  userId?: string,
+  onboardingData?: Record<string, unknown> | null,
+): Promise<Awaited<ReturnType<typeof resolveEnrollmentPathCatalog>>> {
+  let catalog = await resolveEnrollmentPathCatalog(row.pathId ?? null, onboardingData);
+
+  if (!catalog && userId) {
+    const recoveredPathId = await recoverPathIdFromPathResponses(userId);
+    if (recoveredPathId) {
+      catalog = await resolveEnrollmentPathCatalog(recoveredPathId, onboardingData);
+      if (catalog && row.id) {
+        await tryRepairEnrollmentPathId(row.id, storedPathIdFromRow(row), catalog.id);
+      }
+    }
+  }
+
+  return catalog;
+}
+
+async function parsePathenrollmentRow(
+  row: PathenrollmentRow,
+  onboardingData?: Record<string, unknown> | null,
+  userId?: string,
+): Promise<CurrentPathEnrollment | null> {
   if (row.status === PATH_ENROLLMENT_STATUS.COMPLETED) {
     return null;
   }
 
-  let pathName = HARD_SEASONS_PATH.title;
-  let pathSlug: string | undefined;
-  let totalSessions = HARD_SEASONS_PATH.sessions.length;
+  const catalog = await resolveCatalogForEnrollmentRow(row, userId, onboardingData);
+  const sessions = catalog ? await fetchPathSessions(catalog.id) : [];
 
-  if (row.pathId && typeof row.pathId === "object") {
-    pathName = row.pathId.name ?? pathName;
-    pathSlug =
-      typeof row.pathId.slug === "string" ? row.pathId.slug : undefined;
-    const sessionsCount = toNumber(row.pathId.sessionsCount);
-    if (sessionsCount !== null && sessionsCount > 0) {
-      totalSessions = sessionsCount;
-    } else if (pathSlug) {
-      totalSessions = resolvePathFromSlug(pathSlug).sessions.length;
-    }
-  } else if (typeof row.pathId === "string") {
-    pathSlug = row.pathId;
-    const path = getPathBySlug(pathSlug);
-    if (path) {
-      pathName = path.title;
-      totalSessions = path.sessions.length;
+  if (catalog && row.id) {
+    const storedPathId = storedPathIdFromRow(row);
+    if (storedPathId !== catalog.id) {
+      await tryRepairEnrollmentPathId(row.id, storedPathId, catalog.id);
     }
   }
 
-  const completedFromField = toNumber(row.completedSessionsCount);
-  const completedIds = asStringArray(
-    row.completedMicroCommitmentSessionIds,
+  const embeddedMeta = resolvePathMeta(
+    undefined,
+    row.pathId && typeof row.pathId === "object" ? row.pathId : undefined,
   );
-  const completedCount =
-    completedFromField !== null ? completedFromField : completedIds.length;
 
-  const focusedIds = asStringArray(row.focusedMicroCommitmentSessionId);
-  const nextStepTitle = resolveNextStepTitle(
+  const pathName = catalog?.name ?? embeddedMeta.pathName;
+  const pathSlug = catalog?.slug ?? embeddedMeta.pathSlug;
+  const totalSessions = catalog?.sessionsCount || embeddedMeta.totalSessions || sessions.length;
+
+  const completedCount = toNumber(row.completedSessionsCount) ?? 0;
+  const currentSessionId = resolveCurrentSessionId(
     row.currentSessionId,
-    pathSlug,
-    focusedIds,
-    completedIds,
+    completedCount,
+    [],
+    sessions,
+  );
+  const nextStepTitle = await resolveNextStepTitle(
+    row.currentSessionId ?? currentSessionId ?? null,
+    completedCount,
+    sessions,
   );
 
   return {
@@ -208,13 +297,14 @@ function parsePathenrollmentRow(row: PathenrollmentRow): CurrentPathEnrollment |
     pathSlug,
     progressPercent: computeProgressPercent(completedCount, totalSessions),
     nextStepTitle,
+    currentSessionId,
     hasActiveEnrollment: true,
   };
 }
 
-function deriveFromOnboardingData(
+async function deriveFromOnboardingData(
   onboardingData: Record<string, unknown> | null | undefined,
-): CurrentPathEnrollment {
+): Promise<CurrentPathEnrollment> {
   const state = readEnrollmentState(onboardingData);
   if (
     !state.status ||
@@ -223,23 +313,41 @@ function deriveFromOnboardingData(
     return EMPTY_ENROLLMENT;
   }
 
-  const path = resolvePathFromSlug(state.path_slug);
-  const completedIds =
-    state.completedMicroCommitmentSessionIds ?? [];
-  const focusedIds = state.focusedMicroCommitmentSessionId ?? [];
+  const catalog = await resolveEnrollmentPathCatalog(state.path_slug ?? null, onboardingData);
+  const sessions = catalog ? await fetchPathSessions(catalog.id) : [];
+  const completedSessionIds = state.completedSessionIds ?? [];
+  const completedCount = Math.max(
+    toNumber(state.completedSessionsCount) ?? 0,
+    completedSessionIds.length,
+  );
+  const currentSessionId = resolveCurrentSessionId(
+    state.currentSessionId ?? null,
+    completedCount,
+    completedSessionIds,
+    sessions,
+  );
 
   return {
     enrollmentId: state.enrollment_id,
-    pathName: path.title,
-    pathSlug: state.path_slug,
-    progressPercent: computeProgressPercent(completedIds.length, path.sessions.length),
-    nextStepTitle: resolveNextStepTitle(null, state.path_slug, focusedIds, completedIds),
+    pathName: catalog?.name ?? "Path",
+    pathSlug: catalog?.slug ?? state.path_slug,
+    progressPercent: computeProgressPercent(
+      completedCount,
+      catalog?.sessionsCount ?? sessions.length,
+    ),
+    nextStepTitle: await resolveNextStepTitle(
+      currentSessionId ?? null,
+      completedCount,
+      sessions,
+    ),
+    currentSessionId,
     hasActiveEnrollment: true,
   };
 }
 
 async function tryFetchFromPathenrollmentTable(
   userId: string,
+  onboardingData?: Record<string, unknown> | null,
 ): Promise<CurrentPathEnrollment | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
@@ -258,7 +366,10 @@ async function tryFetchFromPathenrollmentTable(
   }
 
   if (!data || typeof data !== "object") return EMPTY_ENROLLMENT;
-  return parsePathenrollmentRow(data as PathenrollmentRow) ?? EMPTY_ENROLLMENT;
+  return (
+    (await parsePathenrollmentRow(data as PathenrollmentRow, onboardingData, userId)) ??
+    EMPTY_ENROLLMENT
+  );
 }
 
 /**
@@ -269,7 +380,7 @@ export async function fetchCurrentPathEnrollment(
   userId: string,
   onboardingData?: Record<string, unknown> | null,
 ): Promise<CurrentPathEnrollment> {
-  const fromTable = await tryFetchFromPathenrollmentTable(userId);
+  const fromTable = await tryFetchFromPathenrollmentTable(userId, onboardingData);
   if (fromTable !== null) return fromTable;
   return deriveFromOnboardingData(onboardingData);
 }
@@ -289,11 +400,11 @@ function resolvePathMeta(
   subMode?: string;
   totalSessions: number;
 } {
-  let pathName = HARD_SEASONS_PATH.title;
-  let tier: TierSlug = HARD_SEASONS_PATH.tier;
-  let pillarLabel = HARD_SEASONS_PATH.pillar;
-  let subMode = HARD_SEASONS_PATH.subMode;
-  let totalSessions = HARD_SEASONS_PATH.sessions.length;
+  let pathName = "Path";
+  let tier: TierSlug = TIER.FREE;
+  let pillarLabel = "";
+  let subMode: string | undefined;
+  let totalSessions = 0;
 
   if (pathObject && typeof pathObject === "object") {
     pathName = pathObject.name ?? pathName;
@@ -314,24 +425,12 @@ function resolvePathMeta(
     }
   }
 
-  if (pathSlug) {
-    const path = getPathBySlug(pathSlug);
-    if (path) {
-      pathName = path.title;
-      tier = path.tier;
-      pillarLabel = path.pillar;
-      subMode = path.subMode ?? subMode;
-      totalSessions = path.sessions.length;
-    }
-  }
-
   return { pathName, pathSlug, tier, pillarLabel, subMode, totalSessions };
 }
 
-function resolveCurrentSessionFields(
+async function resolveCurrentSessionFields(
   row: PathenrollmentRow,
-  pathSlug: string | undefined,
-): Pick<PathEnrollmentListItem, "currentSessionId" | "currentSessionTitle"> {
+): Promise<Pick<PathEnrollmentListItem, "currentSessionId" | "currentSessionTitle">> {
   const currentSession = row.currentSessionId;
   if (currentSession && typeof currentSession === "object") {
     const currentSessionId =
@@ -343,14 +442,14 @@ function resolveCurrentSessionFields(
     return {
       currentSessionId,
       currentSessionTitle:
-        titleFromRow ?? sessionTitleFromId(currentSessionId, pathSlug) ?? undefined,
+        titleFromRow ?? (await sessionTitleFromId(currentSessionId)) ?? undefined,
     };
   }
 
   if (typeof currentSession === "string") {
     return {
       currentSessionId: currentSession,
-      currentSessionTitle: sessionTitleFromId(currentSession, pathSlug) ?? undefined,
+      currentSessionTitle: (await sessionTitleFromId(currentSession)) ?? undefined,
     };
   }
 
@@ -361,29 +460,41 @@ function progressFromRow(
   row: PathenrollmentRow,
   totalSessions: number,
 ): number {
-  const completedFromField = toNumber(row.completedSessionsCount);
-  const completedIds = asStringArray(
-    row.completedMicroCommitmentSessionIds,
-  );
-  const completedCount =
-    completedFromField !== null ? completedFromField : completedIds.length;
+  // Session progress comes from answered reflection questions, not micro-commitments.
+  const completedCount = toNumber(row.completedSessionsCount) ?? 0;
   return computeProgressPercent(completedCount, totalSessions);
 }
 
-function toListItem(row: PathenrollmentRow): PathEnrollmentListItem | null {
+async function toListItem(
+  row: PathenrollmentRow,
+  onboardingData?: Record<string, unknown> | null,
+  userId?: string,
+): Promise<PathEnrollmentListItem | null> {
   if (!row.id) return null;
 
-  let pathSlug: string | undefined;
-  if (typeof row.pathId === "string") {
-    pathSlug = row.pathId;
-  } else if (row.pathId && typeof row.pathId === "object") {
-    pathSlug =
-      typeof row.pathId.slug === "string"
-        ? row.pathId.slug
-        : undefined;
-  }
+  const catalog = await resolveCatalogForEnrollmentRow(row, userId, onboardingData);
+  const meta = catalog
+    ? {
+        pathName: catalog.name,
+        pathSlug: catalog.slug,
+        tier: catalog.tier,
+        pillarLabel: catalog.pillar,
+        subMode: catalog.subMode,
+        totalSessions: catalog.sessionsCount || 0,
+      }
+    : await resolvePathMetaFromDb(
+        resolvePathKey(
+          typeof row.pathId === "string" ? row.pathId : undefined,
+          row.pathId,
+          onboardingData,
+        ),
+        row.pathId,
+        onboardingData,
+      );
 
-  const meta = resolvePathMeta(pathSlug, row.pathId);
+  if (catalog) {
+    await tryRepairEnrollmentPathId(row.id, storedPathIdFromRow(row), catalog.id);
+  }
 
   const status = row.status;
   if (
@@ -395,6 +506,26 @@ function toListItem(row: PathenrollmentRow): PathEnrollmentListItem | null {
     return null;
   }
 
+  const sessions = catalog ? await fetchPathSessions(catalog.id) : [];
+  const completedCount = toNumber(row.completedSessionsCount) ?? 0;
+  const sessionFields = await resolveCurrentSessionFields(row);
+  if (sessions.length > 0) {
+    const inferredId = resolveCurrentSessionId(
+      row.currentSessionId ?? sessionFields.currentSessionId ?? null,
+      completedCount,
+      [],
+      sessions,
+      sessionFields.currentSessionTitle,
+    );
+    if (inferredId) {
+      sessionFields.currentSessionId = inferredId;
+      sessionFields.currentSessionTitle =
+        sessions.find((session) => session.id === inferredId)?.title ??
+        (await sessionTitleFromId(inferredId)) ??
+        sessionFields.currentSessionTitle;
+    }
+  }
+
   return {
     enrollmentId: row.id,
     pathName: meta.pathName,
@@ -404,25 +535,30 @@ function toListItem(row: PathenrollmentRow): PathEnrollmentListItem | null {
     tier: meta.tier,
     pillarLabel: meta.pillarLabel,
     subMode: meta.subMode,
-    ...resolveCurrentSessionFields(row, meta.pathSlug),
+    ...sessionFields,
   };
 }
 
-function deriveListFromOnboardingData(
+async function deriveListFromOnboardingData(
   onboardingData: Record<string, unknown> | null | undefined,
-): PathEnrollmentListItem[] {
+): Promise<PathEnrollmentListItem[]> {
   const state = readEnrollmentState(onboardingData);
   if (!state.status || !state.enrollment_id) return [];
 
-  const path = resolvePathFromSlug(state.path_slug);
+  const catalog = await resolveEnrollmentPathCatalog(state.path_slug ?? null, onboardingData);
+  const sessions = catalog ? await fetchPathSessions(catalog.id) : [];
   const status = state.status;
-  const completedIds =
-    state.completedMicroCommitmentSessionIds ?? [];
-  const focusedIds = state.focusedMicroCommitmentSessionId ?? [];
-  const completedSet = new Set(completedIds);
-  const currentSessionId =
-    focusedIds.find((id) => !completedSet.has(id)) ??
-    path.sessions.find((session) => !completedSet.has(session.id))?.id;
+  const completedSessionIds = state.completedSessionIds ?? [];
+  const completedCount = Math.max(
+    toNumber(state.completedSessionsCount) ?? 0,
+    completedSessionIds.length,
+  );
+  const currentSessionId = resolveCurrentSessionId(
+    state.currentSessionId ?? null,
+    completedCount,
+    completedSessionIds,
+    sessions,
+  );
   if (
     status !== PATH_ENROLLMENT_STATUS.ACTIVE &&
     status !== PATH_ENROLLMENT_STATUS.PAUSED &&
@@ -435,16 +571,19 @@ function deriveListFromOnboardingData(
   return [
     {
       enrollmentId: state.enrollment_id,
-      pathName: path.title,
-      pathSlug: state.path_slug,
+      pathName: catalog?.name ?? "Path",
+      pathSlug: catalog?.slug ?? state.path_slug,
       status,
-      progressPercent: computeProgressPercent(completedIds.length, path.sessions.length),
-      tier: path.tier,
-      pillarLabel: path.pillar,
-      subMode: path.subMode,
+      progressPercent: computeProgressPercent(
+        completedCount,
+        catalog?.sessionsCount ?? sessions.length,
+      ),
+      tier: catalog?.tier ?? TIER.FREE,
+      pillarLabel: catalog?.pillar ?? "",
+      subMode: catalog?.subMode,
       currentSessionId,
       currentSessionTitle: currentSessionId
-        ? sessionTitleFromId(currentSessionId, state.path_slug) ?? undefined
+        ? (await sessionTitleFromId(currentSessionId)) ?? undefined
         : undefined,
     },
   ];
@@ -452,6 +591,7 @@ function deriveListFromOnboardingData(
 
 async function tryFetchPathEnrollmentsFromTable(
   userId: string,
+  onboardingData?: Record<string, unknown> | null,
 ): Promise<PathEnrollmentListItem[] | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
@@ -468,9 +608,11 @@ async function tryFetchPathEnrollmentsFromTable(
 
   if (!Array.isArray(data)) return [];
 
-  return data
-    .map((row) => toListItem(row as PathenrollmentRow))
-    .filter((item): item is PathEnrollmentListItem => item !== null);
+  const items = await Promise.all(
+    data.map((row) => toListItem(row as PathenrollmentRow, onboardingData, userId)),
+  );
+
+  return items.filter((item): item is PathEnrollmentListItem => item !== null);
 }
 
 /** Bubble bTJEQ binding: pathenrollment1 search for current user → services floating panel list. */
@@ -478,7 +620,7 @@ export async function fetchPathEnrollments(
   userId: string,
   onboardingData?: Record<string, unknown> | null,
 ): Promise<PathEnrollmentListItem[]> {
-  const fromTable = await tryFetchPathEnrollmentsFromTable(userId);
+  const fromTable = await tryFetchPathEnrollmentsFromTable(userId, onboardingData);
   if (fromTable !== null) return fromTable;
   return deriveListFromOnboardingData(onboardingData);
 }

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { UserProfileProvider } from "@/lib/userProfile";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 import RecoveryHashRedirect from "@/components/RecoveryHashRedirect";
 import { authenticatedRouteDefs } from "@/lib/router/authenticatedRoutes";
 import Index from "./pages/Index.tsx";
@@ -27,14 +28,16 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/reset_pw" element={<ResetPassword />} />
               <Route element={<ProtectedRoute />}>
-                {authenticatedRouteDefs.map((route) => (
-                  <Route
-                    key={route.path}
-                    path={route.path}
-                    element={route.element}
-                    handle={{ requiresAuth: true }}
-                  />
-                ))}
+                <Route element={<AdminRouteGuard />}>
+                  {authenticatedRouteDefs.map((route) => (
+                    <Route
+                      key={route.path}
+                      path={route.path}
+                      element={route.element}
+                      handle={{ requiresAuth: true }}
+                    />
+                  ))}
+                </Route>
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

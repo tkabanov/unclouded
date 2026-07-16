@@ -88,9 +88,7 @@ async function tryFetchPathResponsesFromTable(
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("pathResponse")
-    .select(
-      "id, sessionId, questionText, answerText, createdAt, pathSession(title, path(name))",
-    )
+    .select("id, sessionId, questionText, answerText, createdAt")
     .eq("userId", userId)
     .order("createdAt", { ascending: false })
     .limit(MAX_RECENT_REFLECTIONS);
@@ -102,6 +100,44 @@ async function tryFetchPathResponsesFromTable(
 
   if (!Array.isArray(data)) return [];
 
+  const sessionIds = [
+    ...new Set(
+      data
+        .map((entry) => {
+          const row = entry as PathResponseRow;
+          return typeof row.sessionId === "string" ? row.sessionId : null;
+        })
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  const sessionMeta = new Map<string, { title?: string; pathName?: string }>();
+  if (sessionIds.length > 0) {
+    const { data: sessions, error: sessionError } = await client
+      .from("pathSession")
+      .select("id, title, path(name)")
+      .in("id", sessionIds);
+
+    if (sessionError && !isSchemaUnavailable(sessionError)) {
+      throw sessionError;
+    }
+
+    if (Array.isArray(sessions)) {
+      for (const entry of sessions) {
+        const row = entry as {
+          id?: string;
+          title?: string | null;
+          path?: { name?: string | null } | null;
+        };
+        if (!row.id) continue;
+        sessionMeta.set(row.id, {
+          title: row.title?.trim() || undefined,
+          pathName: row.path?.name?.trim() || undefined,
+        });
+      }
+    }
+  }
+
   return data
     .map((entry) => {
       const row = entry as PathResponseRow;
@@ -111,14 +147,8 @@ async function tryFetchPathResponsesFromTable(
         typeof row.answerText === "string" ? row.answerText.trim() : "";
       if (!questionText || !answerText) return null;
 
-      const pathName =
-        typeof row.pathSession?.path?.name === "string"
-          ? row.pathSession.path.name.trim()
-          : undefined;
-      const sessionTitle =
-        typeof row.pathSession?.title === "string"
-          ? row.pathSession.title.trim()
-          : undefined;
+      const meta =
+        typeof row.sessionId === "string" ? sessionMeta.get(row.sessionId) : undefined;
       const answeredAt =
         typeof row.createdAt === "string"
           ? row.createdAt
@@ -127,8 +157,8 @@ async function tryFetchPathResponsesFromTable(
             : undefined;
 
       return {
-        pathName,
-        sessionTitle,
+        pathName: meta?.pathName,
+        sessionTitle: meta?.title,
         questionText,
         answerText,
         answeredAt,

@@ -34,22 +34,30 @@ export default function ConversationSidebar({
   const [conversations, setConversations] = useState<ConversationListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadConversations = useCallback(async () => {
+  const loadConversations = useCallback(async (options?: { silent?: boolean }) => {
     if (!userId) {
       setConversations([]);
       setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (!options?.silent) {
+      setLoading(true);
+    }
     try {
       const rows = await fetchConversations(userId, onboardingData ?? null);
       setConversations(rows);
     } catch {
-      toast.error("Couldn't load conversations. Please try again.");
-      setConversations([]);
+      if (!options?.silent) {
+        toast.error("Couldn't load conversations. Please try again.");
+      }
+      if (!options?.silent) {
+        setConversations([]);
+      }
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   }, [onboardingData, userId]);
 
@@ -59,7 +67,7 @@ export default function ConversationSidebar({
 
   useEffect(() => {
     if (listVersion > 0) {
-      void loadConversations();
+      void loadConversations({ silent: true });
     }
   }, [listVersion, loadConversations]);
 

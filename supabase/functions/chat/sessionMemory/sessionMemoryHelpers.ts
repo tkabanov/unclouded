@@ -1,5 +1,6 @@
 import type { SessionFinalizePayload } from "../prompt/sessionLifecycle.ts";
 import { sanitizePromptField } from "../prompt/profileHelpers.ts";
+import { isFreeTierUser } from "../tierGateHelpers.ts";
 
 export const CHAT_SESSION_MEMORY_KEY = "chat_session_memory" as const;
 export const LAST_SESSION_TOPIC_KEY = "last_session_topic_text" as const;
@@ -134,7 +135,13 @@ function formatField(label: string, value: string | null | undefined): string {
 
 export function buildSessionMemoryPromptBlock(
   onboardingData: Record<string, unknown>,
+  tier?: string | null,
+  subscribed?: boolean | null,
 ): string {
+  if (isFreeTierUser(tier, subscribed)) {
+    return "SESSION MEMORY (Phase 2): not available on Free tier.";
+  }
+
   const records = readSessionMemoryRecords(onboardingData);
   if (records.length === 0) {
     return "SESSION MEMORY (Phase 2): not available (no prior closed sessions stored yet).";

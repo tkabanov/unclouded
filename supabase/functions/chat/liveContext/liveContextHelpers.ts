@@ -1,4 +1,5 @@
 import type {
+  ChatActivePathProgress,
   ChatLatestCheckIn,
   ChatLiveContext,
   ChatPathReflectionAnswer,
@@ -30,20 +31,28 @@ export function aggregateLiveContext(input: {
   latestCheckIn: ChatLatestCheckIn | null;
   streakDays: number;
   activeMicroCommitmentCandidates: Array<string | null | undefined>;
+  completedMicroCommitments?: string[];
   sessionCount: number | null;
   pathReflections: ChatPathReflectionAnswer[];
+  activePathProgress?: ChatActivePathProgress | null;
 }): ChatLiveContext {
   const activeMicroCommitment =
     input.activeMicroCommitmentCandidates
       .map((value) => (typeof value === "string" ? value.trim() : ""))
       .find((value) => value.length > 0) ?? null;
 
+  const completedMicroCommitments = (input.completedMicroCommitments ?? [])
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter((value) => value.length > 0);
+
   return {
     latestCheckIn: input.latestCheckIn,
     streakDays: Number.isFinite(input.streakDays) ? input.streakDays : null,
     activeMicroCommitment,
+    completedMicroCommitments,
     sessionCount: input.sessionCount,
     pathReflections: input.pathReflections,
+    activePathProgress: input.activePathProgress ?? null,
   };
 }
 

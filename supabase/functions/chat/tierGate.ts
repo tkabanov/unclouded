@@ -38,7 +38,7 @@ export async function enforceFreeTierSessionGate(
     };
   }
 
-  const recordSession = lifecycle !== "session_finalize";
+  const recordSession = lifecycle !== "session_finalize" && lifecycle !== "conversation_title";
 
   const { data, error } = await supabase.rpc("consume_chat_session", {
     p_user_id: userId,

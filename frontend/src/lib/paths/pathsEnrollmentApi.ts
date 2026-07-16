@@ -4,7 +4,8 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
-import { getPathBySlug, HARD_SEASONS_PATH } from "@/lib/paths";
+import { fetchPathCatalogEntry, fetchPathSessionsByKey } from "@/lib/paths/pathsCatalogApi";
+import { createPathEnrollmentRow } from "@/lib/paths/pathsOnboardingEnrollmentApi";
 import {
   PATH_ENROLLMENT_ONBOARDING_KEY,
   type PathEnrollmentOnboardingState,
@@ -56,25 +57,38 @@ async function persistOnboardingEnrollment(
   if (error) throw error;
 }
 
-function resolvePathSlug(pathSlug?: string): string {
-  return pathSlug ?? HARD_SEASONS_PATH.slug;
+function resolvePathSlug(pathSlug?: string): string | undefined {
+  return pathSlug?.trim() || undefined;
 }
 
 async function tryEnrollInPathenrollmentTable(
   userId: string,
-  pathSlug: string,
+  pathId: string,
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
-  const { error } = await client.from("pathEnrollment").insert({
-    userId: userId,
-    status: PATH_ENROLLMENT_STATUS.ACTIVE,
-    pathId: pathSlug,
-    completedSessionsCount: 0,
-  });
+  const { data: existing, error: fetchError } = await client
+    .from("pathEnrollment")
+    .select("id, status")
+    .eq("userId", userId)
+    .eq("pathId", pathId)
+    .neq("status", PATH_ENROLLMENT_STATUS.ABANDONED)
+    .limit(1)
+    .maybeSingle();
 
-  if (!error) return true;
-  if (isSchemaUnavailable(error)) return null;
-  throw error;
+  if (fetchError) {
+    if (isSchemaUnavailable(fetchError)) return null;
+    throw fetchError;
+  }
+
+  if (existing && typeof existing === "object") {
+    throw new Error("You are already enrolled in this path.");
+  }
+
+  const enrollmentId = await createPathEnrollmentRow(userId, pathId, {
+    setAsPrimary: true,
+  });
+  if (enrollmentId) return true;
+  return null;
 }
 
 /**
@@ -86,20 +100,30 @@ export async function enrollInPath(
   onboardingData?: Record<string, unknown> | null,
 ): Promise<void> {
   const slug = resolvePathSlug(pathSlug);
-  const fromTable = await tryEnrollInPathenrollmentTable(userId, slug);
+  if (!slug) throw new Error("Path slug is required.");
+
+  const catalog = await fetchPathCatalogEntry(slug);
+  if (!catalog) throw new Error("Path not found.");
+
+  const fromTable = await tryEnrollInPathenrollmentTable(userId, catalog.id);
   if (fromTable !== null) return;
 
-  const path = getPathBySlug(slug) ?? HARD_SEASONS_PATH;
+  const sessions = await fetchPathSessionsByKey(slug);
   const existing = readEnrollmentState(onboardingData);
+  const firstSessionId = sessions[0]?.id;
   const nextState: PathEnrollmentOnboardingState = {
     ...existing,
     enrollment_id: existing.enrollment_id ?? crypto.randomUUID(),
     status: PATH_ENROLLMENT_STATUS.ACTIVE,
-    path_slug: path.slug,
+    path_slug: catalog.slug,
+    completedSessionsCount: existing.completedSessionsCount ?? 0,
+    completedSessionIds: existing.completedSessionIds ?? [],
+    currentSessionId: existing.currentSessionId ?? firstSessionId,
     completedMicroCommitmentSessionIds:
       existing.completedMicroCommitmentSessionIds ?? [],
+    // Focus is set only when the user opts in via "Set as My Focus" on session complete.
     focusedMicroCommitmentSessionId:
-      existing.focusedMicroCommitmentSessionId ?? [path.sessions[0]?.id].filter(Boolean),
+      existing.focusedMicroCommitmentSessionId ?? [],
   };
 
   await persistOnboardingEnrollment(userId, nextState, onboardingData);

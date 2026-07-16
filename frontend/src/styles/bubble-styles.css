@@ -231,6 +231,7 @@
 .Group_badge_destructive_ {
   background-color: var(--color_destructive_default);
   border-radius: 9999px;
+  color: hsl(var(--destructive-foreground));
   padding: 4px 8px 4px 8px;
   transition: background-color 200ms ease;
 }
@@ -239,6 +240,7 @@
 .Group_badge_primary_ {
   background-color: var(--color_primary_default);
   border-radius: 9999px;
+  color: var(--color_primary_contrast_default);
   padding: 4px 8px 4px 8px;
   transition: background-color 200ms ease;
 }
@@ -247,6 +249,7 @@
 .Group_badge_success_ {
   background-color: var(--color_success_default);
   border-radius: 9999px;
+  color: var(--color_primary_contrast_default);
   padding: 4px 8px 4px 8px;
   transition: background-color 200ms ease;
 }

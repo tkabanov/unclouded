@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
-import { getPathBySlug, HARD_SEASONS_PATH } from "@/lib/paths";
+import { fetchPathSessionsByIds } from "@/lib/paths/pathsCatalogApi";
 
 /** Bubble pathenrollment1 field keys stored in profiles.onboardingData when DB tables are absent. */
 export const PATH_ENROLLMENT_ONBOARDING_KEY = "path_enrollment1" as const;
@@ -9,7 +9,13 @@ export interface PathEnrollmentOnboardingState {
   enrollment_id?: string;
   status?: string;
   path_slug?: string;
+  /** Current session to continue — advanced on reflection-question submit. */
+  currentSessionId?: string;
+  /** Session progress source of truth (independent of micro-commitments). */
+  completedSessionsCount?: number;
+  completedSessionIds?: string[];
   focusedMicroCommitmentSessionId?: string[];
+  /** Optional micro-commitment tracker — does not gate path session progress. */
   completedMicroCommitmentSessionIds?: string[];
 }
 
@@ -26,8 +32,10 @@ export interface MicroCommitmentItem {
 type PathenrollmentRow = {
   id?: string;
   status?: string;
+  completedSessionsCount?: number | string | null;
   focusedMicroCommitmentSessionId?: unknown;
   completedMicroCommitmentSessionIds?: unknown;
+  isMicroCommitmentInFocus?: boolean | null;
   pathId?: { name?: string; slug?: string } | string | null;
 };
 
@@ -47,6 +55,7 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
 }
 
 function asStringArray(value: unknown): string[] {
+  if (typeof value === "string" && value.trim()) return [value.trim()];
   if (!Array.isArray(value)) return [];
   return value
     .map((entry) => {
@@ -59,30 +68,45 @@ function asStringArray(value: unknown): string[] {
     .filter((id): id is string => Boolean(id));
 }
 
-function resolvePathFromSlug(slug: string | undefined) {
-  if (slug) {
-    return getPathBySlug(slug) ?? HARD_SEASONS_PATH;
-  }
-  return HARD_SEASONS_PATH;
-}
-
 function mapFocusedSessions(
   focusedIds: string[],
   pathName: string,
-  pathSlug: string | undefined,
+  sessionsById: Map<string, { index: number; microCommitment: string; id: string }>,
   completedIds: Set<string>,
 ): MicroCommitmentItem[] {
-  const path = resolvePathFromSlug(pathSlug);
   return focusedIds
     .map((sessionId) => {
-      const session = path.sessions.find((s) => s.id === sessionId);
+      const session = sessionsById.get(sessionId);
       if (!session) return null;
       return {
         id: session.id,
         pathName,
-        sessionIndex: session.number,
-        microCommitmentText: session.micro_commitment,
+        sessionIndex: session.index,
+        microCommitmentText: session.microCommitment,
         isCompleted: completedIds.has(session.id),
+      };
+    })
+    .filter((item): item is MicroCommitmentItem => item !== null);
+}
+
+function mapCompletedOnlySessions(
+  completedIds: string[],
+  focusedIds: string[],
+  pathName: string,
+  sessionsById: Map<string, { index: number; microCommitment: string; id: string }>,
+): MicroCommitmentItem[] {
+  const focused = new Set(focusedIds);
+  return completedIds
+    .filter((sessionId) => !focused.has(sessionId))
+    .map((sessionId) => {
+      const session = sessionsById.get(sessionId);
+      if (!session || !session.microCommitment.trim()) return null;
+      return {
+        id: session.id,
+        pathName,
+        sessionIndex: session.index,
+        microCommitmentText: session.microCommitment,
+        isCompleted: true,
       };
     })
     .filter((item): item is MicroCommitmentItem => item !== null);
@@ -96,45 +120,77 @@ function readEnrollmentState(
   return raw as PathEnrollmentOnboardingState;
 }
 
-function deriveFromOnboardingData(
+async function deriveFromOnboardingData(
   onboardingData: Record<string, unknown> | null | undefined,
-): MicroCommitmentItem[] {
+): Promise<MicroCommitmentItem[]> {
   const state = readEnrollmentState(onboardingData);
   if (state.status === PATH_ENROLLMENT_STATUS.COMPLETED) {
     return [];
   }
 
-  const path = resolvePathFromSlug(state.path_slug);
   const focusedIds = state.focusedMicroCommitmentSessionId ?? [];
-  const completedIds = new Set(
-    state.completedMicroCommitmentSessionIds ?? [],
+  const completedIds = state.completedMicroCommitmentSessionIds ?? [];
+  if (focusedIds.length === 0 && completedIds.length === 0) return [];
+
+  const completedSet = new Set(completedIds);
+  const lookupIds = [...new Set([...focusedIds, ...completedIds])];
+  const sessionsById = await fetchPathSessionsByIds(lookupIds);
+  const sessionMap = new Map(
+    [...sessionsById.values()].map((session) => [
+      session.id,
+      {
+        id: session.id,
+        index: session.index,
+        microCommitment: session.microCommitment,
+      },
+    ]),
   );
 
-  return mapFocusedSessions(focusedIds, path.title, state.path_slug, completedIds);
+  const pathName = state.path_slug ?? "Path";
+  return [
+    ...mapFocusedSessions(focusedIds, pathName, sessionMap, completedSet),
+    ...mapCompletedOnlySessions(completedIds, focusedIds, pathName, sessionMap),
+  ];
 }
 
-function parsePathenrollmentRow(row: PathenrollmentRow): MicroCommitmentItem[] {
+async function parsePathenrollmentRow(
+  row: PathenrollmentRow,
+): Promise<MicroCommitmentItem[]> {
   if (row.status === PATH_ENROLLMENT_STATUS.COMPLETED) {
     return [];
   }
 
-  const focusedIds = asStringArray(row.focusedMicroCommitmentSessionId);
-  const completedIds = new Set(
-    asStringArray(row.completedMicroCommitmentSessionIds),
-  );
+  const focusedIds =
+    row.isMicroCommitmentInFocus === true
+      ? asStringArray(row.focusedMicroCommitmentSessionId)
+      : [];
+  const completedIds = asStringArray(row.completedMicroCommitmentSessionIds);
+  if (focusedIds.length === 0 && completedIds.length === 0) return [];
 
-  let pathName = HARD_SEASONS_PATH.title;
-  let pathSlug: string | undefined;
+  const completedSet = new Set(completedIds);
 
+  let pathName = "Path";
   if (row.pathId && typeof row.pathId === "object") {
     pathName = row.pathId.name ?? pathName;
-    pathSlug = typeof row.pathId.slug === "string" ? row.pathId.slug : undefined;
-  } else if (typeof row.pathId === "string") {
-    pathSlug = row.pathId;
-    pathName = getPathBySlug(pathSlug)?.title ?? pathName;
   }
 
-  return mapFocusedSessions(focusedIds, pathName, pathSlug, completedIds).map((item) => ({
+  const lookupIds = [...new Set([...focusedIds, ...completedIds])];
+  const sessionsById = await fetchPathSessionsByIds(lookupIds);
+  const sessionMap = new Map(
+    [...sessionsById.values()].map((session) => [
+      session.id,
+      {
+        id: session.id,
+        index: session.index,
+        microCommitment: session.microCommitment,
+      },
+    ]),
+  );
+
+  return [
+    ...mapFocusedSessions(focusedIds, pathName, sessionMap, completedSet),
+    ...mapCompletedOnlySessions(completedIds, focusedIds, pathName, sessionMap),
+  ].map((item) => ({
     ...item,
     enrollmentId: row.id,
   }));
@@ -147,7 +203,7 @@ async function tryFetchFromPathenrollmentTable(
   const { data, error } = await client
     .from("pathEnrollment")
     .select(
-      "id, status, focusedMicroCommitmentSessionId, completedMicroCommitmentSessionIds, pathId",
+      "id, status, focusedMicroCommitmentSessionId, completedMicroCommitmentSessionIds, isMicroCommitmentInFocus, pathId",
     )
     .eq("userId", userId)
     .eq("status", PATH_ENROLLMENT_STATUS.ACTIVE)
@@ -203,7 +259,8 @@ export async function markMicroCommitmentCompleted(
       .from("pathEnrollment")
       .update({
         completedMicroCommitmentSessionIds: nextCompleted,
-        focusedMicroCommitmentSessionId: focused,
+        focusedMicroCommitmentSessionId: focused[0] ?? null,
+        isMicroCommitmentInFocus: focused.length > 0,
       })
       .eq("id", row.id);
 

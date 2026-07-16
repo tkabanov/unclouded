@@ -1,3 +1,4 @@
+// @refresh reset
 import {
   createContext,
   createElement,
@@ -95,8 +96,12 @@ export function PathsEnrollmentProvider({ children }: { children: ReactNode }) {
   return createElement(PathsEnrollmentContext.Provider, { value }, children);
 }
 
+export function useOptionalPathsEnrollmentStore(): PathsEnrollmentStoreValue | null {
+  return useContext(PathsEnrollmentContext);
+}
+
 export function usePathsEnrollmentStore(): PathsEnrollmentStoreValue {
-  const context = useContext(PathsEnrollmentContext);
+  const context = useOptionalPathsEnrollmentStore();
   if (!context) {
     throw new Error("usePathsEnrollmentStore must be used within PathsEnrollmentProvider");
   }

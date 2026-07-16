@@ -37,7 +37,7 @@ Or via Supabase MCP: `deploy_edge_function` with the reviewed `index.ts` bundle.
 1. Sign in on the app; open Chat; confirm a new conversation receives an auto opener.
 2. Send a normal message; confirm streamed reply.
 3. Sign out / call without JWT → expect `401 Unauthorized`.
-4. (Free test user) After **3 new sessions** in the same UTC month → expect Build Brief §12 upsell (`402`, code `free_tier_session_limit`). Continuing an already-started conversation should still work.
+4. (Free test user) After **7 new sessions** in the same UTC month → expect upsell (`402`, code `free_tier_session_limit`). Continuing an already-started conversation should still work.
 5. Send a crisis trigger phrase (e.g. in a staging account) → fixed 988/741741 JSON response, no coaching continuation.
 
 ## Rollback
@@ -131,7 +131,7 @@ Only **committed** history is pushed (12 commits `30d4386`…`3bd3884`). Uncommi
 | 1 | Auto opener | New Chat conversation receives opener (`session_open` lifecycle) |
 | 2 | Streamed reply | Normal message returns streamed AI reply |
 | 3 | No JWT | Unsigned request → `401 Unauthorized` |
-| 4 | Free tier gate | 4th new session in UTC month → `402` + `free_tier_session_limit` |
+| 4 | Free tier gate | 8th new session in UTC month → `402` + `free_tier_session_limit` |
 | 5 | Crisis hard-stop | Crisis phrase → fixed 988/741741 JSON, no coaching continuation |
 
 ### Rollback

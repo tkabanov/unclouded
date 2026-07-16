@@ -29,6 +29,10 @@ export async function fetchChatLiveContext(
   ]);
 
   const activeItem = microCommitments.find((item) => !item.isCompleted);
+  const completedMicroCommitments = microCommitments
+    .filter((item) => item.isCompleted)
+    .map((item) => item.microCommitmentText)
+    .filter((text) => text.trim().length > 0);
   const lifecycleState = readSessionLifecycleState(onboardingData);
   const sessionCount = conversations.length > 0 ? conversations.length : null;
 
@@ -39,6 +43,7 @@ export async function fetchChatLiveContext(
       activeItem?.microCommitmentText,
       lifecycleState.activeMicroCommitment,
     ],
+    completedMicroCommitments,
     sessionCount,
     pathReflections,
   });

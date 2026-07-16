@@ -9,7 +9,7 @@ import SettingsSubscriptionTab from "@/components/settings/SettingsSubscriptionT
 import SettingsWorkplaceTab from "@/components/settings/SettingsWorkplaceTab";
 import SettingsAdminShell from "@/components/settings/admin/SettingsAdminShell";
 import { SETTINGS_MODULE_ID } from "@/lib/settings/routes";
-import { SETTINGS_TAB, SETTINGS_TAB_ORDER, type SettingsTabSlug } from "@/lib/settings/settingsTabStub";
+import { SETTINGS_TAB, type SettingsTabSlug } from "@/lib/settings/settingsTabStub";
 import { useSettingsTabStore } from "@/lib/settings/settingsTabStore";
 import { isSettingsTabSlug } from "@/lib/settings/navigation";
 import { isSettingsAdminUser, visibleSettingsTabs } from "@/lib/settings/isSettingsAdminUser";
@@ -35,15 +35,27 @@ export default function SettingsMain() {
   const tabParam = searchParams.get("tab");
   const isAdmin = isSettingsAdminUser(profile?.roleType);
   const tabs = visibleSettingsTabs(profile?.roleType);
-  const initialTab =
-    isSettingsTabSlug(tabParam) && tabs.includes(tabParam) ? tabParam : undefined;
-  const { activeTab, setActiveTab, isTabActive } = useSettingsTabStore(initialTab);
+  const resolvedInitialTab =
+    isSettingsTabSlug(tabParam) && tabs.includes(tabParam)
+      ? tabParam
+      : isAdmin
+        ? SETTINGS_TAB.ADMIN
+        : undefined;
+  const { activeTab, setActiveTab, isTabActive } = useSettingsTabStore(resolvedInitialTab);
 
   useEffect(() => {
     if (isSettingsTabSlug(tabParam) && tabs.includes(tabParam) && tabParam !== activeTab) {
       setActiveTab(tabParam);
     }
   }, [tabParam, tabs, activeTab, setActiveTab]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (tabParam !== SETTINGS_TAB.ADMIN) {
+      setActiveTab(SETTINGS_TAB.ADMIN);
+      setSearchParams({ tab: SETTINGS_TAB.ADMIN }, { replace: true });
+    }
+  }, [isAdmin, tabParam, setActiveTab, setSearchParams]);
 
   useEffect(() => {
     if (activeTab === SETTINGS_TAB.ADMIN && !isAdmin) {
@@ -64,7 +76,10 @@ export default function SettingsMain() {
   return (
     <div
       data-module-owner={SETTINGS_MODULE_ID}
-      className="mx-auto w-full max-w-5xl px-4 pb-8 pt-24 md:px-8"
+      className={cn(
+        "mx-auto w-full max-w-5xl px-4 pb-8 md:px-8",
+        isAdmin ? "pt-8" : "pt-24",
+      )}
     >
       <div
         className="flex w-full flex-col gap-6"
@@ -75,16 +90,20 @@ export default function SettingsMain() {
           <h1
             className={bubbleStyle("Text_heading_1_")}
           >
-            Account Settings
+            {isAdmin ? "Admin Console" : "Account Settings"}
           </h1>
           <p
             className={bubbleStyle("Text_body_muted_")}
           >
-            Manage your profile, coaching preferences, privacy, and security.
+            {isAdmin
+              ? "Manage platform resources, paths, and configuration."
+              : "Manage your profile, coaching preferences, privacy, and security."}
           </p>
         </header>
 
-        <SettingsTabBar activeTab={activeTab} tabs={tabs} onSelectTab={handleSelectTab} />
+        {!isAdmin ? (
+          <SettingsTabBar activeTab={activeTab} tabs={tabs} onSelectTab={handleSelectTab} />
+        ) : null}
 
         <div className="w-full">
           {tabs.map((tab) => (

@@ -15,6 +15,13 @@ import {
 import { parseChatRequestBody } from "./parseChatRequestBody.ts";
 import { persistSessionMemory } from "./persistSessionMemory.ts";
 import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
+import { truncateConversationMessages } from "./truncateConversationMessages.ts";
+import {
+  buildConversationTitleUserPrompt,
+  CONVERSATION_TITLE_SYSTEM_PROMPT,
+  extractLatestUserAssistantPair,
+  sanitizeConversationTitle,
+} from "./prompt/conversationTitle.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -96,7 +103,27 @@ Deno.serve(async (req: Request) => {
     const uiMessages =
       lifecycle === "session_open" && messages.length === 0
         ? sessionOpenMessages()
-        : messages;
+        : truncateConversationMessages(messages);
+
+    if (lifecycle === "conversation_title") {
+      const pair = extractLatestUserAssistantPair(uiMessages);
+      if (!pair) {
+        return jsonError(400, "User and assistant messages are required to generate a title");
+      }
+
+      const result = await generateText({
+        model,
+        system: CONVERSATION_TITLE_SYSTEM_PROMPT,
+        prompt: buildConversationTitleUserPrompt(pair.userMessage, pair.assistantMessage),
+      });
+
+      const title = sanitizeConversationTitle(result.text);
+      if (!title) {
+        return jsonError(500, "Failed to generate conversation title");
+      }
+
+      return jsonResponse(200, { title });
+    }
 
     const profileData = await loadServerProfile(supabase, user.id);
 
@@ -123,7 +150,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const system = buildSystemWithLifecycle(profileData, context, lifecycle);
-
     if (lifecycle === "session_finalize") {
       if (!conversationId) {
         return jsonError(400, "conversationId is required for session finalize");

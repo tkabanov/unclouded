@@ -17,13 +17,19 @@ export function usePathsTabStore(
     () => setActiveTab(PATH_PAGE_TAB.PATHS_LIBRARY),
     [],
   );
+  const selectResourceLibrary = useCallback(
+    () => setActiveTab(PATH_PAGE_TAB.RESOURCE_LIBRARY),
+    [],
+  );
 
   return {
     activeTab,
     setActiveTab,
     selectMyPaths,
     selectPathsLibrary,
+    selectResourceLibrary,
     isMyPathsActive: activeTab === PATH_PAGE_TAB.MY_PATHS,
     isPathsLibraryActive: activeTab === PATH_PAGE_TAB.PATHS_LIBRARY,
+    isResourceLibraryActive: activeTab === PATH_PAGE_TAB.RESOURCE_LIBRARY,
   };
 }

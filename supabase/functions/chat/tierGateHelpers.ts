@@ -1,8 +1,8 @@
 /** Build Brief §12 upsell when Free tier monthly session limit is reached. */
-export const FREE_TIER_SESSION_LIMIT = 3;
+export const FREE_TIER_SESSION_LIMIT = 7;
 
 export const FREE_TIER_UPSELL_MESSAGE =
-  "You've used your 3 sessions for this month. Pro members get unlimited sessions — your coach is ready when you are.";
+  "You've used your 7 sessions for this month. Pro members get unlimited sessions — your coach is ready when you are.";
 
 export const CHAT_AI_MONTHLY_USAGE_KEY = "chat_ai_monthly_usage" as const;
 
@@ -67,7 +67,7 @@ export function shouldRecordNewSession(
   lifecycle: string | undefined,
 ): boolean {
   if (!conversationId || isContinuingSession(conversationId, usage)) return false;
-  if (lifecycle === "session_finalize") return false;
+  if (lifecycle === "session_finalize" || lifecycle === "conversation_title") return false;
   return true;
 }
 

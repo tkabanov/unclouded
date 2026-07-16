@@ -13,53 +13,81 @@ function createQueryResult<T>(data: T, error: null | { message: string; code?: s
 }
 
 function createFallbackChain(error: { code: string; message: string }) {
+  const result = () => createQueryResult(null, error);
   const chain: Record<string, unknown> = {};
   const self = () => chain;
   chain.select = vi.fn(self);
   chain.eq = vi.fn(self);
   chain.order = vi.fn(self);
-  chain.limit = vi.fn(() => ({
-    maybeSingle: vi.fn(() => createQueryResult(null, error)),
-    then: (resolve: (value: { data: null; error: typeof error; count: null }) => void) =>
-      createQueryResult(null, error).then(resolve),
-  }));
-  chain.maybeSingle = vi.fn(() => createQueryResult(null, error));
+  chain.limit = vi.fn(self);
+  chain.maybeSingle = vi.fn(result);
+  chain.then = (
+    resolve: (value: Awaited<ReturnType<typeof createQueryResult>>) => void,
+  ) => result().then(resolve);
   return chain;
 }
 
 describe("loadServerLiveContext", () => {
   it("aggregates live signals from mocked DB queries scoped to the authenticated user", async () => {
+    vi.useFakeTimers({ now: new Date("2026-07-16T12:00:00.000Z") });
     const userId = "11111111-1111-1111-1111-111111111111";
     const sessionId = "session-1";
     const eqCalls: Array<[string, string]> = [];
 
     const from = vi.fn((table: string) => {
       const chain = {
-        select: vi.fn(() => chain),
+        select: vi.fn((columns?: string) => {
+          if (table === "dailyCheckin" && columns === "date") {
+            return {
+              eq: vi.fn(() =>
+                createQueryResult([
+                  { date: "2026-07-15" },
+                  { date: "2026-07-16" },
+                ]),
+              ),
+            };
+          }
+          return chain;
+        }),
         eq: vi.fn((column: string, value: string) => {
           eqCalls.push([column, value]);
           return chain;
         }),
         order: vi.fn(() => chain),
         limit: vi.fn(() => chain),
+        in: vi.fn(() => {
+          if (table === "pathSession") {
+            return createQueryResult([
+              {
+                id: "session-done",
+                microCommitment: "Wrote the honest answer",
+                title: "Session done",
+                index: 1,
+              },
+            ]);
+          }
+          return createQueryResult([]);
+        }),
         maybeSingle: vi.fn(() => {
           if (table === "dailyCheckin") {
             return createQueryResult({
               mood: 4,
               energyStressLevel: 5,
               reflection: "steady",
-              date: "2026-07-10",
+              date: "2026-07-16",
               microCommitmentStatus: "done",
             });
-          }
-          if (table === "profiles") {
-            return createQueryResult({ dailyCheckInStreak: 7, streakDays: 7 });
           }
           if (table === "pathEnrollment") {
             return createQueryResult({
               status: "active",
+              isMicroCommitmentInFocus: true,
               focusedMicroCommitmentSessionId: [sessionId],
-              completedMicroCommitmentSessionIds: [],
+              completedMicroCommitmentSessionIds: ["session-done"],
+              completedSessionsCount: 1,
+              currentSessionId: sessionId,
+              pathId: "path-1",
+              path: { name: "Hard Seasons", sessionsCount: 6 },
             });
           }
           if (table === "pathSession") {
@@ -106,18 +134,20 @@ describe("loadServerLiveContext", () => {
     const result = await loadServerLiveContext(supabase, userId, {});
 
     expect(result.latestCheckIn?.feeling).toBe("steady");
-    expect(result.streakDays).toBe(7);
+    expect(result.streakDays).toBe(2);
     expect(result.activeMicroCommitment).toBe("Text a friend");
+    expect(result.completedMicroCommitments).toEqual(["Wrote the honest answer"]);
     expect(result.sessionCount).toBe(2);
     expect(result.pathReflections[0]?.answerText).toBe("Deadlines");
     expect(from).toHaveBeenCalledWith("dailyCheckin");
     expect(from).toHaveBeenCalledWith("pathEnrollment");
     expect(from).toHaveBeenCalledWith("pathSession");
     expect(eqCalls).toContainEqual(["userId", userId]);
-    expect(eqCalls).toContainEqual(["id", userId]);
+    vi.useRealTimers();
   });
 
   it("falls back to onboardingData when DB tables are unavailable", async () => {
+    vi.useFakeTimers({ now: new Date("2026-07-16T12:00:00.000Z") });
     const userId = "user-1";
     const onboarding = {
       dailyCheckInStreak: 3,
@@ -127,7 +157,7 @@ describe("loadServerLiveContext", () => {
           mood: 2,
           energyStressLevel: 4,
           reflection: "fallback check-in",
-          date: "2026-07-10",
+          date: "2026-07-15",
         },
       ],
       chat_conversations: [{ id: "c1" }],
@@ -145,9 +175,10 @@ describe("loadServerLiveContext", () => {
     const result = await loadServerLiveContext(supabase, userId, onboarding);
 
     expect(result.latestCheckIn?.feeling).toBe("fallback check-in");
-    expect(result.streakDays).toBe(3);
+    expect(result.streakDays).toBe(1);
     expect(result.activeMicroCommitment).toBe("Onboarding commitment");
     expect(result.sessionCount).toBe(1);
+    vi.useRealTimers();
   });
 });
 

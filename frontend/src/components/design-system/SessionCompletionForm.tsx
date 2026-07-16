@@ -31,7 +31,8 @@ export type SessionCompletionFormProps = {
 
 const SUBMIT_LABEL = "Submit answers";
 const MICRO_COMMITMENT_LABEL = "Micro-commitment";
-const REFLECTION_CHECKBOX_LABEL = "Set as focus";
+/** Developer FAQ: Set as My Focus copies micro_commitment → active focus (optional). */
+const REFLECTION_CHECKBOX_LABEL = "Set as My Focus";
 
 /**
  * RE - session completion form (bTIyi): session header, question list,

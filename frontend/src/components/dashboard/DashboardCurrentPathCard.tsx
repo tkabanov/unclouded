@@ -9,8 +9,14 @@ import {
   fetchCurrentPathEnrollment,
   type CurrentPathEnrollment,
 } from "@/lib/dashboard/pathEnrollmentApi";
+import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+
+function sessionCompletionHref(sessionId: string): string {
+  return `${PATHS_ROUTE}?${SESSION_SEARCH_PARAM}=${encodeURIComponent(sessionId)}`;
+}
 
 export default function DashboardCurrentPathCard() {
   const { user } = useAuth();
@@ -73,7 +79,7 @@ export default function DashboardCurrentPathCard() {
         </div>
 
         <Link
-          to="/paths"
+          to={PATHS_ROUTE}
           data-style-ref="Text_link_"
           className={cn(
             bubbleStyle("Text_link_"),
@@ -135,20 +141,18 @@ export default function DashboardCurrentPathCard() {
               </div>
             </div>
 
-            {enrollment.nextStepTitle ? (
-              <div
-                className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-2")}
+            {enrollment.currentSessionId ? (
+              <Button
+                asChild
+                type="button"
+                data-style-ref="Button_primary_"
+                className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5 sm:w-auto")}
               >
-                <ArrowRight
-                  className={cn(bubbleStyle("Icon_default_"), "mt-0.5 h-4 w-4 shrink-0")}
-                  aria-hidden
-                />
-                <p
-                  className={cn(bubbleStyle("Text_body_"), "text-sm text-foreground")}
-                >
-                  {enrollment.nextStepTitle}
-                </p>
-              </div>
+                <Link to={sessionCompletionHref(enrollment.currentSessionId)}>
+                  Continue
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
             ) : null}
           </div>
         </div>

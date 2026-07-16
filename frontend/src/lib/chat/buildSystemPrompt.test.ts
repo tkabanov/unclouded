@@ -53,7 +53,7 @@ describe("resolveCoachingModes", () => {
     expect(modes.overlays).toEqual([]);
   });
 
-  it("Protector replaces primary when recovery is active", () => {
+  it("Protector stacks as overlay when recovery is active", () => {
     const modes = resolveCoachingModes(
       baseProfile({
         results: {
@@ -62,8 +62,9 @@ describe("resolveCoachingModes", () => {
         },
       }),
     );
-    expect(modes.primary).toBe("protector");
-    expect(modes.active).toEqual(["protector"]);
+    expect(modes.primary).toBe("strategist");
+    expect(modes.overlays).toEqual(["protector"]);
+    expect(modes.active).toEqual(["strategist", "protector"]);
   });
 
   it("Simplifier stacks on primary when cognitive load is high (never last-wins)", () => {
@@ -132,7 +133,7 @@ describe("buildSystemPrompt", () => {
     expect(strategist).toBeGreaterThan(master);
   });
 
-  it("Protector override uses full library text and recovery protocol", () => {
+  it("Protector overlay uses protector text alongside primary mode", () => {
     const prompt = buildSystemPrompt(
       baseProfile({
         results: {
@@ -141,9 +142,9 @@ describe("buildSystemPrompt", () => {
         },
       }),
     );
-    expect(prompt).toContain("Protector mode overrides all other coaching modes");
+    expect(prompt).toContain("PROTECTOR OVERLAY");
     expect(prompt).toContain("SAMHSA National Helpline 1-800-662-4357");
-    expect(prompt).not.toContain("growth-ready state");
+    expect(prompt).toContain("growth-ready state");
   });
 
   it("Simplifier stack includes both primary and overlay prompts for high cognitive load", () => {
@@ -279,6 +280,7 @@ describe("buildSystemPrompt", () => {
 
     expect(prompt).toContain("Latest daily check-in: not available");
     expect(prompt).toContain("Recent path reflection answers: not available");
+    expect(prompt).toContain("Active guided path progress: none");
     expect(prompt).toContain("Session count: unknown");
     expect(prompt).toContain("Active micro-commitment: none");
     expect(prompt).not.toContain("Session count: 1");
@@ -326,9 +328,11 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("handle everything alone");
   });
 
-  it("includes session memory depth when stored in onboardingData", () => {
+  it("includes session memory depth when stored in onboardingData on Pro tier", () => {
     const prompt = buildSystemPrompt(
       baseProfile({
+        tier: "pro",
+        subscribed: true,
         onboardingData: {
           ...(baseProfile().onboardingData as Record<string, unknown>),
           chat_session_memory: [
@@ -352,5 +356,132 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("emotional-start=exhausted");
     expect(prompt).toContain("key-pattern=evening scrolling loop");
     expect(prompt).toContain("resistance=not recorded");
+  });
+
+  it("omits session memory on Free tier", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        tier: "free",
+        subscribed: false,
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          chat_session_memory: [
+            {
+              conversationId: "c1",
+              closedAt: "2026-07-01",
+              topic: "sleep",
+              summaryStub: "Named poor sleep patterns.",
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(prompt).toContain("SESSION MEMORY (Phase 2): not available on Free tier.");
+    expect(prompt).not.toContain("topic=sleep");
+  });
+
+  it("includes active path progress and has_active_paths in prompt", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        liveContext: {
+          activePathProgress: {
+            pathName: "Building Professional Momentum",
+            status: "active",
+            completedSessionsCount: 2,
+            totalSessionsCount: 8,
+            currentSessionTitle: "Small wins as a momentum strategy",
+            nextSessionTitle: "Small wins as a momentum strategy",
+            hasActivePaths: true,
+          },
+        },
+      }),
+    );
+
+    expect(prompt).toContain("Has active paths: yes");
+    expect(prompt).toContain("Active guided path progress:");
+    expect(prompt).toContain("Building Professional Momentum");
+    expect(prompt).toContain("completed_sessions=2/8");
+  });
+  it("includes completed path micro-commitments in live signals", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        liveContext: {
+          latestCheckIn: null,
+          streakDays: 0,
+          activeMicroCommitment: null,
+          completedMicroCommitments: [
+            "This week: write the honest answer to what happened.",
+            "This week: identify your highest-leverage action.",
+          ],
+          sessionCount: 1,
+          pathReflections: [],
+        },
+      }),
+    );
+
+    expect(prompt).toContain("Completed path micro-commitments");
+    expect(prompt).toContain("write the honest answer to what happened");
+    expect(prompt).toContain("identify your highest-leverage action");
+  });
+});
+
+describe("prompt library verbatim anchors", () => {
+  const prompt = buildSystemPrompt(baseProfile());
+
+  it("includes full loop-breaking techniques (1K)", () => {
+    expect(prompt).toContain(
+      "On a scale of 1 to 10, where does this actually land for you right now?",
+    );
+    expect(prompt).toContain("Perspective inversion");
+    expect(prompt).not.toContain(
+      "When loop indicators are present, shift from exploration to synthesis",
+    );
+  });
+
+  it("includes handling silence and minimal responses (1I)", () => {
+    expect(prompt).toContain(
+      "Do not manufacture momentum where it does not exist",
+    );
+    expect(prompt).toContain("'I DON'T KNOW' — what it usually means");
+  });
+
+  it("includes transparent narration examples (1M)", () => {
+    expect(prompt).toContain(
+      "I'm going to ask you something that might seem sideways",
+    );
+  });
+
+  it("includes narration restraint as a separate block (3B)", () => {
+    expect(prompt).toContain(
+      "Reserve narration for genuinely significant pivots",
+    );
+  });
+
+  it("includes specificity in advice rule (1Q)", () => {
+    expect(prompt).toContain(
+      "Could a different person, in a different situation, receive this exact advice?",
+    );
+  });
+
+  it("includes conversational energy management (1U)", () => {
+    expect(prompt).toContain(
+      "Never drag a depleted user through a rigorous session",
+    );
+  });
+
+  it("includes conversational variety engine (1X)", () => {
+    expect(prompt).toContain("limited to once per session at most");
+  });
+
+  it("includes intelligent summarization system (2AC)", () => {
+    expect(prompt).toContain(
+      "Let me see if I can capture what I'm hearing so far",
+    );
+    expect(prompt).toContain("WHAT SUMMARIES CREATE");
+  });
+
+  it("includes single-question discipline (3H)", () => {
+    expect(prompt).toContain("Stacking questions overwhelms the user");
   });
 });

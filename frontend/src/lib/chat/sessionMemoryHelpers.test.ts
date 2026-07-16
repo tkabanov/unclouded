@@ -68,16 +68,20 @@ describe("sessionMemoryHelpers", () => {
   });
 
   it("renders honest not recorded fields in the prompt block", () => {
-    const prompt = buildSessionMemoryPromptBlock({
-      chat_session_memory: [
-        {
-          conversationId: "c1",
-          closedAt: "2026-07-01",
-          topic: "sleep",
-          summaryStub: "Named poor sleep patterns.",
-        },
-      ],
-    });
+    const prompt = buildSessionMemoryPromptBlock(
+      {
+        chat_session_memory: [
+          {
+            conversationId: "c1",
+            closedAt: "2026-07-01",
+            topic: "sleep",
+            summaryStub: "Named poor sleep patterns.",
+          },
+        ],
+      },
+      "pro",
+      true,
+    );
 
     expect(prompt).toContain("SESSION MEMORY (Phase 2 — server-loaded");
     expect(prompt).toContain("topic=sleep");

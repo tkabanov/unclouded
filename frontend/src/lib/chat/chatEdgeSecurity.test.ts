@@ -154,8 +154,8 @@ describe("tierGate helpers", () => {
   });
 
   it("exposes Build Brief upsell copy and limit constant", () => {
-    expect(FREE_TIER_SESSION_LIMIT).toBe(3);
-    expect(FREE_TIER_UPSELL_MESSAGE).toContain("3 sessions");
+    expect(FREE_TIER_SESSION_LIMIT).toBe(7);
+    expect(FREE_TIER_UPSELL_MESSAGE).toContain("7 sessions");
     expect(FREE_TIER_UPSELL_MESSAGE).toContain("Pro members");
   });
 });

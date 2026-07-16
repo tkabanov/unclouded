@@ -15,7 +15,8 @@ export interface PathsTabBarProps {
 
 const TAB_PANEL_IDS: Record<PathPageTabSlug, string> = {
   [PATH_PAGE_TAB.MY_PATHS]: "paths-guided-panel",
-  [PATH_PAGE_TAB.PATHS_LIBRARY]: "paths-resources-panel",
+  [PATH_PAGE_TAB.PATHS_LIBRARY]: "paths-catalog-panel",
+  [PATH_PAGE_TAB.RESOURCE_LIBRARY]: "paths-resources-panel",
 };
 
 export default function PathsTabBar({
@@ -27,11 +28,11 @@ export default function PathsTabBar({
     <div
       className={cn(
         bubbleStyle("Group_tab_bar_"),
-        "inline-flex w-full max-w-md gap-1 sm:w-auto",
+        "inline-flex w-fit gap-1",
         className,
       )}
       role="tablist"
-      aria-label="Paths sections"
+      aria-label="Paths and resources"
     >
       {PATH_PAGE_TAB_ORDER.map((tab) => {
         const isActive = activeTab === tab;
@@ -46,7 +47,7 @@ export default function PathsTabBar({
             aria-controls={TAB_PANEL_IDS[tab]}
             className={cn(
               bubbleStyle(isActive ? "Button_tab_active_" : "Button_tab_"),
-              "flex-1 border-0 sm:flex-none",
+              "shrink-0 border-0",
             )}
             onClick={() => onSelectTab(tab)}
           >

@@ -132,7 +132,11 @@ export default function PathsResourcesPanel({ className, onViewResource }: Paths
             </p>
           ) : (
             resources.map((resource) => (
-              <ResourceCard key={resource.id} resource={resource} onView={onViewResource} />
+              <ResourceCard
+                key={resource.resourceId}
+                resource={resource}
+                onViewResource={onViewResource}
+              />
             ))
           )}
         </div>

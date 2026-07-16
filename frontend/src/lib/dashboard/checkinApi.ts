@@ -1,4 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
+import {
+  computeStreakFromDateKeys,
+  resolveEffectiveCheckInStreak,
+  toCheckInDateKey,
+} from "../../../../supabase/functions/chat/liveContext/streakHelpers.ts";
 
 /** Bubble user field from workflow bTIWG streak update. */
 export const DAILY_CHECK_IN_STREAK_FIELD = "dailyCheckInStreak" as const;
@@ -49,7 +54,7 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
 }
 
 function toDateKey(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return toCheckInDateKey(date);
 }
 
 function readCheckinsFromOnboarding(
@@ -108,20 +113,70 @@ function readStreakFromOnboarding(
 
 function computeNextStreak(existingDates: string[], submitDate: Date): number {
   const today = toDateKey(submitDate);
-  const uniqueDates = [...new Set(existingDates.map((d) => d.slice(0, 10)))].sort();
-  if (uniqueDates.includes(today)) {
-    return Math.max(1, uniqueDates.length);
+  const allDates = [...existingDates.map((d) => d.slice(0, 10)), today].filter(Boolean);
+  return Math.max(1, computeStreakFromDateKeys(allDates, today));
+}
+
+async function collectCheckInDateKeys(
+  userId: string,
+  onboardingData: Record<string, unknown> | null | undefined,
+): Promise<string[]> {
+  const onboardingDates = readCheckinsFromOnboarding(onboardingData)
+    .filter((row) => row.user === userId)
+    .map((row) => row.date);
+  const tableDates = await tryFetchCheckinDatesFromTable(userId);
+  return tableDates !== null ? tableDates : onboardingDates;
+}
+
+async function syncStoredStreak(
+  userId: string,
+  effectiveStreak: number,
+  onboardingData: Record<string, unknown> | null | undefined,
+): Promise<void> {
+  const storedFromTable = await tryFetchStreakFromTable(userId);
+  const stored =
+    storedFromTable !== null
+      ? storedFromTable
+      : readStreakFromOnboarding(onboardingData);
+
+  if (stored === effectiveStreak) return;
+
+  const updatedOnTable = await tryUpdateUserStreakTable(userId, effectiveStreak);
+  if (updatedOnTable) return;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      onboardingData: {
+        ...(onboardingData ?? {}),
+        [DAILY_CHECK_IN_STREAK_FIELD]: effectiveStreak,
+        [STREAK_DAYS_FIELD]: effectiveStreak,
+      } as never,
+    })
+    .eq("id", userId);
+
+  if (error) throw error;
+}
+
+async function tryFetchCheckinDatesFromTable(userId: string): Promise<string[] | null> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { data, error } = await client
+    .from("dailyCheckin")
+    .select("date")
+    .eq("userId", userId);
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return null;
+    throw error;
   }
 
-  const yesterday = new Date(submitDate);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayKey = toDateKey(yesterday);
-
-  if (uniqueDates.includes(yesterdayKey)) {
-    return uniqueDates.length + 1;
-  }
-
-  return 1;
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((row) => {
+      const date = (row as { date?: string | null }).date;
+      return typeof date === "string" ? date.slice(0, 10) : null;
+    })
+    .filter((date): date is string => Boolean(date));
 }
 
 async function tryFetchStreakFromTable(userId: string): Promise<number | null> {
@@ -271,9 +326,10 @@ export async function fetchDailyCheckInStreak(
   userId: string,
   onboardingData?: Record<string, unknown> | null,
 ): Promise<number> {
-  const fromTable = await tryFetchStreakFromTable(userId);
-  if (fromTable !== null) return fromTable;
-  return readStreakFromOnboarding(onboardingData);
+  const dateKeys = await collectCheckInDateKeys(userId, onboardingData ?? null);
+  const effectiveStreak = resolveEffectiveCheckInStreak(dateKeys);
+  await syncStoredStreak(userId, effectiveStreak, onboardingData ?? null);
+  return effectiveStreak;
 }
 
 /**
@@ -287,11 +343,19 @@ export async function submitDailyCheckIn(
   const date = input.date ?? new Date();
   const inserted = await tryInsertCheckinTable(userId, input, date);
 
-  const existing = readCheckinsFromOnboarding(onboardingData);
-  const existingDates = existing.filter((row) => row.user === userId).map((row) => row.date);
+  const onboardingDates = readCheckinsFromOnboarding(onboardingData)
+    .filter((row) => row.user === userId)
+    .map((row) => row.date);
+  const tableDates = inserted ? await tryFetchCheckinDatesFromTable(userId) : null;
+  // Table insert already includes today's row; exclude it so computeNextStreak can add submit day once.
+  const existingDates =
+    tableDates !== null
+      ? tableDates.filter((d) => d !== toDateKey(date))
+      : onboardingDates;
   const nextStreak = computeNextStreak(existingDates, date);
 
   if (!inserted) {
+    const existing = readCheckinsFromOnboarding(onboardingData);
     const nextRecord: DailyCheckInRecord = {
       id: crypto.randomUUID(),
       mood: input.mood,

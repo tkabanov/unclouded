@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Info, Star, X } from "lucide-react";
 import { settingsPath } from "@/lib/settings/navigation";
 import { SETTINGS_TAB } from "@/lib/settings/settingsTabStub";
@@ -17,20 +17,28 @@ import {
   unenrollFromPath,
   type PathEnrollmentListItem,
 } from "@/lib/paths/pathsEnrollmentApi";
-import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
-import { getPathBySlug, HARD_SEASONS_PATH } from "@/lib/paths";
+import { useOptionalPathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
+import { fetchPathSessionsByKey, type PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { useUserProfile } from "@/lib/userProfile";
-import { PATHS_PATH_DETAIL_DISCLAIMER_TEXT } from "@/lib/paths/routes";
+import {
+  PATHS_PATH_DETAIL_DISCLAIMER_TEXT,
+  PATHS_ROUTE,
+  SESSION_SEARCH_PARAM,
+} from "@/lib/paths/routes";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
+import { toast } from "sonner";
+
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 export interface PathDetailPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  enrollment: PathEnrollmentListItem | null;
+  enrollment?: PathEnrollmentListItem | null;
+  catalogPath?: PathCatalogEntry | null;
+  onEnrollmentsChanged?: () => Promise<void>;
 }
 
 function tierPriority(tier: TierSlug): number {
@@ -60,74 +68,138 @@ function isActiveEnrollment(enrollment: PathEnrollmentListItem | null): boolean 
   );
 }
 
-function formatStepsText(pathSlug: string | undefined): string {
-  const path = getPathBySlug(pathSlug ?? HARD_SEASONS_PATH.slug) ?? HARD_SEASONS_PATH;
-  return path.sessions
-    .map((session) => `Step ${session.number}: ${session.title}`)
-    .join(" ");
-}
-
-function lastCompletedLabel(
-  enrollment: PathEnrollmentListItem,
-  pathSlug: string | undefined,
-): string | null {
-  const path = getPathBySlug(pathSlug ?? HARD_SEASONS_PATH.slug) ?? HARD_SEASONS_PATH;
-  const completedCount = Math.round((enrollment.progressPercent / 100) * path.sessions.length);
-  if (completedCount <= 0) return null;
-  const session = path.sessions[completedCount - 1];
-  if (!session) return null;
-  return `Last completed: Step ${session.number}: ${session.title}`;
-}
-
 export default function PathDetailPopup({
   open,
   onOpenChange,
-  enrollment,
+  enrollment = null,
+  catalogPath = null,
+  onEnrollmentsChanged,
 }: PathDetailPopupProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useUserProfile();
-  const { refresh } = usePathsEnrollmentStore();
+  const enrollmentStore = useOptionalPathsEnrollmentStore();
+  const storeEnrollments = enrollmentStore?.enrollments ?? [];
+
+  const matchedEnrollment = useMemo(() => {
+    if (enrollment) return enrollment;
+    const slug = catalogPath?.slug;
+    if (!slug) return null;
+    return (
+      storeEnrollments.find(
+        (row) =>
+          row.pathSlug === slug &&
+          (row.status === PATH_ENROLLMENT_STATUS.ACTIVE ||
+            row.status === PATH_ENROLLMENT_STATUS.PAUSED ||
+            row.status === PATH_ENROLLMENT_STATUS.COMPLETED),
+      ) ?? null
+    );
+  }, [enrollment, catalogPath?.slug, storeEnrollments]);
+
+  const refreshEnrollments = async () => {
+    if (onEnrollmentsChanged) {
+      await onEnrollmentsChanged();
+      return;
+    }
+    await enrollmentStore?.refresh();
+  };
   const [busy, setBusy] = useState(false);
+  const [stepsText, setStepsText] = useState("");
+  const [lastStepText, setLastStepText] = useState<string | null>(null);
 
   const dismiss = () => onOpenChange(false);
 
-  const pathSlug = enrollment?.pathSlug;
-  const pathTier = enrollment?.tier ?? HARD_SEASONS_PATH.tier;
+  const pathSlug = matchedEnrollment?.pathSlug ?? catalogPath?.slug;
+  const pathTier = matchedEnrollment?.tier ?? catalogPath?.tier ?? TIER.FREE;
+  const pathName = matchedEnrollment?.pathName ?? catalogPath?.name ?? "Path";
+  const pillarLabel = matchedEnrollment?.pillarLabel ?? catalogPath?.pillar ?? "";
+  const subMode = matchedEnrollment?.subMode ?? catalogPath?.subMode;
+  const progressPercent = matchedEnrollment?.progressPercent ?? 0;
   const userTier = resolveUserTier(
     profile?.subscribed ?? false,
     profile?.tier ?? null,
     profile?.onboardingData ?? null,
   );
   const needsUpgrade = tierPriority(pathTier) > tierPriority(userTier);
-  const enrolled = isActiveEnrollment(enrollment);
-  const showEnroll = !enrolled && !needsUpgrade;
-  const showUnenroll = enrolled;
+  const enrolled = isActiveEnrollment(matchedEnrollment);
+  const showEnroll = !enrolled && !needsUpgrade && Boolean(pathSlug);
+  const showUnenroll = enrolled && Boolean(matchedEnrollment?.enrollmentId);
   const showUpgrade = needsUpgrade;
+  const continueSessionId = matchedEnrollment?.currentSessionId;
+  const showContinue =
+    enrolled &&
+    Boolean(continueSessionId) &&
+    matchedEnrollment?.status !== PATH_ENROLLMENT_STATUS.COMPLETED;
+
+  useEffect(() => {
+    if (!open || !pathSlug) {
+      setStepsText("");
+      setLastStepText(null);
+      return;
+    }
+
+    let cancelled = false;
+    fetchPathSessionsByKey(pathSlug)
+      .then((sessions) => {
+        if (cancelled) return;
+        setStepsText(
+          sessions
+            .map((session) => `Step ${session.index}: ${session.title}`)
+            .join(" "),
+        );
+
+        const completedCount = matchedEnrollment
+          ? Math.round(
+              (matchedEnrollment.progressPercent / 100) * Math.max(sessions.length, 1),
+            )
+          : 0;
+        if (completedCount <= 0) {
+          setLastStepText(null);
+          return;
+        }
+
+        const session = sessions[completedCount - 1];
+        setLastStepText(
+          session ? `Last completed: Step ${session.index}: ${session.title}` : null,
+        );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStepsText("");
+          setLastStepText(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [matchedEnrollment, open, pathSlug]);
 
   const handleEnroll = async () => {
     if (!user || !pathSlug) return;
     setBusy(true);
     try {
       await enrollInPath(user.id, pathSlug, profile?.onboardingData ?? null);
-      await refresh();
+      await refreshEnrollments();
+      toast.success(`Enrolled in ${pathName}`);
     } catch (err) {
       console.error("Failed to enroll in path", err);
+      toast.error(err instanceof Error ? err.message : "Could not enroll in this path.");
     } finally {
       setBusy(false);
     }
   };
 
   const handleUnenroll = async () => {
-    if (!user || !enrollment?.enrollmentId) return;
+    if (!user || !matchedEnrollment?.enrollmentId) return;
     setBusy(true);
     try {
       await unenrollFromPath(
         user.id,
-        enrollment.enrollmentId,
+        matchedEnrollment.enrollmentId,
         profile?.onboardingData ?? null,
       );
-      await refresh();
+      await refreshEnrollments();
       dismiss();
     } catch (err) {
       console.error("Failed to unenroll from path", err);
@@ -135,8 +207,6 @@ export default function PathDetailPopup({
       setBusy(false);
     }
   };
-
-  const lastStepText = enrollment ? lastCompletedLabel(enrollment, pathSlug) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,14 +228,14 @@ export default function PathDetailPopup({
                 "flex flex-wrap items-center gap-2",
               )}
             >
-              {enrollment?.pillarLabel ? (
+              {pillarLabel ? (
                 <span className={cn(bubbleStyle("Group_badge_"), "text-xs capitalize")}>
-                  {enrollment.pillarLabel}
+                  {pillarLabel}
                 </span>
               ) : null}
-              {enrollment?.subMode ? (
+              {subMode ? (
                 <span className={cn(bubbleStyle("Group_badge_"), "text-xs")}>
-                  {enrollment.subMode}
+                  {subMode}
                 </span>
               ) : null}
               <span
@@ -182,7 +252,7 @@ export default function PathDetailPopup({
                 "text-left text-xl font-semibold text-foreground",
               )}
             >
-              {enrollment?.pathName ?? "Path"}
+              {pathName}
             </h2>
 
             <button
@@ -216,7 +286,7 @@ export default function PathDetailPopup({
                   "text-sm leading-relaxed",
                 )}
               >
-                {formatStepsText(pathSlug)}
+                {stepsText || "Loading steps…"}
               </p>
             </div>
 
@@ -246,13 +316,13 @@ export default function PathDetailPopup({
                 className={cn(bubbleStyle("Group_transparent_"), "w-full")}
               >
                 <div>
-                  <ProgressBar value={enrollment?.progressPercent ?? 0} />
+                  <ProgressBar value={progressPercent} />
                 </div>
               </div>
               <p
                 className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
               >
-                {enrollment?.progressPercent ?? 0}%
+                {progressPercent}%
               </p>
               {lastStepText ? (
                 <p
@@ -280,6 +350,23 @@ export default function PathDetailPopup({
               >
                 <Star className="h-4 w-4 shrink-0" aria-hidden />
                 Upgrade Plan
+              </Button>
+            ) : null}
+
+            {showContinue && continueSessionId ? (
+              <Button
+                asChild
+                type="button"
+                variant="cta"
+                data-style-ref="Button_primary_"
+                className={cn(bubbleStyle("Button_primary_"))}
+              >
+                <Link
+                  to={`${PATHS_ROUTE}?${SESSION_SEARCH_PARAM}=${encodeURIComponent(continueSessionId)}`}
+                  onClick={dismiss}
+                >
+                  Continue Session
+                </Link>
               </Button>
             ) : null}
 

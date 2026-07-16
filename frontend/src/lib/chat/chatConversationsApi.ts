@@ -2,11 +2,15 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ChatComposerMode } from "@/components/chat/types";
 import { CHAT_COMPOSER_MODES } from "@/components/chat/types";
 import { loadProfileRow } from "@/lib/userProfile/profileFieldPatch";
+import {
+  DEFAULT_CONVERSATION_TITLE,
+  isDefaultConversationTitle,
+} from "../../../../supabase/functions/chat/prompt/conversationTitle.ts";
+
+export { DEFAULT_CONVERSATION_TITLE, isDefaultConversationTitle };
 
 /** Stored in profiles.onboardingData when chatconversation table is absent. */
 export const CHAT_CONVERSATIONS_ONBOARDING_KEY = "chat_conversations" as const;
-
-const DEFAULT_CONVERSATION_TITLE = "New conversation";
 const DEFAULT_PREVIEW_TEXT = "Start a conversation when you're ready.";
 
 export interface ConversationListItem {
@@ -392,15 +396,20 @@ async function tryRenameInConversationTable(
   title: string,
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
-  const { error } = await client
+  const { data, error } = await client
     .from("chatConversation")
     .update({ title: title })
     .eq("id", conversationId)
-    .eq("userId", userId);
+    .eq("userId", userId)
+    .select("id")
+    .maybeSingle();
 
-  if (!error) return true;
-  if (isSchemaUnavailable(error)) return null;
-  throw error;
+  if (error) {
+    if (isSchemaUnavailable(error)) return null;
+    throw error;
+  }
+
+  return data !== null;
 }
 
 /**
@@ -415,9 +424,20 @@ export async function renameConversation(
   if (!trimmedTitle) throw new Error("Title is required");
 
   const fromTable = await tryRenameInConversationTable(userId, conversationId, trimmedTitle);
-  if (fromTable === true) return;
+  if (fromTable === true) {
+    await persistOnboardingConversations(userId, (rows) => {
+      let found = false;
+      const nextRows = rows.map((row) => {
+        if (row.id !== conversationId) return row;
+        found = true;
+        return { ...row, title: trimmedTitle };
+      });
+      return found ? nextRows : rows;
+    });
+    return;
+  }
 
-  if (fromTable === null) {
+  if (fromTable === null || fromTable === false) {
     await persistOnboardingConversations(userId, (rows) => {
       let found = false;
       const nextRows = rows.map((row) => {

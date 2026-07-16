@@ -29,7 +29,7 @@ import {
 } from "@/lib/onboardingWizard";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/lib/userProfile";
-import { isOnboardingComplete } from "@/lib/userProfile/onboardingStatus";
+import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/onboardingStatus";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -105,7 +105,7 @@ const Onboarding = () => {
   useEffect(() => {
     if (profileLoading || completingOnboarding || searchParams.get("reassessment") === "1") return;
     if (isOnboardingComplete(profile)) {
-      navigate("/dashboard", { replace: true });
+      navigate(resolvePostAuthRoute(profile), { replace: true });
     }
   }, [profile, profileLoading, completingOnboarding, navigate, searchParams]);
 
