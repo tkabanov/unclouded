@@ -51,3 +51,14 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Authoritative spec** | Owner requirement |
 | **Current behavior** | Delete account + confirm popup live under **Security** tab. Privacy tab and export-my-data UI removed with OVR-003. |
 | **Code** | `frontend/src/components/settings/SettingsSecurityTab.tsx`, `frontend/src/lib/settings/securityApi.ts` (`requestAccountDeletion`) |
+
+### OVR-005 — Journal: entries only (no Milestones tab)
+
+| | |
+|---|---|
+| **Date** | 2026-07-16 |
+| **Overrides** | Bubble journal page tab bar with **Journal** + **Milestones** (`JOURNAL-05` / `JOURNAL-06` / `JOURNAL-07`): milestone list, relapse tracking, add/edit milestone popups |
+| **Authoritative spec** | Owner requirement |
+| **Current behavior** | `/journal` shows journal entries only — no Milestones tab, relapse log, or milestone popups. Page title is **Journal** (not “Journal & Milestones”). |
+| **Code** | `frontend/src/pages/Journal.tsx`, `frontend/src/components/journal/JournalPageContent.tsx` |
+

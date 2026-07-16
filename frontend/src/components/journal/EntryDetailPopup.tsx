@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   deleteJournalEntry,
@@ -54,6 +56,7 @@ export interface EntryDetailPopupProps {
   /** Pro/Premium only — hides generate UI for free tier. */
   canGenerateAiReflection?: boolean;
   onSaved: () => void;
+  onReflectionGenerated?: (entry: JournalEntryListItem) => void;
 }
 
 export default function EntryDetailPopup({
@@ -64,6 +67,7 @@ export default function EntryDetailPopup({
   onboardingData,
   canGenerateAiReflection = false,
   onSaved,
+  onReflectionGenerated,
 }: EntryDetailPopupProps) {
   const [title, setTitle] = useState("");
   const [moodTag, setMoodTag] = useState("");
@@ -149,8 +153,8 @@ export default function EntryDetailPopup({
         onboardingData,
       );
       setAiReflection(updated.aiReflection);
+      onReflectionGenerated?.(updated);
       toast.success("AI reflection generated.");
-      onSaved();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Couldn't generate a reflection.";
       toast.error(message);
@@ -195,12 +199,15 @@ export default function EntryDetailPopup({
               ) : null}
             </div>
 
-            <h2
+            <DialogTitle
               data-style-ref="Text_heading_2_"
               className={cn(bubbleStyle("Text_heading_2_"), "text-left text-xl font-semibold")}
             >
               {title.trim() || entry?.title || "Journal Entry"}
-            </h2>
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              View and edit your journal entry, including optional AI coaching reflection.
+            </DialogDescription>
           </div>
 
           <button
