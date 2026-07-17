@@ -1,5 +1,9 @@
 import type { CoachingModeSlug, ProfileData } from "./types.ts";
 import { asRecord, asString, sanitizeDisplayName, sanitizePromptField } from "./profileHelpers.ts";
+import {
+  isRecentModuleCompletion,
+  readLastCompletedModuleName,
+} from "./moduleContext.ts";
 import { resolveCoachingModes } from "./resolveCoachingModes.ts";
 import {
   formatReturningMemoryHint,
@@ -27,6 +31,9 @@ const FIRST_SESSION_OPENINGS: Record<CoachingModeSlug, string> = {
 const RETURNING_SESSION_OPENING =
   "Good to see you again, [Name]. Last time we talked about [LAST_SESSION_TOPIC]. [MEMORY_HINT] How have things been since then — and did anything shift?";
 
+const RETURNING_SESSION_AFTER_MODULE =
+  "[Name], you just completed [MODULE_NAME]. That takes something. I've updated my understanding of you based on what you shared. I want to use what I know now. Where do you want to start today?";
+
 const STANDARD_CLOSE_WITH_COMMITMENT =
   "Before we close — I want to make sure we land on something concrete. What's one thing you're willing to do before we talk again? Be specific and honest — if nothing feels possible, that's useful data too.";
 
@@ -40,12 +47,24 @@ export function readLastSessionTopic(onboardingData: Record<string, unknown>): s
 }
 
 export function resolveSessionOpeningTemplate(profile: ProfileData): {
-  kind: "first" | "returning";
+  kind: "first" | "returning" | "returning_after_module";
   template: string;
 } {
   const onboardingData = asRecord(profile.onboardingData);
-  const lastTopic = readLastSessionTopic(onboardingData);
   const displayName = sanitizeDisplayName(profile.firstName);
+
+  if (isRecentModuleCompletion(profile)) {
+    const moduleName = readLastCompletedModuleName(profile) ?? "your deep-dive module";
+    return {
+      kind: "returning_after_module",
+      template: RETURNING_SESSION_AFTER_MODULE.replace("[Name]", displayName).replace(
+        "[MODULE_NAME]",
+        sanitizePromptField(moduleName, 80),
+      ),
+    };
+  }
+
+  const lastTopic = readLastSessionTopic(onboardingData);
 
   if (lastTopic) {
     const memoryHint =

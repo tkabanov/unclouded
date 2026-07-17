@@ -33,6 +33,14 @@ export interface UserProfile {
   reassessmentResults: ResultsData | null;
   reassessmentReflections: ReflectionAnswers | null;
   reassessmentCompletedAt: string | null;
+  modulesCompletedCount?: number;
+  moduleSchedules?: Record<string, unknown> | null;
+  moduleIdentityComplete?: boolean;
+  moduleRelationalComplete?: boolean;
+  moduleHistoryComplete?: boolean;
+  moduleFinancialComplete?: boolean;
+  moduleBodyComplete?: boolean;
+  moduleMeaningComplete?: boolean;
 }
 
 export interface OnboardingPayload {
@@ -42,6 +50,8 @@ export interface OnboardingPayload {
   primaryPillar: string;
   results: ResultsData;
   onboardingData: Record<string, unknown>;
+  modulesCompletedCount?: number;
+  moduleSchedules?: Record<string, unknown>;
 }
 
 export interface SaveOnboardingOptions {
@@ -84,7 +94,7 @@ interface UserProfileContextType {
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
 
 const PROFILE_SELECT =
-  "firstName, roleType, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt";
+  "firstName, roleType, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
 
 export function UserProfileProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -131,6 +141,14 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         reassessmentReflections:
           (data.reassessmentReflections as unknown as ReflectionAnswers | null) ?? null,
         reassessmentCompletedAt: data.reassessmentCompletedAt ?? null,
+        modulesCompletedCount: data.modulesCompletedCount ?? undefined,
+        moduleSchedules: (data.moduleSchedules as unknown as Record<string, unknown> | null) ?? null,
+        moduleIdentityComplete: data.moduleIdentityComplete ?? undefined,
+        moduleRelationalComplete: data.moduleRelationalComplete ?? undefined,
+        moduleHistoryComplete: data.moduleHistoryComplete ?? undefined,
+        moduleFinancialComplete: data.moduleFinancialComplete ?? undefined,
+        moduleBodyComplete: data.moduleBodyComplete ?? undefined,
+        moduleMeaningComplete: data.moduleMeaningComplete ?? undefined,
       });
     } else {
       setProfileState(null);
@@ -161,6 +179,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             primaryPillar: payload.primaryPillar,
             results: payload.results as unknown as never,
             onboardingData: payload.onboardingData as unknown as never,
+            modulesCompletedCount: payload.modulesCompletedCount,
+            moduleSchedules: payload.moduleSchedules as unknown as never,
             onboardingCompleted: markComplete,
             onboardingCompletedAt: markComplete ? completedAt : null,
             lastAssessmentDate: markComplete ? completedAt : null,

@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { completePasswordRecovery } from "@/lib/auth/passwordResetApi";
 import { clearRecoveryAuthorization, subscribePasswordRecovery } from "@/lib/auth/recoverySession";
+import {
+  clearLocalAuthSession,
+  resolveValidatedAuthSession,
+  signOutEverywhere,
+} from "@/lib/auth/sessionAuth";
+import { completePasswordRecovery } from "@/lib/auth/passwordResetApi";
 
 interface AuthContextType {
   user: User | null;
@@ -14,6 +19,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function applyAuthState(
+  setSession: (session: Session | null) => void,
+  setUser: (user: User | null) => void,
+  setLoading: (loading: boolean) => void,
+  session: Session | null,
+  user: User | null,
+) {
+  setSession(session);
+  setUser(user);
+  setLoading(false);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -22,19 +39,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribeRecovery = subscribePasswordRecovery();
 
-    // Register listener first, then hydrate the existing session.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      if (event === "SIGNED_OUT" || !nextSession) {
+        applyAuthState(setSession, setUser, setLoading, null, null);
+        return;
+      }
+
+      const {
+        data: { user: validatedUser },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !validatedUser) {
+        await clearLocalAuthSession();
+        applyAuthState(setSession, setUser, setLoading, null, null);
+        return;
+      }
+
+      applyAuthState(setSession, setUser, setLoading, nextSession, validatedUser);
     });
 
-    supabase.auth.getSession().then(({ data: { session: current } }) => {
-      setSession(current);
-      setUser(current?.user ?? null);
-      setLoading(false);
+    void resolveValidatedAuthSession().then(({ session: currentSession, user: currentUser }) => {
+      applyAuthState(setSession, setUser, setLoading, currentSession, currentUser);
     });
 
     return () => {
@@ -45,7 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     clearRecoveryAuthorization();
-    await supabase.auth.signOut();
+    await signOutEverywhere();
+    applyAuthState(setSession, setUser, setLoading, null, null);
   };
 
   const resetPassword = async (newPassword: string) => {

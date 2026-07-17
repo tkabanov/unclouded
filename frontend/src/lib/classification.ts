@@ -26,6 +26,9 @@ export interface ResultsData {
   module_days: number;
 }
 
+/** Classification output without module scheduler preview (filled by caller at onboarding). */
+export type CoreResultsData = Omit<ResultsData, "first_module" | "module_days">;
+
 export const classifications: Record<string, ClassificationType> = {
   capacity_erosion: {
     key: "capacity_erosion",
@@ -332,7 +335,7 @@ export function computeResults(
     grief_mode_active: boolean;
     selected_flags: string[];
   }
-): ResultsData {
+): CoreResultsData {
   const stability = stabilityScores.stability_score ?? 3;
   const performance = performanceScores.performance_score ?? 3;
   const alignment = alignmentScores.alignment_score ?? 3;
@@ -343,18 +346,6 @@ export function computeResults(
 
   const traumaFlags = ["trauma_history", "trauma_informed"];
   const trauma_informed_mode = healthFlags.selected_flags.some(f => traumaFlags.includes(f));
-
-  const moduleMap: Record<string, { name: string; days: number }> = {
-    "Capacity Erosion": { name: "Foundation Reset", days: 1 },
-    "Performance Stagnation": { name: "Clarity Sprint", days: 1 },
-    "Alignment Fracture": { name: "Values Deep-Dive", days: 2 },
-    "High Output / Hidden Instability": { name: "The Inner Audit", days: 1 },
-    "Optimization Ready": { name: "Momentum Design", days: 2 },
-    "Comfortable Plateau": { name: "Direction Check", days: 2 },
-    "Building Momentum": { name: "Consistency Lock", days: 1 },
-  };
-
-  const mod = moduleMap[classification.name] ?? { name: "Foundation Reset", days: 1 };
 
   return {
     stability_score: stability,
@@ -367,7 +358,5 @@ export function computeResults(
     recovery_mode_active: healthFlags.recovery_mode_active,
     grief_mode_active: healthFlags.grief_mode_active,
     trauma_informed_mode,
-    first_module: mod.name,
-    module_days: mod.days,
   };
 }

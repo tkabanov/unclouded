@@ -1,4 +1,9 @@
 import { TIER, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
+import type { ModuleProfileInput } from "@/lib/modules/readModuleProfile";
+import {
+  parsePathModulePrerequisites,
+  userMeetsPathModulePrerequisites,
+} from "@/lib/paths/pathModulePrerequisites";
 
 export interface PathEnrollmentCandidate {
   id: string;
@@ -15,6 +20,7 @@ export interface OnboardingEnrollmentContext {
   recoveryModeActive: boolean;
   griefModeActive: boolean;
   userTier: TierSlug;
+  moduleProfile?: ModuleProfileInput;
 }
 
 const ONBOARDING_ENROLLMENT_TOKEN = "enrollment:onboarding";
@@ -116,7 +122,14 @@ export function pathMatchesOnboardingEnrollment(
   }
 
   const flagRequirement = parsePathFlagRequirement(path.triggerSignals);
-  return userMeetsPathFlagRequirement(flagRequirement, context);
+  if (!userMeetsPathFlagRequirement(flagRequirement, context)) {
+    return false;
+  }
+
+  const modulePrerequisites = parsePathModulePrerequisites(path.triggerSignals);
+  if (modulePrerequisites.length === 0) return true;
+
+  return userMeetsPathModulePrerequisites(context.moduleProfile ?? {}, modulePrerequisites);
 }
 
 export interface LibraryBrowseContext {

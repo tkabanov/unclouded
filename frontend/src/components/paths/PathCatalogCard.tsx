@@ -4,6 +4,7 @@ import { bubbleStyle } from "@/styles";
 import { Button } from "@/components/ui/button";
 import type { PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import type { PathEnrollmentListItem } from "@/lib/paths/pathsEnrollmentApi";
+import type { PathModuleGate } from "@/lib/paths/pathModulePrerequisites";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 
@@ -11,6 +12,7 @@ export interface PathCatalogCardProps {
   path: PathCatalogEntry;
   enrollment?: PathEnrollmentListItem | null;
   userTier: TierSlug;
+  moduleGate?: PathModuleGate | null;
   onViewDetails?: (path: PathCatalogEntry) => void;
   className?: string;
 }
@@ -32,11 +34,13 @@ export default function PathCatalogCard({
   path,
   enrollment,
   userTier,
+  moduleGate = null,
   onViewDetails,
   className,
 }: PathCatalogCardProps) {
   const enrolled = isEnrolled(enrollment);
   const needsUpgrade = tierPriority(path.tier) > tierPriority(userTier);
+  const moduleLocked = Boolean(moduleGate?.blocked) && !enrolled;
 
   return (
     <article
@@ -111,6 +115,10 @@ export default function PathCatalogCard({
           <span className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
             Upgrade required
           </span>
+        ) : moduleLocked ? (
+          <span className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
+            Requires Identity Lens
+          </span>
         ) : (
           <span className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
             Available to enroll
@@ -124,7 +132,7 @@ export default function PathCatalogCard({
           className={cn(bubbleStyle("Button_accent_"), "shrink-0")}
           onClick={() => onViewDetails?.(path)}
         >
-          {enrolled ? "View Path" : needsUpgrade ? "View Path" : "Enroll in Path"}
+          {enrolled ? "View Path" : needsUpgrade || moduleLocked ? "View Path" : "Enroll in Path"}
         </Button>
       </footer>
     </article>

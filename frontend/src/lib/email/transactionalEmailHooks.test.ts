@@ -2,6 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const resetPasswordForEmail = vi.fn();
 
+vi.mock("@/lib/notifications/moduleUnlockNotify", () => ({
+  listModuleUnlockCandidates: vi.fn(async () => []),
+}));
+
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
@@ -12,11 +16,21 @@ vi.mock("@/integrations/supabase/client", () => ({
         lte: () => ({
           in: () => Promise.resolve({ data: [], error: null }),
         }),
+        eq: () => ({
+          maybeSingle: () =>
+            Promise.resolve({
+              data: { modulesCompletedCount: 1, firstModuleMilestoneEmailedAt: null },
+              error: null,
+            }),
+        }),
       }),
       update: () => ({
         eq: () => Promise.resolve({ data: null, error: null }),
       }),
     }),
+    functions: {
+      invoke: () => Promise.resolve({ data: null, error: null }),
+    },
   },
 }));
 
@@ -71,6 +85,32 @@ describe("transactionalEmailHooks", () => {
 
     expect(result.status).toBe("placeholder");
     expect(result.detail).toContain("SMTP");
+  });
+
+  it("module unlock hook reports cohort delivery path", async () => {
+    const { requestTransactionalEmail } = await import("@/lib/email/transactionalEmailHooks");
+
+    const result = await requestTransactionalEmail("notification_module_unlock", {
+      userId: "user-1",
+      email: "user@example.com",
+      firstName: "Sam",
+    });
+
+    expect(result.status).toBe("placeholder");
+    expect(result.detail).toContain("module-unlock");
+  });
+
+  it("milestone hook reports first-module eligibility path", async () => {
+    const { requestTransactionalEmail } = await import("@/lib/email/transactionalEmailHooks");
+
+    const result = await requestTransactionalEmail("notification_milestone", {
+      userId: "user-1",
+      email: "user@example.com",
+      firstName: "Sam",
+    });
+
+    expect(result.status).toBe("placeholder");
+    expect(result.detail).toContain("notification-milestone");
   });
 
   it("lists five live Supabase Auth templates in catalog", async () => {

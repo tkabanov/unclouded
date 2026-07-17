@@ -10,6 +10,9 @@ import {
 import { computeTrajectoryType, type TrajectoryType } from "@/lib/reassessment/trajectory";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { autoEnrollPathsAfterOnboarding } from "@/lib/paths/pathsOnboardingEnrollmentApi";
+import { buildReassessmentModuleRefreshPatch } from "@/lib/modules/moduleRefresh";
+import { loadModuleProfileForCompletion } from "@/lib/modules/completeModule";
+import type { ModuleSlug } from "@/lib/modules/moduleSlugs";
 import { runOnboardingProfilePipeline } from "@/lib/userProfile/onboardingProfilePipeline";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -35,6 +38,8 @@ export interface CompleteReassessmentResult {
   newMode: string | null;
   recommendedPaths: RecommendedPath[];
   nextFocusText: string | null;
+  modulesRefreshOffered: ModuleSlug[];
+  modulesAcceleratedUnlock: ModuleSlug[];
 }
 
 /**
@@ -103,6 +108,43 @@ export async function completeReassessment(
 
   await runOnboardingProfilePipeline(input.userId);
 
+  let modulesRefreshOffered: ModuleSlug[] = [];
+  let modulesAcceleratedUnlock: ModuleSlug[] = [];
+  try {
+    const moduleProfile = await loadModuleProfileForCompletion(input.userId);
+    const refreshPatch = buildReassessmentModuleRefreshPatch(
+      moduleProfile,
+      input.firstResults,
+      input.secondResults,
+      new Date(nowIso),
+    );
+    modulesRefreshOffered = refreshPatch.refreshOfferedSlugs;
+    modulesAcceleratedUnlock = refreshPatch.acceleratedSlugs;
+
+    const mergedOnboarding = {
+      ...((moduleProfile.onboardingData as Record<string, unknown> | null) ?? {}),
+      ...refreshPatch.onboardingDataPatch,
+    };
+
+    const { error: refreshError } = await supabase
+      .from("profiles")
+      .update({
+        moduleSchedules: refreshPatch.moduleSchedules as never,
+        onboardingData: mergedOnboarding as never,
+      })
+      .eq("id", input.userId);
+
+    if (refreshError) {
+      console.warn("Failed to apply module refresh after reassessment", refreshError);
+      modulesRefreshOffered = [];
+      modulesAcceleratedUnlock = [];
+    }
+  } catch (err) {
+    console.warn("Failed to apply module refresh after reassessment", err);
+    modulesRefreshOffered = [];
+    modulesAcceleratedUnlock = [];
+  }
+
   const afterOnboarding = await loadOnboardingData(input.userId);
   const newMode = readCoachingModeFromOnboarding(afterOnboarding);
   const modeChanged = Boolean(previousMode || newMode) && previousMode !== newMode;
@@ -136,6 +178,8 @@ export async function completeReassessment(
     newMode,
     recommendedPaths,
     nextFocusText,
+    modulesRefreshOffered,
+    modulesAcceleratedUnlock,
   };
 }
 

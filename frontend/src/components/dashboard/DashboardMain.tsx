@@ -11,6 +11,8 @@ export interface DashboardMainSlots {
   beforeGrid?: ReactNode;
   /** Left column — daily check-in + insights (DASH-04, DASH-05). */
   dailyCheckIn?: ReactNode;
+  /** Right column — next deep-dive module preview (DASH Zone G). */
+  modulePreview?: ReactNode;
   /** Right column — current path card (DASH-05). */
   currentPath?: ReactNode;
   /** Right column — chat preview (DASH-06). */
@@ -69,6 +71,9 @@ export default function DashboardMain({ slots = {}, className }: DashboardMainPr
             </DashboardSlot>
 
             <div className="flex min-w-0 flex-col gap-6">
+              <DashboardSlot>
+                {slots.modulePreview}
+              </DashboardSlot>
               <DashboardSlot>
                 {slots.currentPath}
               </DashboardSlot>

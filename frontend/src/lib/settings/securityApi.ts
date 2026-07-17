@@ -1,3 +1,4 @@
+import { signOutEverywhere } from "@/lib/auth/sessionAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 export class SecurityChangePasswordError extends Error {
@@ -52,6 +53,5 @@ export async function requestAccountDeletion(userId: string): Promise<void> {
   const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId);
   if (profileError) throw profileError;
 
-  const { error: signOutError } = await supabase.auth.signOut();
-  if (signOutError) throw signOutError;
+  await signOutEverywhere();
 }

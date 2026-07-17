@@ -63,7 +63,26 @@ Hook: `scheduleWelcomeEmailAfterOnboarding` in `frontend/src/lib/email/transacti
 
 Catalog ids and triggers live in `transactionalEmailCatalog.ts`. Call sites should use `requestTransactionalEmail(id, payload)` — returns `{ status: 'placeholder', detail }` until SMTP edge is built.
 
-Section 13 notification types (module unlock, daily check-in, reassessment, milestones, streaks) are mapped in the catalog with Build Brief trigger text. Re-engagement rules (max 1/day, no guilt framing) are product constraints for the future scheduler — not enforced in this slice.
+Section 13 notification types (module unlock, daily check-in, reassessment, milestones, streaks) are mapped in the catalog with Build Brief trigger text. **Module unlock** and **first-module milestone** delivery is wired via edge functions; other Section 13 types remain placeholder until their schedulers ship. Re-engagement rules (max 1/day, no guilt framing) are enforced for module unlock + milestone in this slice.
+
+### Deep-dive module unlock (TEMP §10 / Build Brief §13)
+
+Edge function: `supabase/functions/module-unlock`.
+
+- Selects onboarding-complete profiles whose next due module has reached `scheduledAt`, is incomplete, and has not exhausted initial + 3-day resend notifications.
+- Respects global max **1 notification per user per local day** via `lastNotificationSentAt` + profile `timeZone`.
+- Stamps `moduleSchedules[slug].unlockNotifiedAt` / `unlockResentAt` and `lastNotificationSentAt` after each attempt.
+- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
+- Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <MODULE_UNLOCK_CRON_SECRET>`.
+
+**Schedule (ops):** configure a daily cron to `POST /functions/v1/module-unlock` with the service-role bearer.
+
+Edge function: `supabase/functions/notification-milestone`.
+
+- Invoked by client after first `completeModule` success (`modulesCompletedCount === 1`).
+- Auth: user JWT (`verify_jwt = true`).
+- Stamps `firstModuleMilestoneEmailedAt`; respects max 1/day via `lastNotificationSentAt`.
+- Copy avoids Pro upsell (OVR-009).
 
 ### 90-day reassessment due (Section 2 / US-300)
 

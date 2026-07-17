@@ -6,6 +6,7 @@ import DashboardQuickActions from "@/components/dashboard/DashboardQuickActions"
 import DashboardCheckinCard from "@/components/dashboard/DashboardCheckinCard";
 import DashboardInsightsCard from "@/components/dashboard/DashboardInsightsCard";
 import DashboardCurrentPathCard from "@/components/dashboard/DashboardCurrentPathCard";
+import DashboardModulePreviewCard from "@/components/dashboard/DashboardModulePreviewCard";
 import DashboardChatPreviewCard from "@/components/dashboard/DashboardChatPreviewCard";
 import DashboardJournalPreviewCard from "@/components/dashboard/DashboardJournalPreviewCard";
 import { CrisisSupportCard } from "@/components/crisis";
@@ -86,6 +87,7 @@ const Dashboard = () => {
                 <DashboardInsightsCard />
               </>
             ),
+            modulePreview: !showContinueBanner ? <DashboardModulePreviewCard /> : undefined,
             currentPath: <DashboardCurrentPathCard />,
             chatPreview: <DashboardChatPreviewCard />,
             journalPreview: <DashboardJournalPreviewCard />,

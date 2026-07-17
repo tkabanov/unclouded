@@ -7,6 +7,8 @@ import { resolveHealthModeFlags } from "@/lib/userProfile/healthModeFlags";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { fetchPathCatalog, type PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import { pathVisibleInLibrary } from "@/lib/paths/pathEnrollmentMatching";
+import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
+import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import PathCatalogCard from "@/components/paths/PathCatalogCard";
@@ -52,6 +54,7 @@ export default function PathsLibraryCatalogPanel({
     profile?.onboardingData ?? null,
   );
   const healthFlags = resolveHealthModeFlags(profile);
+  const moduleProfile = useMemo(() => toModuleProfileInput(profile), [profile]);
 
   const enrollmentBySlug = useMemo(() => {
     const map = new Map<string, (typeof enrollments)[number]>();
@@ -124,6 +127,7 @@ export default function PathsLibraryCatalogPanel({
               path={path}
               enrollment={enrollmentBySlug.get(path.slug) ?? null}
               userTier={userTier}
+              moduleGate={resolvePathModuleGate(moduleProfile, path.triggerSignals)}
               onViewDetails={onViewPath}
             />
           ))

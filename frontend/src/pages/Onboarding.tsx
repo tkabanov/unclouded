@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ReassessmentFlow from "@/components/ReassessmentFlow";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
@@ -16,6 +16,7 @@ import OnboardingHealthFlags from "@/components/OnboardingHealthFlags";
 import OnboardingResults from "@/components/OnboardingResults";
 import OnboardingWizardShell from "@/components/OnboardingWizardShell";
 import { completeOnboarding } from "@/lib/completeOnboarding";
+import { computeOnboardingModulePreview } from "@/lib/modules/moduleScheduler";
 import {
   buildLoadSignalCustomStates,
   type HealthFlagsPayload,
@@ -66,6 +67,34 @@ const Onboarding = () => {
     health_none_of_the_above: false,
     selected_flags: [],
   });
+  const [resultsAnchorDate] = useState(() => new Date());
+
+  const resultsModulePreview = useMemo(() => {
+    if (step !== ONBOARDING_STEP.RESULTS) return undefined;
+    return computeOnboardingModulePreview(
+      {
+        stabilityScores,
+        performanceScores,
+        alignmentScores,
+        loadSignals,
+        stateSignals,
+        behavioralPatterns,
+        healthFlags,
+      },
+      resultsAnchorDate,
+      resultsAnchorDate,
+    ).preview;
+  }, [
+    step,
+    resultsAnchorDate,
+    stabilityScores,
+    performanceScores,
+    alignmentScores,
+    loadSignals,
+    stateSignals,
+    behavioralPatterns,
+    healthFlags,
+  ]);
 
   const buildOnboardingData = useCallback(
     (overrides: Record<string, unknown> = {}) => ({
@@ -139,6 +168,7 @@ const Onboarding = () => {
           markOnboardingComplete,
           refreshProfile: refresh,
           navigate,
+          anchorDate: resultsAnchorDate,
         }
       );
     } catch (err) {
@@ -327,6 +357,7 @@ const Onboarding = () => {
             stateSignals={stateSignals}
             behavioralPatterns={behavioralPatterns}
             healthFlags={healthFlags}
+            modulePreview={resultsModulePreview}
             onComplete={handleComplete}
           />
         );

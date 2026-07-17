@@ -1,5 +1,28 @@
-import { describe, expect, it } from "vitest";
-import { canCompleteOnboarding, type OnboardingCompletionData } from "./completeOnboarding";
+import { describe, expect, it, vi } from "vitest";
+import {
+  canCompleteOnboarding,
+  completeOnboarding,
+  type OnboardingCompletionData,
+} from "./completeOnboarding";
+import { computeOnboardingModulePreview } from "./modules/moduleScheduler";
+import { MODULE_SLUGS } from "./modules/moduleSlugs";
+import type { OnboardingPayload } from "./userProfile";
+
+vi.mock("./userProfile/onboardingProfilePipeline", () => ({
+  runOnboardingProfilePipeline: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("./paths/pathsOnboardingEnrollmentApi", () => ({
+  autoEnrollPathsAfterOnboarding: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("./reassessment/completeReassessment", () => ({
+  recordInitialAssessment: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("./email/transactionalEmailHooks", () => ({
+  scheduleWelcomeEmailAfterOnboarding: vi.fn(),
+}));
 
 const BASE_DATA: OnboardingCompletionData = {
   firstName: "Sam",
@@ -56,5 +79,35 @@ describe("canCompleteOnboarding", () => {
     };
 
     expect(canCompleteOnboarding(incomplete)).toBe(false);
+  });
+});
+
+describe("completeOnboarding scheduler persist", () => {
+  it("writes first_module and module_days from scheduler preview", async () => {
+    const anchorDate = new Date("2026-07-17T12:00:00.000Z");
+    const { preview, schedules } = computeOnboardingModulePreview(BASE_DATA, anchorDate);
+
+    let savedPayload: OnboardingPayload | undefined;
+    const saveOnboardingMock = vi.fn(async (payload: OnboardingPayload) => {
+      savedPayload = payload;
+    });
+    const markOnboardingComplete = vi.fn().mockResolvedValue(undefined);
+    const navigate = vi.fn();
+
+    await completeOnboarding(BASE_DATA, {
+      userId: "user-1",
+      saveOnboarding: saveOnboardingMock,
+      markOnboardingComplete,
+      navigate,
+      anchorDate,
+    });
+
+    expect(savedPayload).toBeDefined();
+    expect(savedPayload!.results?.first_module).toBe(preview.displayTitle);
+    expect(savedPayload!.results?.module_days).toBe(preview.daysUntilUnlock);
+    expect(savedPayload!.modulesCompletedCount).toBe(0);
+    expect(Object.keys(savedPayload!.moduleSchedules ?? {})).toHaveLength(MODULE_SLUGS.length);
+    expect(savedPayload!.moduleSchedules).toEqual(schedules);
+    expect(navigate).toHaveBeenCalledWith("/dashboard");
   });
 });

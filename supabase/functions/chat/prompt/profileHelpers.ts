@@ -1,4 +1,4 @@
-import type { AiConfidenceLevel, ProfileData } from "./types.ts";
+import type { AiConfidenceLevel, ModuleProfileFields, ProfileData } from "./types.ts";
 
 export function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -65,7 +65,13 @@ export function resolveAiConfidenceLevel(modulesCompleted: number): AiConfidence
   return "direct";
 }
 
-export function readModulesCompletedCount(onboardingData: Record<string, unknown>): number {
+export function readModulesCompletedCount(
+  onboardingData: Record<string, unknown>,
+  moduleProfile?: ModuleProfileFields | null,
+): number {
+  if (typeof moduleProfile?.modulesCompletedCount === "number") {
+    return Math.max(0, Math.floor(moduleProfile.modulesCompletedCount));
+  }
   const raw =
     onboardingData.modules_completed_count_number ??
     onboardingData.modules_completed_count ??
@@ -73,6 +79,16 @@ export function readModulesCompletedCount(onboardingData: Record<string, unknown
   const n = asNumberValue(raw);
   return n === null ? 0 : Math.max(0, Math.floor(n));
 }
+
+
+const MODULE_COLUMN_FLAG_MAP: Array<{ column: keyof ModuleProfileFields; name: string }> = [
+  { column: "moduleIdentityComplete", name: "Identity Lens" },
+  { column: "moduleRelationalComplete", name: "Relational Blueprint" },
+  { column: "moduleHistoryComplete", name: "History & Context" },
+  { column: "moduleFinancialComplete", name: "Financial Reality" },
+  { column: "moduleBodyComplete", name: "Body's Story" },
+  { column: "moduleMeaningComplete", name: "What Holds You" },
+];
 
 const MODULE_FLAG_MAP: Array<{ flagKeys: string[]; name: string }> = [
   { flagKeys: ["module_identity_complete", "module_identity_complete_boolean"], name: "Identity Lens" },
@@ -112,6 +128,7 @@ const MODULE_ORDER = [
 export function resolveCompletedModules(
   onboardingData: Record<string, unknown>,
   modulesCompletedCount: number,
+  moduleProfile?: ModuleProfileFields | null,
 ): { names: string[]; inferredFromCountOnly: boolean } {
   const named: string[] = [];
 
@@ -122,6 +139,12 @@ export function resolveCompletedModules(
   if (Array.isArray(list)) {
     for (const item of list) {
       if (typeof item === "string" && item.trim()) named.push(item.trim());
+    }
+  }
+
+  for (const entry of MODULE_COLUMN_FLAG_MAP) {
+    if (moduleProfile?.[entry.column] === true && !named.includes(entry.name)) {
+      named.push(entry.name);
     }
   }
 

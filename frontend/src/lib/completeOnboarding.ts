@@ -1,6 +1,7 @@
-import { computeResults } from "@/lib/classification";
+import { computeResults, type ResultsData } from "@/lib/classification";
 import { scheduleWelcomeEmailAfterOnboarding } from "@/lib/email/transactionalEmailHooks";
 import type { HealthFlagsPayload } from "@/lib/enums/onboardingQuestions";
+import { computeOnboardingModulePreview } from "@/lib/modules/moduleScheduler";
 import { autoEnrollPathsAfterOnboarding } from "@/lib/paths/pathsOnboardingEnrollmentApi";
 import { recordInitialAssessment } from "@/lib/reassessment/completeReassessment";
 import { runOnboardingProfilePipeline } from "@/lib/userProfile/onboardingProfilePipeline";
@@ -38,6 +39,8 @@ export interface CompleteOnboardingDeps {
   /** Reload profile context after pipeline patches coaching modes (API-05 / DASH-02). */
   refreshProfile?: () => Promise<void>;
   navigate: (path: string) => void;
+  /** Anchor for module scheduler — must match Results preview when provided. */
+  anchorDate?: Date;
 }
 
 /** True when all load-signal and health-flag steps have required answers. */
@@ -59,13 +62,21 @@ export async function completeOnboarding(
     markOnboardingComplete,
     refreshProfile,
     navigate,
+    anchorDate: anchorDateOverride,
   }: CompleteOnboardingDeps
 ): Promise<void> {
   if (!canCompleteOnboarding(data)) {
     throw new Error("Required onboarding signals are not complete");
   }
 
-  const results = computeResults(
+  const anchorDate = anchorDateOverride ?? new Date();
+  const { schedules: moduleSchedules, preview } = computeOnboardingModulePreview(
+    data,
+    anchorDate,
+    anchorDate,
+  );
+
+  const coreResults = computeResults(
     data.stabilityScores,
     data.performanceScores,
     data.alignmentScores,
@@ -76,12 +87,20 @@ export async function completeOnboarding(
     data.healthFlags
   );
 
+  const results: ResultsData = {
+    ...coreResults,
+    first_module: preview.displayTitle,
+    module_days: preview.daysUntilUnlock,
+  };
+
   const payload: OnboardingPayload = {
     firstName: data.firstName,
     lastName: data.lastName,
     roleType: data.roleType,
     primaryPillar: data.primaryPillar,
     results,
+    modulesCompletedCount: 0,
+    moduleSchedules,
     onboardingData: {
       stabilityScores: data.stabilityScores,
       performanceScores: data.performanceScores,
@@ -91,6 +110,7 @@ export async function completeOnboarding(
       stateSignals: data.stateSignals,
       behavioralPatterns: data.behavioralPatterns,
       healthFlags: data.healthFlags,
+      modules_completed_count_number: 0,
     },
   };
 

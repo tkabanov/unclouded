@@ -78,6 +78,32 @@ describe("pathMatchesOnboardingEnrollment", () => {
       ),
     ).toBe(false);
   });
+
+  it("rejects identity-gated paths when Identity Lens is incomplete", () => {
+    expect(
+      pathMatchesOnboardingEnrollment(
+        {
+          ...BUILDING_MOMENTUM_PATH,
+          triggerSignals:
+            "enrollment:onboarding; flag:None — all users matching classification; prerequisite:module:identity",
+        },
+        { ...BASE_CONTEXT, moduleProfile: { moduleIdentityComplete: false } },
+      ),
+    ).toBe(false);
+  });
+
+  it("allows identity-gated paths when Identity Lens is complete", () => {
+    expect(
+      pathMatchesOnboardingEnrollment(
+        {
+          ...BUILDING_MOMENTUM_PATH,
+          triggerSignals:
+            "enrollment:onboarding; flag:None — all users matching classification; prerequisite:module:identity",
+        },
+        { ...BASE_CONTEXT, moduleProfile: { moduleIdentityComplete: true } },
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("parsePathFlagRequirement", () => {

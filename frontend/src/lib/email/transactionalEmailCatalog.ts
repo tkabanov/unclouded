@@ -285,14 +285,13 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
   {
     id: "notification_module_unlock",
     name: "Module unlock notification",
-    trigger: "Module trigger day reached (Build Brief §13)",
+    trigger: "Module trigger day reached (Build Brief §13); cron → edge fn module-unlock",
     subject: "Your next layer is ready",
     priority: "high",
     channel: "edge_smtp",
-    status: "placeholder",
+    status: "live",
     source: "build_brief_section13",
     from: TRANSACTIONAL_EMAIL_FROM,
-    placeholderReason: PLACEHOLDER_EDGE_SMTP,
   },
   {
     id: "notification_daily_checkin",
@@ -345,14 +344,13 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
   {
     id: "notification_milestone",
     name: "Milestone acknowledgment",
-    trigger: "Module complete / streak / classification shift (Build Brief §13)",
+    trigger: "First deep-dive module complete (Build Brief §13); client → edge fn notification-milestone",
     subject: "Something's building",
     priority: "medium",
     channel: "edge_smtp",
-    status: "placeholder",
+    status: "live",
     source: "build_brief_section13",
     from: TRANSACTIONAL_EMAIL_FROM,
-    placeholderReason: PLACEHOLDER_EDGE_SMTP,
   },
   {
     id: "notification_streak",

@@ -8,6 +8,7 @@ import OnboardingPerformance from "@/components/OnboardingPerformance";
 import OnboardingAlignment from "@/components/OnboardingAlignment";
 import OnboardingOrientation from "@/components/OnboardingOrientation";
 import ReassessmentReflections from "@/components/ReassessmentReflections";
+import ReassessmentModuleRefreshBanner from "@/components/reassessment/ReassessmentModuleRefreshBanner";
 import ResultsComparison, {
   type PdfDownloadState,
 } from "@/components/ResultsComparison";
@@ -400,6 +401,13 @@ export default function ReassessmentFlow() {
                   Here&apos;s how far you&apos;ve come, {firstName}
                 </h1>
               </div>
+
+              {completeResult && (
+                <ReassessmentModuleRefreshBanner
+                  refreshOfferedSlugs={completeResult.modulesRefreshOffered}
+                  acceleratedSlugs={completeResult.modulesAcceleratedUnlock}
+                />
+              )}
 
               <ResultsComparison
                 firstName={firstName}

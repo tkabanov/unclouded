@@ -22,3 +22,10 @@ verify_jwt = true
 # Cron / service-role scheduled job (Section 2 / US-300). Auth via Bearer service role or x-cron-secret.
 [functions.reassessment-due]
 verify_jwt = false
+
+# TEMP §10 — deep-dive module unlock notifications (Build Brief §13).
+[functions.module-unlock]
+verify_jwt = false
+
+[functions.notification-milestone]
+verify_jwt = true

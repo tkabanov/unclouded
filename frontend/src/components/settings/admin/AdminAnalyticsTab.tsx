@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   ADMIN_ANALYTICS_NOTICE_COPY,
+  ADMIN_STAT_AVG_MODULES_LABEL,
   ADMIN_STAT_CHECKINS_LABEL,
   ADMIN_STAT_ENROLLED_LABEL,
   ADMIN_STAT_MODE_DIST_LABEL,
+  ADMIN_STAT_MODULE_COMPLETIONS_HEADING,
   ADMIN_STAT_TOTAL_USERS_LABEL,
+  ADMIN_STAT_USERS_WITH_MODULES_LABEL,
   fetchAdminAnalytics,
+  formatModuleCompletionLabel,
   type AdminAnalyticsSnapshot,
 } from "@/lib/settings/admin/adminAnalyticsApi";
+import { MODULE_SLUGS } from "@/lib/modules/moduleSlugs";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +22,16 @@ const EMPTY_STATS: AdminAnalyticsSnapshot = {
   checkinsLast7Days: 0,
   mostActiveMode: "N/A",
   pathEnrollments: 0,
+  usersWithOneOrMoreModules: 0,
+  averageModulesCompleted: 0,
+  moduleCompletionCounts: {
+    identity: 0,
+    relational: 0,
+    history: 0,
+    financial: 0,
+    body: 0,
+    meaning: 0,
+  },
 };
 
 export default function AdminAnalyticsTab() {
@@ -58,7 +73,7 @@ export default function AdminAnalyticsTab() {
       </div>
 
       <div
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
       >
         <StatCard
           label={ADMIN_STAT_TOTAL_USERS_LABEL}
@@ -76,13 +91,38 @@ export default function AdminAnalyticsTab() {
           label={ADMIN_STAT_ENROLLED_LABEL}
           value={String(stats.pathEnrollments)}
         />
+        <StatCard
+          label={ADMIN_STAT_USERS_WITH_MODULES_LABEL}
+          value={String(stats.usersWithOneOrMoreModules)}
+        />
+        <StatCard
+          label={ADMIN_STAT_AVG_MODULES_LABEL}
+          value={String(stats.averageModulesCompleted)}
+        />
+      </div>
+
+      <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
+        <h3 className={bubbleStyle("Text_heading_3_")}>{ADMIN_STAT_MODULE_COMPLETIONS_HEADING}</h3>
+        <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+          Aggregated completion counts per module (no individual user data).
+        </p>
+        <ul className="divide-y divide-border text-sm">
+          {MODULE_SLUGS.map((slug) => (
+            <li key={slug} className="flex items-center justify-between py-2">
+              <span>{formatModuleCompletionLabel(slug)}</span>
+              <span className="font-semibold tabular-nums">
+                {stats.moduleCompletionCounts[slug]}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
 
 interface StatCardProps {
-    label: string;
+  label: string;
   value: string;
 }
 

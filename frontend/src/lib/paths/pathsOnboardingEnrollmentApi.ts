@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ResultsData } from "@/lib/classification";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
+import type { ModuleProfileInput } from "@/lib/modules/readModuleProfile";
 import { fetchPathSessions } from "@/lib/paths/pathsCatalogApi";
 import {
   selectOnboardingEnrollmentPaths,
@@ -15,6 +16,7 @@ export interface AutoEnrollPathsInput {
   primaryPillar: string;
   results: ResultsData;
   userTier?: TierSlug;
+  moduleProfile?: ModuleProfileInput;
 }
 
 type PathRow = {
@@ -56,6 +58,7 @@ function buildEnrollmentContext(
     recoveryModeActive: input.results.recovery_mode_active,
     griefModeActive: input.results.grief_mode_active,
     userTier: input.userTier ?? TIER.FREE,
+    moduleProfile: input.moduleProfile,
   };
 }
 
@@ -132,6 +135,33 @@ export async function createPathEnrollmentRow(
   return enrollmentId;
 }
 
+async function fetchModuleProfileInput(userId: string): Promise<ModuleProfileInput> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(
+      "modulesCompletedCount, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete, identitySelfWorthSource, identityNarrativeType, identityRoleFusionScore, identityPressureOrigin, onboardingData",
+    )
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error || !data) return {};
+
+  return {
+    modulesCompletedCount: data.modulesCompletedCount ?? undefined,
+    moduleIdentityComplete: data.moduleIdentityComplete ?? undefined,
+    moduleRelationalComplete: data.moduleRelationalComplete ?? undefined,
+    moduleHistoryComplete: data.moduleHistoryComplete ?? undefined,
+    moduleFinancialComplete: data.moduleFinancialComplete ?? undefined,
+    moduleBodyComplete: data.moduleBodyComplete ?? undefined,
+    moduleMeaningComplete: data.moduleMeaningComplete ?? undefined,
+    identitySelfWorthSource: data.identitySelfWorthSource ?? undefined,
+    identityNarrativeType: data.identityNarrativeType ?? undefined,
+    identityRoleFusionScore: data.identityRoleFusionScore ?? undefined,
+    identityPressureOrigin: data.identityPressureOrigin ?? undefined,
+    onboardingData: (data.onboardingData as Record<string, unknown> | null) ?? null,
+  };
+}
+
 /**
  * Bubble onboarding completion workflow — auto-enroll matching guided paths.
  * Matches classification + primary pillar + health flags; uses path UUID in pathEnrollment.
@@ -139,7 +169,9 @@ export async function createPathEnrollmentRow(
 export async function autoEnrollPathsAfterOnboarding(
   input: AutoEnrollPathsInput,
 ): Promise<string[]> {
-  const context = buildEnrollmentContext(input);
+  const moduleProfile =
+    input.moduleProfile ?? (await fetchModuleProfileInput(input.userId));
+  const context = buildEnrollmentContext({ ...input, moduleProfile });
   const [paths, existingPathIds] = await Promise.all([
     fetchPathCandidates(),
     fetchExistingEnrollmentPathIds(input.userId),

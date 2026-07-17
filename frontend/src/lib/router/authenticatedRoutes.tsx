@@ -1,4 +1,5 @@
 import type { RouteObject } from "react-router-dom";
+import ModuleWizard from "@/pages/ModuleWizard";
 import Onboarding from "@/pages/Onboarding";
 import Dashboard from "@/pages/Dashboard";
 import Chat from "@/pages/Chat";
@@ -22,6 +23,7 @@ export const authenticatedRouteDefs: AuthenticatedRouteDef[] = [
   { path: "/chat", element: <Chat /> },
   { path: "/journal", element: <Journal /> },
   { path: "/settings", element: <Settings /> },
+  { path: "/settings/know-yourself/:moduleSlug", element: <ModuleWizard /> },
   { path: "/paths", element: <Paths /> },
 ];
 

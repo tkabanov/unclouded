@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { fetchPathCatalogEntry, fetchPathSessionsByKey } from "@/lib/paths/pathsCatalogApi";
 import { createPathEnrollmentRow } from "@/lib/paths/pathsOnboardingEnrollmentApi";
+import type { ModuleProfileInput } from "@/lib/modules/readModuleProfile";
+import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
 import {
   PATH_ENROLLMENT_ONBOARDING_KEY,
   type PathEnrollmentOnboardingState,
@@ -98,12 +100,18 @@ export async function enrollInPath(
   userId: string,
   pathSlug: string,
   onboardingData?: Record<string, unknown> | null,
+  moduleProfile?: ModuleProfileInput,
 ): Promise<void> {
   const slug = resolvePathSlug(pathSlug);
   if (!slug) throw new Error("Path slug is required.");
 
   const catalog = await fetchPathCatalogEntry(slug);
   if (!catalog) throw new Error("Path not found.");
+
+  const moduleGate = resolvePathModuleGate(moduleProfile ?? {}, catalog.triggerSignals);
+  if (moduleGate?.blocked) {
+    throw new Error(moduleGate.headline);
+  }
 
   const fromTable = await tryEnrollInPathenrollmentTable(userId, catalog.id);
   if (fromTable !== null) return;

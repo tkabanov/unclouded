@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import {
   AUTH_REDIRECT_PATH,
@@ -11,6 +11,7 @@ type ProtectedRouteProps = {
 };
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const location = useLocation();
   const authState = useRequireAuth();
 
   if (authState === "loading") {
@@ -22,7 +23,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (authState === "unauthenticated") {
-    return <Navigate to={AUTH_REDIRECT_PATH} replace />;
+    return <Navigate to={AUTH_REDIRECT_PATH} replace state={{ from: location.pathname }} />;
   }
 
   if (authState === "recovery") {

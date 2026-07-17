@@ -206,6 +206,67 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("modules_completed_count only");
   });
 
+  it("uses explicit module flags instead of count-only inference", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleIdentityComplete: true,
+          identitySelfWorthSource: "performance_based",
+          modulesCompletedCount: 0,
+        },
+      }),
+    );
+    expect(prompt).toContain("Module complete — Identity Lens");
+    expect(prompt).not.toContain("modules_completed_count only");
+    expect(prompt).toContain("identity_self_worth_source=performance_based");
+  });
+
+  it("includes per-module incomplete probes for unfinished modules", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleIdentityComplete: true,
+          identitySelfWorthSource: "performance_based",
+          modulesCompletedCount: 1,
+        },
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          modules_completed_count_number: 1,
+        },
+      }),
+    );
+    expect(prompt).toContain("MODULE INCOMPLETE — probe when relevant");
+    expect(prompt).toContain("Relational Blueprint incomplete");
+    expect(prompt).not.toContain("Identity Lens incomplete");
+  });
+
+  it("changes measurably after Identity Lens completion", () => {
+    const before = buildSystemPrompt(baseProfile());
+    const after = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleIdentityComplete: true,
+          identitySelfWorthSource: "performance_based",
+          identityNarrativeType: "growth",
+          identityRoleFusionScore: 3,
+          identityPressureOrigin: "self_set",
+          modulesCompletedCount: 1,
+        },
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          modules_completed_count_number: 1,
+        },
+      }),
+    );
+
+    expect(before).not.toContain("Module complete — Identity Lens");
+    expect(before).not.toContain("identity_self_worth_source=performance_based");
+    expect(after).toContain("Module complete — Identity Lens");
+    expect(after).toContain("identity_self_worth_source=performance_based");
+    expect(after).not.toContain("modules_completed_count only");
+    expect(after).toContain("Relational Blueprint incomplete");
+  });
+
   it("places decision/adaptive blocks after user data", () => {
     const prompt = buildSystemPrompt(baseProfile());
     const userData = prompt.indexOf("USER PROFILE DATA");
@@ -423,6 +484,145 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Completed path micro-commitments");
     expect(prompt).toContain("write the honest answer to what happened");
     expect(prompt).toContain("identify your highest-leverage action");
+  });
+
+  it("includes About You user context when profile fields are populated", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        aboutYou: {
+          ageRange: "35_44",
+          careerStage: "senior_leadership",
+          industry: "healthcare",
+          managesATeam: true,
+          relationshipStatus: "married_partnered",
+          parentingStatus: "children_at_home",
+        },
+      }),
+    );
+
+    expect(prompt).toContain(
+      "User context: age range 35–44, career stage Senior/Leadership, industry Healthcare, manages a team Yes, relationship status Married or partnered, parenting status Children at home (under 18).",
+    );
+  });
+
+  it("omits About You user context when no profile fields are populated", () => {
+    const prompt = buildSystemPrompt(baseProfile({ aboutYou: null }));
+    expect(prompt).not.toContain("User context:");
+  });
+
+  it("includes only populated About You fields in user context", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        aboutYou: {
+          employmentStatus: "between_roles",
+          timeZone: "America/New_York",
+        },
+      }),
+    );
+
+    expect(prompt).toContain("User context: employment status Between roles, timezone America/New York.");
+    expect(prompt).not.toContain("age range");
+  });
+
+  it("includes History & Context module block with structured trauma field", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        results: {
+          ...(baseProfile().results as Record<string, unknown>),
+          trauma_informed_mode: true,
+        },
+        moduleProfile: {
+          moduleHistoryComplete: true,
+          traumaActivationLevel: "active",
+          griefLoadLevel: "moderate",
+          priorSupportType: "therapy",
+          significantEvents12mo: ["major_loss"],
+          modulesCompletedCount: 1,
+        },
+      }),
+    );
+
+    expect(prompt).toContain("Module complete — History & Context");
+    expect(prompt).toContain("trauma_activation_level=active");
+    expect(prompt).toContain("grief_load_level=moderate");
+    expect(prompt).toContain("significant_events_12mo=major_loss");
+    expect(prompt).toContain("Trauma-informed mode is active");
+    expect(prompt).not.toContain("Death of someone significant");
+  });
+
+  it("includes Financial Reality complete modifier and incomplete probe", () => {
+    const completePrompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleFinancialComplete: true,
+          financialStabilitySignal: "stable",
+          modulesCompletedCount: 1,
+        },
+      }),
+    );
+    expect(completePrompt).toContain("Module complete — Financial Reality");
+    expect(completePrompt).toContain("financial_stability_signal=stable");
+
+    const incompletePrompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleFinancialComplete: false,
+          modulesCompletedCount: 0,
+        },
+      }),
+    );
+    expect(incompletePrompt).toContain("Financial Reality incomplete");
+    expect(incompletePrompt).toContain("money layer");
+  });
+
+  it("includes Body's Story complete modifier and incomplete probe", () => {
+    const completePrompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleBodyComplete: true,
+          sleepQualitySignal: "fair",
+          modulesCompletedCount: 1,
+        },
+      }),
+    );
+    expect(completePrompt).toContain("Module complete — Body's Story");
+    expect(completePrompt).toContain("sleep_quality_signal=fair");
+
+    const incompletePrompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleBodyComplete: false,
+          modulesCompletedCount: 0,
+        },
+      }),
+    );
+    expect(incompletePrompt).toContain("Body's Story incomplete");
+    expect(incompletePrompt).toContain("How is your body holding all of this");
+  });
+
+  it("includes What Holds You complete modifier and incomplete probe", () => {
+    const completePrompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleMeaningComplete: true,
+          purposeClarity: "clear",
+          modulesCompletedCount: 1,
+        },
+      }),
+    );
+    expect(completePrompt).toContain("Module complete — What Holds You");
+    expect(completePrompt).toContain("purpose_clarity=clear");
+
+    const incompletePrompt = buildSystemPrompt(
+      baseProfile({
+        moduleProfile: {
+          moduleMeaningComplete: false,
+          modulesCompletedCount: 0,
+        },
+      }),
+    );
+    expect(incompletePrompt).toContain("What Holds You incomplete");
+    expect(incompletePrompt).toContain("What do you reach for when the usual things aren't working");
   });
 });
 

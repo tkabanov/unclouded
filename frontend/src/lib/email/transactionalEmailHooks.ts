@@ -4,7 +4,10 @@ import {
   type TransactionalEmailDefinition,
   type TransactionalEmailId,
 } from "@/lib/email/transactionalEmailCatalog";
+import { listModuleUnlockCandidates } from "@/lib/notifications/moduleUnlockNotify";
 import { listReassessmentDueCandidates } from "@/lib/reassessment/reassessmentDueNotify";
+import { supabase } from "@/integrations/supabase/client";
+import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
 
 export type TransactionalEmailHookStatus = "sent" | "placeholder" | "skipped";
 
@@ -96,13 +99,42 @@ export async function requestTransactionalEmail(
     case "reengagement_7_day_inactive":
     case "group_coaching_reminder":
     case "coaching_session_booked":
-    case "notification_module_unlock":
+    case "notification_module_unlock": {
+      const candidates = await listModuleUnlockCandidates();
+      const inCohort = candidates.some((candidate) => candidate.userId === payload.userId);
+      return placeholderResult(
+        emailId,
+        inCohort
+          ? `User is in unlock cohort (${candidates.length} total). Delivery runs via scheduled edge function module-unlock (Resend when RESEND_API_KEY is set).`
+          : `Cohort selected (${candidates.length} due). This user was not due. Production path: cron → module-unlock.`,
+      );
+    }
     case "notification_daily_checkin":
     case "notification_gidget_nudge":
     case "notification_path_progress":
-    case "notification_milestone":
     case "notification_streak":
       return placeholderResult(emailId);
+    case "notification_milestone": {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("modulesCompletedCount, firstModuleMilestoneEmailedAt")
+        .eq("id", payload.userId)
+        .maybeSingle();
+
+      if (error && !isSchemaUnavailable(error)) {
+        throw error;
+      }
+
+      const eligible =
+        (data?.modulesCompletedCount ?? 0) === 1 && !data?.firstModuleMilestoneEmailedAt;
+
+      return placeholderResult(
+        emailId,
+        eligible
+          ? "User eligible for first-module milestone. Delivery runs via notification-milestone edge function after completeModule."
+          : "User not eligible for first-module milestone (already emailed or count != 1).",
+      );
+    }
     case "reassessment_90_day":
     case "notification_reassessment_due": {
       // Cohort selection is live. Production send is cron → edge fn reassessment-due (Resend when keyed).

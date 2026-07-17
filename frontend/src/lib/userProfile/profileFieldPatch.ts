@@ -11,6 +11,15 @@ const ONBOARDING_TO_PROFILE_COLUMN: Record<string, string> = {
   pressureProfile: "pressureProfile",
   behavioralFingerprint: "behavioralFingerprint",
   aiConfidenceLevel: "aiConfidenceLevel",
+  modulesCompletedCount: "modulesCompletedCount",
+  modules_completed_count: "modulesCompletedCount",
+  modules_completed_count_number: "modulesCompletedCount",
+  moduleIdentityComplete: "moduleIdentityComplete",
+  moduleRelationalComplete: "moduleRelationalComplete",
+  moduleHistoryComplete: "moduleHistoryComplete",
+  moduleFinancialComplete: "moduleFinancialComplete",
+  moduleBodyComplete: "moduleBodyComplete",
+  moduleMeaningComplete: "moduleMeaningComplete",
 };
 
 function profileColumnsFromOnboardingPatch(

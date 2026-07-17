@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { computeResults } from "@/lib/classification";
+import {
+  computeOnboardingModulePreview,
+  type OnboardingModulePreview,
+} from "@/lib/modules/moduleScheduler";
 
 interface OnboardingResultsProps {
   firstName: string;
@@ -24,6 +28,7 @@ interface OnboardingResultsProps {
     health_none_of_the_above?: boolean;
     selected_flags: string[];
   };
+  modulePreview?: OnboardingModulePreview;
   onComplete: () => void;
 }
 
@@ -62,6 +67,7 @@ const OnboardingResults = ({
   stateSignals,
   behavioralPatterns,
   healthFlags,
+  modulePreview: modulePreviewProp,
   onComplete,
 }: OnboardingResultsProps) => {
   const results = useMemo(
@@ -87,6 +93,33 @@ const OnboardingResults = ({
       healthFlags,
     ]
   );
+
+  const modulePreview = useMemo(() => {
+    if (modulePreviewProp) return modulePreviewProp;
+    const anchorDate = new Date();
+    return computeOnboardingModulePreview(
+      {
+        stabilityScores,
+        performanceScores,
+        alignmentScores,
+        loadSignals,
+        stateSignals,
+        behavioralPatterns,
+        healthFlags,
+      },
+      anchorDate,
+      anchorDate,
+    ).preview;
+  }, [
+    modulePreviewProp,
+    stabilityScores,
+    performanceScores,
+    alignmentScores,
+    loadSignals,
+    stateSignals,
+    behavioralPatterns,
+    healthFlags,
+  ]);
 
   const nextSteps = [
     "Your dashboard will be personalized to your profile",
@@ -203,11 +236,12 @@ const OnboardingResults = ({
           <p className="text-sm text-muted-foreground">
             Your first deep-dive:{" "}
             <span className="font-semibold text-foreground">
-              {results.first_module}
+              {modulePreview.displayTitle}
             </span>{" "}
             — available in{" "}
             <span className="font-semibold text-foreground">
-              {results.module_days} {results.module_days === 1 ? "day" : "days"}
+              {modulePreview.daysUntilUnlock}{" "}
+              {modulePreview.daysUntilUnlock === 1 ? "day" : "days"}
             </span>
           </p>
         </div>

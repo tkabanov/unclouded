@@ -19,6 +19,8 @@ import {
 } from "@/lib/paths/pathsEnrollmentApi";
 import { useOptionalPathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import { fetchPathSessionsByKey, type PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
+import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
+import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
 import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { useUserProfile } from "@/lib/userProfile";
@@ -120,9 +122,17 @@ export default function PathDetailPopup({
     profile?.tier ?? null,
     profile?.onboardingData ?? null,
   );
+  const moduleGate = useMemo(
+    () =>
+      resolvePathModuleGate(
+        toModuleProfileInput(profile),
+        catalogPath?.triggerSignals,
+      ),
+    [profile, catalogPath?.triggerSignals],
+  );
   const needsUpgrade = tierPriority(pathTier) > tierPriority(userTier);
   const enrolled = isActiveEnrollment(matchedEnrollment);
-  const showEnroll = !enrolled && !needsUpgrade && Boolean(pathSlug);
+  const showEnroll = !enrolled && !needsUpgrade && !moduleGate?.blocked && Boolean(pathSlug);
   const showUnenroll = enrolled && Boolean(matchedEnrollment?.enrollmentId);
   const showUpgrade = needsUpgrade;
   const continueSessionId = matchedEnrollment?.currentSessionId;
@@ -179,7 +189,12 @@ export default function PathDetailPopup({
     if (!user || !pathSlug) return;
     setBusy(true);
     try {
-      await enrollInPath(user.id, pathSlug, profile?.onboardingData ?? null);
+      await enrollInPath(
+        user.id,
+        pathSlug,
+        profile?.onboardingData ?? null,
+        toModuleProfileInput(profile),
+      );
       await refreshEnrollments();
       toast.success(`Enrolled in ${pathName}`);
     } catch (err) {
@@ -309,6 +324,27 @@ export default function PathDetailPopup({
               </p>
             </div>
 
+            {moduleGate?.blocked && !enrolled ? (
+              <div
+                data-style-ref="Group_alert_banner_"
+                className={cn(
+                  bubbleStyle("Group_alert_banner_"),
+                  "flex items-start gap-2 rounded-lg border border-border/60 bg-muted/20 p-3",
+                )}
+              >
+                <Info
+                  className={cn(bubbleStyle("Icon_muted_"), "mt-0.5 h-4 w-4 shrink-0")}
+                  aria-hidden
+                />
+                <p
+                  data-style-ref="Text_body_muted_"
+                  className={cn(bubbleStyle("Text_body_muted_"), "text-sm leading-relaxed")}
+                >
+                  {moduleGate.headline}
+                </p>
+              </div>
+            ) : null}
+
             <div
               className={cn(bubbleStyle("Group_transparent_"), "space-y-1.5")}
             >
@@ -350,6 +386,20 @@ export default function PathDetailPopup({
               >
                 <Star className="h-4 w-4 shrink-0" aria-hidden />
                 Upgrade Plan
+              </Button>
+            ) : null}
+
+            {moduleGate?.blocked && !enrolled ? (
+              <Button
+                asChild
+                type="button"
+                variant="cta"
+                data-style-ref="Button_primary_"
+                className={cn(bubbleStyle("Button_primary_"))}
+              >
+                <Link to={moduleGate.ctaHref} onClick={dismiss}>
+                  {moduleGate.ctaLabel}
+                </Link>
               </Button>
             ) : null}
 
