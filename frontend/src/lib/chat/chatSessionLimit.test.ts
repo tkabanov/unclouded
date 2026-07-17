@@ -26,11 +26,11 @@ describe("chatSessionLimit", () => {
     );
   });
 
-  it("blocks Free users at three recorded sessions this month", () => {
+  it("blocks Free users at the monthly session limit", () => {
     const onboardingData = {
       chat_ai_monthly_usage: {
         monthKey,
-        sessionConversationIds: ["conv-1", "conv-2", "conv-3"],
+        sessionConversationIds: ["1", "2", "3", "4", "5", "6", "7"],
       },
     };
     expect(isAtFreeTierSessionLimit({ tier: "free", subscribed: false, onboardingData })).toBe(

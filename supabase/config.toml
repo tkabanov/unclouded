@@ -29,3 +29,11 @@ verify_jwt = false
 
 [functions.notification-milestone]
 verify_jwt = true
+
+# Prompt Library addendum — vulnerable cohort outreach (cron / service role).
+[functions.vulnerable-outreach]
+verify_jwt = false
+
+# Prompt Library addendum — Kota's Read coach prep brief.
+[functions.generate-kota-read]
+verify_jwt = true

@@ -11,25 +11,33 @@ export const AI_COACHING_MODE = {
   SIMPLIFIER: "simplifier",
   /** bTIEI */
   REBUILDER: "rebuilder",
-  /** bTIEM */
-  STRATEGIST: "strategist",
+  /** FINAL Layer 4 */
+  BUILDER: "builder",
+  /** FINAL Layer 4 */
+  OPTIMIZER: "optimizer",
+  /**
+   * Legacy Bubble slug — maps to builder for backward compatibility.
+   * Prefer BUILDER / OPTIMIZER for new code.
+   */
+  STRATEGIST: "builder",
 } as const;
 
 export type AiCoachingModeSlug = (typeof AI_COACHING_MODE)[keyof typeof AI_COACHING_MODE];
 
-/** Display strings from drsam-99657.bubble → ai_coaching_mode_os */
+/** Display strings from drsam-99657.bubble → ai_coaching_mode_os (+ FINAL builder/optimizer). */
 export const AI_COACHING_MODE_LABELS: Record<AiCoachingModeSlug, string> = {
   protector: "protector", // bTIEC
   stabilizer: "stabilizer", // bTIEG
   simplifier: "simplifier", // bTIEH
   rebuilder: "rebuilder", // bTIEI
-  strategist: "strategist", // bTIEM
+  builder: "builder",
+  optimizer: "optimizer",
 };
 
 /** Chat header badge from system-assigned coaching mode. */
 export function formatChatModeBadgeText(mode: AiCoachingModeSlug | null): string {
   if (!mode) return "Professional • Executive Coaching";
-  const label = AI_COACHING_MODE_LABELS[mode];
+  const label = AI_COACHING_MODE_LABELS[mode] ?? mode;
   const title = label.charAt(0).toUpperCase() + label.slice(1);
   return `${title} • Executive Coaching`;
 }
@@ -39,7 +47,8 @@ export const AI_COACHING_MODE_ORDER: readonly AiCoachingModeSlug[] = [
   AI_COACHING_MODE.STABILIZER,
   AI_COACHING_MODE.SIMPLIFIER,
   AI_COACHING_MODE.REBUILDER,
-  AI_COACHING_MODE.STRATEGIST,
+  AI_COACHING_MODE.BUILDER,
+  AI_COACHING_MODE.OPTIMIZER,
 ];
 
 /** Bubble option set: ai_confidence_level_os (AI Confidence Level OS) */
@@ -49,7 +58,7 @@ export const AI_CONFIDENCE_LEVEL_OPTION_SET_ID = "ai_confidence_level_os" as con
 export const AI_CONFIDENCE_LEVEL = {
   /** bTIFK */
   EXPLORATORY: "exploratory",
-  /** bTIFO */
+  /** bTIFO — legacy; mapped to guided in prompt assembly */
   EXPLORATORY_PLUS: "exploratory_",
   /** bTIFP */
   GUIDED: "guided",

@@ -4,6 +4,9 @@ import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardMicroCommitments from "@/components/dashboard/DashboardMicroCommitments";
 import DashboardQuickActions from "@/components/dashboard/DashboardQuickActions";
 import DashboardCheckinCard from "@/components/dashboard/DashboardCheckinCard";
+import DashboardProgressWidget from "@/components/dashboard/DashboardProgressWidget";
+import QuickCheckinCard from "@/components/dashboard/QuickCheckinCard";
+import BookCoachCard from "@/components/coach/BookCoachCard";
 import DashboardInsightsCard from "@/components/dashboard/DashboardInsightsCard";
 import DashboardCurrentPathCard from "@/components/dashboard/DashboardCurrentPathCard";
 import DashboardModulePreviewCard from "@/components/dashboard/DashboardModulePreviewCard";
@@ -83,6 +86,9 @@ const Dashboard = () => {
             beforeGrid,
             dailyCheckIn: (
               <>
+                <DashboardProgressWidget />
+                <QuickCheckinCard />
+                <BookCoachCard />
                 <DashboardCheckinCard />
                 <DashboardInsightsCard />
               </>

@@ -11,8 +11,8 @@ function baseProfile(overrides: Partial<ProfileData> = {}): ProfileData {
     roleType: "professional",
     primaryPillar: "stability",
     results: {
-      stability_score: 4.0,
-      performance_score: 4.0,
+      stability_score: 4.1,
+      performance_score: 4.1,
       alignment_score: 4.0,
       classification: {
         key: "optimization_ready",
@@ -47,10 +47,47 @@ function baseProfile(overrides: Partial<ProfileData> = {}): ProfileData {
 }
 
 describe("resolveCoachingModes", () => {
-  it("assigns strategist when all scores are high", () => {
+  it("assigns optimizer when stability and performance are both above 4.0", () => {
     const modes = resolveCoachingModes(baseProfile());
-    expect(modes.primary).toBe("strategist");
+    expect(modes.primary).toBe("optimizer");
     expect(modes.overlays).toEqual([]);
+  });
+
+  it("assigns builder when stability is 3.2–4.0", () => {
+    const modes = resolveCoachingModes(
+      baseProfile({
+        results: {
+          ...(baseProfile().results as Record<string, unknown>),
+          stability_score: 3.5,
+          performance_score: 3.5,
+        },
+      }),
+    );
+    expect(modes.primary).toBe("builder");
+  });
+
+  it("assigns rebuilder when stability is below 2.5", () => {
+    const modes = resolveCoachingModes(
+      baseProfile({
+        results: {
+          ...(baseProfile().results as Record<string, unknown>),
+          stability_score: 2.4,
+        },
+      }),
+    );
+    expect(modes.primary).toBe("rebuilder");
+  });
+
+  it("assigns stabilizer when stability is 2.5–3.2", () => {
+    const modes = resolveCoachingModes(
+      baseProfile({
+        results: {
+          ...(baseProfile().results as Record<string, unknown>),
+          stability_score: 3.0,
+        },
+      }),
+    );
+    expect(modes.primary).toBe("stabilizer");
   });
 
   it("Protector stacks as overlay when recovery is active", () => {
@@ -62,24 +99,24 @@ describe("resolveCoachingModes", () => {
         },
       }),
     );
-    expect(modes.primary).toBe("strategist");
+    expect(modes.primary).toBe("optimizer");
     expect(modes.overlays).toEqual(["protector"]);
-    expect(modes.active).toEqual(["strategist", "protector"]);
+    expect(modes.active).toEqual(["optimizer", "protector"]);
   });
 
   it("Simplifier stacks on primary when cognitive load is high (never last-wins)", () => {
     const profile = baseProfile({
       results: {
         ...(baseProfile().results as Record<string, unknown>),
-        stability_score: 2.5,
+        stability_score: 2.8,
         performance_score: 3.5,
         alignment_score: 3.5,
         classification: { key: "capacity_erosion", name: "Capacity Erosion" },
       },
       onboardingData: {
         ...(baseProfile().onboardingData as Record<string, unknown>),
-        // Stored list would previously last-win to strategist — must be ignored.
-        ai_coaching_mode_list_list_option_ai_coaching_mode_os: ["stabilizer", "strategist"],
+        // Stored list must be ignored — engine resolves from scores.
+        ai_coaching_mode_list_list_option_ai_coaching_mode_os: ["stabilizer", "builder"],
         loadSignals: {
           cognitive_load_signal: "high — overwhelming",
           relational_load_signal: "low",
@@ -95,7 +132,7 @@ describe("resolveCoachingModes", () => {
     expect(modes.active).toEqual(["stabilizer", "simplifier"]);
   });
 
-  it("Simplifier as primary when performance is low does not double-stack", () => {
+  it("Simplifier is overlay only — low performance does not set primary", () => {
     const modes = resolveCoachingModes(
       baseProfile({
         results: {
@@ -115,8 +152,23 @@ describe("resolveCoachingModes", () => {
         },
       }),
     );
-    expect(modes.primary).toBe("simplifier");
-    expect(modes.overlays).toEqual([]);
+    expect(modes.primary).toBe("builder");
+    expect(modes.overlays).toEqual(["simplifier"]);
+  });
+
+  it("depleted nervous state forces rebuilder", () => {
+    const modes = resolveCoachingModes(
+      baseProfile({
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          stateSignals: {
+            nervous_system_state: "depleted",
+            energy_level: "low",
+          },
+        },
+      }),
+    );
+    expect(modes.primary).toBe("rebuilder");
   });
 });
 
@@ -124,13 +176,20 @@ describe("buildSystemPrompt", () => {
   it("assembles Philosophy → Safety → Master before mode blocks", () => {
     const prompt = buildSystemPrompt(baseProfile());
     const philosophy = prompt.indexOf("adaptive guidance system");
-    const safety = prompt.indexOf("non-negotiable");
-    const master = prompt.indexOf("You are the Uncloud360 AI coach");
-    const strategist = prompt.indexOf("growth-ready state");
+    const safety = prompt.indexOf("CRISIS AND SAFETY PROTOCOL");
+    const master = prompt.indexOf("You are Kota");
+    const optimizer = prompt.indexOf("You are in Optimizer mode");
     expect(philosophy).toBeGreaterThanOrEqual(0);
     expect(safety).toBeGreaterThan(philosophy);
     expect(master).toBeGreaterThan(safety);
-    expect(strategist).toBeGreaterThan(master);
+    expect(optimizer).toBeGreaterThan(master);
+    expect(prompt).toContain("I'm Kota");
+  });
+
+  it("includes LONGITUDINAL MEMORY PROTOCOL and CLASSIFICATION SCOPE", () => {
+    const prompt = buildSystemPrompt(baseProfile());
+    expect(prompt).toContain("LONGITUDINAL MEMORY PROTOCOL");
+    expect(prompt).toContain("CLASSIFICATION SCOPE — USER ONLY");
   });
 
   it("Protector overlay uses protector text alongside primary mode", () => {
@@ -143,8 +202,8 @@ describe("buildSystemPrompt", () => {
       }),
     );
     expect(prompt).toContain("PROTECTOR OVERLAY");
-    expect(prompt).toContain("SAMHSA National Helpline 1-800-662-4357");
-    expect(prompt).toContain("growth-ready state");
+    expect(prompt).toContain("RECOVERY MODE ACTIVE");
+    expect(prompt).toContain("You are in Optimizer mode");
   });
 
   it("Simplifier stack includes both primary and overlay prompts for high cognitive load", () => {
@@ -168,9 +227,9 @@ describe("buildSystemPrompt", () => {
         },
       }),
     );
-    expect(prompt).toContain("capacity floor");
+    expect(prompt).toContain("You are in Rebuilder mode");
     expect(prompt).toContain("When Simplifier is active, apply these rules on top");
-    expect(prompt).toContain("mental bandwidth is reduced");
+    expect(prompt).toContain("mental bandwidth is significantly reduced");
     expect(prompt).toContain("STABILIZE");
     expect(prompt).toContain("Before anything else — how are you actually doing right now?");
   });
@@ -185,8 +244,8 @@ describe("buildSystemPrompt", () => {
         },
       }),
     );
-    expect(prompt).toContain("staying comfortable when they are genuinely capable of more");
-    expect(prompt).toContain("AI confidence level: exploratory+");
+    expect(prompt).toContain("where is the highest leverage for what's next?");
+    expect(prompt).toContain("AI CONFIDENCE LEVEL MODIFIER — GUIDED");
     expect(prompt).toContain("Streak days: 7");
     expect(prompt).toContain("Last session topic: unknown (not yet recorded)");
     expect(prompt).toContain("Modules completed: 2");
@@ -271,10 +330,33 @@ describe("buildSystemPrompt", () => {
     const prompt = buildSystemPrompt(baseProfile());
     const userData = prompt.indexOf("USER PROFILE DATA");
     const decision = prompt.indexOf("DECISION INTELLIGENCE");
-    const adaptive = prompt.indexOf("ADAPTIVE INTELLIGENCE FINAL LAYER");
+    const adaptive = prompt.indexOf("FINAL LAYER — CLOSING INSTRUCTIONS");
     expect(userData).toBeGreaterThanOrEqual(0);
     expect(decision).toBeGreaterThan(userData);
     expect(adaptive).toBeGreaterThan(decision);
+  });
+
+  it("injects Layer 10 addendum after session memory with liveContext flags", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        liveContext: {
+          sessionType: "voice",
+          daysSinceLastSession: 14,
+          hasPriorCrisisSession: false,
+          significantPulseDrop: true,
+          exchangeCount: 8,
+          memoryFactsBlock: "Partner: Jordan. Manager: Sam.",
+        },
+      }),
+    );
+    expect(prompt).toContain("LAYER 10 ADDENDUM");
+    expect(prompt).toContain("Partner: Jordan");
+    expect(prompt).toContain("Days since last session: 14");
+    expect(prompt).toContain("Return After Absence Protocol");
+    expect(prompt).toContain("session_type: voice");
+    expect(prompt).toContain("Voice Session Adaptation Protocol");
+    expect(prompt).toContain("mid-cycle state check");
+    expect(prompt).toContain("exchange_count: 8");
   });
 
   it("sanitizes prompt-breaking characters from client profile fields", () => {
@@ -629,59 +711,65 @@ describe("buildSystemPrompt", () => {
 describe("prompt library verbatim anchors", () => {
   const prompt = buildSystemPrompt(baseProfile());
 
-  it("includes full loop-breaking techniques (1K)", () => {
+  it("includes full loop-breaking techniques", () => {
     expect(prompt).toContain(
       "On a scale of 1 to 10, where does this actually land for you right now?",
     );
     expect(prompt).toContain("Perspective inversion");
-    expect(prompt).not.toContain(
+    expect(prompt).toContain(
       "When loop indicators are present, shift from exploration to synthesis",
     );
   });
 
-  it("includes handling silence and minimal responses (1I)", () => {
-    expect(prompt).toContain(
-      "Do not manufacture momentum where it does not exist",
-    );
-    expect(prompt).toContain("'I DON'T KNOW' — what it usually means");
+  it("includes handling silence and minimal responses", () => {
+    expect(prompt).toContain("HANDLING SILENCE AND MINIMAL RESPONSES");
+    expect(prompt).toContain('"I DON\'T KNOW" — what it usually means');
   });
 
-  it("includes transparent narration examples (1M)", () => {
+  it("includes transparent narration examples", () => {
     expect(prompt).toContain(
       "I'm going to ask you something that might seem sideways",
     );
   });
 
-  it("includes narration restraint as a separate block (3B)", () => {
+  it("includes narration restraint", () => {
     expect(prompt).toContain(
       "Reserve narration for genuinely significant pivots",
     );
   });
 
-  it("includes specificity in advice rule (1Q)", () => {
-    expect(prompt).toContain(
-      "Could a different person, in a different situation, receive this exact advice?",
-    );
+  it("includes specificity in advice rule", () => {
+    expect(prompt).toContain("BANNED PHRASES — too vague to be useful");
+    expect(prompt).toContain("Tell your manager before Friday");
   });
 
-  it("includes conversational energy management (1U)", () => {
+  it("includes conversational energy management", () => {
     expect(prompt).toContain(
       "Never drag a depleted user through a rigorous session",
     );
   });
 
-  it("includes conversational variety engine (1X)", () => {
-    expect(prompt).toContain("limited to once per session at most");
+  it("includes conversational variety engine", () => {
+    expect(prompt).toContain("limit to once per session at most");
   });
 
-  it("includes intelligent summarization system (2AC)", () => {
+  it("includes intelligent summarization in Layer 3 general rules", () => {
     expect(prompt).toContain(
       "Let me see if I can capture what I'm hearing so far",
     );
-    expect(prompt).toContain("WHAT SUMMARIES CREATE");
+    expect(prompt).toContain("INTELLIGENT SUMMARIZATION SYSTEM");
   });
 
-  it("includes single-question discipline (3H)", () => {
-    expect(prompt).toContain("Stacking questions overwhelms the user");
+  it("includes single-question discipline", () => {
+    expect(prompt).toContain("Ask one question at a time");
+    expect(prompt).toContain("Stacking questions signals that you are not actually listening");
+  });
+
+  it("includes session pacing without re-embedding summarization in final layer", () => {
+    const finalLayerStart = prompt.indexOf("FINAL LAYER — CLOSING INSTRUCTIONS");
+    const afterFinal = prompt.slice(finalLayerStart);
+    expect(finalLayerStart).toBeGreaterThanOrEqual(0);
+    expect(afterFinal).toContain("exchange_count");
+    expect(afterFinal).not.toContain("INTELLIGENT SUMMARIZATION SYSTEM");
   });
 });

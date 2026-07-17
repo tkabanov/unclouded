@@ -9,6 +9,9 @@ import {
 
 export { DEFAULT_CONVERSATION_TITLE, isDefaultConversationTitle };
 
+export const CHAT_SESSION_TYPES = ["text", "voice", "quick_checkin"] as const;
+export type ChatSessionType = (typeof CHAT_SESSION_TYPES)[number];
+
 /** Stored in profiles.onboardingData when chatconversation table is absent. */
 export const CHAT_CONVERSATIONS_ONBOARDING_KEY = "chat_conversations" as const;
 const DEFAULT_PREVIEW_TEXT = "Start a conversation when you're ready.";
@@ -210,6 +213,7 @@ export async function fetchConversations(
 async function tryCreateInConversationTable(
   userId: string,
   title: string,
+  sessionType: ChatSessionType = "text",
 ): Promise<ConversationListItem | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
@@ -217,6 +221,7 @@ async function tryCreateInConversationTable(
     .insert({
       title: title,
       userId: userId,
+      sessionType,
     })
     .select("id, title, updatedAt")
     .single();
@@ -236,8 +241,9 @@ export async function createConversation(
   userId: string,
   onboardingData?: Record<string, unknown> | null,
   title = DEFAULT_CONVERSATION_TITLE,
+  sessionType: ChatSessionType = "text",
 ): Promise<ConversationListItem> {
-  const fromTable = await tryCreateInConversationTable(userId, title);
+  const fromTable = await tryCreateInConversationTable(userId, title, sessionType);
   if (fromTable !== null) return fromTable;
 
   const now = new Date().toISOString();

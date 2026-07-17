@@ -54,7 +54,7 @@ describe("sessionMemoryHelpers", () => {
       onboarding,
       "conv-new",
       baseFinalize({ lastSessionTopic: "sleep" }),
-      "strategist",
+      "builder",
     );
 
     const records = readSessionMemoryRecords({
@@ -63,7 +63,7 @@ describe("sessionMemoryHelpers", () => {
     });
     expect(records).toHaveLength(5);
     expect(records[4]?.topic).toBe("sleep");
-    expect(records[4]?.coachingModeUsed).toBe("strategist");
+    expect(records[4]?.coachingModeUsed).toBe("builder");
     expect(patch.last_session_topic_text).toBe("sleep");
   });
 

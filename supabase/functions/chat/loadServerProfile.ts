@@ -58,6 +58,9 @@ type ProfileRow = {
   physicalActivityLevel?: string | null;
   stateRegion?: string | null;
   timeZone?: string | null;
+  hasPriorCrisisSession?: boolean | null;
+  pulseBaseline?: number | null;
+  significantPulseDrop?: boolean | null;
 };
 
 const PROFILE_SELECT_COLUMNS = [
@@ -116,6 +119,9 @@ const PROFILE_SELECT_COLUMNS = [
   "physicalActivityLevel",
   "stateRegion",
   "timeZone",
+  "hasPriorCrisisSession",
+  "pulseBaseline",
+  "significantPulseDrop",
 ].join(", ");
 
 function readNullableString(value: unknown): string | null {

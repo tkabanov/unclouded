@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { updatePulseBaselineAfterCheckIn } from "@/lib/dashboard/pulseBaselineApi";
 import {
   computeStreakFromDateKeys,
   resolveEffectiveCheckInStreak,
@@ -401,6 +402,13 @@ export async function submitDailyCheckIn(
     if (error) throw error;
   } else {
     await tryUpdateUserStreakTable(userId, nextStreak);
+  }
+
+  // REQ-05: rolling 14-day pulse baseline + significant drop flag
+  try {
+    await updatePulseBaselineAfterCheckIn(userId, input.mood);
+  } catch {
+    // Non-blocking — check-in itself already succeeded.
   }
 
   return { streak: nextStreak };

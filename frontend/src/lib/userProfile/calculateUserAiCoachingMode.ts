@@ -64,7 +64,8 @@ export async function calculateUserAiCoachingMode(userId: string): Promise<strin
 
   await patchOnboardingAndResults(userId, {
     [COACHING_MODE_LIST_FIELD]: modes,
-    ai_coaching_mode_os: modes[modes.length - 1],
+    // Primary mode is always first; overlays (protector/simplifier) follow.
+    ai_coaching_mode_os: modes[0],
   });
 
   return modes;

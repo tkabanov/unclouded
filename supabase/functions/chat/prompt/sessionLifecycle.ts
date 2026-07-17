@@ -22,14 +22,23 @@ const FIRST_SESSION_OPENINGS: Record<CoachingModeSlug, string> = {
     "[Name]. No pressure, no agenda. This is just a space — yours, at your pace. What would feel most useful right now?",
   rebuilder:
     "[Name], good to have you here. I want to start somewhere different today — not with what's on the task list, but with how things actually feel. When you think about your life right now — not the doing of it, but the feel of it — what's the most honest word that comes up?",
-  strategist:
-    "[Name], let's get into it. I've looked at where you are and I have some thoughts — but first I want to hear from you. What's the one thing you most want to move on right now?",
+  builder:
+    "[Name], good to be here with you. You've got enough foundation to do real work. What's the one thing you most want to build or clarify right now?",
+  optimizer:
+    "[Name], let's get into it. I've looked at where you are and I have some thoughts — but first I want to hear from you. What's the highest-leverage thing you want to move on right now?",
   simplifier:
     "[Name], keep this simple. One clear check-in — what's most present for you right now? Nothing more until you have bandwidth.",
 };
 
+const CRISIS_AFTERCARE_OPENING =
+  "[Name], I want to check in with you. Last time we talked, things were in a hard place. How are you today — honestly?";
+
+const RETURN_AFTER_ABSENCE_OPENING =
+  "Good to have you back, [Name]. You're here — that's what matters. What do you want to do with this time?";
+
+/** Opening ritual style — specific context before agenda. */
 const RETURNING_SESSION_OPENING =
-  "Good to see you again, [Name]. Last time we talked about [LAST_SESSION_TOPIC]. [MEMORY_HINT] How have things been since then — and did anything shift?";
+  "[Name] — last time we talked about [LAST_SESSION_TOPIC]. [MEMORY_HINT] Let's start there, or wherever feels most true right now.";
 
 const RETURNING_SESSION_AFTER_MODULE =
   "[Name], you just completed [MODULE_NAME]. That takes something. I've updated my understanding of you based on what you shared. I want to use what I know now. Where do you want to start today?";
@@ -47,11 +56,27 @@ export function readLastSessionTopic(onboardingData: Record<string, unknown>): s
 }
 
 export function resolveSessionOpeningTemplate(profile: ProfileData): {
-  kind: "first" | "returning" | "returning_after_module";
+  kind: "first" | "returning" | "returning_after_module" | "crisis_aftercare" | "return_after_absence";
   template: string;
 } {
   const onboardingData = asRecord(profile.onboardingData);
   const displayName = sanitizeDisplayName(profile.firstName);
+  const liveContext = profile.liveContext;
+
+  if (liveContext?.hasPriorCrisisSession === true) {
+    return {
+      kind: "crisis_aftercare",
+      template: CRISIS_AFTERCARE_OPENING.replace("[Name]", displayName),
+    };
+  }
+
+  const daysSince = liveContext?.daysSinceLastSession;
+  if (typeof daysSince === "number" && Number.isFinite(daysSince) && daysSince >= 10) {
+    return {
+      kind: "return_after_absence",
+      template: RETURN_AFTER_ABSENCE_OPENING.replace("[Name]", displayName),
+    };
+  }
 
   if (isRecentModuleCompletion(profile)) {
     const moduleName = readLastCompletedModuleName(profile) ?? "your deep-dive module";
@@ -69,7 +94,7 @@ export function resolveSessionOpeningTemplate(profile: ProfileData): {
   if (lastTopic) {
     const memoryHint =
       formatReturningMemoryHint(onboardingData) ??
-      "I've been thinking about what you said.";
+      "I've been sitting with what you shared.";
     return {
       kind: "returning",
       template: RETURNING_SESSION_OPENING.replace("[Name]", displayName)

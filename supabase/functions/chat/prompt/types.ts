@@ -113,6 +113,20 @@ export interface ChatLiveContext {
   pathReflections?: ChatPathReflectionAnswer[];
   activePathProgress?: ChatActivePathProgress | null;
   latestReassessment?: ChatReassessmentContext | null;
+  /** Layer 10 addendum — session delivery medium. */
+  sessionType?: "text" | "voice" | "quick_checkin" | null;
+  /** Layer 10 addendum — days since last completed session. */
+  daysSinceLastSession?: number | null;
+  /** Layer 10 addendum — prior session had Level 2+ crisis. */
+  hasPriorCrisisSession?: boolean | null;
+  /** Layer 10 addendum — check-in pulse dropped ≥3 from baseline. */
+  significantPulseDrop?: boolean | null;
+  /** Current session exchange count for pacing (Layer 13). */
+  exchangeCount?: number | null;
+  /** Compressed longitudinal memory facts block (≤200 tokens target). */
+  memoryFactsBlock?: string | null;
+  /** Mid-cycle state check trigger (significant life event). */
+  significantLifeEventFlag?: boolean | null;
 }
 
 export type CoachingModeSlug =
@@ -120,7 +134,8 @@ export type CoachingModeSlug =
   | "stabilizer"
   | "simplifier"
   | "rebuilder"
-  | "strategist";
+  | "builder"
+  | "optimizer";
 
 export type ResolvedCoachingModes = {
   /** Primary mode after Protector replacement (never last-wins list). */
@@ -131,6 +146,7 @@ export type ResolvedCoachingModes = {
   active: CoachingModeSlug[];
 };
 
+/** exploratory+ kept for compat; mapped to guided prompt text. */
 export type AiConfidenceLevel =
   | "exploratory"
   | "exploratory+"

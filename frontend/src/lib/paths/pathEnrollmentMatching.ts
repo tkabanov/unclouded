@@ -56,7 +56,9 @@ export function pathMatchesClassification(
 export type PathFlagRequirement =
   | { kind: "none" }
   | { kind: "recovery_required" }
-  | { kind: "grief_required" };
+  | { kind: "grief_required" }
+  /** REQ-15 Unsent Letter — visible when grief OR recovery OR transition is active. */
+  | { kind: "grief_or_recovery_or_transition" };
 
 export function parsePathFlagRequirement(
   triggerSignals: string | null | undefined,
@@ -77,12 +79,23 @@ export function parsePathFlagRequirement(
     return { kind: "grief_required" };
   }
 
+  // Directed writing / Unsent Letter: any of the three flags unlocks visibility.
+  if (
+    normalized.includes("grief_mode_active") &&
+    normalized.includes("recovery_mode_active") &&
+    normalized.includes("transition_flag")
+  ) {
+    return { kind: "grief_or_recovery_or_transition" };
+  }
+
   return { kind: "none" };
 }
 
 export function userMeetsPathFlagRequirement(
   requirement: PathFlagRequirement,
-  context: Pick<OnboardingEnrollmentContext, "recoveryModeActive" | "griefModeActive">,
+  context: Pick<OnboardingEnrollmentContext, "recoveryModeActive" | "griefModeActive"> & {
+    transitionFlagActive?: boolean;
+  },
 ): boolean {
   switch (requirement.kind) {
     case "none":
@@ -91,6 +104,12 @@ export function userMeetsPathFlagRequirement(
       return context.recoveryModeActive;
     case "grief_required":
       return context.griefModeActive;
+    case "grief_or_recovery_or_transition":
+      return (
+        context.recoveryModeActive ||
+        context.griefModeActive ||
+        context.transitionFlagActive === true
+      );
     default: {
       const exhaustive: never = requirement;
       return exhaustive;
@@ -136,6 +155,7 @@ export interface LibraryBrowseContext {
   userTier: TierSlug;
   recoveryModeActive: boolean;
   griefModeActive: boolean;
+  transitionFlagActive?: boolean;
 }
 
 /** Hide flag-gated paths the user cannot access (e.g. recovery-only paths). */

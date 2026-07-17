@@ -79,6 +79,8 @@ type CallChatEdgeParams = {
   context?: string;
   profileData?: ChatAiProfileData;
   conversationId?: string;
+  sessionType?: "text" | "voice" | "quick_checkin";
+  exchangeCount?: number;
   expectJson?: boolean;
 };
 
@@ -116,6 +118,8 @@ export async function callChatEdge(
       messages: toUiMessages(params.messages),
       context: params.context,
       conversationId: params.conversationId,
+      sessionType: params.sessionType,
+      exchangeCount: params.exchangeCount,
     }),
   });
 
@@ -154,8 +158,17 @@ export async function generateAiReplyStub(
   context?: string,
   profileData?: ChatAiProfileData,
   conversationId?: string,
+  sessionType?: "text" | "voice" | "quick_checkin",
 ): Promise<string> {
-  const result = await callChatEdge({ messages, context, profileData, conversationId });
+  const exchangeCount = messages.filter((m) => m.role === "user").length;
+  const result = await callChatEdge({
+    messages,
+    context,
+    profileData,
+    conversationId,
+    sessionType,
+    exchangeCount,
+  });
   if (typeof result !== "string") {
     throw new ChatEdgeError("Expected streamed AI reply");
   }

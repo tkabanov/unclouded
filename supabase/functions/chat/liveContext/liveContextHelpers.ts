@@ -37,6 +37,13 @@ export function aggregateLiveContext(input: {
   pathReflections: ChatPathReflectionAnswer[];
   activePathProgress?: ChatActivePathProgress | null;
   latestReassessment?: ChatReassessmentContext | null;
+  sessionType?: ChatLiveContext["sessionType"];
+  daysSinceLastSession?: number | null;
+  hasPriorCrisisSession?: boolean | null;
+  significantPulseDrop?: boolean | null;
+  exchangeCount?: number | null;
+  memoryFactsBlock?: string | null;
+  significantLifeEventFlag?: boolean | null;
 }): ChatLiveContext {
   const activeMicroCommitment =
     input.activeMicroCommitmentCandidates
@@ -56,6 +63,13 @@ export function aggregateLiveContext(input: {
     pathReflections: input.pathReflections,
     activePathProgress: input.activePathProgress ?? null,
     latestReassessment: input.latestReassessment ?? null,
+    sessionType: input.sessionType ?? "text",
+    daysSinceLastSession: input.daysSinceLastSession ?? null,
+    hasPriorCrisisSession: input.hasPriorCrisisSession ?? null,
+    significantPulseDrop: input.significantPulseDrop ?? null,
+    exchangeCount: input.exchangeCount ?? null,
+    memoryFactsBlock: input.memoryFactsBlock ?? null,
+    significantLifeEventFlag: input.significantLifeEventFlag ?? null,
   };
 }
 

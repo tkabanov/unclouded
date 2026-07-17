@@ -4,8 +4,10 @@ import {
 } from "@/lib/enums/coachingMode";
 import { getLoadSignalAnswerMeta } from "@/lib/enums/onboardingQuestions";
 
-const SCORE_LOW_THRESHOLD = 3.2;
-const SCORE_HIGH_THRESHOLD = 3.8;
+/** FINAL Layer 4 thresholds. */
+const REBUILDER_MAX = 2.5;
+const STABILIZER_MAX = 3.2;
+const BUILDER_MAX = 4.0;
 
 export interface AiCoachingModeInput {
   stability_score: number;
@@ -16,35 +18,39 @@ export interface AiCoachingModeInput {
   cognitive_load_signal_slug?: string | null;
 }
 
-/** Bubble API event calculate_user_ai_coaching_mode (bTIEN) — seven-action ChangeThing chain. */
-export function resolveAiCoachingModes(input: AiCoachingModeInput): AiCoachingModeSlug[] {
-  let modes: AiCoachingModeSlug[] = [AI_COACHING_MODE.STABILIZER];
-
-  if (input.alignment_score < SCORE_LOW_THRESHOLD) {
-    modes = [AI_COACHING_MODE.REBUILDER];
-  }
-  if (input.stability_score < SCORE_LOW_THRESHOLD) {
-    modes = [AI_COACHING_MODE.STABILIZER];
-  }
-  if (input.performance_score < SCORE_LOW_THRESHOLD) {
-    modes = [AI_COACHING_MODE.SIMPLIFIER];
+function resolvePrimaryMode(input: AiCoachingModeInput): AiCoachingModeSlug {
+  if (input.stability_score < REBUILDER_MAX) {
+    return AI_COACHING_MODE.REBUILDER;
   }
   if (
-    input.stability_score >= SCORE_HIGH_THRESHOLD &&
-    input.alignment_score >= SCORE_HIGH_THRESHOLD &&
-    input.performance_score >= SCORE_HIGH_THRESHOLD
+    input.stability_score > BUILDER_MAX &&
+    input.performance_score > BUILDER_MAX
   ) {
-    modes = [AI_COACHING_MODE.STRATEGIST];
+    return AI_COACHING_MODE.OPTIMIZER;
   }
+  if (input.stability_score < STABILIZER_MAX) {
+    return AI_COACHING_MODE.STABILIZER;
+  }
+  return AI_COACHING_MODE.BUILDER;
+}
+
+/**
+ * FINAL Layer 4 mode assignment (aligned with chat resolveCoachingModes).
+ * Protector / Simplifier stack as overlays — do not replace primary.
+ */
+export function resolveAiCoachingModes(input: AiCoachingModeInput): AiCoachingModeSlug[] {
+  const primary = resolvePrimaryMode(input);
+  const modes: AiCoachingModeSlug[] = [primary];
+
   if (input.recovery_mode_active || input.grief_mode_active) {
-    modes = [AI_COACHING_MODE.PROTECTOR];
+    modes.push(AI_COACHING_MODE.PROTECTOR);
   }
 
   const cognitiveSlug = input.cognitive_load_signal_slug;
   if (cognitiveSlug) {
     const meta = getLoadSignalAnswerMeta(cognitiveSlug);
     if (meta?.intensity === "high" && !modes.includes(AI_COACHING_MODE.SIMPLIFIER)) {
-      modes = [...modes, AI_COACHING_MODE.SIMPLIFIER];
+      modes.push(AI_COACHING_MODE.SIMPLIFIER);
     }
   }
 

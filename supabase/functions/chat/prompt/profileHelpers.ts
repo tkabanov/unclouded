@@ -58,10 +58,10 @@ export function isHighLoad(value: string): boolean {
   );
 }
 
+/** FINAL Layer 7b: 0 → exploratory, 1–5 → guided, >5 → direct. */
 export function resolveAiConfidenceLevel(modulesCompleted: number): AiConfidenceLevel {
   if (modulesCompleted <= 0) return "exploratory";
-  if (modulesCompleted <= 2) return "exploratory+";
-  if (modulesCompleted <= 4) return "guided";
+  if (modulesCompleted <= 5) return "guided";
   return "direct";
 }
 

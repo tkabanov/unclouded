@@ -54,6 +54,7 @@ describe("resolveSessionOpeningTemplate", () => {
     );
 
     expect(opening.kind).toBe("returning");
-    expect(opening.template).toContain("Last time we talked about boundaries at work");
+    expect(opening.template.toLowerCase()).toContain("boundaries at work");
+    expect(opening.template).toContain("Alex");
   });
 });

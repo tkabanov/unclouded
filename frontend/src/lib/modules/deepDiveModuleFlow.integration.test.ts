@@ -117,10 +117,10 @@ describe("deep-dive module flow integration", () => {
       },
     });
 
-    expect(promptBefore).toContain("AI confidence level: exploratory (0 modules complete)");
+    expect(promptBefore).toContain("AI CONFIDENCE LEVEL MODIFIER — EXPLORATORY");
     expect(promptBefore).not.toContain("Module complete — Body's Story");
     expect(promptAfter).toContain("Module complete — Body's Story");
-    expect(promptAfter).toContain("AI confidence level: exploratory+ (1–2 modules complete)");
+    expect(promptAfter).toContain("AI CONFIDENCE LEVEL MODIFIER — GUIDED");
     expect(promptAfter).toContain("sleep_quality_signal=good");
     expect(promptAfter.length).toBeGreaterThan(promptBefore.length);
   });

@@ -546,6 +546,124 @@ async function fetchLatestReassessment(
   return null;
 }
 
+function formatMemoryFactsBlock(row: Record<string, unknown> | null): string | null {
+  if (!row) return null;
+  const parts: string[] = [];
+  const push = (label: string, value: unknown) => {
+    if (typeof value === "string" && value.trim()) {
+      parts.push(`${label}: ${value.trim()}`);
+    }
+  };
+  push("Named people", row.peopleInLife);
+  push("User language", row.userLanguage);
+  push("Open avoidances", row.openAvoidances);
+  push("User insights", row.userInsights);
+  push("Stated goals", row.statedGoals);
+  if (parts.length === 0) return null;
+  // Keep compressed (~200 tokens ≈ 800 chars)
+  return parts.join("\n").slice(0, 800);
+}
+
+async function fetchMemoryFactsBlock(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("userMemoryFacts")
+      .select("peopleInLife, userLanguage, openAvoidances, userInsights, statedGoals")
+      .eq("userId", userId)
+      .maybeSingle();
+    if (error) {
+      if (!isSchemaUnavailable(error)) {
+        console.warn("userMemoryFacts fetch failed", error.message);
+      }
+      return null;
+    }
+    return formatMemoryFactsBlock(data as Record<string, unknown> | null);
+  } catch (err) {
+    console.warn("userMemoryFacts fetch error", err);
+    return null;
+  }
+}
+
+async function fetchDaysSinceLastSession(
+  supabase: SupabaseClient,
+  userId: string,
+  onboardingData: Record<string, unknown> | null | undefined,
+): Promise<number | null> {
+  const memory = onboardingData?.chat_session_memory;
+  if (Array.isArray(memory) && memory.length > 0) {
+    const closedAts = memory
+      .map((entry) => {
+        if (!entry || typeof entry !== "object") return null;
+        const closedAt = (entry as Record<string, unknown>).closedAt;
+        return typeof closedAt === "string" ? Date.parse(closedAt) : NaN;
+      })
+      .filter((ms): ms is number => Number.isFinite(ms));
+    if (closedAts.length > 0) {
+      const latest = Math.max(...closedAts);
+      return Math.max(0, Math.floor((Date.now() - latest) / (24 * 60 * 60 * 1000)));
+    }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("chatConversation")
+      .select("updatedAt")
+      .eq("userId", userId)
+      .order("updatedAt", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) {
+      if (error && !isSchemaUnavailable(error)) {
+        console.warn("daysSinceLastSession fetch failed", error.message);
+      }
+      return null;
+    }
+    const updatedAt = (data as { updatedAt?: string }).updatedAt;
+    if (typeof updatedAt !== "string") return null;
+    const ms = Date.parse(updatedAt);
+    if (!Number.isFinite(ms)) return null;
+    return Math.max(0, Math.floor((Date.now() - ms) / (24 * 60 * 60 * 1000)));
+  } catch (err) {
+    console.warn("daysSinceLastSession error", err);
+    return null;
+  }
+}
+
+async function fetchAddendumProfileFlags(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<{
+  hasPriorCrisisSession: boolean | null;
+  significantPulseDrop: boolean | null;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("hasPriorCrisisSession, significantPulseDrop")
+      .eq("id", userId)
+      .maybeSingle();
+    if (error || !data) {
+      if (error && !isSchemaUnavailable(error)) {
+        console.warn("addendum profile flags fetch failed", error.message);
+      }
+      return { hasPriorCrisisSession: null, significantPulseDrop: null };
+    }
+    const row = data as Record<string, unknown>;
+    return {
+      hasPriorCrisisSession:
+        typeof row.hasPriorCrisisSession === "boolean" ? row.hasPriorCrisisSession : null,
+      significantPulseDrop:
+        typeof row.significantPulseDrop === "boolean" ? row.significantPulseDrop : null,
+    };
+  } catch (err) {
+    console.warn("addendum profile flags error", err);
+    return { hasPriorCrisisSession: null, significantPulseDrop: null };
+  }
+}
+
 /** Server-side live signal aggregation for chat prompt (T-008). */
 export async function loadServerLiveContext(
   supabase: SupabaseClient,
@@ -561,6 +679,9 @@ export async function loadServerLiveContext(
     pathReflections,
     activePathProgress,
     latestReassessment,
+    memoryFactsBlock,
+    daysSinceLastSession,
+    addendumFlags,
   ] = await Promise.all([
     fetchLatestCheckIn(supabase, userId, onboardingData),
     fetchStreakDays(supabase, userId, onboardingData),
@@ -570,6 +691,9 @@ export async function loadServerLiveContext(
     fetchPathReflections(supabase, userId, onboardingData),
     fetchActivePathProgress(supabase, userId),
     fetchLatestReassessment(supabase, userId, onboardingData),
+    fetchMemoryFactsBlock(supabase, userId),
+    fetchDaysSinceLastSession(supabase, userId, onboardingData),
+    fetchAddendumProfileFlags(supabase, userId),
   ]);
 
   const microCommitmentCandidates = microCommitmentResult.usedOnboardingFallback
@@ -578,6 +702,10 @@ export async function loadServerLiveContext(
         readActiveMicroCommitmentFromOnboarding(onboardingData),
       ]
     : [microCommitmentResult.value];
+
+  const significantLifeEventFlag =
+    onboardingData?.significant_life_event_flag === true ||
+    onboardingData?.significantLifeEventFlag === true;
 
   return aggregateLiveContext({
     latestCheckIn,
@@ -588,5 +716,10 @@ export async function loadServerLiveContext(
     pathReflections,
     activePathProgress,
     latestReassessment,
+    memoryFactsBlock,
+    daysSinceLastSession,
+    hasPriorCrisisSession: addendumFlags.hasPriorCrisisSession,
+    significantPulseDrop: addendumFlags.significantPulseDrop,
+    significantLifeEventFlag,
   });
 }

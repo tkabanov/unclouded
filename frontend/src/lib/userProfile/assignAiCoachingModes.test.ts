@@ -12,103 +12,110 @@ const MID_SCORES = {
 
 const HIGH_COGNITIVE_SLUG = "head_rarely_feels_quiet___constant";
 
-describe("resolveAiCoachingModes (bTIEN)", () => {
-  it("action 0: defaults to stabilizer when no branch conditions match", () => {
-    expect(resolveAiCoachingModes(MID_SCORES)).toEqual([AI_COACHING_MODE.STABILIZER]);
+describe("resolveAiCoachingModes (FINAL Layer 4)", () => {
+  it("assigns builder when stability is 3.2–4.0", () => {
+    expect(resolveAiCoachingModes(MID_SCORES)).toEqual([AI_COACHING_MODE.BUILDER]);
   });
 
-  it("action 1: alignment below 3.2 sets rebuilder", () => {
+  it("assigns rebuilder when stability is below 2.5", () => {
     expect(
-      resolveAiCoachingModes({ ...MID_SCORES, alignment_score: 3.0 }),
+      resolveAiCoachingModes({ ...MID_SCORES, stability_score: 2.4 }),
     ).toEqual([AI_COACHING_MODE.REBUILDER]);
   });
 
-  it("action 2: stability below 3.2 overrides rebuilder with stabilizer", () => {
+  it("assigns stabilizer when stability is 2.5–3.2", () => {
     expect(
       resolveAiCoachingModes({
         ...MID_SCORES,
-        alignment_score: 3.0,
         stability_score: 3.0,
       }),
     ).toEqual([AI_COACHING_MODE.STABILIZER]);
   });
 
-  it("action 3: performance below 3.2 sets simplifier", () => {
+  it("does not set simplifier as primary from low performance", () => {
     expect(
-      resolveAiCoachingModes({ ...MID_SCORES, performance_score: 3.0 }),
-    ).toEqual([AI_COACHING_MODE.SIMPLIFIER]);
+      resolveAiCoachingModes({ ...MID_SCORES, performance_score: 2.8 }),
+    ).toEqual([AI_COACHING_MODE.BUILDER]);
   });
 
-  it("action 4: all scores at or above 3.8 sets strategist", () => {
+  it("assigns optimizer when stability and performance are both above 4.0", () => {
+    expect(
+      resolveAiCoachingModes({
+        ...MID_SCORES,
+        stability_score: 4.1,
+        alignment_score: 4.0,
+        performance_score: 4.1,
+      }),
+    ).toEqual([AI_COACHING_MODE.OPTIMIZER]);
+  });
+
+  it("assigns builder at stability 4.0 even with high performance (optimizer needs >4.0)", () => {
     expect(
       resolveAiCoachingModes({
         ...MID_SCORES,
         stability_score: 4.0,
-        alignment_score: 3.8,
         performance_score: 4.2,
       }),
-    ).toEqual([AI_COACHING_MODE.STRATEGIST]);
+    ).toEqual([AI_COACHING_MODE.BUILDER]);
   });
 
-  it("action 5: recovery mode sets protector", () => {
+  it("STRATEGIST alias resolves to builder", () => {
+    expect(AI_COACHING_MODE.STRATEGIST).toBe(AI_COACHING_MODE.BUILDER);
+  });
+
+  it("recovery mode stacks protector on primary", () => {
     expect(
       resolveAiCoachingModes({
         ...MID_SCORES,
-        stability_score: 4.0,
+        stability_score: 4.1,
         alignment_score: 4.0,
-        performance_score: 4.0,
+        performance_score: 4.1,
         recovery_mode_active: true,
       }),
-    ).toEqual([AI_COACHING_MODE.PROTECTOR]);
+    ).toEqual([AI_COACHING_MODE.OPTIMIZER, AI_COACHING_MODE.PROTECTOR]);
   });
 
-  it("action 5: grief mode sets protector", () => {
+  it("grief mode stacks protector on primary", () => {
     expect(
       resolveAiCoachingModes({
         ...MID_SCORES,
         grief_mode_active: true,
       }),
-    ).toEqual([AI_COACHING_MODE.PROTECTOR]);
+    ).toEqual([AI_COACHING_MODE.BUILDER, AI_COACHING_MODE.PROTECTOR]);
   });
 
-  it("action 6: high cognitive load appends simplifier", () => {
+  it("high cognitive load appends simplifier overlay", () => {
     expect(
       resolveAiCoachingModes({
         ...MID_SCORES,
         cognitive_load_signal_slug: HIGH_COGNITIVE_SLUG,
       }),
-    ).toEqual([AI_COACHING_MODE.STABILIZER, AI_COACHING_MODE.SIMPLIFIER]);
+    ).toEqual([AI_COACHING_MODE.BUILDER, AI_COACHING_MODE.SIMPLIFIER]);
   });
 
-  it("action 6: does not duplicate simplifier when already set by action 3", () => {
+  it("appends simplifier to optimizer when cognitive load is high", () => {
     expect(
       resolveAiCoachingModes({
         ...MID_SCORES,
-        performance_score: 3.0,
-        cognitive_load_signal_slug: HIGH_COGNITIVE_SLUG,
-      }),
-    ).toEqual([AI_COACHING_MODE.SIMPLIFIER]);
-  });
-
-  it("action 6: appends simplifier to strategist when cognitive load is high", () => {
-    expect(
-      resolveAiCoachingModes({
-        ...MID_SCORES,
-        stability_score: 4.0,
+        stability_score: 4.1,
         alignment_score: 4.0,
-        performance_score: 4.0,
+        performance_score: 4.1,
         cognitive_load_signal_slug: HIGH_COGNITIVE_SLUG,
       }),
-    ).toEqual([AI_COACHING_MODE.STRATEGIST, AI_COACHING_MODE.SIMPLIFIER]);
+    ).toEqual([AI_COACHING_MODE.OPTIMIZER, AI_COACHING_MODE.SIMPLIFIER]);
   });
 
-  it("action 6: appends simplifier to protector when cognitive load is high", () => {
+  it("appends simplifier to protector overlay when cognitive load is high", () => {
     expect(
       resolveAiCoachingModes({
         ...MID_SCORES,
         recovery_mode_active: true,
         cognitive_load_signal_slug: HIGH_COGNITIVE_SLUG,
       }),
-    ).toEqual([AI_COACHING_MODE.PROTECTOR, AI_COACHING_MODE.SIMPLIFIER]);
+    ).toEqual([
+      AI_COACHING_MODE.BUILDER,
+      AI_COACHING_MODE.PROTECTOR,
+      AI_COACHING_MODE.SIMPLIFIER,
+    ]);
   });
 });

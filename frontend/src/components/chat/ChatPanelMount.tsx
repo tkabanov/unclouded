@@ -59,6 +59,8 @@ export default function ChatPanelMount({
   const [awaitingCommitment, setAwaitingCommitment] = useState(false);
   const [sessionClosed, setSessionClosed] = useState(false);
   const [sessionLimitBlocked, setSessionLimitBlocked] = useState(false);
+  /** REQ-14 — voice session flag passed to Kota (Block 3.36). */
+  const [voiceMode, setVoiceMode] = useState(false);
   const openerSentForConversation = useRef<string | null>(null);
   const sessionLimitToastShown = useRef(false);
 
@@ -253,6 +255,7 @@ export default function ChatPanelMount({
             context,
             profileData,
             conversationId,
+            voiceMode ? "voice" : "text",
           );
           const { nextThread } = await sendAssistantMessage(assistantText, threadForAi);
           void maybeGenerateConversationTitle(nextThread);
@@ -288,6 +291,7 @@ export default function ChatPanelMount({
       sendAssistantMessage,
       sessionClosed,
       userId,
+      voiceMode,
     ],
   );
 
@@ -340,6 +344,17 @@ export default function ChatPanelMount({
               {FREE_TIER_UPSELL_MESSAGE}
             </div>
           ) : null}
+          <div className="flex items-center justify-end gap-2 border-b border-border px-4 py-2">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={voiceMode}
+                onChange={(event) => setVoiceMode(event.target.checked)}
+                className="rounded border-border"
+              />
+              Voice session (adapts Kota for spoken replies)
+            </label>
+          </div>
           <ChatReusable
             conversation={conversation}
             messages={messages}

@@ -12,6 +12,10 @@ import {
   type AdminWorkplaceRecord,
 } from "@/lib/settings/admin/adminWorkplacesApi";
 import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
+import {
+  fetchEmployerMetrics,
+  type EmployerMetricSnapshot,
+} from "@/lib/employer/employerMetricsApi";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -24,6 +28,7 @@ export default function AdminWorkplacesTab() {
   const [addOpen, setAddOpen] = useState(false);
   const [editWorkplace, setEditWorkplace] = useState<AdminWorkplaceRecord | null>(null);
   const [busy, setBusy] = useState(false);
+  const [metricsById, setMetricsById] = useState<Record<string, EmployerMetricSnapshot>>({});
 
   const popupOpen = addOpen || editWorkplace !== null;
 
@@ -141,6 +146,33 @@ export default function AdminWorkplacesTab() {
                   {workplace.contactEmail}
                 </p>
               </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => {
+                  void fetchEmployerMetrics(workplace.workplaceId)
+                    .then((snapshot) => {
+                      setMetricsById((prev) => ({
+                        ...prev,
+                        [workplace.workplaceId]: snapshot,
+                      }));
+                    })
+                    .catch(() => toast.error("Couldn't load employer metrics."));
+                }}
+              >
+                Continuous metrics
+              </Button>
+              {metricsById[workplace.workplaceId] ? (
+                <p className="text-xs text-muted-foreground">
+                  {metricsById[workplace.workplaceId].suppressed
+                    ? `Cohort ${metricsById[workplace.workplaceId].cohortSize} — metrics hidden until ≥5 enrolled.`
+                    : `Avg pulse ${metricsById[workplace.workplaceId].averagePulse ?? "n/a"} · Active ${
+                        metricsById[workplace.workplaceId].activeUsersPercent ?? "n/a"
+                      }% · Sessions/user ${metricsById[workplace.workplaceId].sessionsPerUser ?? "n/a"}`}
+                </p>
+              ) : null}
               <div
                 className="flex justify-end gap-2"
               >

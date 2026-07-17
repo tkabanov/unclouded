@@ -1,50 +1,53 @@
 import type { CoachingModeSlug, ProfileData, ResolvedCoachingModes } from "./types.ts";
 import { asNumberValue, asRecord, asString, isHighLoad, readOnboardingGroup } from "./profileHelpers.ts";
 
-const SCORE_LOW = 3.2;
-const SCORE_HIGH = 3.8;
+/** FINAL Layer 4 thresholds. */
+const REBUILDER_MAX = 2.5;
+const STABILIZER_MAX = 3.2;
+const BUILDER_MAX = 4.0;
 
 function resolvePrimaryMode(
   results: Record<string, unknown>,
-  loadSignals: Record<string, unknown>,
   stateSignals: Record<string, unknown>,
 ): CoachingModeSlug {
   const stability = asNumberValue(results.stability_score);
-  const alignment = asNumberValue(results.alignment_score);
   const performance = asNumberValue(results.performance_score);
   const nervous = asString(stateSignals.nervous_system_state, "").toLowerCase();
-  const depletedOrShutDown = nervous === "depleted" || nervous === "shut_down";
+  const depletedOrShutDown =
+    nervous === "depleted" ||
+    nervous === "shut_down" ||
+    nervous === "shutdown" ||
+    nervous === "flat";
 
   if (
-    (Number.isFinite(stability) && (stability as number) < SCORE_LOW) ||
+    (Number.isFinite(stability) && (stability as number) < REBUILDER_MAX) ||
     depletedOrShutDown
   ) {
-    return "stabilizer";
-  }
-  if (Number.isFinite(alignment) && (alignment as number) < SCORE_LOW) {
     return "rebuilder";
   }
-  if (Number.isFinite(performance) && (performance as number) < SCORE_LOW) {
-    return "simplifier";
-  }
+
   if (
     Number.isFinite(stability) &&
-    Number.isFinite(alignment) &&
     Number.isFinite(performance) &&
-    (stability as number) >= SCORE_HIGH &&
-    (alignment as number) >= SCORE_HIGH &&
-    (performance as number) >= SCORE_HIGH
+    (stability as number) > BUILDER_MAX &&
+    (performance as number) > BUILDER_MAX
   ) {
-    return "strategist";
+    return "optimizer";
   }
-  return "stabilizer";
+
+  if (Number.isFinite(stability) && (stability as number) < STABILIZER_MAX) {
+    return "stabilizer";
+  }
+
+  // Stability 3.2–4.0, or >4.0 without performance >4.0
+  return "builder";
 }
 
 /**
- * Classification-engine mode resolution (Developer FAQ + Build Brief):
- * - One primary from scores (never last-wins from stored mode lists)
+ * Classification-engine mode resolution (FINAL Prompt Library Layer 4):
+ * - One primary from stability/performance (never last-wins from stored mode lists)
  * - Protector STACKS as overlay when recovery/grief (does not replace primary)
- * - Simplifier STACKS as overlay when cognitive load is high (if not already primary)
+ * - Simplifier STACKS as overlay when cognitive load is high (never primary from low performance)
  */
 export function resolveCoachingModes(profile: ProfileData): ResolvedCoachingModes {
   const results = asRecord(profile.results);
@@ -56,13 +59,13 @@ export function resolveCoachingModes(profile: ProfileData): ResolvedCoachingMode
   const grief = results.grief_mode_active === true;
   const cognitive = asString(loadSignals.cognitive_load_signal, "");
 
-  const primary = resolvePrimaryMode(results, loadSignals, stateSignals);
+  const primary = resolvePrimaryMode(results, stateSignals);
 
   const overlays: CoachingModeSlug[] = [];
   if (recovery || grief) {
     overlays.push("protector");
   }
-  if (isHighLoad(cognitive) && primary !== "simplifier") {
+  if (isHighLoad(cognitive)) {
     overlays.push("simplifier");
   }
 

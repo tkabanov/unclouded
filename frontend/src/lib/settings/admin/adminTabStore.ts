@@ -5,6 +5,7 @@ export const ADMIN_SUB_TAB = {
   WORKPLACES: "workplaces",
   ANALYTICS: "analytics",
   REASSESSMENTS: "reassessments",
+  PROMPT_TESTS: "prompt_tests",
 } as const;
 
 export type AdminSubTabSlug = (typeof ADMIN_SUB_TAB)[keyof typeof ADMIN_SUB_TAB];
@@ -16,6 +17,7 @@ export const ADMIN_SUB_TAB_ORDER: readonly AdminSubTabSlug[] = [
   ADMIN_SUB_TAB.WORKPLACES,
   ADMIN_SUB_TAB.ANALYTICS,
   ADMIN_SUB_TAB.REASSESSMENTS,
+  ADMIN_SUB_TAB.PROMPT_TESTS,
 ];
 
 export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
@@ -25,4 +27,5 @@ export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
   workplaces: "Workplaces",
   analytics: "Analytics",
   reassessments: "Reassessments",
+  prompt_tests: "Prompt Tests",
 };

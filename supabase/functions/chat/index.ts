@@ -15,14 +15,17 @@ import {
 } from "./tierGate.ts";
 import { parseChatRequestBody } from "./parseChatRequestBody.ts";
 import { persistSessionMemory } from "./persistSessionMemory.ts";
+import { extractMemoryFacts } from "./extractMemoryFacts.ts";
 import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
 import { truncateConversationMessages } from "./truncateConversationMessages.ts";
+import { estimatePromptTokens, shouldCompressContext } from "./tokenEstimate.ts";
 import {
   buildConversationTitleUserPrompt,
   CONVERSATION_TITLE_SYSTEM_PROMPT,
   extractLatestUserAssistantPair,
   sanitizeConversationTitle,
 } from "./prompt/conversationTitle.ts";
+import { extractAllUserTexts } from "./crisisDetect.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -92,6 +95,8 @@ Deno.serve(async (req: Request) => {
     let messages = body.messages;
     const context = body.context;
     const conversationId = body.conversationId;
+    const requestSessionType = body.sessionType;
+    const requestExchangeCount = body.exchangeCount;
 
     if (!Array.isArray(messages)) {
       if (lifecycle === "session_open") {
@@ -132,10 +137,35 @@ Deno.serve(async (req: Request) => {
       return jsonError(404, "Profile not found");
     }
 
+    if (profileData.liveContext) {
+      if (requestSessionType) {
+        profileData.liveContext.sessionType = requestSessionType;
+      }
+      if (typeof requestExchangeCount === "number") {
+        profileData.liveContext.exchangeCount = requestExchangeCount;
+      } else {
+        profileData.liveContext.exchangeCount = extractAllUserTexts(uiMessages).length;
+      }
+    }
+
     if (
       detectCrisisInThread(uiMessages, context) ||
       detectCrisisInLiveContext(profileData.liveContext)
     ) {
+      // Persist Level 2+ crisis flags for next-session aftercare (REQ-03).
+      await Promise.all([
+        supabase
+          .from("profiles")
+          .update({ hasPriorCrisisSession: true })
+          .eq("id", user.id),
+        conversationId
+          ? supabase
+              .from("chatConversation")
+              .update({ hadCrisisEscalation: true })
+              .eq("id", conversationId)
+              .eq("userId", user.id)
+          : Promise.resolve({ error: null }),
+      ]);
       return crisisHardStopResponse();
     }
 
@@ -158,7 +188,27 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const system = buildSystemWithLifecycle(profileData, context, lifecycle);
+    let system = buildSystemWithLifecycle(profileData, context, lifecycle);
+
+    // REQ-12: if assembled system prompt exceeds ~6k tokens, note compression for memory block.
+    if (shouldCompressContext(estimatePromptTokens(system))) {
+      const onboarding = profileData.onboardingData ?? {};
+      const arc =
+        typeof onboarding.session_arc_summary === "string"
+          ? onboarding.session_arc_summary
+          : null;
+      if (arc?.trim() && profileData.liveContext) {
+        profileData.liveContext.memoryFactsBlock = [
+          profileData.liveContext.memoryFactsBlock,
+          `Session arc summary: ${arc.trim()}`,
+        ]
+          .filter(Boolean)
+          .join("\n")
+          .slice(0, 800);
+        system = buildSystemWithLifecycle(profileData, context, lifecycle);
+      }
+    }
+
     if (lifecycle === "session_finalize") {
       if (!conversationId) {
         return jsonError(400, "conversationId is required for session finalize");
@@ -176,6 +226,19 @@ Deno.serve(async (req: Request) => {
 
       const coachingModeUsed = resolveCoachingModes(profileData).primary;
       await persistSessionMemory(supabase, user.id, conversationId, parsed, coachingModeUsed);
+
+      // REQ-01: post-session longitudinal memory extraction (best-effort).
+      const openaiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
+      if (openaiKey) {
+        const transcript = extractAllUserTexts(uiMessages).join("\n\n");
+        void extractMemoryFacts(supabase, user.id, transcript, openaiKey);
+      }
+
+      // Clear prior-crisis flag after a clean completed session (no L2+ this turn).
+      await supabase
+        .from("profiles")
+        .update({ hasPriorCrisisSession: false })
+        .eq("id", user.id);
 
       return jsonResponse(200, parsed);
     }

@@ -13,6 +13,10 @@ import {
   formatModuleCompletionLabel,
   type AdminAnalyticsSnapshot,
 } from "@/lib/settings/admin/adminAnalyticsApi";
+import {
+  fetchPromptLibraryReviewSignals,
+  type PromptReviewSignals,
+} from "@/lib/admin/promptLibraryReviewAnalytics";
 import { MODULE_SLUGS } from "@/lib/modules/moduleSlugs";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -36,14 +40,18 @@ const EMPTY_STATS: AdminAnalyticsSnapshot = {
 
 export default function AdminAnalyticsTab() {
   const [stats, setStats] = useState<AdminAnalyticsSnapshot>(EMPTY_STATS);
+  const [promptReview, setPromptReview] = useState<PromptReviewSignals | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchAdminAnalytics()
-      .then((snapshot) => {
-        if (!cancelled) setStats(snapshot);
+    Promise.all([fetchAdminAnalytics(), fetchPromptLibraryReviewSignals()])
+      .then(([snapshot, review]) => {
+        if (!cancelled) {
+          setStats(snapshot);
+          setPromptReview(review);
+        }
       })
       .catch(() => {
         if (!cancelled) toast.error("Couldn't load analytics.");
@@ -117,6 +125,30 @@ export default function AdminAnalyticsTab() {
           ))}
         </ul>
       </div>
+
+      {promptReview ? (
+        <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
+          <h3 className={bubbleStyle("Text_heading_3_")}>Prompt library review (REQ-16)</h3>
+          <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+            {promptReview.reviewCadence}
+          </p>
+          <p className="text-sm text-muted-foreground">{promptReview.highLoadDisengagementNote}</p>
+          <p className="text-sm">
+            Commitment follow-through:{" "}
+            {promptReview.commitmentFollowThroughRate == null
+              ? "n/a"
+              : `${Math.round(promptReview.commitmentFollowThroughRate * 100)}%`}
+          </p>
+          <ul className="divide-y divide-border text-sm">
+            {promptReview.sessionsByClassification.slice(0, 8).map((row) => (
+              <li key={row.classification} className="flex items-center justify-between py-2">
+                <span>{row.classification}</span>
+                <span className="font-semibold tabular-nums">{row.sessionCount}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

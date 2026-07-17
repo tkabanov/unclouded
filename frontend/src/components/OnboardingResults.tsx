@@ -8,6 +8,7 @@ import {
   computeOnboardingModulePreview,
   type OnboardingModulePreview,
 } from "@/lib/modules/moduleScheduler";
+import ClassificationShareCard from "@/components/share/ClassificationShareCard";
 
 interface OnboardingResultsProps {
   firstName: string;
@@ -216,6 +217,9 @@ const OnboardingResults = ({
             </ul>
           </div>
         </div>
+
+        {/* REQ-09 — optional classification share card */}
+        <ClassificationShareCard classificationKey={results.classification.key} />
 
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-foreground text-center">What happens next</h3>

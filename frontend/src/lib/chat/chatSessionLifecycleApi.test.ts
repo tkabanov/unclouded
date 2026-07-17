@@ -86,7 +86,8 @@ describe("resolveSessionOpeningTemplate", () => {
     );
     expect(opening.kind).toBe("first");
     expect(opening.template).toContain("Alex");
-    expect(opening.template).toContain("check in on you");
+    // FINAL Layer 4: stability < 2.5 → Rebuilder opening
+    expect(opening.template).toContain("how things actually feel");
   });
 });
 
