@@ -17,6 +17,8 @@ import ContinueOnboardingBanner from "@/components/dashboard/ContinueOnboardingB
 import ReassessmentDueBanner from "@/components/dashboard/ReassessmentDueBanner";
 import ReassessmentPdfDownloadCard from "@/components/dashboard/ReassessmentPdfDownloadCard";
 import ServicesFloatingPanel from "@/components/dashboard/ServicesFloatingPanel";
+import WebPushRegistrationEffect from "@/components/notifications/WebPushRegistrationEffect";
+import WebPushEnableBannerGate from "@/components/notifications/WebPushEnableBannerGate";
 import { useUserProfile } from "@/lib/userProfile";
 import { isOnboardingComplete } from "@/lib/userProfile/onboardingStatus";
 import {
@@ -31,6 +33,7 @@ function DashboardGreetingRow() {
   return (
     <div className="flex w-full flex-col gap-4">
       <DashboardGreetingCard />
+      <WebPushEnableBannerGate />
       <DashboardQuickActions />
       <DashboardMicroCommitments />
     </div>
@@ -101,6 +104,7 @@ const Dashboard = () => {
           }}
         />
       </DashboardLayout>
+      <WebPushRegistrationEffect />
       <ServicesFloatingPanel />
     </>
   );

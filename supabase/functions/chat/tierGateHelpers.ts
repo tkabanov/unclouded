@@ -52,6 +52,14 @@ export function isFreeTierUser(
   return normalized === "free" || normalized === "explorer" || normalized === "";
 }
 
+/** Layer 10 item 2 — Pro/Premium only; Free gets "Not available on Free tier." */
+export function canAccessSessionMemoryInPrompt(
+  tier: string | null | undefined,
+  subscribed: boolean | null | undefined,
+): boolean {
+  return !isFreeTierUser(tier, subscribed);
+}
+
 export function resolveCurrentTier(
   subscribed: boolean | null | undefined,
   tier: string | null | undefined,

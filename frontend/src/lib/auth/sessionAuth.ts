@@ -2,12 +2,32 @@ import type { Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
 
-export async function clearLocalAuthSession(): Promise<void> {
+function getSupabaseAuthStorageKey(): string | null {
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  if (!url) return null;
+
   try {
-    await supabase.auth.signOut({ scope: "local" });
+    return `sb-${new URL(url).hostname.split(".")[0]}-auth-token`;
   } catch {
-    // Best-effort local wipe even when the server session is already gone.
+    return null;
   }
+}
+
+function forceClearPersistedAuthSession(): void {
+  const storageKey = getSupabaseAuthStorageKey();
+  if (!storageKey || typeof localStorage === "undefined") return;
+
+  try {
+    localStorage.removeItem(storageKey);
+  } catch {
+    // Best-effort wipe when storage is unavailable.
+  }
+}
+
+export async function clearLocalAuthSession(): Promise<void> {
+  await supabase.auth.signOut({ scope: "local" });
+  // Always wipe persisted auth; deleted users can make signOut return 403 without throwing.
+  forceClearPersistedAuthSession();
 }
 
 /** Drop stale client sessions and validate the current user with Supabase Auth. */
@@ -16,20 +36,19 @@ export async function resolveValidatedAuthSession(): Promise<{
   user: User | null;
 }> {
   const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return { session: null, user: null };
+  }
+
+  const {
     data: { user },
     error,
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    await clearLocalAuthSession();
-    return { session: null, user: null };
-  }
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
     await clearLocalAuthSession();
     return { session: null, user: null };
   }

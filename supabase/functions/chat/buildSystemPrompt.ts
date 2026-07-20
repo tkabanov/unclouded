@@ -133,10 +133,10 @@ function resolveLoadModifierBlocks(
   if (caregivingFlag) blocks.push(LOAD_MODIFIERS.caregiving);
 
   const traumaFlag =
-    results.trauma_informed_mode === true ||
-    onboardingData.trauma_flag === true ||
-    loadSignals.trauma_flag === true ||
-    asString(profile.moduleProfile?.traumaActivationLevel, "").toLowerCase() === "active";
+    !isTraumaInformedMode(results) &&
+    (onboardingData.trauma_flag === true ||
+      loadSignals.trauma_flag === true ||
+      asString(profile.moduleProfile?.traumaActivationLevel, "").toLowerCase() === "active");
   if (traumaFlag) blocks.push(LOAD_MODIFIERS.trauma);
 
   const chronicFlag =
@@ -163,6 +163,10 @@ function resolveLiveContext(profile: ProfileData): ChatLiveContext {
   const raw = profile.liveContext;
   if (!raw || typeof raw !== "object") return {};
   return raw;
+}
+
+function isTraumaInformedMode(results: Record<string, unknown>): boolean {
+  return results.trauma_informed_mode === true;
 }
 
 function isLiveContextWired(profile: ProfileData): boolean {
@@ -264,6 +268,7 @@ function buildModuleModifierBlocks(
   onboardingData: Record<string, unknown>,
   modulesCompleted: number,
   moduleProfile?: ProfileData["moduleProfile"],
+  results?: Record<string, unknown>,
 ): string[] {
   const { names, inferredFromCountOnly } = resolveCompletedModules(
     onboardingData,
@@ -272,11 +277,18 @@ function buildModuleModifierBlocks(
   );
   if (names.length === 0) return [];
 
-  const blocks = names
+  let blocks = names
     .map((name) => MODULE_COMPLETE_MODIFIERS[name])
     .filter((block): block is string => Boolean(block));
 
   if (blocks.length === 0) return [];
+
+  if (results?.trauma_informed_mode === true) {
+    blocks = blocks.map((block) => {
+      if (!block.startsWith("Module complete — History & Context:")) return block;
+      return "Module complete — History & Context: If grief load is high, give more time before expecting action.";
+    });
+  }
 
   if (inferredFromCountOnly) {
     blocks.unshift(
@@ -289,10 +301,11 @@ function buildModuleModifierBlocks(
 
 /**
  * Compile the coaching system prompt for a profile.
- * Assembly order (Update Instructions + Build Brief + T-002 GOAL):
- * Philosophy → Safety → Master → General → primary mode → classification →
- * overlays → load/state/fingerprint → flags → incomplete → opening →
- * user data → chat context (Layer 10) → decision/adaptive blocks.
+ * FINAL Assembly Map order:
+ * 0 Philosophy → 1 Safety → 2 Master → 3 General → 4 Mode → 5 Classification →
+ * 6 Load → 7 State → 8 Recovery → 9 Grief → modules → 7b Confidence →
+ * fingerprint → trauma → directed writing → incomplete/opening → user data →
+ * 10 Chat Context → 11 Decision → 12 Adaptive Human Guidance → 13 Tradeoff + Final.
  */
 export function buildSystemPrompt(profile: ProfileData | undefined, context?: string): string {
   const safeProfile = profile ?? {};
@@ -335,12 +348,19 @@ export function buildSystemPrompt(profile: ProfileData | undefined, context?: st
 
   blocks.push(STATE_MODIFIERS[nervousSystem] ?? STATE_MODIFIERS.regulated);
 
+  if (results.recovery_mode_active === true) blocks.push(RECOVERY_PROTOCOL);
+  if (results.grief_mode_active === true) blocks.push(GRIEF_PROTOCOL);
+
+  blocks.push(...buildModuleModifierBlocks(onboardingData, modulesCompleted, safeProfile.moduleProfile, results));
+  const moduleIncompleteProbes = buildModuleIncompleteProbes(safeProfile);
+  if (moduleIncompleteProbes) blocks.push(moduleIncompleteProbes);
+
+  blocks.push(AI_CONFIDENCE_BLOCKS[confidenceLevel]);
+
   const fingerprintModifier = findFingerprintModifier(fingerprint, FINGERPRINT_MODIFIERS);
   if (fingerprintModifier) blocks.push(fingerprintModifier);
 
-  if (results.recovery_mode_active === true) blocks.push(RECOVERY_PROTOCOL);
-  if (results.grief_mode_active === true) blocks.push(GRIEF_PROTOCOL);
-  if (results.trauma_informed_mode === true) blocks.push(TRAUMA_PROTOCOL);
+  if (isTraumaInformedMode(results)) blocks.push(TRAUMA_PROTOCOL);
 
   const liveContext = resolveLiveContext(safeProfile);
   if (liveContext.activePathProgress?.pathSubMode === "directed_writing") {
@@ -350,11 +370,7 @@ export function buildSystemPrompt(profile: ProfileData | undefined, context?: st
   const stabilityNote = buildStabilitySafetyNote(results);
   if (stabilityNote) blocks.push(stabilityNote);
 
-  blocks.push(...buildModuleModifierBlocks(onboardingData, modulesCompleted, safeProfile.moduleProfile));
-  blocks.push(AI_CONFIDENCE_BLOCKS[confidenceLevel]);
   blocks.push(buildIncompleteDataRules(modulesCompleted));
-  const moduleIncompleteProbes = buildModuleIncompleteProbes(safeProfile);
-  if (moduleIncompleteProbes) blocks.push(moduleIncompleteProbes);
   blocks.push(
     buildSessionOpening(
       modes.primary,

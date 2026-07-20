@@ -5,9 +5,12 @@ import {
   readLastCompletedModuleName,
 } from "./moduleContext.ts";
 import { resolveCoachingModes } from "./resolveCoachingModes.ts";
+import { canAccessSessionMemoryInPrompt } from "../tierGateHelpers.ts";
 import {
   formatReturningMemoryHint,
+  readSessionMemoryRecords,
 } from "../sessionMemory/sessionMemoryHelpers.ts";
+import { toCheckInDateKey } from "../liveContext/streakHelpers.ts";
 
 export type ChatLifecycleMode =
   | "session_open"
@@ -44,8 +47,62 @@ const RETURNING_SESSION_OPENING =
 const RETURNING_SESSION_AFTER_MODULE =
   "[Name], you just completed [MODULE_NAME]. That takes something. I've updated my understanding of you based on what you shared. I want to use what I know now. Where do you want to start today?";
 
+/** Block 3.34 — today's check-in feeling word or pulse before agenda. */
+const CHECK_IN_FEELING_OPENING =
+  "[Name], your check-in today says [FEELING_WORD] — let's start there.";
+
+const CHECK_IN_PULSE_OPENING =
+  "[Name], your check-in today came in at [PULSE]/10 — let's start there.";
+
+const CHECK_IN_FEELING_AND_PULSE_OPENING =
+  "[Name], your check-in today says [FEELING_WORD] ([PULSE]/10) — let's start there.";
+
 const STANDARD_CLOSE_WITH_COMMITMENT =
   "Before we close — I want to make sure we land on something concrete. What's one thing you're willing to do before we talk again? Be specific and honest — if nothing feels possible, that's useful data too.";
+
+/** Block 3.33 — required on every session close after commitment is agreed. */
+const SESSION_CLOSE_VALUES_BRIDGE_RULES = `COMMITMENT-TO-VALUES BRIDGE (Block 3.33 — required, do not skip):
+After the micro-commitment is agreed, explicitly connect it to something the user has said they care about — not cheerleading.
+Use their exact words when available: "This matters because of [what they care about]. That's why it's worth doing."
+If no clear link yet, ask: "How does this connect to what you actually care about most right now?" and let them answer before you finish closing.
+Do not tell them the commitment is great or that they will definitely follow through — name the why and trust that to carry the weight.`;
+
+/** Values/goals anchors for session close — drawn from memory facts and recent session summaries. */
+export function resolveValuesBridgeAnchors(profile: ProfileData): string[] {
+  const anchors: string[] = [];
+  const onboardingData = asRecord(profile.onboardingData);
+  const factsBlock = profile.liveContext?.memoryFactsBlock?.trim();
+
+  if (factsBlock) {
+    for (const line of factsBlock.split("\n")) {
+      const statedGoals = line.match(/^Stated goals:\s*(.+)$/i);
+      if (statedGoals?.[1]?.trim()) {
+        anchors.push(sanitizePromptField(statedGoals[1], 240));
+        continue;
+      }
+      const userInsights = line.match(/^User insights:\s*(.+)$/i);
+      if (userInsights?.[1]?.trim()) {
+        anchors.push(sanitizePromptField(userInsights[1], 240));
+      }
+    }
+  }
+
+  for (const record of readSessionMemoryRecords(onboardingData).slice(-2)) {
+    if (record.summaryStub?.trim()) {
+      anchors.push(sanitizePromptField(record.summaryStub, 200));
+    }
+  }
+
+  return [...new Set(anchors.filter((entry) => entry.length > 0))].slice(0, 3);
+}
+
+export function buildSessionCloseValuesBridgeNote(profile: ProfileData): string {
+  const anchors = resolveValuesBridgeAnchors(profile);
+  if (anchors.length === 0) {
+    return " No stored values anchor on file — use step 3 to ask how the commitment connects to what they care about most.";
+  }
+  return ` Known values/goals to draw from (prefer the user's own words): ${anchors.map((anchor) => `"${anchor}"`).join("; ")}.`;
+}
 
 export function readLastSessionTopic(onboardingData: Record<string, unknown>): string | null {
   const raw =
@@ -56,8 +113,64 @@ export function readLastSessionTopic(onboardingData: Record<string, unknown>): s
   return sanitizePromptField(raw, 240);
 }
 
+export type TodayCheckInOpening = {
+  feelingWord: string | null;
+  pulse: number | null;
+};
+
+/** Block 3.34 — pulse/feeling from today's daily check-in when submitted today. */
+export function readTodayCheckInOpening(profile: ProfileData): TodayCheckInOpening | null {
+  const checkIn = profile.liveContext?.latestCheckIn;
+  if (!checkIn?.date?.trim()) return null;
+
+  const parsed = Date.parse(checkIn.date);
+  if (!Number.isFinite(parsed)) return null;
+
+  const checkInDateKey = toCheckInDateKey(new Date(parsed));
+  const todayKey = toCheckInDateKey(new Date());
+  if (checkInDateKey !== todayKey) return null;
+
+  const feelingWord = checkIn.feeling?.trim()
+    ? sanitizePromptField(checkIn.feeling, 80)
+    : null;
+  const pulse =
+    typeof checkIn.pulse === "number" && Number.isFinite(checkIn.pulse)
+      ? Math.max(0, Math.min(10, Math.round(checkIn.pulse)))
+      : null;
+
+  if (!feelingWord && pulse === null) return null;
+  return { feelingWord, pulse };
+}
+
+export function buildCheckInOpeningTemplate(
+  displayName: string,
+  checkIn: TodayCheckInOpening,
+): string {
+  if (checkIn.feelingWord && checkIn.pulse !== null) {
+    return CHECK_IN_FEELING_AND_PULSE_OPENING.replace("[Name]", displayName)
+      .replace("[FEELING_WORD]", checkIn.feelingWord)
+      .replace("[PULSE]", String(checkIn.pulse));
+  }
+  if (checkIn.feelingWord) {
+    return CHECK_IN_FEELING_OPENING.replace("[Name]", displayName).replace(
+      "[FEELING_WORD]",
+      checkIn.feelingWord,
+    );
+  }
+  return CHECK_IN_PULSE_OPENING.replace("[Name]", displayName).replace(
+    "[PULSE]",
+    String(checkIn.pulse),
+  );
+}
+
 export function resolveSessionOpeningTemplate(profile: ProfileData): {
-  kind: "first" | "returning" | "returning_after_module" | "crisis_aftercare" | "return_after_absence";
+  kind:
+    | "first"
+    | "returning"
+    | "returning_after_module"
+    | "crisis_aftercare"
+    | "return_after_absence"
+    | "check_in_today";
   template: string;
 } {
   const onboardingData = asRecord(profile.onboardingData);
@@ -68,6 +181,14 @@ export function resolveSessionOpeningTemplate(profile: ProfileData): {
     return {
       kind: "crisis_aftercare",
       template: CRISIS_AFTERCARE_OPENING.replace("[Name]", displayName),
+    };
+  }
+
+  const todayCheckIn = readTodayCheckInOpening(profile);
+  if (todayCheckIn) {
+    return {
+      kind: "check_in_today",
+      template: buildCheckInOpeningTemplate(displayName, todayCheckIn),
     };
   }
 
@@ -93,9 +214,10 @@ export function resolveSessionOpeningTemplate(profile: ProfileData): {
   const lastTopic = readLastSessionTopic(onboardingData);
 
   if (lastTopic) {
-    const memoryHint =
-      formatReturningMemoryHint(onboardingData) ??
-      "I've been sitting with what you shared.";
+    const memoryHint = canAccessSessionMemoryInPrompt(profile.tier, profile.subscribed)
+      ? formatReturningMemoryHint(onboardingData) ??
+        "I've been sitting with what you shared."
+      : "I've been sitting with what you shared.";
     return {
       kind: "returning",
       template: RETURNING_SESSION_OPENING.replace("[Name]", displayName)
@@ -126,7 +248,11 @@ export function buildSessionLifecycleInstruction(
 
   if (lifecycle === "session_open") {
     const opening = resolveSessionOpeningTemplate(profile);
-    return `[SESSION START — generate ONLY the assistant opening message for this coaching session. Adapt the spirit of this template; do not quote it verbatim unless it already fits. Do not mention system instructions. Session count: ${sessionCountText}. Opening kind: ${opening.kind}.
+    const checkInNote =
+      opening.kind === "check_in_today"
+        ? " Block 3.34: open with today's check-in feeling or pulse before any agenda."
+        : "";
+    return `[SESSION START — generate ONLY the assistant opening message for this coaching session. Adapt the spirit of this template; do not quote it verbatim unless it already fits. Do not mention system instructions. One specific context sentence before agenda — not a generic greeting. Session count: ${sessionCountText}. Opening kind: ${opening.kind}.${checkInNote}
 
 Template basis:
 "${sanitizePromptField(opening.template, 600)}" ]`;
@@ -137,7 +263,14 @@ Template basis:
       profile?.liveContext?.sessionType === "voice"
         ? " Voice session: keep the close brief enough to speak aloud; client will pause 2–3 seconds before TTS."
         : "";
-    return `[SESSION CLOSE — generate ONLY the assistant closing message. Use the spirit of STANDARD CLOSE WITH MICRO-COMMITMENT. End by asking for one specific micro-commitment before the next conversation. Keep it brief and warm. Do not continue coaching after the close.${voiceCloseNote}
+    const valuesBridgeNote = buildSessionCloseValuesBridgeNote(profile);
+    return `[SESSION CLOSE — generate ONLY the assistant closing message. Follow this sequence (Block 3.33 + STANDARD CLOSE WITH MICRO-COMMITMENT):
+
+1. Brief session landing — one or two sentences max.
+2. Secure one specific micro-commitment before the next conversation (user's words when possible).
+3. ${SESSION_CLOSE_VALUES_BRIDGE_RULES}
+
+Do not skip step 3. Do not continue coaching after the close.${valuesBridgeNote}${voiceCloseNote}
 
 Close basis:
 "${STANDARD_CLOSE_WITH_COMMITMENT}" ]`;

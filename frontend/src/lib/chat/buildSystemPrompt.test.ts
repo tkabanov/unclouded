@@ -329,6 +329,62 @@ describe("buildSystemPrompt", () => {
     expect(after).toContain("Relational Blueprint incomplete");
   });
 
+  it("follows FINAL Assembly Map layer order through chat context", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        results: {
+          ...baseProfile().results,
+          recovery_mode_active: true,
+          grief_mode_active: true,
+          trauma_informed_mode: true,
+        },
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          behavioralFingerprint: "Driver / Depletion Risk",
+          modules_completed_count_number: 1,
+        },
+        moduleProfile: {
+          moduleIdentityComplete: true,
+          modulesCompletedCount: 1,
+        },
+        liveContext: {
+          activePathProgress: {
+            pathName: "The Unsent Letter",
+            pathSubMode: "directed_writing",
+            status: "active",
+            completedSessionsCount: 1,
+            totalSessionsCount: 4,
+            hasActivePaths: true,
+          },
+        },
+      }),
+    );
+
+    const state = prompt.indexOf("NERVOUS SYSTEM STATE:");
+    const recovery = prompt.indexOf("RECOVERY MODE ACTIVE");
+    const grief = prompt.indexOf("GRIEF MODE ACTIVE");
+    const moduleComplete = prompt.indexOf("Module complete — Identity Lens");
+    const confidence = prompt.indexOf("AI CONFIDENCE LEVEL MODIFIER");
+    const fingerprint = prompt.indexOf("This person pushes through regardless of cost");
+    const trauma = prompt.indexOf("Trauma-informed mode is active");
+    const directedWriting = prompt.indexOf("DIRECTED WRITING PATH ACTIVE");
+    const userData = prompt.indexOf("USER PROFILE DATA");
+    const chatContext = prompt.indexOf("CHAT CONTEXT (Layer 10");
+    const decision = prompt.indexOf("DECISION INTELLIGENCE");
+
+    expect(state).toBeGreaterThanOrEqual(0);
+    expect(recovery).toBeGreaterThan(state);
+    expect(grief).toBeGreaterThan(recovery);
+    expect(moduleComplete).toBeGreaterThan(grief);
+    expect(confidence).toBeGreaterThan(moduleComplete);
+    expect(fingerprint).toBeGreaterThan(confidence);
+    expect(trauma).toBeGreaterThan(fingerprint);
+    expect(directedWriting).toBeGreaterThan(trauma);
+    expect(userData).toBeGreaterThan(directedWriting);
+    expect(chatContext).toBeGreaterThan(userData);
+    expect(decision).toBeGreaterThan(chatContext);
+  });
+
   it("places decision/adaptive blocks after user data and chat context", () => {
     const prompt = buildSystemPrompt(baseProfile());
     const userData = prompt.indexOf("USER PROFILE DATA");
@@ -371,9 +427,24 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("exchange_count: 8");
   });
 
+  it("injects mid-cycle life-event flag in Layer 10 section 11", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        liveContext: {
+          significantLifeEventFlag: true,
+        },
+      }),
+    );
+    expect(prompt).toContain("11. EARLY REASSESSMENT FLAG");
+    expect(prompt).toContain("mid-cycle state check");
+    expect(prompt).not.toContain("No early reassessment trigger flagged.");
+  });
+
   it("injects session-flagged unresolved threads in Layer 10 section 4", () => {
     const prompt = buildSystemPrompt(
       baseProfile({
+        tier: "pro",
+        subscribed: true,
         onboardingData: {
           chat_session_memory: [
             {
@@ -633,9 +704,10 @@ describe("buildSystemPrompt", () => {
           chat_session_memory: [
             {
               conversationId: "c1",
-              closedAt: "2026-07-01",
+              closedAt: "2026-07-10T18:00:00.000Z",
               topic: "sleep",
               summaryStub: "Named poor sleep patterns.",
+              unresolvedThread: "whether to tell their manager",
             },
           ],
         },
@@ -645,6 +717,7 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("2. MOST RECENT SESSION MEMORY");
     expect(prompt).toContain("Not available on Free tier.");
     expect(prompt).not.toContain("Theme — sleep");
+    expect(prompt).not.toContain("Unresolved from 2026-07-10: whether to tell their manager.");
   });
 
   it("includes active path progress in chat context section 6", () => {
@@ -779,7 +852,58 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("grief_load_level=moderate");
     expect(prompt).toContain("significant_events_12mo=major_loss");
     expect(prompt).toContain("Trauma-informed mode is active");
+    expect(prompt).not.toContain("TRAUMA FLAG ACTIVE");
+    expect(prompt).not.toContain("If trauma activation is active");
     expect(prompt).not.toContain("Death of someone significant");
+  });
+
+  it("uses FINAL Layer 6 trauma load flag only when trauma_informed_mode is off", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        results: {
+          ...(baseProfile().results as Record<string, unknown>),
+          trauma_informed_mode: false,
+        },
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          loadSignals: {
+            ...(baseProfile().onboardingData as Record<string, unknown>).loadSignals as Record<string, unknown>,
+            trauma_flag: true,
+          },
+        },
+      }),
+    );
+
+    expect(prompt).toContain("TRAUMA FLAG ACTIVE");
+    expect(prompt).not.toContain("Trauma-informed mode is active");
+  });
+
+  it("does not duplicate trauma guidance when trauma_informed_mode is on", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        results: {
+          ...(baseProfile().results as Record<string, unknown>),
+          trauma_informed_mode: true,
+        },
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          trauma_flag: true,
+          loadSignals: {
+            ...(baseProfile().onboardingData as Record<string, unknown>).loadSignals as Record<string, unknown>,
+            trauma_flag: true,
+          },
+        },
+        moduleProfile: {
+          moduleHistoryComplete: true,
+          traumaActivationLevel: "active",
+          modulesCompletedCount: 1,
+        },
+      }),
+    );
+
+    expect(prompt).toContain("Trauma-informed mode is active");
+    expect(prompt).not.toContain("TRAUMA FLAG ACTIVE");
+    expect(prompt).not.toContain("If trauma activation is active");
   });
 
   it("includes Financial Reality complete modifier and incomplete probe", () => {

@@ -185,6 +185,10 @@ export function buildReassessmentModuleRefreshPatch(
     moduleSchedules: schedules,
     onboardingDataPatch: {
       significant_shift_flag: significantDeltas.length > 0 ? "yes" : "no",
+      significant_life_event_flag: false,
+      significantLifeEventFlag: false,
+      significant_life_event_cleared_at: now.toISOString(),
+      significant_life_event_cleared_reason: "reassessment_90d",
     },
     refreshOfferedSlugs,
     acceleratedSlugs: [...new Set<ModuleSlug>([...lockedSlugs, ...scoreDropSlugs])],
@@ -213,6 +217,9 @@ export function buildLifeEventModuleRefreshPatch(
     onboardingDataPatch: {
       last_life_event_type: eventType,
       last_life_event_at: now.toISOString(),
+      significant_life_event_flag: true,
+      significantLifeEventFlag: true,
+      significant_life_event_source: "profile_life_event",
     },
     refreshOfferedSlugs: completedSlugs,
     acceleratedSlugs: lockedSlugs,

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildVulnerableOutreachEmailHtml,
+  buildVulnerableOutreachPushPayload,
   isInactiveForOutreach,
   isOutreachCooldownExpired,
   isVulnerableProfile,
@@ -10,7 +11,7 @@ import {
   VULNERABLE_OUTREACH_INACTIVE_DAYS,
   VULNERABLE_OUTREACH_MESSAGE,
   type VulnerableOutreachProfileRow,
-} from "../../../../supabase/functions/_shared/vulnerableOutreachLogic.ts";
+} from "@/lib/notifications/vulnerableOutreachLogic";
 
 const NOW = Date.parse("2026-07-20T12:00:00.000Z");
 
@@ -103,5 +104,12 @@ describe("vulnerableOutreachLogic", () => {
     });
     expect(html).toContain(VULNERABLE_OUTREACH_MESSAGE);
     expect(html).toContain("Hi Sam");
+  });
+
+  it("uses REQ-07 copy in push payload", () => {
+    const payload = buildVulnerableOutreachPushPayload("https://uncloud360.ai");
+    expect(payload.body).toBe(VULNERABLE_OUTREACH_MESSAGE);
+    expect(payload.title).toBe("Uncloud360");
+    expect(payload.url).toContain("/dashboard");
   });
 });

@@ -91,9 +91,9 @@ export default function AdminPromptTestSuite() {
             </p>
           ) : (
             <p className="text-xs text-amber-800 dark:text-amber-200">
-              Staging not configured — set VITE_PROMPT_TEST_SUPABASE_URL and
-              VITE_PROMPT_TEST_SUPABASE_PUBLISHABLE_KEY. Prompt tests are blocked so production chat
-              is not used.
+              Staging not configured — set VITE_PROMPT_TEST_SUPABASE_URL,
+              VITE_PROMPT_TEST_SUPABASE_PUBLISHABLE_KEY, and VITE_PROMPT_TEST_CHAT_FUNCTION=chat-staging
+              (see frontend/.env.development). Tests stay blocked so production chat is not used.
             </p>
           )}
           <div className="flex flex-wrap gap-2">

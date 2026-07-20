@@ -97,6 +97,8 @@ describe("moduleRefresh", () => {
     expect(patch.acceleratedSlugs).toContain("body");
     expect(patch.acceleratedSlugs.length).toBeGreaterThan(1);
     expect(patch.onboardingDataPatch.significant_shift_flag).toBe("no");
+    expect(patch.onboardingDataPatch.significant_life_event_flag).toBe(false);
+    expect(patch.onboardingDataPatch.significantLifeEventFlag).toBe(false);
     expect(patch.moduleSchedules.identity?.refreshReason).toBe("reassessment_90d");
   });
 
@@ -128,6 +130,8 @@ describe("moduleRefresh", () => {
     expect(patch.refreshOfferedSlugs).toEqual(["history"]);
     expect(patch.acceleratedSlugs).toEqual(["meaning"]);
     expect(patch.onboardingDataPatch.last_life_event_type).toBe("loss_or_grief");
+    expect(patch.onboardingDataPatch.significant_life_event_flag).toBe(true);
+    expect(patch.onboardingDataPatch.significantLifeEventFlag).toBe(true);
   });
 
   it("builds user-initiated refresh only for completed slugs", () => {

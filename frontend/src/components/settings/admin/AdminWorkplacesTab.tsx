@@ -4,6 +4,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AddWorkplacePopup from "@/components/settings/admin/AddWorkplacePopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
+import AdminManagerDirectReportsPanel from "@/components/settings/admin/AdminManagerDirectReportsPanel";
+import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
+import ManagerTeamAggregatePanel from "@/components/employer/ManagerTeamAggregatePanel";
 import {
   createAdminWorkplace,
   deleteAdminWorkplace,
@@ -20,8 +23,10 @@ import {
   fetchManagerAggregate,
   type ManagerAggregateSnapshot,
 } from "@/lib/employer/managerAggregateApi";
-import EmployerTrendSparkline from "@/components/employer/EmployerTrendSparkline";
-import ManagerTeamAggregatePanel from "@/components/employer/ManagerTeamAggregatePanel";
+import {
+  listWorkplaceMembers,
+  type WorkplaceMemberOption,
+} from "@/lib/employer/managerDirectReportApi";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -35,8 +40,18 @@ export default function AdminWorkplacesTab() {
   const [editWorkplace, setEditWorkplace] = useState<AdminWorkplaceRecord | null>(null);
   const [busy, setBusy] = useState(false);
   const [metricsById, setMetricsById] = useState<Record<string, EmployerMetricSnapshot>>({});
+  const [metricsLoadingById, setMetricsLoadingById] = useState<Record<string, boolean>>({});
   const [managerAggregateById, setManagerAggregateById] = useState<
     Record<string, ManagerAggregateSnapshot>
+  >({});
+  const [managerAggregateLoadingById, setManagerAggregateLoadingById] = useState<
+    Record<string, boolean>
+  >({});
+  const [managerOptionsByWorkplace, setManagerOptionsByWorkplace] = useState<
+    Record<string, WorkplaceMemberOption[]>
+  >({});
+  const [selectedManagerByWorkplace, setSelectedManagerByWorkplace] = useState<
+    Record<string, string>
   >({});
 
   const popupOpen = addOpen || editWorkplace !== null;
@@ -68,6 +83,55 @@ export default function AdminWorkplacesTab() {
       cancelled = true;
     };
   }, [reload, user]);
+
+  const loadManagerAggregate = useCallback((workplace: AdminWorkplaceRecord) => {
+    const managerUserId = selectedManagerByWorkplace[workplace.workplaceId];
+    if (!managerUserId) {
+      toast.error("Select a manager with direct report links first.");
+      return;
+    }
+
+    setManagerAggregateLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: true }));
+    void fetchManagerAggregate({ managerUserId })
+      .then((snapshot) => {
+        setManagerAggregateById((prev) => ({ ...prev, [workplace.workplaceId]: snapshot }));
+      })
+      .catch((err) =>
+        toast.error(err instanceof Error ? err.message : "Couldn't load manager aggregate."),
+      )
+      .finally(() => {
+        setManagerAggregateLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: false }));
+      });
+  }, [selectedManagerByWorkplace]);
+
+  const loadManagerOptions = useCallback((workplaceId: string) => {
+    void listWorkplaceMembers(workplaceId)
+      .then((members) => {
+        const managers = members.filter((member) => member.managesATeam);
+        setManagerOptionsByWorkplace((prev) => ({ ...prev, [workplaceId]: managers }));
+      })
+      .catch(() => toast.error("Couldn't load workplace managers."));
+  }, []);
+
+  const loadMetrics = useCallback((workplace: AdminWorkplaceRecord) => {
+    if (!workplace.metricsReady) {
+      toast.error(
+        "Continuous metrics need a database workplace. Delete this local row and add the workplace again.",
+      );
+      return;
+    }
+    setMetricsLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: true }));
+    void fetchEmployerMetrics(workplace.workplaceId)
+      .then((snapshot) => {
+        setMetricsById((prev) => ({ ...prev, [workplace.workplaceId]: snapshot }));
+      })
+      .catch((err) =>
+        toast.error(err instanceof Error ? err.message : "Couldn't load employer metrics."),
+      )
+      .finally(() => {
+        setMetricsLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: false }));
+      });
+  }, []);
 
   const handleSave = useCallback(
     async (form: Parameters<typeof createAdminWorkplace>[1]) => {
@@ -159,85 +223,58 @@ export default function AdminWorkplacesTab() {
                 type="button"
                 size="sm"
                 variant="outline"
-                disabled={busy}
-                onClick={() => {
-                  void fetchEmployerMetrics(workplace.workplaceId)
-                    .then((snapshot) => {
-                      setMetricsById((prev) => ({
-                        ...prev,
-                        [workplace.workplaceId]: snapshot,
-                      }));
-                    })
-                    .catch(() => toast.error("Couldn't load employer metrics."));
-                }}
+                disabled={busy || metricsLoadingById[workplace.workplaceId]}
+                onClick={() => loadMetrics(workplace)}
               >
                 Continuous metrics
               </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={() => {
-                  void fetchManagerAggregate(workplace.workplaceId)
-                    .then((snapshot) => {
-                      setManagerAggregateById((prev) => ({
-                        ...prev,
-                        [workplace.workplaceId]: snapshot,
-                      }));
-                    })
-                    .catch(() => toast.error("Couldn't load manager aggregate."));
-                }}
-              >
-                Manager aggregate (REQ-11)
-              </Button>
-              {metricsById[workplace.workplaceId] ? (
-                <div className="flex flex-col gap-3 text-xs text-muted-foreground">
-                  {metricsById[workplace.workplaceId].suppressed ? (
-                    <p>
-                      Cohort {metricsById[workplace.workplaceId].cohortSize} — metrics hidden until ≥
-                      5 enrolled.
-                    </p>
-                  ) : (
-                    <>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <p className="mb-1 font-medium text-foreground">Avg pulse by week</p>
-                          <EmployerTrendSparkline
-                            points={metricsById[workplace.workplaceId].pulseByWeek}
-                            minValue={1}
-                            maxValue={10}
-                          />
-                          <p className="mt-1">
-                            30d avg {metricsById[workplace.workplaceId].averagePulse ?? "n/a"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="mb-1 font-medium text-foreground">
-                            Sessions per active user / week
-                          </p>
-                          <EmployerTrendSparkline
-                            points={metricsById[workplace.workplaceId].sessionsPerActiveUserByWeek}
-                            minValue={0}
-                            maxValue={5}
-                          />
-                          <p className="mt-1">
-                            30d enrolled avg {metricsById[workplace.workplaceId].sessionsPerUser ?? "n/a"}
-                          </p>
-                        </div>
-                      </div>
-                      <p>
-                        Path engagement{" "}
-                        {metricsById[workplace.workplaceId].pathEngagementPercent ?? "n/a"}% · Active
-                        in last 30 days {metricsById[workplace.workplaceId].activeUsersPercent ?? "n/a"}%
-                      </p>
-                    </>
-                  )}
-                </div>
+              {workplace.metricsReady ? (
+                <AdminManagerDirectReportsPanel workplaceId={workplace.workplaceId} disabled={busy} />
               ) : null}
-              {managerAggregateById[workplace.workplaceId] ? (
+              <div className="flex flex-col gap-2">
+                <label className="flex flex-col gap-1 text-xs">
+                  <span className="font-medium">Manager preview (REQ-11)</span>
+                  <select
+                    className="rounded-md border border-input bg-background px-2 py-1.5"
+                    value={selectedManagerByWorkplace[workplace.workplaceId] ?? ""}
+                    disabled={busy || !workplace.metricsReady}
+                    onFocus={() => loadManagerOptions(workplace.workplaceId)}
+                    onChange={(event) =>
+                      setSelectedManagerByWorkplace((prev) => ({
+                        ...prev,
+                        [workplace.workplaceId]: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Select manager…</option>
+                    {(managerOptionsByWorkplace[workplace.workplaceId] ?? []).map((member) => (
+                      <option key={member.userId} value={member.userId}>
+                        {member.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={busy || managerAggregateLoadingById[workplace.workplaceId]}
+                  onClick={() => loadManagerAggregate(workplace)}
+                >
+                  Manager aggregate (REQ-11)
+                </Button>
+              </div>
+              {metricsById[workplace.workplaceId] || metricsLoadingById[workplace.workplaceId] ? (
+                <EmployerContinuousMetricsPanel
+                  metrics={metricsById[workplace.workplaceId] ?? null}
+                  loading={metricsLoadingById[workplace.workplaceId]}
+                />
+              ) : null}
+              {managerAggregateById[workplace.workplaceId] ||
+              managerAggregateLoadingById[workplace.workplaceId] ? (
                 <ManagerTeamAggregatePanel
-                  snapshot={managerAggregateById[workplace.workplaceId]}
+                  snapshot={managerAggregateById[workplace.workplaceId] ?? null}
+                  loading={managerAggregateLoadingById[workplace.workplaceId]}
                 />
               ) : null}
               <div

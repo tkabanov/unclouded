@@ -91,7 +91,8 @@ Edge function: `supabase/functions/vulnerable-outreach`.
 - Daily cohort: profiles with `grief_mode_active` or `recovery_mode_active` in `results`, onboarding complete, **≥10 days** since last `chatConversation` activity (or since onboarding if never chatted).
 - Copy: **"Kota is here when you're ready."** — warm, low-pressure; no missed-session guilt framing.
 - Frequency cap: **once per 7 days** via `vulnerableOutreachEmailedAt`.
-- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); push is not wired yet (`push: skipped` in response).
+- **Channel:** Web Push when the user has a registered subscription and `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` are set on the edge function; otherwise Resend email when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`). Expired push subscriptions (410/404) are removed automatically; email is used as fallback.
+- Frontend registers subscriptions via `register-push-subscription` edge fn + `public/push-sw.js` (env: `VITE_VAPID_PUBLIC_KEY`).
 - Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <VULNERABLE_OUTREACH_CRON_SECRET>`.
 
 **Schedule (live on project `szkextipgpupqoppccoy`):** `pg_cron` job `daily-vulnerable-outreach` at **14:00 UTC** → `public.invoke_scheduled_edge_function('vulnerable-outreach')` (vault: `project_url` + `edge_cron_service_role_key`). Migration: `20260720120000_scheduled_edge_cron_jobs.sql`.

@@ -9,10 +9,13 @@ import {
   MessageSquare,
   ChevronDown,
   LifeBuoy,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useUserProfile } from "@/lib/userProfile";
+import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
+import { EMPLOYER_PORTAL_ROUTE } from "@/lib/employer/routes";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -44,6 +47,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { profile } = useUserProfile();
+  const { isHrContact } = useHrWorkplaces();
   const [crisisOpen, setCrisisOpen] = useState(false);
 
   const classificationName = profile?.results?.classification?.name;
@@ -102,6 +106,21 @@ export function AppSidebar() {
                 {!collapsed && <span>{item.title}</span>}
               </NavLink>
             ))}
+            {isHrContact ? (
+              <NavLink
+                to={EMPLOYER_PORTAL_ROUTE}
+                data-style-ref="Link_nav_"
+                title="Employer portal"
+                className={cn(
+                  bubbleStyle("Link_nav_"),
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+                  collapsed && "w-9 justify-center px-0",
+                )}
+              >
+                <BarChart3 className="h-4 w-4 shrink-0" aria-hidden />
+                {!collapsed && <span>Employer portal</span>}
+              </NavLink>
+            ) : null}
           </nav>
         </div>
       </SidebarHeader>

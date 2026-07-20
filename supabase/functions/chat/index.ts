@@ -1,4 +1,5 @@
 import { convertToModelMessages, generateText, streamText, type UIMessage } from "npm:ai";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { createChatModel } from "../_shared/openai-provider.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { buildSystemPrompt, type ProfileData } from "./buildSystemPrompt.ts";
@@ -39,6 +40,8 @@ import {
 } from "./prompt/conversationTitle.ts";
 import { extractAllUserTexts, buildSessionTranscript } from "./crisisDetect.ts";
 import { handleVoiceTranscribe, handleVoiceTts, resolveVoiceRoute } from "./voice/voiceEdgeHandlers.ts";
+import { detectSignificantLifeEventInThread } from "./significantLifeEventDetect.ts";
+import { persistSignificantLifeEventFlag } from "./persistSignificantLifeEventFlag.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,6 +82,36 @@ function sessionOpenMessages(): UIMessage[] {
       parts: [{ type: "text", text: "[SESSION START]" }],
     },
   ];
+}
+
+async function applySignificantLifeEventDisclosureIfNeeded(
+  supabase: SupabaseClient,
+  userId: string,
+  profileData: ProfileData,
+  messages: UIMessage[],
+  extraText?: string,
+): Promise<void> {
+  if (!detectSignificantLifeEventInThread(messages, extraText)) return;
+
+  const persisted = await persistSignificantLifeEventFlag(
+    supabase,
+    userId,
+    profileData.onboardingData ?? {},
+    "session_disclosure",
+  );
+
+  if (persisted) {
+    profileData.onboardingData = {
+      ...(profileData.onboardingData ?? {}),
+      significant_life_event_flag: true,
+      significantLifeEventFlag: true,
+    };
+    if (profileData.liveContext) {
+      profileData.liveContext.significantLifeEventFlag = true;
+    }
+  } else if (profileData.liveContext) {
+    profileData.liveContext.significantLifeEventFlag = true;
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -243,6 +276,14 @@ Deno.serve(async (req: Request) => {
         profileData.liveContext.exchangeCount = extractAllUserTexts(uiMessages).length;
       }
     }
+
+    await applySignificantLifeEventDisclosureIfNeeded(
+      supabase,
+      user.id,
+      profileData,
+      uiMessages,
+      context,
+    );
 
     const crisisLevel =
       classifyCrisisInThread(uiMessages, context) ??

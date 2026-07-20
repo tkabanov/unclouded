@@ -8,10 +8,11 @@
  *
  * Copy: "Kota is here when you're ready." — warm, no guilt framing.
  * Cap: once per 7 days per user (`vulnerableOutreachEmailedAt`).
- * Push: not wired — email when RESEND_API_KEY is set; push logged as skipped.
+ * Channel: Web Push when user has an active subscription + VAPID configured; else Resend email.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { deliverVulnerableOutreach } from "../_shared/vulnerableOutreachDelivery.ts";
 import {
   buildVulnerableOutreachEmailHtml,
   isInactiveForOutreach,
@@ -19,6 +20,11 @@ import {
   VULNERABLE_OUTREACH_EMAIL_SUBJECT,
   type VulnerableOutreachProfileRow,
 } from "../_shared/vulnerableOutreachLogic.ts";
+import {
+  isWebPushConfigured,
+  sendWebPushToSubscription,
+  type PushSubscriptionRow,
+} from "../_shared/webPushDelivery.ts";
 
 const FROM_ADDRESS = "noreply@uncloud360.ai";
 
@@ -79,7 +85,7 @@ async function sendOutreachEmail(params: {
     return { ok: false, detail: `resend_error: ${res.status} ${text}` };
   }
 
-  return { ok: true, detail: "sent" };
+  return { ok: true, detail: "smtp:sent" };
 }
 
 Deno.serve(async (req) => {
@@ -102,8 +108,10 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(supabaseUrl, serviceKey);
+  const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
   const nowMs = Date.now();
   const nowIso = new Date(nowMs).toISOString();
+  const pushConfigured = isWebPushConfigured();
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
@@ -123,10 +131,13 @@ Deno.serve(async (req) => {
   );
 
   const stamped: string[] = [];
-  const sendResults: Array<{ userId: string; detail: string }> = [];
+  const sendResults: Array<{ userId: string; detail: string; channel?: string }> = [];
   let sentCount = 0;
+  let pushSentCount = 0;
+  let emailSentCount = 0;
   let skippedSmtp = 0;
   let skippedInactive = 0;
+  let expiredSubscriptionsRemoved = 0;
 
   for (const candidate of preCandidates) {
     const { data: lastSession, error: sessionError } = await supabase
@@ -161,21 +172,57 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    let detail = "push:skipped — no mobile push infrastructure";
-    if (candidate.email) {
-      const emailResult = await sendOutreachEmail({
-        to: candidate.email,
-        firstName: candidate.firstName,
-      });
-      detail = emailResult.detail;
-      if (emailResult.ok) sentCount += 1;
-      else if (detail.includes("smtp:skipped")) skippedSmtp += 1;
-    } else {
-      detail = "smtp:skipped — no email on profile; push:skipped — no mobile push infrastructure";
+    let subscriptions: PushSubscriptionRow[] = [];
+    if (pushConfigured) {
+      const { data: subscriptionRows, error: subscriptionError } = await supabase
+        .from("pushDeviceSubscription")
+        .select("id, endpoint, p256dh, auth")
+        .eq("userId", candidate.id);
+
+      if (subscriptionError) {
+        sendResults.push({
+          userId: candidate.id,
+          detail: `push_lookup_error: ${subscriptionError.message}`,
+        });
+        continue;
+      }
+
+      subscriptions = (subscriptionRows ?? []) as PushSubscriptionRow[];
+    }
+
+    const delivery = await deliverVulnerableOutreach({
+      email: candidate.email,
+      firstName: candidate.firstName,
+      subscriptions,
+      appUrl,
+      sendPush: sendWebPushToSubscription,
+      sendEmail: sendOutreachEmail,
+    });
+
+    if (delivery.expiredSubscriptionIds.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("pushDeviceSubscription")
+        .delete()
+        .in("id", delivery.expiredSubscriptionIds);
+
+      if (!deleteError) {
+        expiredSubscriptionsRemoved += delivery.expiredSubscriptionIds.length;
+      }
+    }
+
+    if (delivery.ok) {
+      sentCount += 1;
+      if (delivery.channel === "web-push") pushSentCount += 1;
+      if (delivery.channel === "email") emailSentCount += 1;
+    } else if (delivery.detail.includes("smtp:skipped")) {
       skippedSmtp += 1;
     }
 
-    sendResults.push({ userId: candidate.id, detail });
+    sendResults.push({
+      userId: candidate.id,
+      channel: delivery.channel,
+      detail: delivery.detail,
+    });
 
     const { error: updateError } = await supabase
       .from("profiles")
@@ -193,11 +240,14 @@ Deno.serve(async (req) => {
     preCandidateCount: preCandidates.length,
     stampedCount: stamped.length,
     sentCount,
+    pushSentCount,
+    emailSentCount,
     skippedInactive,
     skippedSmtp,
+    expiredSubscriptionsRemoved,
     userIds: stamped,
     sendResults,
     smtp: Deno.env.get("RESEND_API_KEY") ? "resend" : "skipped",
-    push: "skipped",
+    push: pushConfigured ? "web-push" : "skipped",
   });
 });

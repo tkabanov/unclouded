@@ -72,8 +72,9 @@ export function SettingsWorkplaceAggregateOptInSection() {
       <header className="space-y-1">
         <h2 className={bubbleStyle("Text_heading_2_")}>Workplace team aggregate</h2>
         <p className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}>
-          If your organization enables manager wellbeing views, you can choose whether your
-          anonymized data may be included. Managers never see individual scores or who opted in.
+          If your manager enables team wellbeing views, you can choose whether your anonymized
+          data may be included in their direct-report aggregate. Managers never see individual
+          scores or who opted in.
         </p>
       </header>
 
@@ -83,7 +84,7 @@ export function SettingsWorkplaceAggregateOptInSection() {
             Include my anonymized data
           </Label>
           <p className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}>
-            Aggregates appear only when at least five people opt in.
+            Aggregates appear only when at least five direct reports opt in.
           </p>
         </div>
         <Switch
@@ -103,34 +104,15 @@ export function SettingsManagerTeamAggregateSection({
   managesATeam: boolean | null;
 }) {
   const { user } = useAuth();
-  const [workplaceId, setWorkplaceId] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<ManagerAggregateSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user || managesATeam !== true) return;
     let cancelled = false;
-
-    void loadWorkplaceMemberSettings(user.id)
-      .then((loaded) => {
-        if (cancelled) return;
-        setWorkplaceId(loaded.workplaceId);
-      })
-      .catch(() => {
-        if (!cancelled) toast.error("Couldn't load manager team settings.");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [managesATeam, user]);
-
-  useEffect(() => {
-    if (!workplaceId) return;
-    let cancelled = false;
     setLoading(true);
 
-    void fetchManagerAggregate(workplaceId)
+    void fetchManagerAggregate()
       .then((data) => {
         if (!cancelled) setSnapshot(data);
       })
@@ -144,9 +126,9 @@ export function SettingsManagerTeamAggregateSection({
     return () => {
       cancelled = true;
     };
-  }, [workplaceId]);
+  }, [managesATeam, user]);
 
-  if (managesATeam !== true || !workplaceId) {
+  if (managesATeam !== true) {
     return null;
   }
 

@@ -381,7 +381,7 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
     id: "notification_vulnerable_outreach",
     name: "Vulnerable user re-engagement",
     trigger:
-      "grief_mode_active or recovery_mode_active + ≥10 days since last session; daily cron → edge fn vulnerable-outreach",
+      "grief_mode_active or recovery_mode_active + ≥10 days since last session; daily cron → edge fn vulnerable-outreach (Web Push preferred, email fallback)",
     subject: "Kota is here when you're ready",
     priority: "high",
     channel: "edge_smtp",

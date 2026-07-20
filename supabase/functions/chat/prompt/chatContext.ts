@@ -14,7 +14,7 @@ import {
   buildCompressedSessionMemorySectionLines,
   readSessionArcSummary,
 } from "../sessionMemory/sessionArcSummary.ts";
-import { isFreeTierUser } from "../tierGateHelpers.ts";
+import { canAccessSessionMemoryInPrompt } from "../tierGateHelpers.ts";
 import { buildAboutYouContextBlock } from "./aboutYouContext.ts";
 import {
   asNumberText,
@@ -85,7 +85,7 @@ function buildRecentSessionMemorySection(
   liveContext?: ChatLiveContext,
   commitmentContext?: ReturnType<typeof buildCommitmentResolutionContext>,
 ): string[] {
-  if (isFreeTierUser(tier, subscribed)) {
+  if (!canAccessSessionMemoryInPrompt(tier, subscribed)) {
     return ["Not available on Free tier."];
   }
 
@@ -197,9 +197,15 @@ function buildActiveCommitmentSection(
 function buildUnresolvedThreadsSection(
   onboardingData: Record<string, unknown>,
   liveContext: ChatLiveContext,
+  tier?: string | null,
+  subscribed?: boolean | null,
 ): string[] {
+  const sessionRecords = canAccessSessionMemoryInPrompt(tier, subscribed)
+    ? readSessionMemoryRecords(onboardingData)
+    : [];
+
   return buildUnresolvedThreadsSectionLines({
-    sessionRecords: readSessionMemoryRecords(onboardingData),
+    sessionRecords,
     latestReassessment: liveContext.latestReassessment ?? null,
   });
 }
@@ -392,7 +398,12 @@ export function buildChatContextBlock(profile: ProfileData): string {
     ),
     "",
     "4. UNRESOLVED THREADS (if flagged in previous session)",
-    ...buildUnresolvedThreadsSection(onboardingData, liveContext).map((line) => `   ${line}`),
+    ...buildUnresolvedThreadsSection(
+      onboardingData,
+      liveContext,
+      profile.tier,
+      profile.subscribed,
+    ).map((line) => `   ${line}`),
     "",
     "5. USER PROFILE CONTEXT (populated fields only)",
     ...buildUserProfileContextSection(profile).map((line) => `   ${line}`),

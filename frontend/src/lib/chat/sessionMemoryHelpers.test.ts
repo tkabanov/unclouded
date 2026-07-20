@@ -126,4 +126,23 @@ describe("sessionMemoryHelpers", () => {
     expect(hint).toContain("still open");
     expect(hint).toContain("manager about workload");
   });
+
+  it("returns Free tier message in legacy prompt block", () => {
+    const prompt = buildSessionMemoryPromptBlock(
+      {
+        chat_session_memory: [
+          {
+            conversationId: "c1",
+            closedAt: "2026-07-01",
+            topic: "sleep",
+            summaryStub: "Named poor sleep patterns.",
+          },
+        ],
+      },
+      "free",
+      false,
+    );
+
+    expect(prompt).toBe("SESSION MEMORY (Phase 2): not available on Free tier.");
+  });
 });

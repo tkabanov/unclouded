@@ -6,6 +6,7 @@ import Chat from "@/pages/Chat";
 import Journal from "@/pages/Journal";
 import Paths from "@/pages/Paths";
 import Settings from "@/pages/Settings";
+import EmployerPortal from "@/pages/EmployerPortal";
 
 export type AppRouteMeta = {
   requiresAuth: true;
@@ -25,6 +26,7 @@ export const authenticatedRouteDefs: AuthenticatedRouteDef[] = [
   { path: "/settings", element: <Settings /> },
   { path: "/settings/know-yourself/:moduleSlug", element: <ModuleWizard /> },
   { path: "/paths", element: <Paths /> },
+  { path: "/employer", element: <EmployerPortal /> },
 ];
 
 export function toAuthenticatedRouteObjects(): RouteObject[] {

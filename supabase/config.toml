@@ -37,6 +37,18 @@ verify_jwt = true
 [functions.vulnerable-outreach]
 verify_jwt = false
 
+# REQ-07 — register Web Push subscription (user JWT).
+[functions.register-push-subscription]
+verify_jwt = true
+
+# REQ-10 — employer continuous metrics (HR portal + admin).
+[functions.employer-metrics]
+verify_jwt = true
+
+# REQ-11 — manager direct-report aggregate (opt-in cohort, legal review gate in UI).
+[functions.manager-aggregate]
+verify_jwt = true
+
 # Prompt Library addendum — Kota's Read coach prep brief.
 [functions.generate-kota-read]
 verify_jwt = true

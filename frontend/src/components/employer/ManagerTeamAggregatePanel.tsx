@@ -73,16 +73,18 @@ export default function ManagerTeamAggregatePanel({
 
       <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-4")}>
         <header className="space-y-1">
-          <h3 className="font-semibold">Team wellbeing aggregate</h3>
+          <h3 className="font-semibold">Direct-report wellbeing aggregate</h3>
           <p className="text-sm text-muted-foreground">
-            Anonymized opt-in cohort only — you cannot see who is enrolled or any individual data.
+            Anonymized opt-in direct reports only — you cannot see who is enrolled or any individual
+            data.
           </p>
         </header>
 
         {snapshot.suppressed ? (
           <p className="text-sm text-muted-foreground">
-            {snapshot.optedInCount} team member{snapshot.optedInCount === 1 ? "" : "s"} opted in —
-            metrics appear when at least {MANAGER_MIN_COHORT_SIZE} people enroll.
+            {snapshot.directReportCount} direct report{snapshot.directReportCount === 1 ? "" : "s"}{" "}
+            linked · {snapshot.optedInCount} opted in — metrics appear when at least{" "}
+            {MANAGER_MIN_COHORT_SIZE} direct reports opt in.
           </p>
         ) : (
           <div className="flex flex-col gap-4">

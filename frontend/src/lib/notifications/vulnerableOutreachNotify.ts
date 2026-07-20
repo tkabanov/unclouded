@@ -4,7 +4,7 @@ import {
   isInactiveForOutreach,
   listVulnerableOutreachPreCandidatesFromRows,
   type VulnerableOutreachProfileRow,
-} from "../../../../supabase/functions/_shared/vulnerableOutreachLogic.ts";
+} from "@/lib/notifications/vulnerableOutreachLogic";
 
 export type VulnerableOutreachCandidate = {
   userId: string;

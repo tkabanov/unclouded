@@ -1,6 +1,6 @@
 import type { SessionFinalizePayload } from "../prompt/sessionLifecycle.ts";
 import { sanitizePromptField } from "../prompt/profileHelpers.ts";
-import { isFreeTierUser } from "../tierGateHelpers.ts";
+import { canAccessSessionMemoryInPrompt } from "../tierGateHelpers.ts";
 
 export const CHAT_SESSION_MEMORY_KEY = "chat_session_memory" as const;
 export const LAST_SESSION_TOPIC_KEY = "last_session_topic_text" as const;
@@ -164,7 +164,7 @@ export function buildSessionMemoryPromptBlock(
   tier?: string | null,
   subscribed?: boolean | null,
 ): string {
-  if (isFreeTierUser(tier, subscribed)) {
+  if (!canAccessSessionMemoryInPrompt(tier, subscribed)) {
     return "SESSION MEMORY (Phase 2): not available on Free tier.";
   }
 

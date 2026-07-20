@@ -1,13 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
+import { isValidUuid } from "@/lib/uuid/isValidUuid";
 
 export const ADMIN_WORKPLACES_ONBOARDING_KEY = "admin_workplaces" as const;
+
+export { isValidUuid };
 
 export interface AdminWorkplaceRecord {
   workplaceId: string;
   name: string;
   contactEmail: string;
+  /** False for legacy onboarding-only rows with non-UUID ids — metrics need the DB table. */
+  metricsReady: boolean;
 }
 
 export type AdminWorkplaceFormState = {
@@ -30,15 +35,17 @@ export type AdminWorkplacesLoadResult = {
   dataSource: AdminDataSource;
 };
 
-function toAdminWorkplace(row: WorkplaceRow): AdminWorkplaceRecord | null {
+function toAdminWorkplace(row: WorkplaceRow, metricsReady: boolean): AdminWorkplaceRecord | null {
   const name = row.name?.trim();
   const contactEmail = row.contactEmail?.trim();
-  if (!name || !contactEmail) return null;
+  const workplaceId = row.id?.trim();
+  if (!name || !contactEmail || !workplaceId) return null;
 
   return {
-    workplaceId: row.id ?? `workplace-${Date.now()}`,
+    workplaceId,
     name,
     contactEmail,
+    metricsReady: metricsReady && isValidUuid(workplaceId),
   };
 }
 
@@ -58,7 +65,9 @@ async function readOnboardingWorkplaces(userId: string): Promise<AdminWorkplaceR
 
   return raw
     .map((entry) =>
-      entry && typeof entry === "object" ? toAdminWorkplace(entry as WorkplaceRow) : null,
+      entry && typeof entry === "object"
+        ? toAdminWorkplace(entry as WorkplaceRow, false)
+        : null,
     )
     .filter((item): item is AdminWorkplaceRecord => item !== null);
 }
@@ -100,7 +109,7 @@ async function tryFetchWorkplacesFromTable(): Promise<AdminWorkplaceRecord[] | n
   if (!Array.isArray(data)) return [];
 
   return data
-    .map((row) => toAdminWorkplace(row as WorkplaceRow))
+    .map((row) => toAdminWorkplace(row as WorkplaceRow, true))
     .filter((item): item is AdminWorkplaceRecord => item !== null);
 }
 
@@ -134,21 +143,29 @@ export async function createAdminWorkplace(
 ): Promise<AdminWorkplaceRecord> {
   validateWorkplaceForm(form);
 
-  const row: WorkplaceRow = {
-    id: `workplace-${Date.now()}`,
-    name: form.name.trim(),
-    contactEmail: form.contactEmail.trim(),
-  };
-
   const client = supabase as unknown as UntypedSupabase;
-  const { error: tableError } = await client.from("workplace").insert(row as never);
-  if (!tableError) {
-    const created = toAdminWorkplace(row);
+  const { data: inserted, error: tableError } = await client
+    .from("workplace")
+    .insert({
+      name: form.name.trim(),
+      contactEmail: form.contactEmail.trim(),
+    } as never)
+    .select("id, name, contactEmail")
+    .maybeSingle();
+
+  if (!tableError && inserted) {
+    const created = toAdminWorkplace(inserted as WorkplaceRow, true);
     if (!created) throw new Error("Failed to create workplace.");
     return created;
   }
 
   if (!isSchemaUnavailable(tableError)) throw tableError;
+
+  const row: WorkplaceRow = {
+    id: crypto.randomUUID(),
+    name: form.name.trim(),
+    contactEmail: form.contactEmail.trim(),
+  };
 
   const existing = await readOnboardingWorkplaces(userId);
   const stored = existing.map((workplace) => ({
@@ -158,7 +175,7 @@ export async function createAdminWorkplace(
   }));
 
   await writeOnboardingWorkplaces(userId, [...stored, row]);
-  const created = toAdminWorkplace(row);
+  const created = toAdminWorkplace(row, false);
   if (!created) throw new Error("Failed to create workplace.");
   return created;
 }
@@ -206,9 +223,18 @@ export async function updateAdminWorkplace(
   const row = workplaceRowFromForm(form, workplaceId);
 
   const client = supabase as unknown as UntypedSupabase;
-  const { error: tableError } = await client.from("workplace").update(row as never).eq("id", workplaceId);
-  if (!tableError) {
-    const updated = toAdminWorkplace(row);
+  const { data: updatedRow, error: tableError } = await client
+    .from("workplace")
+    .update({
+      name: row.name,
+      contactEmail: row.contactEmail,
+    } as never)
+    .eq("id", workplaceId)
+    .select("id, name, contactEmail")
+    .maybeSingle();
+
+  if (!tableError && updatedRow) {
+    const updated = toAdminWorkplace(updatedRow as WorkplaceRow, true);
     if (!updated) throw new Error("Failed to update workplace.");
     return updated;
   }
@@ -226,7 +252,7 @@ export async function updateAdminWorkplace(
   if (!found) throw new Error("Workplace not found.");
   await writeOnboardingWorkplaces(userId, next);
 
-  const updated = toAdminWorkplace(row);
+  const updated = toAdminWorkplace(row, false);
   if (!updated) throw new Error("Failed to update workplace.");
   return updated;
 }

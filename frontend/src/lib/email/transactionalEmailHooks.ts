@@ -127,7 +127,7 @@ export async function requestTransactionalEmail(
       return placeholderResult(
         emailId,
         inCohort
-          ? `User is in vulnerable outreach pre-cohort (${candidates.length} total). Edge fn confirms ≥10-day inactivity before send. Production path: daily cron → vulnerable-outreach (Resend when RESEND_API_KEY is set).`
+          ? `User is in vulnerable outreach pre-cohort (${candidates.length} total). Edge fn confirms ≥10-day inactivity before send. Production path: daily cron → vulnerable-outreach (Web Push when subscribed + VAPID configured, else Resend when RESEND_API_KEY is set).`
           : `Pre-cohort selected (${candidates.length} due on mode + 7-day cap). This user was not in grief/recovery outreach queue.`,
       );
     }

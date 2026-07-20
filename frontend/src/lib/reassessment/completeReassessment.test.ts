@@ -116,6 +116,8 @@ describe("completeReassessment module refresh hook", () => {
     );
 
     expect(patch.onboardingDataPatch.significant_shift_flag).toBe("yes");
+    expect(patch.onboardingDataPatch.significant_life_event_flag).toBe(false);
+    expect(patch.onboardingDataPatch.significantLifeEventFlag).toBe(false);
     expect(patch.refreshOfferedSlugs).toContain("identity");
   });
 });

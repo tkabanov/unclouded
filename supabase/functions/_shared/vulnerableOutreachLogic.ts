@@ -90,3 +90,15 @@ export function buildVulnerableOutreachEmailHtml(params: {
     <p>— Kota</p>
   `;
 }
+
+export function buildVulnerableOutreachPushPayload(appUrl: string): {
+  title: string;
+  body: string;
+  url: string;
+} {
+  return {
+    title: "Uncloud360",
+    body: VULNERABLE_OUTREACH_MESSAGE,
+    url: `${appUrl.replace(/\/$/, "")}/dashboard`,
+  };
+}
