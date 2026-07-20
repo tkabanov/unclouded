@@ -15,6 +15,7 @@ export async function persistSessionMemory(
   conversationId: string,
   finalize: SessionFinalizePayload,
   coachingModeUsed: string,
+  exchangeCount?: number | null,
 ): Promise<void> {
   const { data, error } = await supabase
     .from("profiles")
@@ -34,6 +35,7 @@ export async function persistSessionMemory(
     conversationId,
     finalize,
     coachingModeUsed,
+    exchangeCount,
   );
 
   const { error: updateError } = await supabase

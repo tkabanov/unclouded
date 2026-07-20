@@ -24,6 +24,8 @@ export type SessionMemoryRecord = {
   resistancePoints?: string | null;
   coachingModeUsed?: string | null;
   effectivenessSignal?: string | null;
+  /** REQ-16 — user message count when the session was finalized. */
+  exchangeCount?: number | null;
 };
 
 function readOptionalString(value: unknown, maxLen: number): string | null {
@@ -69,6 +71,10 @@ export function readSessionMemoryRecords(
         resistancePoints: readOptionalString(entry.resistancePoints, 400),
         coachingModeUsed: readOptionalString(entry.coachingModeUsed, 80),
         effectivenessSignal: readOptionalString(entry.effectivenessSignal, 160),
+        exchangeCount:
+          typeof entry.exchangeCount === "number" && Number.isFinite(entry.exchangeCount)
+            ? Math.max(0, Math.floor(entry.exchangeCount))
+            : null,
       } satisfies SessionMemoryRecord;
     })
     .filter((record): record is SessionMemoryRecord => record !== null)
@@ -86,6 +92,7 @@ export function buildSessionMemoryRecord(
   finalize: SessionFinalizePayload,
   coachingModeUsed: string,
   closedAt = new Date().toISOString(),
+  exchangeCount?: number | null,
 ): SessionMemoryRecord {
   const microCommitmentDue = finalize.microCommitmentText
     ? defaultCommitmentDueDate()
@@ -104,6 +111,10 @@ export function buildSessionMemoryRecord(
     resistancePoints: finalize.resistancePoints,
     coachingModeUsed: sanitizePromptField(coachingModeUsed, 80) || null,
     effectivenessSignal: finalize.effectivenessSignal,
+    exchangeCount:
+      typeof exchangeCount === "number" && Number.isFinite(exchangeCount)
+        ? Math.max(0, Math.floor(exchangeCount))
+        : null,
   };
 }
 
@@ -112,9 +123,16 @@ export function buildSessionMemoryOnboardingPatch(
   conversationId: string,
   finalize: SessionFinalizePayload,
   coachingModeUsed: string,
+  exchangeCount?: number | null,
 ): Record<string, unknown> {
   const prior = readSessionMemoryRecords(onboardingData);
-  const nextRecord = buildSessionMemoryRecord(conversationId, finalize, coachingModeUsed);
+  const nextRecord = buildSessionMemoryRecord(
+    conversationId,
+    finalize,
+    coachingModeUsed,
+    new Date().toISOString(),
+    exchangeCount,
+  );
   const patch: Record<string, unknown> = {
     [LAST_SESSION_TOPIC_KEY]: finalize.lastSessionTopic,
     [CHAT_SESSION_MEMORY_KEY]: [...prior, nextRecord].slice(-MAX_SESSION_MEMORY_RECORDS),

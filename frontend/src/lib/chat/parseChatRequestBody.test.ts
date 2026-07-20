@@ -23,4 +23,24 @@ describe("parseChatRequestBody", () => {
     });
     expect("profileData" in parsed).toBe(false);
   });
+
+  it("accepts voice session flags including emotion signal (REQ-14 / Block 3.36)", () => {
+    const parsed = parseChatRequestBody({
+      messages: [{ id: "1", role: "user", parts: [{ type: "text", text: "hi" }] }],
+      sessionType: "voice",
+      voiceEmotionDetected: true,
+    });
+
+    expect(parsed.sessionType).toBe("voice");
+    expect(parsed.voiceEmotionDetected).toBe(true);
+  });
+
+  it("ignores non-true voiceEmotionDetected values", () => {
+    const parsed = parseChatRequestBody({
+      messages: [],
+      voiceEmotionDetected: false,
+    });
+
+    expect(parsed.voiceEmotionDetected).toBeUndefined();
+  });
 });

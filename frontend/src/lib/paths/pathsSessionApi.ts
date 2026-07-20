@@ -22,6 +22,7 @@ type PathsessionRow = {
   coachingText?: string;
   microCommitment?: string;
   pathId?: string | null;
+  index?: number | string | null;
 };
 
 type PathquestionRow = {
@@ -83,7 +84,7 @@ async function tryFetchPathSessionFromTable(
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("pathSession")
-    .select("id, title, coachingText, microCommitment")
+    .select("id, title, coachingText, microCommitment, index")
     .eq("id", sessionId)
     .maybeSingle();
 
@@ -122,6 +123,7 @@ async function tryFetchPathSessionFromTable(
     title: row.title ?? "",
     coachingText: row.coachingText ?? "",
     microCommitment: row.microCommitment ?? "",
+    sessionIndex: toCount(row.index) || undefined,
     questions,
   };
 }

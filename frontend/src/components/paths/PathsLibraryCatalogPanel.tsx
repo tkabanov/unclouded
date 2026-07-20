@@ -53,7 +53,12 @@ export default function PathsLibraryCatalogPanel({
     profile?.tier ?? null,
     profile?.onboardingData ?? null,
   );
-  const healthFlags = resolveHealthModeFlags(profile);
+  const healthFlags = resolveHealthModeFlags({
+    onboardingData: profile?.onboardingData ?? null,
+    results: profile?.results ?? null,
+    roleType: profile?.roleType ?? null,
+    aboutYou: profile?.aboutYou ?? null,
+  });
   const moduleProfile = useMemo(() => toModuleProfileInput(profile), [profile]);
 
   const enrollmentBySlug = useMemo(() => {

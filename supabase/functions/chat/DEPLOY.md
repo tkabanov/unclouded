@@ -155,6 +155,7 @@ CI (`.github/workflows/frontend-ci.yml`) runs **lint / test / build only** — p
 | **App URL** | https://uncloud360.vercel.app |
 | **Supabase project** | `szkextipgpupqoppccoy` |
 | **Chat edge** | `https://szkextipgpupqoppccoy.supabase.co/functions/v1/chat` (v9+, `verify_jwt=true`) |
+| **Chat staging (REQ-13)** | `https://szkextipgpupqoppccoy.supabase.co/functions/v1/chat-staging` — draft prompt tests only |
 | **Vercel project** | `fiudls-projects/uncloud360` |
 
 Legacy interim (GitHub Pages): https://tkabanov.github.io/unclouded/ — superseded by Vercel.
@@ -167,6 +168,9 @@ Custom domain `uncloud360.ai` is ops-gated (T-014 redirect URLs).
 VITE_SUPABASE_URL=https://szkextipgpupqoppccoy.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<publishable key from Dashboard>
 VITE_APP_URL=https://uncloud360.vercel.app
+VITE_PROMPT_TEST_SUPABASE_URL=https://szkextipgpupqoppccoy.supabase.co
+VITE_PROMPT_TEST_SUPABASE_PUBLISHABLE_KEY=<same publishable key>
+VITE_PROMPT_TEST_CHAT_FUNCTION=chat-staging
 # VITE_BASE_PATH unset on Vercel (defaults to /)
 ```
 

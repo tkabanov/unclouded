@@ -24,3 +24,7 @@ frontend/.vercel
 # Local AI agent memory (control plane)
 .ai/
 
+# Local ops secrets (never commit)
+supabase/ops/api-keys.json
+supabase/.temp/
+

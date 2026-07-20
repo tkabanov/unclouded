@@ -6,6 +6,12 @@ vi.mock("@/lib/notifications/moduleUnlockNotify", () => ({
   listModuleUnlockCandidates: vi.fn(async () => []),
 }));
 
+vi.mock("@/lib/notifications/vulnerableOutreachNotify", () => ({
+  listVulnerableOutreachPreCandidates: vi.fn(async () => [
+    { userId: "user-1", email: "user@example.com", firstName: "Sam" },
+  ]),
+}));
+
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
@@ -111,6 +117,19 @@ describe("transactionalEmailHooks", () => {
 
     expect(result.status).toBe("placeholder");
     expect(result.detail).toContain("notification-milestone");
+  });
+
+  it("vulnerable outreach hook reports cron delivery path", async () => {
+    const { requestTransactionalEmail } = await import("@/lib/email/transactionalEmailHooks");
+
+    const result = await requestTransactionalEmail("notification_vulnerable_outreach", {
+      userId: "user-1",
+      email: "user@example.com",
+      firstName: "Sam",
+    });
+
+    expect(result.status).toBe("placeholder");
+    expect(result.detail).toContain("vulnerable-outreach");
   });
 
   it("lists five live Supabase Auth templates in catalog", async () => {

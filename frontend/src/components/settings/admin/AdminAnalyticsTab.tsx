@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import {
   ADMIN_ANALYTICS_NOTICE_COPY,
@@ -127,26 +127,87 @@ export default function AdminAnalyticsTab() {
       </div>
 
       {promptReview ? (
-        <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
-          <h3 className={bubbleStyle("Text_heading_3_")}>Prompt library review (REQ-16)</h3>
-          <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
-            {promptReview.reviewCadence}
-          </p>
-          <p className="text-sm text-muted-foreground">{promptReview.highLoadDisengagementNote}</p>
-          <p className="text-sm">
-            Commitment follow-through:{" "}
-            {promptReview.commitmentFollowThroughRate == null
-              ? "n/a"
-              : `${Math.round(promptReview.commitmentFollowThroughRate * 100)}%`}
-          </p>
-          <ul className="divide-y divide-border text-sm">
-            {promptReview.sessionsByClassification.slice(0, 8).map((row) => (
-              <li key={row.classification} className="flex items-center justify-between py-2">
-                <span>{row.classification}</span>
-                <span className="font-semibold tabular-nums">{row.sessionCount}</span>
-              </li>
-            ))}
-          </ul>
+        <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-4 p-6")}>
+          <div className="space-y-1">
+            <h3 className={bubbleStyle("Text_heading_3_")}>Prompt library review (REQ-16)</h3>
+            <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+              {promptReview.reviewCadence}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {promptReview.profilesAnalyzed} profiles · {promptReview.sessionsInMemory} closed
+              sessions in memory
+            </p>
+          </div>
+
+          <ReviewSection title="1. Classification → continued engagement">
+            <ReviewTable
+              headers={["Classification", "Users", "Avg sessions", "Continued engagement"]}
+              rows={promptReview.classificationEngagement.slice(0, 8).map((row) => [
+                row.classification,
+                String(row.userCount),
+                String(row.avgSessionsPerUser),
+                row.continuedEngagementRate == null
+                  ? "n/a"
+                  : `${Math.round(row.continuedEngagementRate * 100)}%`,
+              ])}
+              emptyText="No classification data yet."
+            />
+          </ReviewSection>
+
+          <ReviewSection title="2. Exchange count at session end">
+            <p className="text-sm text-muted-foreground">
+              Peak bucket: {promptReview.peakExchangeBucket ?? "n/a"} · Average exchanges:{" "}
+              {promptReview.averageExchangeCount ?? "n/a"}
+            </p>
+            <ReviewTable
+              headers={["Exchange band", "Sessions", "Sample themes at close"]}
+              rows={promptReview.exchangeCountDistribution.map((row) => [
+                row.label,
+                String(row.sessionCount),
+                row.sampleThemes.length > 0 ? row.sampleThemes.join("; ") : "—",
+              ])}
+              emptyText="Exchange telemetry appears after users finalize sessions (post-deploy)."
+            />
+          </ReviewSection>
+
+          <ReviewSection title="3. Commitment follow-through">
+            <p className="text-sm">
+              Overall follow-through:{" "}
+              {promptReview.commitmentFollowThroughRate == null
+                ? "n/a"
+                : `${Math.round(promptReview.commitmentFollowThroughRate * 100)}%`}
+            </p>
+            <ReviewTable
+              headers={["Commitment type", "Tracked", "Followed", "Rate"]}
+              rows={promptReview.commitmentByCategory.slice(0, 6).map((row) => [
+                row.category,
+                String(row.tracked),
+                String(row.followed),
+                row.followThroughRate == null
+                  ? "n/a"
+                  : `${Math.round(row.followThroughRate * 100)}%`,
+              ])}
+              emptyText="No micro-commitments recorded in session memory yet."
+            />
+          </ReviewSection>
+
+          <ReviewSection title="4. Load signals → disengagement (≥14 days idle)">
+            <p className="text-sm text-muted-foreground">
+              Combinations with ≥3 users, sorted by disengagement rate.
+            </p>
+            <ReviewTable
+              headers={["Load combination", "Users", "Disengaged", "Rate"]}
+              rows={promptReview.loadSignalDisengagement.slice(0, 6).map((row) => [
+                row.loadCombination,
+                String(row.userCount),
+                String(row.disengagedCount),
+                row.disengagementRate == null
+                  ? "n/a"
+                  : `${Math.round(row.disengagementRate * 100)}%`,
+              ])}
+              emptyText="Not enough load-signal cohort data yet (minimum 3 users per combination)."
+            />
+          </ReviewSection>
         </div>
       ) : null}
     </div>
@@ -169,6 +230,68 @@ function StatCard({ label, value }: StatCardProps) {
       <span className="text-2xl font-bold">
         {value}
       </span>
+    </div>
+  );
+}
+
+function ReviewSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-2 border-t border-border/60 pt-4 first:border-t-0 first:pt-0">
+      <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+      {children}
+    </section>
+  );
+}
+
+function ReviewTable({
+  headers,
+  rows,
+  emptyText,
+}: {
+  headers: string[];
+  rows: string[][];
+  emptyText: string;
+}) {
+  if (rows.length === 0) {
+    return <p className="text-sm text-muted-foreground">{emptyText}</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[480px] text-sm">
+        <thead>
+          <tr className="border-b border-border text-left text-muted-foreground">
+            {headers.map((header) => (
+              <th key={header} className="py-2 pr-4 font-medium">
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={`${row[0]}-${index}`} className="border-b border-border/60">
+              {row.map((cell, cellIndex) => (
+                <td
+                  key={`${cell}-${cellIndex}`}
+                  className={cn(
+                    "py-2 pr-4 align-top",
+                    cellIndex > 0 && "tabular-nums",
+                  )}
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

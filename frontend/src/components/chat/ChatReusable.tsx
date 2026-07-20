@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
 
 import { ChatComposer, type ChatComposerProps } from "./ChatComposer";
@@ -14,6 +16,7 @@ export type ChatReusableProps = {
   onSend: ChatComposerProps["onSend"];
   onSuggestionSend?: ChatComposerProps["onSuggestionSend"];
   composerDisabled?: boolean;
+  composerLeadingSlot?: ReactNode;
   isAssistantTyping?: boolean;
   disclaimerCollapsed?: boolean;
   onEndSession?: () => void;
@@ -33,6 +36,7 @@ export function ChatReusable({
   onSend,
   onSuggestionSend,
   composerDisabled,
+  composerLeadingSlot,
   isAssistantTyping,
   disclaimerCollapsed,
   onEndSession,
@@ -61,6 +65,7 @@ export function ChatReusable({
           onSend={onSend}
           onSuggestionSend={onSuggestionSend}
           disabled={composerDisabled}
+          leadingSlot={composerLeadingSlot}
         />
       </div>
     </section>

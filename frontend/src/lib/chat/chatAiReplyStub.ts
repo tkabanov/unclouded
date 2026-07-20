@@ -82,6 +82,7 @@ type CallChatEdgeParams = {
   sessionType?: "text" | "voice" | "quick_checkin";
   exchangeCount?: number;
   expectJson?: boolean;
+  voiceEmotionDetected?: boolean;
 };
 
 function isCrisisPayload(payload: Record<string, unknown>): payload is { crisis: true; text: string } {
@@ -120,6 +121,7 @@ export async function callChatEdge(
       conversationId: params.conversationId,
       sessionType: params.sessionType,
       exchangeCount: params.exchangeCount,
+      voiceEmotionDetected: params.voiceEmotionDetected,
     }),
   });
 
@@ -159,6 +161,7 @@ export async function generateAiReplyStub(
   profileData?: ChatAiProfileData,
   conversationId?: string,
   sessionType?: "text" | "voice" | "quick_checkin",
+  voiceEmotionDetected?: boolean,
 ): Promise<string> {
   const exchangeCount = messages.filter((m) => m.role === "user").length;
   const result = await callChatEdge({
@@ -168,6 +171,7 @@ export async function generateAiReplyStub(
     conversationId,
     sessionType,
     exchangeCount,
+    voiceEmotionDetected,
   });
   if (typeof result !== "string") {
     throw new ChatEdgeError("Expected streamed AI reply");

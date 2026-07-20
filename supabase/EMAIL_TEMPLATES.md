@@ -75,7 +75,7 @@ Edge function: `supabase/functions/module-unlock`.
 - Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
 - Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <MODULE_UNLOCK_CRON_SECRET>`.
 
-**Schedule (ops):** configure a daily cron to `POST /functions/v1/module-unlock` with the service-role bearer.
+**Schedule (live):** `pg_cron` job `daily-module-unlock` at **13:00 UTC** → `invoke_scheduled_edge_function('module-unlock')`.
 
 Edge function: `supabase/functions/notification-milestone`.
 
@@ -83,6 +83,24 @@ Edge function: `supabase/functions/notification-milestone`.
 - Auth: user JWT (`verify_jwt = true`).
 - Stamps `firstModuleMilestoneEmailedAt`; respects max 1/day via `lastNotificationSentAt`.
 - Copy avoids Pro upsell (OVR-009).
+
+### Vulnerable user outreach (REQ-07 / Prompt Library addendum)
+
+Edge function: `supabase/functions/vulnerable-outreach`.
+
+- Daily cohort: profiles with `grief_mode_active` or `recovery_mode_active` in `results`, onboarding complete, **≥10 days** since last `chatConversation` activity (or since onboarding if never chatted).
+- Copy: **"Kota is here when you're ready."** — warm, low-pressure; no missed-session guilt framing.
+- Frequency cap: **once per 7 days** via `vulnerableOutreachEmailedAt`.
+- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); push is not wired yet (`push: skipped` in response).
+- Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <VULNERABLE_OUTREACH_CRON_SECRET>`.
+
+**Schedule (live on project `szkextipgpupqoppccoy`):** `pg_cron` job `daily-vulnerable-outreach` at **14:00 UTC** → `public.invoke_scheduled_edge_function('vulnerable-outreach')` (vault: `project_url` + `edge_cron_service_role_key`). Migration: `20260720120000_scheduled_edge_cron_jobs.sql`.
+
+Manual smoke:
+```sql
+SELECT public.invoke_scheduled_edge_function('vulnerable-outreach');
+-- then: SELECT id, status_code, content FROM net._http_response ORDER BY id DESC LIMIT 1;
+```
 
 ### 90-day reassessment due (Section 2 / US-300)
 
@@ -93,7 +111,7 @@ Edge function: `supabase/functions/reassessment-due`.
 - Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
 - Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <REASSESSMENT_DUE_CRON_SECRET>`.
 
-**Schedule (ops):** configure a daily cron in Supabase Dashboard (or GitHub Action / pg_net) to `POST /functions/v1/reassessment-due` with the service-role bearer. Frontend hooks may also invoke the same function for dry-run/cohort checks.
+**Schedule (live):** `pg_cron` job `daily-reassessment-due` at **15:00 UTC** → `invoke_scheduled_edge_function('reassessment-due')`. Frontend hooks may also invoke the same function for dry-run/cohort checks.
 
 ## Verification checklist (developer / PM)
 

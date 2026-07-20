@@ -72,6 +72,7 @@ export async function requestSessionClose(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
+  sessionType?: "text" | "voice" | "quick_checkin",
 ): Promise<string> {
   return callChatEdge({
     lifecycle: "session_close",
@@ -79,6 +80,7 @@ export async function requestSessionClose(
     profileData,
     context,
     conversationId,
+    sessionType,
   }) as Promise<string>;
 }
 

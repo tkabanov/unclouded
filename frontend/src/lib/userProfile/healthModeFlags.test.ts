@@ -7,6 +7,7 @@ describe("resolveHealthModeFlags", () => {
       recoveryModeActive: false,
       griefModeActive: false,
       traumaInformedMode: false,
+      transitionFlagActive: false,
     });
   });
 
@@ -23,6 +24,7 @@ describe("resolveHealthModeFlags", () => {
       recoveryModeActive: true,
       griefModeActive: false,
       traumaInformedMode: true,
+      transitionFlagActive: false,
     });
   });
 
@@ -40,6 +42,7 @@ describe("resolveHealthModeFlags", () => {
       recoveryModeActive: false,
       griefModeActive: true,
       traumaInformedMode: false,
+      transitionFlagActive: false,
     });
   });
 
@@ -55,6 +58,23 @@ describe("resolveHealthModeFlags", () => {
       recoveryModeActive: true,
       griefModeActive: true,
       traumaInformedMode: false,
+      transitionFlagActive: false,
     });
+  });
+
+  it("reads transition flag from loadSignals and aboutYou career stage", () => {
+    expect(
+      resolveHealthModeFlags({
+        onboardingData: {
+          loadSignals: { transition_flag: true },
+        },
+      }).transitionFlagActive,
+    ).toBe(true);
+
+    expect(
+      resolveHealthModeFlags({
+        aboutYou: { careerStage: "career_transition" },
+      }).transitionFlagActive,
+    ).toBe(true);
   });
 });

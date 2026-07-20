@@ -5,6 +5,7 @@ import {
   type TransactionalEmailId,
 } from "@/lib/email/transactionalEmailCatalog";
 import { listModuleUnlockCandidates } from "@/lib/notifications/moduleUnlockNotify";
+import { listVulnerableOutreachPreCandidates } from "@/lib/notifications/vulnerableOutreachNotify";
 import { listReassessmentDueCandidates } from "@/lib/reassessment/reassessmentDueNotify";
 import { supabase } from "@/integrations/supabase/client";
 import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
@@ -114,6 +115,16 @@ export async function requestTransactionalEmail(
     case "notification_path_progress":
     case "notification_streak":
       return placeholderResult(emailId);
+    case "notification_vulnerable_outreach": {
+      const candidates = await listVulnerableOutreachPreCandidates();
+      const inCohort = candidates.some((candidate) => candidate.userId === payload.userId);
+      return placeholderResult(
+        emailId,
+        inCohort
+          ? `User is in vulnerable outreach pre-cohort (${candidates.length} total). Edge fn confirms ≥10-day inactivity before send. Production path: daily cron → vulnerable-outreach (Resend when RESEND_API_KEY is set).`
+          : `Pre-cohort selected (${candidates.length} due on mode + 7-day cap). This user was not in grief/recovery outreach queue.`,
+      );
+    }
     case "notification_milestone": {
       const { data, error } = await supabase
         .from("profiles")

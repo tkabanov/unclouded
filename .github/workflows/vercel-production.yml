@@ -37,6 +37,9 @@ jobs:
           VITE_SUPABASE_URL: https://szkextipgpupqoppccoy.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_Jw-QnNaUMp_eUpDLH1a6BQ_8gz3i9BM
           VITE_APP_URL: https://uncloud360.vercel.app
+          VITE_PROMPT_TEST_SUPABASE_URL: https://szkextipgpupqoppccoy.supabase.co
+          VITE_PROMPT_TEST_SUPABASE_PUBLISHABLE_KEY: sb_publishable_Jw-QnNaUMp_eUpDLH1a6BQ_8gz3i9BM
+          VITE_PROMPT_TEST_CHAT_FUNCTION: chat-staging
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to production

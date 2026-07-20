@@ -16,6 +16,12 @@ import {
   fetchEmployerMetrics,
   type EmployerMetricSnapshot,
 } from "@/lib/employer/employerMetricsApi";
+import {
+  fetchManagerAggregate,
+  type ManagerAggregateSnapshot,
+} from "@/lib/employer/managerAggregateApi";
+import EmployerTrendSparkline from "@/components/employer/EmployerTrendSparkline";
+import ManagerTeamAggregatePanel from "@/components/employer/ManagerTeamAggregatePanel";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -29,6 +35,9 @@ export default function AdminWorkplacesTab() {
   const [editWorkplace, setEditWorkplace] = useState<AdminWorkplaceRecord | null>(null);
   const [busy, setBusy] = useState(false);
   const [metricsById, setMetricsById] = useState<Record<string, EmployerMetricSnapshot>>({});
+  const [managerAggregateById, setManagerAggregateById] = useState<
+    Record<string, ManagerAggregateSnapshot>
+  >({});
 
   const popupOpen = addOpen || editWorkplace !== null;
 
@@ -164,14 +173,72 @@ export default function AdminWorkplacesTab() {
               >
                 Continuous metrics
               </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => {
+                  void fetchManagerAggregate(workplace.workplaceId)
+                    .then((snapshot) => {
+                      setManagerAggregateById((prev) => ({
+                        ...prev,
+                        [workplace.workplaceId]: snapshot,
+                      }));
+                    })
+                    .catch(() => toast.error("Couldn't load manager aggregate."));
+                }}
+              >
+                Manager aggregate (REQ-11)
+              </Button>
               {metricsById[workplace.workplaceId] ? (
-                <p className="text-xs text-muted-foreground">
-                  {metricsById[workplace.workplaceId].suppressed
-                    ? `Cohort ${metricsById[workplace.workplaceId].cohortSize} — metrics hidden until ≥5 enrolled.`
-                    : `Avg pulse ${metricsById[workplace.workplaceId].averagePulse ?? "n/a"} · Active ${
-                        metricsById[workplace.workplaceId].activeUsersPercent ?? "n/a"
-                      }% · Sessions/user ${metricsById[workplace.workplaceId].sessionsPerUser ?? "n/a"}`}
-                </p>
+                <div className="flex flex-col gap-3 text-xs text-muted-foreground">
+                  {metricsById[workplace.workplaceId].suppressed ? (
+                    <p>
+                      Cohort {metricsById[workplace.workplaceId].cohortSize} — metrics hidden until ≥
+                      5 enrolled.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <p className="mb-1 font-medium text-foreground">Avg pulse by week</p>
+                          <EmployerTrendSparkline
+                            points={metricsById[workplace.workplaceId].pulseByWeek}
+                            minValue={1}
+                            maxValue={10}
+                          />
+                          <p className="mt-1">
+                            30d avg {metricsById[workplace.workplaceId].averagePulse ?? "n/a"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="mb-1 font-medium text-foreground">
+                            Sessions per active user / week
+                          </p>
+                          <EmployerTrendSparkline
+                            points={metricsById[workplace.workplaceId].sessionsPerActiveUserByWeek}
+                            minValue={0}
+                            maxValue={5}
+                          />
+                          <p className="mt-1">
+                            30d enrolled avg {metricsById[workplace.workplaceId].sessionsPerUser ?? "n/a"}
+                          </p>
+                        </div>
+                      </div>
+                      <p>
+                        Path engagement{" "}
+                        {metricsById[workplace.workplaceId].pathEngagementPercent ?? "n/a"}% · Active
+                        in last 30 days {metricsById[workplace.workplaceId].activeUsersPercent ?? "n/a"}%
+                      </p>
+                    </>
+                  )}
+                </div>
+              ) : null}
+              {managerAggregateById[workplace.workplaceId] ? (
+                <ManagerTeamAggregatePanel
+                  snapshot={managerAggregateById[workplace.workplaceId]}
+                />
               ) : null}
               <div
                 className="flex justify-end gap-2"

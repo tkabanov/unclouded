@@ -2,7 +2,12 @@ import { convertToModelMessages, generateText, streamText, type UIMessage } from
 import { createChatModel } from "../_shared/openai-provider.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { buildSystemPrompt, type ProfileData } from "./buildSystemPrompt.ts";
-import { CRISIS_RESPONSE_TEXT, detectCrisisInLiveContext, detectCrisisInThread } from "./crisisDetect.ts";
+import {
+  CRISIS_RESPONSE_TEXT,
+  classifyCrisisInLiveContext,
+  classifyCrisisInThread,
+  requiresCrisisHardStop,
+} from "./crisisDetect.ts";
 import { loadServerProfile } from "./loadServerProfile.ts";
 import {
   buildSessionLifecycleInstruction,
@@ -18,14 +23,22 @@ import { persistSessionMemory } from "./persistSessionMemory.ts";
 import { extractMemoryFacts } from "./extractMemoryFacts.ts";
 import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
 import { truncateConversationMessages } from "./truncateConversationMessages.ts";
-import { estimatePromptTokens, shouldCompressContext } from "./tokenEstimate.ts";
+import { applySessionMemoryCompressionIfNeeded } from "./sessionMemory/sessionArcSummary.ts";
+import { evaluatePromptTestDivergence } from "./promptTest/divergenceCheck.ts";
+import {
+  buildPromptTestMessages,
+  buildPromptTestProfile,
+  resolvePromptTestLifecycle,
+} from "./promptTest/runPromptTest.ts";
+import { getPromptTestScenario } from "./promptTest/scenarios.ts";
 import {
   buildConversationTitleUserPrompt,
   CONVERSATION_TITLE_SYSTEM_PROMPT,
   extractLatestUserAssistantPair,
   sanitizeConversationTitle,
 } from "./prompt/conversationTitle.ts";
-import { extractAllUserTexts } from "./crisisDetect.ts";
+import { extractAllUserTexts, buildSessionTranscript } from "./crisisDetect.ts";
+import { handleVoiceTranscribe, handleVoiceTts, resolveVoiceRoute } from "./voice/voiceEdgeHandlers.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,8 +56,8 @@ function jsonError(status: number, error: string, extra: Record<string, unknown>
   return jsonResponse(status, { error, ...extra });
 }
 
-function crisisHardStopResponse(): Response {
-  return jsonResponse(200, { crisis: true, text: CRISIS_RESPONSE_TEXT });
+function crisisHardStopResponse(crisisLevel: 2 | 3 | 4): Response {
+  return jsonResponse(200, { crisis: true, crisisLevel, text: CRISIS_RESPONSE_TEXT });
 }
 
 function buildSystemWithLifecycle(
@@ -79,6 +92,14 @@ Deno.serve(async (req: Request) => {
       return jsonError(401, "Unauthorized");
     }
 
+    const voiceRoute = resolveVoiceRoute(req);
+    if (voiceRoute === "transcribe") {
+      return handleVoiceTranscribe(req);
+    }
+    if (voiceRoute === "tts") {
+      return handleVoiceTts(req);
+    }
+
     const { supabase, user } = auth;
 
     let model;
@@ -97,6 +118,7 @@ Deno.serve(async (req: Request) => {
     const conversationId = body.conversationId;
     const requestSessionType = body.sessionType;
     const requestExchangeCount = body.exchangeCount;
+    const requestVoiceEmotionDetected = body.voiceEmotionDetected;
 
     if (!Array.isArray(messages)) {
       if (lifecycle === "session_open") {
@@ -137,9 +159,83 @@ Deno.serve(async (req: Request) => {
       return jsonError(404, "Profile not found");
     }
 
+    if (lifecycle === "prompt_test") {
+      if (profileData.roleType !== "admin") {
+        return jsonError(403, "Prompt tests require admin access.");
+      }
+
+      const scenarioId = body.promptTestScenarioId;
+      if (!scenarioId) {
+        return jsonError(400, "promptTestScenarioId is required");
+      }
+
+      const scenario = getPromptTestScenario(scenarioId);
+      if (!scenario) {
+        return jsonError(404, "Unknown prompt test scenario");
+      }
+
+      const testProfile = buildPromptTestProfile(scenario);
+      const testLifecycle = resolvePromptTestLifecycle(scenario);
+      const testMessages = buildPromptTestMessages(scenario);
+      const testContext = scenario.context;
+
+      if (testProfile.liveContext) {
+        testProfile.liveContext.exchangeCount = testMessages.filter(
+          (message) => message.role === "user",
+        ).length;
+      }
+
+      const system = buildSystemWithLifecycle(testProfile, testContext, testLifecycle);
+
+      const crisisLevel =
+        classifyCrisisInThread(testMessages, testContext) ??
+        classifyCrisisInLiveContext(testProfile.liveContext);
+
+      if (requiresCrisisHardStop(crisisLevel)) {
+        const evaluation = evaluatePromptTestDivergence(CRISIS_RESPONSE_TEXT, scenario.checks, {
+          crisisHardStop: true,
+        });
+        return jsonResponse(200, {
+          scenarioId: scenario.id,
+          title: scenario.title,
+          expectedBehavior: scenario.expectedBehavior,
+          response: CRISIS_RESPONSE_TEXT,
+          flagged: evaluation.flagged,
+          flags: evaluation.flags,
+          crisisHardStop: true,
+          crisisLevel,
+        });
+      }
+
+      const result = await generateText({
+        model,
+        system,
+        messages: await convertToModelMessages(testMessages),
+      });
+
+      const evaluation = evaluatePromptTestDivergence(result.text, scenario.checks, {
+        crisisHardStop: false,
+      });
+
+      return jsonResponse(200, {
+        scenarioId: scenario.id,
+        title: scenario.title,
+        expectedBehavior: scenario.expectedBehavior,
+        response: result.text,
+        flagged: evaluation.flagged,
+        flags: evaluation.flags,
+        crisisHardStop: false,
+      });
+    }
+
     if (profileData.liveContext) {
       if (requestSessionType) {
         profileData.liveContext.sessionType = requestSessionType;
+      }
+      if (requestVoiceEmotionDetected === true) {
+        profileData.liveContext.voiceEmotionDetected = true;
+      } else {
+        profileData.liveContext.voiceEmotionDetected = false;
       }
       if (typeof requestExchangeCount === "number") {
         profileData.liveContext.exchangeCount = requestExchangeCount;
@@ -148,10 +244,11 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (
-      detectCrisisInThread(uiMessages, context) ||
-      detectCrisisInLiveContext(profileData.liveContext)
-    ) {
+    const crisisLevel =
+      classifyCrisisInThread(uiMessages, context) ??
+      classifyCrisisInLiveContext(profileData.liveContext);
+
+    if (requiresCrisisHardStop(crisisLevel)) {
       // Persist Level 2+ crisis flags for next-session aftercare (REQ-03).
       await Promise.all([
         supabase
@@ -166,7 +263,7 @@ Deno.serve(async (req: Request) => {
               .eq("userId", user.id)
           : Promise.resolve({ error: null }),
       ]);
-      return crisisHardStopResponse();
+      return crisisHardStopResponse(crisisLevel);
     }
 
     if (context === "journal-reflection") {
@@ -190,23 +287,15 @@ Deno.serve(async (req: Request) => {
 
     let system = buildSystemWithLifecycle(profileData, context, lifecycle);
 
-    // REQ-12: if assembled system prompt exceeds ~6k tokens, note compression for memory block.
-    if (shouldCompressContext(estimatePromptTokens(system))) {
-      const onboarding = profileData.onboardingData ?? {};
-      const arc =
-        typeof onboarding.session_arc_summary === "string"
-          ? onboarding.session_arc_summary
-          : null;
-      if (arc?.trim() && profileData.liveContext) {
-        profileData.liveContext.memoryFactsBlock = [
-          profileData.liveContext.memoryFactsBlock,
-          `Session arc summary: ${arc.trim()}`,
-        ]
-          .filter(Boolean)
-          .join("\n")
-          .slice(0, 800);
-        system = buildSystemWithLifecycle(profileData, context, lifecycle);
-      }
+    // REQ-12: compress older session summaries into a generated arc when context exceeds ~6k tokens.
+    const compressed = await applySessionMemoryCompressionIfNeeded(
+      supabase,
+      user.id,
+      profileData,
+      system,
+    );
+    if (compressed) {
+      system = buildSystemWithLifecycle(profileData, context, lifecycle);
     }
 
     if (lifecycle === "session_finalize") {
@@ -225,13 +314,23 @@ Deno.serve(async (req: Request) => {
       }
 
       const coachingModeUsed = resolveCoachingModes(profileData).primary;
-      await persistSessionMemory(supabase, user.id, conversationId, parsed, coachingModeUsed);
+      const finalizeExchangeCount = extractAllUserTexts(uiMessages).length;
+      await persistSessionMemory(
+        supabase,
+        user.id,
+        conversationId,
+        parsed,
+        coachingModeUsed,
+        finalizeExchangeCount,
+      );
 
       // REQ-01: post-session longitudinal memory extraction (best-effort).
       const openaiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
       if (openaiKey) {
-        const transcript = extractAllUserTexts(uiMessages).join("\n\n");
-        void extractMemoryFacts(supabase, user.id, transcript, openaiKey);
+        const transcript = buildSessionTranscript(uiMessages);
+        if (transcript.trim()) {
+          void extractMemoryFacts(supabase, user.id, transcript, openaiKey);
+        }
       }
 
       // Clear prior-crisis flag after a clean completed session (no L2+ this turn).

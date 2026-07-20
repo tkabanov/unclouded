@@ -1,10 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   SessionCompletionForm,
+  type JournalLetterDisposition,
   type PathSessionFormData,
 } from "@/components/design-system/SessionCompletionForm";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
 import { useSessionCompletionRoute } from "@/hooks/useSessionCompletionRoute";
+import { useUserProfile } from "@/lib/userProfile";
+import { createJournalEntry } from "@/lib/journal/journalEntriesApi";
+import { fetchPathSessionsByKey } from "@/lib/paths/pathsCatalogApi";
+import {
+  assembleUnsentLetterContent,
+  buildUnsentLetterSections,
+  fetchUserPathSessionAnswers,
+  isDirectedWritingSubMode,
+  isFinalDirectedWritingSession,
+  UNSENT_LETTER_JOURNAL_TITLE,
+} from "@/lib/paths/directedWritingHelpers";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import {
   completePathSession,
@@ -21,6 +34,8 @@ type SessionCompletionRouteProps = {
 export default function SessionCompletionRoute({
   onReturnToMyPaths,
 }: SessionCompletionRouteProps) {
+  const { user } = useAuth();
+  const { profile } = useUserProfile();
   const { sessionId, isVisible, matchingEnrollment, clearSessionParam } =
     useSessionCompletionRoute();
   const { refresh } = usePathsEnrollmentStore();
@@ -29,13 +44,19 @@ export default function SessionCompletionRoute({
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [reflectionChecked, setReflectionChecked] = useState(false);
+  const [journalDisposition, setJournalDisposition] =
+    useState<JournalLetterDisposition | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const directedWriting = isDirectedWritingSubMode(matchingEnrollment?.subMode);
+  const isFinalSession = isFinalDirectedWritingSession(session?.sessionIndex);
 
   useEffect(() => {
     if (!isVisible || !sessionId) {
       setSession(null);
       setAnswers({});
       setReflectionChecked(false);
+      setJournalDisposition(null);
       setSubmitError(null);
       return;
     }
@@ -67,7 +88,7 @@ export default function SessionCompletionRoute({
   }, [isVisible, sessionId, matchingEnrollment?.pathSlug]);
 
   const handleSubmit = useCallback(async () => {
-    if (!sessionId || !matchingEnrollment || !session || submitting) return;
+    if (!sessionId || !matchingEnrollment || !session || submitting || !user) return;
 
     const missing = session.questions.filter(
       (question) => !(answers[question.id]?.trim()),
@@ -77,18 +98,62 @@ export default function SessionCompletionRoute({
       return;
     }
 
+    if (directedWriting && isFinalSession && !journalDisposition) {
+      setSubmitError("Choose whether to save your letter to your journal or discard it.");
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const mappedAnswers = session.questions.map((question) => ({
+        questionId: question.id,
+        questionText: question.questionText,
+        answerText: answers[question.id] ?? "",
+      }));
+
+      if (
+        directedWriting &&
+        isFinalSession &&
+        journalDisposition === "save" &&
+        matchingEnrollment.pathSlug
+      ) {
+        const pathSessions = await fetchPathSessionsByKey(matchingEnrollment.pathSlug);
+        const priorAnswers = await fetchUserPathSessionAnswers(
+          user.id,
+          pathSessions.map((entry) => entry.id),
+          profile?.onboardingData ?? null,
+        );
+        const currentAnswerText =
+          mappedAnswers.map((answer) => answer.answerText.trim()).filter(Boolean).join("\n\n") ||
+          "";
+        const letterContent = assembleUnsentLetterContent(
+          buildUnsentLetterSections(
+            pathSessions,
+            priorAnswers,
+            sessionId,
+            currentAnswerText,
+          ),
+        );
+
+        if (letterContent.trim()) {
+          await createJournalEntry(
+            user.id,
+            {
+              title: UNSENT_LETTER_JOURNAL_TITLE,
+              moodTag: null,
+              content: letterContent,
+            },
+            profile?.onboardingData ?? null,
+          );
+        }
+      }
+
       await completePathSession({
         sessionId,
         enrollmentId: matchingEnrollment.enrollmentId,
-        answers: session.questions.map((question) => ({
-          questionId: question.id,
-          questionText: question.questionText,
-          answerText: answers[question.id] ?? "",
-        })),
-        setAsFocus: reflectionChecked,
+        answers: mappedAnswers,
+        setAsFocus: directedWriting ? false : reflectionChecked,
         microCommitmentText: session.microCommitment,
         pathName: matchingEnrollment.pathName,
         sessionTitle: session.title,
@@ -96,7 +161,11 @@ export default function SessionCompletionRoute({
       clearSessionParam();
       onReturnToMyPaths();
       await refresh();
-      toast.success("Session completed");
+      toast.success(
+        directedWriting && isFinalSession && journalDisposition === "save"
+          ? "Session completed — letter saved to your journal"
+          : "Session completed",
+      );
     } catch (error) {
       console.error("Failed to submit session completion", error);
       const message =
@@ -114,7 +183,12 @@ export default function SessionCompletionRoute({
     session,
     answers,
     reflectionChecked,
+    journalDisposition,
+    directedWriting,
+    isFinalSession,
     submitting,
+    user,
+    profile?.onboardingData,
     clearSessionParam,
     onReturnToMyPaths,
     refresh,
@@ -158,6 +232,13 @@ export default function SessionCompletionRoute({
               }}
               reflectionChecked={reflectionChecked}
               onReflectionChange={setReflectionChecked}
+              directedWriting={directedWriting}
+              showFocusCheckbox={!directedWriting}
+              journalDisposition={journalDisposition}
+              onJournalDispositionChange={(value) => {
+                setSubmitError(null);
+                setJournalDisposition(value);
+              }}
               onSubmit={() => void handleSubmit()}
             />
             {submitError ? (

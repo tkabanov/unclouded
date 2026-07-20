@@ -6,6 +6,7 @@ import {
   SessionQuestionCell,
   type PathQuestionData,
 } from "./SessionQuestionCell";
+import { DIRECTED_WRITING_WITNESS_BANNER } from "@/lib/paths/directedWritingHelpers";
 
 /** Bubble custom.pathsession fields used by RE - session completion form (bTIyi). */
 export type PathSessionFormData = {
@@ -15,6 +16,8 @@ export type PathSessionFormData = {
   coachingText: string;
   /** microCommitment binding → bTIzX */
   microCommitment: string;
+  /** pathSession.index — used for directed-writing final session UX (REQ-15). */
+  sessionIndex?: number;
   /** pathquestion list for RepeatingGroup bTIzA */
   questions: PathQuestionData[];
 };
@@ -27,12 +30,21 @@ export type SessionCompletionFormProps = {
   onReflectionChange?: (checked: boolean) => void;
   onSubmit?: () => void;
   className?: string;
+  /** REQ-15 Directed Writing — witness banner + optional journal disposition on final session. */
+  directedWriting?: boolean;
+  showFocusCheckbox?: boolean;
+  journalDisposition?: JournalLetterDisposition | null;
+  onJournalDispositionChange?: (value: JournalLetterDisposition) => void;
 };
+
+export type JournalLetterDisposition = "save" | "discard";
 
 const SUBMIT_LABEL = "Submit answers";
 const MICRO_COMMITMENT_LABEL = "Micro-commitment";
 /** Developer FAQ: Set as My Focus copies micro_commitment → active focus (optional). */
 const REFLECTION_CHECKBOX_LABEL = "Set as My Focus";
+const JOURNAL_SAVE_LABEL = "Save letter to my private journal";
+const JOURNAL_DISCARD_LABEL = "Discard — do not save to journal";
 
 /**
  * RE - session completion form (bTIyi): session header, question list,
@@ -46,8 +58,15 @@ export function SessionCompletionForm({
   onReflectionChange,
   onSubmit,
   className,
+  directedWriting = false,
+  showFocusCheckbox = true,
+  journalDisposition = null,
+  onJournalDispositionChange,
 }: SessionCompletionFormProps) {
   const reflectionId = "session-completion-reflection";
+  const journalSaveId = "session-completion-journal-save";
+  const journalDiscardId = "session-completion-journal-discard";
+  const showJournalDisposition = directedWriting && session.sessionIndex === 4;
 
   return (
     <form
@@ -62,6 +81,18 @@ export function SessionCompletionForm({
       }}
     >
       <div className="hidden" aria-hidden="true" />
+
+      {directedWriting ? (
+        <div
+          className={cn(
+            bubbleStyle("Group_alert_banner_"),
+            "rounded-lg border border-border/60 bg-muted/20 p-3",
+          )}
+          role="note"
+        >
+          <p className={bubbleStyle("Text_body_muted_")}>{DIRECTED_WRITING_WITNESS_BANNER}</p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         <h2
@@ -107,24 +138,57 @@ export function SessionCompletionForm({
         >
           {session.microCommitment}
         </p>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={reflectionId}
-            data-style-ref="Checkbox_default_"
-            checked={reflectionChecked}
-            onCheckedChange={(checked) =>
-              onReflectionChange?.(checked === true)
-            }
-            disabled={!onReflectionChange}
-            className={bubbleStyle("Checkbox_default_")}
-          />
-          <label
-            htmlFor={reflectionId}
-            className={bubbleStyle("Text_label_")}
-          >
-            {REFLECTION_CHECKBOX_LABEL}
-          </label>
-        </div>
+        {showJournalDisposition ? (
+          <fieldset className="flex flex-col gap-2">
+            <legend className={bubbleStyle("Text_label_")}>Your letter</legend>
+            <div className="flex items-center gap-2">
+              <input
+                id={journalSaveId}
+                type="radio"
+                name="journal-disposition"
+                checked={journalDisposition === "save"}
+                onChange={() => onJournalDispositionChange?.("save")}
+                disabled={!onJournalDispositionChange}
+              />
+              <label htmlFor={journalSaveId} className={bubbleStyle("Text_label_")}>
+                {JOURNAL_SAVE_LABEL}
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                id={journalDiscardId}
+                type="radio"
+                name="journal-disposition"
+                checked={journalDisposition === "discard"}
+                onChange={() => onJournalDispositionChange?.("discard")}
+                disabled={!onJournalDispositionChange}
+              />
+              <label htmlFor={journalDiscardId} className={bubbleStyle("Text_label_")}>
+                {JOURNAL_DISCARD_LABEL}
+              </label>
+            </div>
+          </fieldset>
+        ) : null}
+        {showFocusCheckbox ? (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id={reflectionId}
+              data-style-ref="Checkbox_default_"
+              checked={reflectionChecked}
+              onCheckedChange={(checked) =>
+                onReflectionChange?.(checked === true)
+              }
+              disabled={!onReflectionChange}
+              className={bubbleStyle("Checkbox_default_")}
+            />
+            <label
+              htmlFor={reflectionId}
+              className={bubbleStyle("Text_label_")}
+            >
+              {REFLECTION_CHECKBOX_LABEL}
+            </label>
+          </div>
+        ) : null}
       </div>
 
       <button

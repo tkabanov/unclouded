@@ -16,6 +16,7 @@ import OnboardingHealthFlags from "@/components/OnboardingHealthFlags";
 import OnboardingResults from "@/components/OnboardingResults";
 import OnboardingWizardShell from "@/components/OnboardingWizardShell";
 import { completeOnboarding } from "@/lib/completeOnboarding";
+import { ensureReferralCode } from "@/lib/share/referralCodeApi";
 import { computeOnboardingModulePreview } from "@/lib/modules/moduleScheduler";
 import {
   buildLoadSignalCustomStates,
@@ -68,6 +69,7 @@ const Onboarding = () => {
     selected_flags: [],
   });
   const [resultsAnchorDate] = useState(() => new Date());
+  const [referralCode, setReferralCode] = useState<string | null>(null);
 
   const resultsModulePreview = useMemo(() => {
     if (step !== ONBOARDING_STEP.RESULTS) return undefined;
@@ -138,6 +140,23 @@ const Onboarding = () => {
       navigate(resolvePostAuthRoute(profile), { replace: true });
     }
   }, [profile, profileLoading, completingOnboarding, navigate, searchParams]);
+
+  useEffect(() => {
+    if (step !== ONBOARDING_STEP.RESULTS || !user) return;
+
+    let cancelled = false;
+    ensureReferralCode(user.id)
+      .then((code) => {
+        if (!cancelled) setReferralCode(code);
+      })
+      .catch((error) => {
+        console.error("Failed to ensure referral code for share card", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [step, user]);
 
   const handleComplete = async () => {
     if (!user) {
@@ -358,6 +377,7 @@ const Onboarding = () => {
             behavioralPatterns={behavioralPatterns}
             healthFlags={healthFlags}
             modulePreview={resultsModulePreview}
+            referralCode={referralCode}
             onComplete={handleComplete}
           />
         );

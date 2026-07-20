@@ -4,6 +4,10 @@ import { toast } from "sonner";
 
 import SettingsAboutYouSection from "@/components/settings/SettingsAboutYouSection";
 import SettingsKnowYourselfSection from "@/components/settings/SettingsKnowYourselfSection";
+import {
+  SettingsManagerTeamAggregateSection,
+  SettingsWorkplaceAggregateOptInSection,
+} from "@/components/settings/SettingsWorkplaceAggregateSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -186,6 +190,10 @@ export default function SettingsProfileTab() {
       </div>
 
       <SettingsAboutYouSection form={aboutYouForm} onChange={updateAboutYouField} />
+
+      <SettingsWorkplaceAggregateOptInSection />
+
+      <SettingsManagerTeamAggregateSection managesATeam={aboutYouForm.managesATeam} />
 
       <SettingsKnowYourselfSection profile={profile} />
 

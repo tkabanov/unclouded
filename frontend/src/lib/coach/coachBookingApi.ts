@@ -37,15 +37,25 @@ export async function createCoachBooking(params?: {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
   if (token) {
-    await fetch(KOTA_READ_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
-      body: JSON.stringify({ bookingId: data.id }),
-    }).catch(() => null);
+    try {
+      const response = await fetch(KOTA_READ_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ bookingId: data.id }),
+      });
+      if (response.ok) {
+        const payload = (await response.json()) as { kotaRead?: string };
+        if (typeof payload.kotaRead === "string" && payload.kotaRead.trim()) {
+          return { ...(data as CoachBookingRow), kotaRead: payload.kotaRead.trim() };
+        }
+      }
+    } catch {
+      // Non-blocking — booking stands even if Kota's Read generation fails.
+    }
   }
 
   if (params?.externalCalendarUrl && typeof window !== "undefined") {

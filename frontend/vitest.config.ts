@@ -20,6 +20,9 @@ export default defineConfig({
     env: {
       VITE_SUPABASE_URL: "https://example.supabase.co",
       VITE_SUPABASE_PUBLISHABLE_KEY: "test-anon-key",
+      VITE_PROMPT_TEST_SUPABASE_URL: "https://staging.example.supabase.co",
+      VITE_PROMPT_TEST_SUPABASE_PUBLISHABLE_KEY: "test-staging-anon-key",
+      VITE_PROMPT_TEST_CHAT_FUNCTION: "chat-staging",
     },
   },
   resolve: {

@@ -1,5 +1,18 @@
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  buildClassificationLine,
+  buildKotaReadUserPrompt,
+  buildPathsLine,
+  buildScoresLine,
+  formatKotaReadBrief,
+  KOTA_READ_SYSTEM_PROMPT,
+  parseKotaReadBrief,
+  resolveOpenCommitmentLine,
+  sessionMemoryToLines,
+  type KotaReadContext,
+} from "../_shared/kotaReadBrief.ts";
+import { readSessionMemoryRecords } from "../chat/sessionMemory/sessionMemoryHelpers.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +21,6 @@ const corsHeaders = {
 
 type RequestBody = {
   bookingId?: string;
-  conversationId?: string;
 };
 
 function jsonResponse(status: number, payload: Record<string, unknown>): Response {
@@ -18,36 +30,78 @@ function jsonResponse(status: number, payload: Record<string, unknown>): Respons
   });
 }
 
-function readSessionMemorySnippets(onboardingData: Record<string, unknown> | null): string[] {
-  const raw = onboardingData?.chat_session_memory;
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .slice(-5)
-    .map((entry) => {
-      if (!entry || typeof entry !== "object") return null;
-      const row = entry as Record<string, unknown>;
-      const topic = typeof row.topic === "string" ? row.topic.trim() : "";
-      const summary = typeof row.summaryStub === "string" ? row.summaryStub.trim() : "";
-      if (!topic && !summary) return null;
-      return `- ${topic}${summary ? `: ${summary}` : ""}`;
-    })
-    .filter((line): line is string => Boolean(line));
+async function fetchPathEnrollmentLines(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  const { data: enrollments, error } = await supabase
+    .from("pathEnrollment")
+    .select("status, completedSessionsCount, pathId")
+    .eq("userId", userId);
+
+  if (error || !enrollments?.length) {
+    return buildPathsLine([]);
+  }
+
+  const pathIds = enrollments
+    .map((entry) => (typeof entry.pathId === "string" ? entry.pathId : null))
+    .filter((id): id is string => Boolean(id));
+
+  const pathNameById = new Map<string, string>();
+  if (pathIds.length > 0) {
+    const { data: paths } = await supabase.from("path").select("id, name").in("id", pathIds);
+    for (const path of paths ?? []) {
+      if (typeof path.id === "string" && typeof path.name === "string") {
+        pathNameById.set(path.id, path.name);
+      }
+    }
+  }
+
+  return buildPathsLine(
+    enrollments.map((entry) => ({
+      pathName:
+        (typeof entry.pathId === "string" && pathNameById.get(entry.pathId)) || "Path",
+      status: typeof entry.status === "string" ? entry.status : "unknown",
+      completedSessionsCount: Number(entry.completedSessionsCount ?? 0) || 0,
+    })),
+  );
+}
+
+async function buildKotaReadContext(
+  supabase: SupabaseClient,
+  userId: string,
+  profile: {
+    firstName?: string | null;
+    results?: unknown;
+    onboardingData?: unknown;
+  },
+  memoryFacts: Record<string, unknown> | null,
+): Promise<KotaReadContext> {
+  const onboardingData =
+    profile.onboardingData && typeof profile.onboardingData === "object"
+      ? (profile.onboardingData as Record<string, unknown>)
+      : null;
+  const results =
+    profile.results && typeof profile.results === "object"
+      ? (profile.results as Record<string, unknown>)
+      : null;
+  const sessionRecords = readSessionMemoryRecords(onboardingData);
+
+  return {
+    firstName: profile.firstName?.trim() || "Member",
+    classificationLine: buildClassificationLine(results),
+    scoresLine: buildScoresLine(results),
+    pathsLine: await fetchPathEnrollmentLines(supabase, userId),
+    openCommitmentLine: resolveOpenCommitmentLine(sessionRecords, onboardingData),
+    sessionMemoryLines: sessionMemoryToLines(sessionRecords),
+    memoryFactsJson: JSON.stringify(memoryFacts ?? {}),
+  };
 }
 
 async function generateKotaRead(params: {
   apiKey: string;
-  memoryFacts: Record<string, unknown> | null;
-  sessionMemory: string[];
+  context: KotaReadContext;
 }): Promise<string | null> {
-  const facts = params.memoryFacts ?? {};
-  const prompt = [
-    "Write a brief 'Kota's Read' coaching prep note (3-5 sentences) for a human coach.",
-    "Session memory:",
-    params.sessionMemory.length > 0 ? params.sessionMemory.join("\n") : "(none)",
-    "Long-term memory facts:",
-    JSON.stringify(facts),
-  ].join("\n\n");
-
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -56,13 +110,11 @@ async function generateKotaRead(params: {
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      temperature: 0.4,
+      temperature: 0.35,
+      response_format: { type: "json_object" },
       messages: [
-        {
-          role: "system",
-          content: "You are Kota, an AI coaching assistant preparing a concise coach handoff brief.",
-        },
-        { role: "user", content: prompt },
+        { role: "system", content: KOTA_READ_SYSTEM_PROMPT },
+        { role: "user", content: buildKotaReadUserPrompt(params.context) },
       ],
     }),
   });
@@ -71,7 +123,12 @@ async function generateKotaRead(params: {
 
   const payload = await response.json();
   const content = payload?.choices?.[0]?.message?.content;
-  return typeof content === "string" && content.trim() ? content.trim() : null;
+  if (typeof content !== "string" || !content.trim()) return null;
+
+  const parsed = parseKotaReadBrief(content);
+  if (!parsed) return null;
+
+  return formatKotaReadBrief(parsed);
 }
 
 Deno.serve(async (req) => {
@@ -120,7 +177,11 @@ Deno.serve(async (req) => {
   }
 
   const [{ data: profile }, { data: memoryFacts }] = await Promise.all([
-    auth.supabase.from("profiles").select("onboardingData").eq("id", auth.user.id).maybeSingle(),
+    auth.supabase
+      .from("profiles")
+      .select("firstName, results, onboardingData")
+      .eq("id", auth.user.id)
+      .maybeSingle(),
     auth.supabase
       .from("userMemoryFacts")
       .select("peopleInLife, userLanguage, openAvoidances, userInsights, statedGoals")
@@ -128,15 +189,16 @@ Deno.serve(async (req) => {
       .maybeSingle(),
   ]);
 
-  const onboardingData =
-    profile?.onboardingData && typeof profile.onboardingData === "object"
-      ? (profile.onboardingData as Record<string, unknown>)
-      : null;
+  const context = await buildKotaReadContext(
+    auth.supabase,
+    auth.user.id,
+    profile ?? {},
+    (memoryFacts as Record<string, unknown> | null) ?? null,
+  );
 
   const kotaRead = await generateKotaRead({
     apiKey: openaiKey,
-    memoryFacts: (memoryFacts as Record<string, unknown> | null) ?? null,
-    sessionMemory: readSessionMemorySnippets(onboardingData),
+    context,
   });
 
   if (!kotaRead) {

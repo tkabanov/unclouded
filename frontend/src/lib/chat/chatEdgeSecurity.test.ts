@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   CRISIS_RESPONSE_TEXT,
+  classifyCrisisLevel,
   detectCrisisInLiveContext,
   detectCrisisInThread,
   detectCrisisLanguage,
+  requiresCrisisHardStop,
 } from "../../../../supabase/functions/chat/crisisDetect.ts";
 import {
   FREE_TIER_SESSION_LIMIT,
@@ -16,8 +18,26 @@ import {
 } from "../../../../supabase/functions/chat/tierGateHelpers.ts";
 import { buildSystemPrompt } from "../../../../supabase/functions/chat/buildSystemPrompt.ts";
 
+describe("classifyCrisisLevel", () => {
+  it("returns null for Level 1 distress (no edge regex hard-stop)", () => {
+    expect(classifyCrisisLevel("I'm not okay today. Everything feels heavy and I'm crying.")).toBe(null);
+    expect(classifyCrisisLevel("feeling overwhelmed at work")).toBe(null);
+  });
+
+  it("classifies FINAL L2–L4 and L2+ always requires hard-stop", () => {
+    expect(classifyCrisisLevel("I've been thinking about killing myself lately.")).toBe(2);
+    expect(classifyCrisisLevel("I want to die")).toBe(3);
+    expect(classifyCrisisLevel("I want to die. I have a plan.")).toBe(3);
+    expect(classifyCrisisLevel("I'm going to hurt myself tonight. I have the means right here.")).toBe(4);
+    expect(requiresCrisisHardStop(2)).toBe(true);
+    expect(requiresCrisisHardStop(3)).toBe(true);
+    expect(requiresCrisisHardStop(4)).toBe(true);
+    expect(requiresCrisisHardStop(null)).toBe(false);
+  });
+});
+
 describe("detectCrisisLanguage", () => {
-  it("matches Build Brief crisis trigger phrases", () => {
+  it("matches L2+ crisis trigger phrases for hard-stop", () => {
     expect(detectCrisisLanguage("I want to die")).toBe(true);
     expect(detectCrisisLanguage("sometimes I think about kill myself")).toBe(true);
     expect(detectCrisisLanguage("I can't go on like this")).toBe(true);
@@ -38,6 +58,7 @@ describe("detectCrisisInThread", () => {
     expect(CRISIS_RESPONSE_TEXT).toContain("988");
     expect(CRISIS_RESPONSE_TEXT).toContain("741741");
     expect(CRISIS_RESPONSE_TEXT).toContain("What you just said");
+    expect(CRISIS_RESPONSE_TEXT).not.toMatch(/\b911\b/);
   });
 
   it("flags crisis in earlier user message even when latest is benign", () => {

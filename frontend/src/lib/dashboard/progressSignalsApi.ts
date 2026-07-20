@@ -49,13 +49,15 @@ async function countSessionsInRange(userId: string, start: string, end: string):
 
 async function fetchPulseLast30Days(userId: string): Promise<ProgressSignals["pulseLast30Days"]> {
   const client = supabase as unknown as UntypedSupabase;
-  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
 
   const { data, error } = await client
     .from("dailyCheckin")
     .select("date, mood, createdAt")
     .eq("userId", userId)
-    .gte("date", cutoff)
+    .gte("date", cutoffDate)
     .order("date", { ascending: true });
 
   if (error) {

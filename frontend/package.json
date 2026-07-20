@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "browserslist:update": "update-browserslist-db"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.4",

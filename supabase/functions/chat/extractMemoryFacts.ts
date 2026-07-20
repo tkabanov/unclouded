@@ -19,10 +19,74 @@ function capItems(items: string[]): string[] {
     .slice(0, MAX_ITEMS_PER_FIELD);
 }
 
+function splitStoredItems(value: string | null | undefined): string[] {
+  if (!value?.trim()) return [];
+  return value
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function joinItems(items: string[] | undefined): string | null {
   if (!items || items.length === 0) return null;
   const capped = capItems(items);
   return capped.length > 0 ? capped.join("\n") : null;
+}
+
+/** REQ-01: merge new extraction with stored facts; newest unique items first; cap at 5 per field. */
+export function mergeMemoryFactField(
+  existing: string | null | undefined,
+  incoming: string | null | undefined,
+): string | null {
+  const existingItems = splitStoredItems(existing);
+  const incomingItems = splitStoredItems(incoming);
+  const seen = new Set<string>();
+  const merged: string[] = [];
+
+  for (const item of incomingItems) {
+    const key = item.toLowerCase();
+    const alreadyStored = existingItems.some((stored) => stored.toLowerCase() === key);
+    if (alreadyStored || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(item);
+    if (merged.length >= MAX_ITEMS_PER_FIELD) {
+      return merged.join("\n");
+    }
+  }
+
+  for (const item of existingItems) {
+    const key = item.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(item);
+    if (merged.length >= MAX_ITEMS_PER_FIELD) break;
+  }
+
+  return merged.length > 0 ? merged.join("\n") : null;
+}
+
+function mergeExtractedFields(
+  existing: MemoryFactFields | null | undefined,
+  extracted: ExtractedMemoryPayload,
+): MemoryFactFields {
+  const prior = existing ?? {
+    peopleInLife: null,
+    userLanguage: null,
+    openAvoidances: null,
+    userInsights: null,
+    statedGoals: null,
+  };
+
+  return {
+    peopleInLife: mergeMemoryFactField(prior.peopleInLife, joinItems(extracted.peopleInLife)),
+    userLanguage: mergeMemoryFactField(prior.userLanguage, joinItems(extracted.userLanguage)),
+    openAvoidances: mergeMemoryFactField(
+      prior.openAvoidances,
+      joinItems(extracted.openAvoidances),
+    ),
+    userInsights: mergeMemoryFactField(prior.userInsights, joinItems(extracted.userInsights)),
+    statedGoals: mergeMemoryFactField(prior.statedGoals, joinItems(extracted.statedGoals)),
+  };
 }
 
 function parseExtractedPayload(raw: unknown): ExtractedMemoryPayload | null {
@@ -64,9 +128,9 @@ async function extractWithOpenAi(
         {
           role: "system",
           content:
-            "Extract durable coaching memory facts from the transcript. Return JSON with optional string arrays: peopleInLife, userLanguage, openAvoidances, userInsights, statedGoals. Max 5 items per field. Omit empty fields.",
+            "Extract durable longitudinal memory facts from this coaching session transcript. Lines are labeled User: (the client) and Kota: (the AI coach). Return JSON with optional string arrays (max 5 items each, verbatim user language where possible): peopleInLife (named people and roles, e.g. Partner: Jordan), userLanguage (exact phrases the User used about their experience), openAvoidances (topics the User indicated they are not ready to address), userInsights (insights the User reached themselves — not Kota observations unless the User clearly affirmed them), statedGoals (verbatim values or goals the User stated). Omit empty fields.",
         },
-        { role: "user", content: trimmed.slice(-12000) },
+        { role: "user", content: trimmed.slice(-16000) },
       ],
     }),
   });
@@ -98,14 +162,21 @@ export async function extractMemoryFacts(
     const extracted = await extractWithOpenAi(transcript, openaiApiKey);
     if (!extracted) return;
 
+    const { data: existingRow } = await supabase
+      .from("userMemoryFacts")
+      .select("peopleInLife, userLanguage, openAvoidances, userInsights, statedGoals")
+      .eq("userId", userId)
+      .maybeSingle();
+
+    const merged = mergeExtractedFields(
+      (existingRow as MemoryFactFields | null) ?? null,
+      extracted,
+    );
+
     const now = new Date().toISOString();
     const row = {
       userId,
-      peopleInLife: joinItems(extracted.peopleInLife),
-      userLanguage: joinItems(extracted.userLanguage),
-      openAvoidances: joinItems(extracted.openAvoidances),
-      userInsights: joinItems(extracted.userInsights),
-      statedGoals: joinItems(extracted.statedGoals),
+      ...merged,
       lastUpdated: now,
     };
 

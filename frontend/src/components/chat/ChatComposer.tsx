@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -11,6 +11,7 @@ export type ChatComposerProps = {
   onSend: () => void;
   onSuggestionSend?: (text: string) => void;
   disabled?: boolean;
+  leadingSlot?: ReactNode;
   className?: string;
 };
 
@@ -23,6 +24,7 @@ export function ChatComposer({
   onSend,
   onSuggestionSend,
   disabled = false,
+  leadingSlot,
   className,
 }: ChatComposerProps) {
   const handleSubmit = (event: FormEvent) => {
@@ -58,6 +60,7 @@ export function ChatComposer({
       </div>
 
       <div className="flex items-end gap-2">
+        {leadingSlot}
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label
             htmlFor="chat-composer-input"

@@ -125,6 +125,14 @@ describe("parsePathFlagRequirement", () => {
       ),
     ).toEqual({ kind: "none" });
   });
+
+  it("detects Unsent Letter OR-flag trigger from seed migration", () => {
+    expect(
+      parsePathFlagRequirement(
+        "flag:grief_mode_active; flag:recovery_mode_active; flag:transition_flag",
+      ),
+    ).toEqual({ kind: "grief_or_recovery_or_transition" });
+  });
 });
 
 describe("pathVisibleInLibrary", () => {
@@ -136,6 +144,9 @@ describe("pathVisibleInLibrary", () => {
   };
   const OPEN_PATH = {
     triggerSignals: "enrollment:onboarding; flag:None — all users matching classification",
+  };
+  const UNSENT_LETTER_PATH = {
+    triggerSignals: "flag:grief_mode_active; flag:recovery_mode_active; flag:transition_flag",
   };
 
   it("hides flag-gated paths when the user flag is inactive", () => {
@@ -180,6 +191,25 @@ describe("pathVisibleInLibrary", () => {
         griefModeActive: false,
       }),
     ).toBe(true);
+  });
+
+  it("shows Unsent Letter when any grief, recovery, or transition flag is active", () => {
+    expect(
+      pathVisibleInLibrary(UNSENT_LETTER_PATH, {
+        userTier: TIER.PRO,
+        recoveryModeActive: false,
+        griefModeActive: false,
+        transitionFlagActive: true,
+      }),
+    ).toBe(true);
+    expect(
+      pathVisibleInLibrary(UNSENT_LETTER_PATH, {
+        userTier: TIER.PRO,
+        recoveryModeActive: false,
+        griefModeActive: false,
+        transitionFlagActive: false,
+      }),
+    ).toBe(false);
   });
 });
 

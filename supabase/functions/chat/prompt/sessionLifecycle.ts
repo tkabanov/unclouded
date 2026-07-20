@@ -13,7 +13,8 @@ export type ChatLifecycleMode =
   | "session_open"
   | "session_close"
   | "session_finalize"
-  | "conversation_title";
+  | "conversation_title"
+  | "prompt_test";
 
 const FIRST_SESSION_OPENINGS: Record<CoachingModeSlug, string> = {
   stabilizer:
@@ -132,7 +133,11 @@ Template basis:
   }
 
   if (lifecycle === "session_close") {
-    return `[SESSION CLOSE — generate ONLY the assistant closing message. Use the spirit of STANDARD CLOSE WITH MICRO-COMMITMENT. End by asking for one specific micro-commitment before the next conversation. Keep it brief and warm. Do not continue coaching after the close.
+    const voiceCloseNote =
+      profile?.liveContext?.sessionType === "voice"
+        ? " Voice session: keep the close brief enough to speak aloud; client will pause 2–3 seconds before TTS."
+        : "";
+    return `[SESSION CLOSE — generate ONLY the assistant closing message. Use the spirit of STANDARD CLOSE WITH MICRO-COMMITMENT. End by asking for one specific micro-commitment before the next conversation. Keep it brief and warm. Do not continue coaching after the close.${voiceCloseNote}
 
 Close basis:
 "${STANDARD_CLOSE_WITH_COMMITMENT}" ]`;

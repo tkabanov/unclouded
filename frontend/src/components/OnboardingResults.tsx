@@ -30,6 +30,7 @@ interface OnboardingResultsProps {
     selected_flags: string[];
   };
   modulePreview?: OnboardingModulePreview;
+  referralCode?: string | null;
   onComplete: () => void;
 }
 
@@ -69,6 +70,7 @@ const OnboardingResults = ({
   behavioralPatterns,
   healthFlags,
   modulePreview: modulePreviewProp,
+  referralCode,
   onComplete,
 }: OnboardingResultsProps) => {
   const results = useMemo(
@@ -219,7 +221,10 @@ const OnboardingResults = ({
         </div>
 
         {/* REQ-09 — optional classification share card */}
-        <ClassificationShareCard classificationKey={results.classification.key} />
+        <ClassificationShareCard
+          classificationKey={results.classification.key}
+          referralCode={referralCode}
+        />
 
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-foreground text-center">What happens next</h3>

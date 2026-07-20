@@ -38,7 +38,8 @@ export type TransactionalEmailId =
   | "notification_path_progress"
   | "notification_reassessment_due"
   | "notification_milestone"
-  | "notification_streak";
+  | "notification_streak"
+  | "notification_vulnerable_outreach";
 
 export interface TransactionalEmailDefinition {
   id: TransactionalEmailId;
@@ -363,6 +364,18 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
     source: "build_brief_section13",
     from: TRANSACTIONAL_EMAIL_FROM,
     placeholderReason: PLACEHOLDER_EDGE_SMTP,
+  },
+  {
+    id: "notification_vulnerable_outreach",
+    name: "Vulnerable user re-engagement",
+    trigger:
+      "grief_mode_active or recovery_mode_active + ≥10 days since last session; daily cron → edge fn vulnerable-outreach",
+    subject: "Kota is here when you're ready",
+    priority: "high",
+    channel: "edge_smtp",
+    status: "live",
+    source: "build_brief_section13",
+    from: TRANSACTIONAL_EMAIL_FROM,
   },
 ] as const;
 

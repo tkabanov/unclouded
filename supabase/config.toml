@@ -15,6 +15,9 @@ enable_confirmations = false
 [functions.chat]
 verify_jwt = true
 
+[functions.chat-staging]
+verify_jwt = true
+
 # Section 3 — PuP 360 PDF narrative assembly (Pro / Premium).
 [functions.generate-pup-pdf]
 verify_jwt = true

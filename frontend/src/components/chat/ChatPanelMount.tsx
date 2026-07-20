@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChatReusable } from "./ChatReusable";
+import VoiceSessionMicButton from "./VoiceSessionMicButton";
 import type { ChatConversation, ChatMessage } from "./types";
 import { CHAT_CONVERSATION_DEFAULTS } from "./types";
 import {
@@ -25,6 +26,8 @@ import {
 } from "@/lib/chat/chatSessionLifecycleApi";
 import { readPreferredCoachingMode } from "@/lib/dashboard/coachingModeApi";
 import { formatChatModeBadgeText } from "@/lib/enums/coachingMode";
+import { playVoiceCloseRitualSilence, synthesizeKotaSpeech } from "@/lib/chat/voiceSessionApi";
+import { playKotaSpeech, useVoiceSessionRecorder } from "@/hooks/useVoiceSessionRecorder";
 import { cn } from "@/lib/utils";
 
 export interface ChatPanelMountProps {
@@ -59,10 +62,9 @@ export default function ChatPanelMount({
   const [awaitingCommitment, setAwaitingCommitment] = useState(false);
   const [sessionClosed, setSessionClosed] = useState(false);
   const [sessionLimitBlocked, setSessionLimitBlocked] = useState(false);
-  /** REQ-14 — voice session flag passed to Kota (Block 3.36). */
-  const [voiceMode, setVoiceMode] = useState(false);
   const openerSentForConversation = useRef<string | null>(null);
   const sessionLimitToastShown = useRef(false);
+  const voiceSessionActiveRef = useRef(false);
 
   const modeBadgeText = useMemo(
     () => formatChatModeBadgeText(readPreferredCoachingMode(onboardingData)),
@@ -96,10 +98,11 @@ export default function ChatPanelMount({
     setSessionLimitBlocked(false);
     openerSentForConversation.current = null;
     sessionLimitToastShown.current = false;
+    voiceSessionActiveRef.current = false;
   }, [conversationId]);
 
   const sendAssistantMessage = useCallback(
-    async (assistantText: string, threadSnapshot: ChatMessage[]) => {
+    async (assistantText: string, threadSnapshot: ChatMessage[], options?: { speak?: boolean }) => {
       const assistantMessage = await insertAssistantMessage({
         conversationId,
         userId,
@@ -110,6 +113,16 @@ export default function ChatPanelMount({
       setMessages(nextThread);
       await touchConversationAfterMessage(userId, conversationId, assistantText);
       onThreadUpdated?.();
+
+      if (options?.speak) {
+        try {
+          const audio = await synthesizeKotaSpeech(assistantText);
+          await playKotaSpeech(audio);
+        } catch {
+          toast.error("Couldn't play Kota's voice reply.");
+        }
+      }
+
       return { assistantMessage, nextThread };
     },
     [conversationId, onboardingData, onThreadUpdated, userId],
@@ -209,9 +222,14 @@ export default function ChatPanelMount({
   );
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, options?: { viaVoice?: boolean; voiceEmotionDetected?: boolean }) => {
       const trimmed = text.trim();
+      const viaVoice = options?.viaVoice === true;
       if (!trimmed || awaitingAssistantReply || sessionClosed) return;
+
+      if (viaVoice) {
+        voiceSessionActiveRef.current = true;
+      }
 
       const optimisticId = `pending-${crypto.randomUUID()}`;
       const optimisticUserMessage: ChatMessage = {
@@ -255,9 +273,12 @@ export default function ChatPanelMount({
             context,
             profileData,
             conversationId,
-            voiceMode ? "voice" : "text",
+            viaVoice ? "voice" : "text",
+            viaVoice ? options?.voiceEmotionDetected : undefined,
           );
-          const { nextThread } = await sendAssistantMessage(assistantText, threadForAi);
+          const { nextThread } = await sendAssistantMessage(assistantText, threadForAi, {
+            speak: viaVoice,
+          });
           void maybeGenerateConversationTitle(nextThread);
         } catch (error) {
           if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
@@ -291,17 +312,26 @@ export default function ChatPanelMount({
       sendAssistantMessage,
       sessionClosed,
       userId,
-      voiceMode,
     ],
   );
 
   const handleEndSession = useCallback(async () => {
     if (awaitingAssistantReply || sessionClosed || messages.length === 0) return;
 
+    const viaVoice = voiceSessionActiveRef.current;
     setAwaitingAssistantReply(true);
     try {
-      const closeText = await requestSessionClose(messages, profileData, context, conversationId);
-      await sendAssistantMessage(closeText, messages);
+      const closeText = await requestSessionClose(
+        messages,
+        profileData,
+        context,
+        conversationId,
+        viaVoice ? "voice" : "text",
+      );
+      if (viaVoice) {
+        await playVoiceCloseRitualSilence();
+      }
+      await sendAssistantMessage(closeText, messages, { speak: viaVoice });
       setAwaitingCommitment(true);
     } catch {
       toast.error("Couldn't close the session. Please try again.");
@@ -329,6 +359,16 @@ export default function ChatPanelMount({
     [sendMessage],
   );
 
+  const voiceRecorder = useVoiceSessionRecorder({
+    enabled: true,
+    onTranscript: (transcript, options) =>
+      sendMessage(transcript, {
+        viaVoice: true,
+        voiceEmotionDetected: options?.emotionDetected,
+      }),
+    onError: (error) => toast.error(error.message),
+  });
+
   return (
     <div
       className={cn("flex h-full min-h-0 flex-col", className)}
@@ -344,17 +384,6 @@ export default function ChatPanelMount({
               {FREE_TIER_UPSELL_MESSAGE}
             </div>
           ) : null}
-          <div className="flex items-center justify-end gap-2 border-b border-border px-4 py-2">
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={voiceMode}
-                onChange={(event) => setVoiceMode(event.target.checked)}
-                className="rounded border-border"
-              />
-              Voice session (adapts Kota for spoken replies)
-            </label>
-          </div>
           <ChatReusable
             conversation={conversation}
             messages={messages}
@@ -362,7 +391,22 @@ export default function ChatPanelMount({
             onComposerChange={setComposerValue}
             onSend={handleSend}
             onSuggestionSend={handleSuggestionSend}
-            composerDisabled={awaitingAssistantReply || sessionClosed || sessionLimitBlocked}
+            composerDisabled={
+              awaitingAssistantReply ||
+              sessionClosed ||
+              sessionLimitBlocked ||
+              voiceRecorder.recording ||
+              voiceRecorder.transcribing
+            }
+            composerLeadingSlot={
+              <VoiceSessionMicButton
+                recording={voiceRecorder.recording}
+                transcribing={voiceRecorder.transcribing}
+                silenceHoldActive={voiceRecorder.silenceHoldActive}
+                disabled={awaitingAssistantReply || sessionClosed || sessionLimitBlocked}
+                onToggle={voiceRecorder.toggleRecording}
+              />
+            }
             isAssistantTyping={awaitingAssistantReply}
             onEndSession={sessionClosed ? undefined : () => void handleEndSession()}
             endSessionDisabled={awaitingAssistantReply || messages.length === 0}

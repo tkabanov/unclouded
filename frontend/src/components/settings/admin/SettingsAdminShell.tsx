@@ -5,6 +5,7 @@ import AdminResourcesTab from "@/components/settings/admin/AdminResourcesTab";
 import AdminPlansTab from "@/components/settings/admin/AdminPlansTab";
 import AdminWorkplacesTab from "@/components/settings/admin/AdminWorkplacesTab";
 import AdminAnalyticsTab from "@/components/settings/admin/AdminAnalyticsTab";
+import AdminOutreachTab from "@/components/settings/admin/AdminOutreachTab";
 import AdminReassessmentsTab from "@/components/settings/admin/AdminReassessmentsTab";
 import AdminPromptTestSuite from "@/components/settings/admin/AdminPromptTestSuite";
 import {
@@ -37,7 +38,7 @@ export default function SettingsAdminShell() {
           <p
             className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
           >
-            Manage guided paths, resources, plans, workplaces, analytics, reassessment history, and prompt tests.
+            Manage guided paths, resources, plans, workplaces, analytics, outreach monitoring, reassessment history, and prompt tests.
           </p>
         </div>
       </div>
@@ -75,6 +76,7 @@ export default function SettingsAdminShell() {
         {activeSubTab === ADMIN_SUB_TAB.PLANS && <AdminPlansTab />}
         {activeSubTab === ADMIN_SUB_TAB.WORKPLACES && <AdminWorkplacesTab />}
         {activeSubTab === ADMIN_SUB_TAB.ANALYTICS && <AdminAnalyticsTab />}
+        {activeSubTab === ADMIN_SUB_TAB.OUTREACH && <AdminOutreachTab />}
         {activeSubTab === ADMIN_SUB_TAB.REASSESSMENTS && <AdminReassessmentsTab />}
         {activeSubTab === ADMIN_SUB_TAB.PROMPT_TESTS && <AdminPromptTestSuite />}
       </div>

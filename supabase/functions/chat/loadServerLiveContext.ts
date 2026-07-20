@@ -287,7 +287,7 @@ async function fetchActivePathProgress(
 ): Promise<ChatActivePathProgress | null> {
   const { data, error } = await supabase
     .from("pathEnrollment")
-    .select("status, completedSessionsCount, currentSessionId, pathId, path(name, sessionsCount)")
+    .select("status, completedSessionsCount, currentSessionId, pathId, path(name, subMode, sessionsCount)")
     .eq("userId", userId)
     .eq("status", "active")
     .limit(1)
@@ -307,6 +307,8 @@ async function fetchActivePathProgress(
       : null;
   const pathName =
     typeof path?.name === "string" && path.name.trim() ? path.name.trim() : "Path";
+  const pathSubMode =
+    typeof path?.subMode === "string" && path.subMode.trim() ? path.subMode.trim() : null;
   const pathId =
     typeof row.pathId === "string"
       ? row.pathId
@@ -363,6 +365,7 @@ async function fetchActivePathProgress(
 
   return {
     pathName,
+    pathSubMode,
     status: typeof row.status === "string" && row.status.trim() ? row.status.trim() : "active",
     completedSessionsCount: completedCount,
     totalSessionsCount: totalSessions,

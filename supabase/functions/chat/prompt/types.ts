@@ -83,6 +83,7 @@ export interface ChatPathReflectionAnswer {
 
 export interface ChatActivePathProgress {
   pathName: string;
+  pathSubMode?: string | null;
   status: string;
   completedSessionsCount: number;
   totalSessionsCount: number | null;
@@ -115,6 +116,8 @@ export interface ChatLiveContext {
   latestReassessment?: ChatReassessmentContext | null;
   /** Layer 10 addendum — session delivery medium. */
   sessionType?: "text" | "voice" | "quick_checkin" | null;
+  /** Block 3.36 — latest voice utterance carried elevated vocal emotion signal. */
+  voiceEmotionDetected?: boolean | null;
   /** Layer 10 addendum — days since last completed session. */
   daysSinceLastSession?: number | null;
   /** Layer 10 addendum — prior session had Level 2+ crisis. */
@@ -125,6 +128,8 @@ export interface ChatLiveContext {
   exchangeCount?: number | null;
   /** Compressed longitudinal memory facts block (≤200 tokens target). */
   memoryFactsBlock?: string | null;
+  /** REQ-12 — older session summaries replaced by arc summary in Layer 10. */
+  sessionMemoryCompressed?: boolean | null;
   /** Mid-cycle state check trigger (significant life event). */
   significantLifeEventFlag?: boolean | null;
 }

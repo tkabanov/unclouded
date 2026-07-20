@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { Activity, CalendarDays, Route } from "lucide-react";
+import { CalendarDays, Route } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchProgressSignals, type ProgressSignals } from "@/lib/dashboard/progressSignalsApi";
+import PulseSparkline from "@/components/dashboard/PulseSparkline";
 
-function averagePulse(entries: ProgressSignals["pulseLast30Days"]): number | null {
-  if (entries.length === 0) return null;
-  const sum = entries.reduce((total, entry) => total + entry.mood, 0);
-  return Math.round((sum / entries.length) * 10) / 10;
+function formatSessionTrend(signals: ProgressSignals): string {
+  const { sessionsThisMonth, sessionsLastMonth } = signals;
+  return `${sessionsThisMonth} session${sessionsThisMonth === 1 ? "" : "s"} this month vs ${sessionsLastMonth} last month`;
 }
 
 export default function DashboardProgressWidget() {
@@ -39,11 +39,6 @@ export default function DashboardProgressWidget() {
     void loadSignals();
   }, [loadSignals]);
 
-  const pulseAvg = signals ? averagePulse(signals.pulseLast30Days) : null;
-  const sessionDelta = signals
-    ? signals.sessionsThisMonth - signals.sessionsLastMonth
-    : 0;
-
   return (
     <div
       data-style-ref="Group_card_"
@@ -55,12 +50,11 @@ export default function DashboardProgressWidget() {
         <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>Loading progress signals…</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-3 rounded-lg bg-accent/30 p-3")}>
-            <Activity className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <div>
-              <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>Pulse (30d)</p>
-              <p className="text-sm font-semibold">{pulseAvg ?? "—"}</p>
-            </div>
+          <div className={cn(bubbleStyle("Group_transparent_"), "flex flex-col gap-2 rounded-lg bg-accent/30 p-3")}>
+            <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>
+              Check-in pulse (30 days)
+            </p>
+            <PulseSparkline entries={signals?.pulseLast30Days ?? []} className="w-full max-w-[160px]" />
           </div>
 
           <div className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-3 rounded-lg bg-accent/30 p-3")}>
@@ -68,8 +62,7 @@ export default function DashboardProgressWidget() {
             <div>
               <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>Sessions</p>
               <p className="text-sm font-semibold">
-                {signals?.sessionsThisMonth ?? 0} this month
-                {sessionDelta !== 0 ? ` (${sessionDelta > 0 ? "+" : ""}${sessionDelta} vs last)` : ""}
+                {signals ? formatSessionTrend(signals) : "0 sessions this month vs 0 last month"}
               </p>
             </div>
           </div>
@@ -77,9 +70,10 @@ export default function DashboardProgressWidget() {
           <div className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-3 rounded-lg bg-accent/30 p-3")}>
             <Route className="h-4 w-4 shrink-0 text-primary" aria-hidden />
             <div>
-              <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>Paths</p>
+              <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>Path momentum</p>
               <p className="text-sm font-semibold">
-                {signals?.pathsCompletedSinceReassessment ?? 0} completed since reassessment
+                {signals?.pathsCompletedSinceReassessment ?? 0} path
+                {(signals?.pathsCompletedSinceReassessment ?? 0) === 1 ? "" : "s"} completed since reassessment
               </p>
             </div>
           </div>
