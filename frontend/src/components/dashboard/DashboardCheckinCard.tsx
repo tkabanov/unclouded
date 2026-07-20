@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Flame, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardUserContext } from "@/hooks/useDashboardUser";
 import { useUserProfile } from "@/lib/userProfile";
+import { readSessionLifecycleState } from "@/lib/chat/chatSessionLifecycleApi";
 import {
+  COMMITMENT_FOLLOW_THROUGH_OPTIONS,
   fetchDailyCheckInStreak,
   submitDailyCheckIn,
 } from "@/lib/dashboard/checkinApi";
@@ -60,9 +62,15 @@ export default function DashboardCheckinCard() {
   const [mood, setMood] = useState(7);
   const [energy, setEnergy] = useState(7);
   const [reflection, setReflection] = useState("");
+  const [commitmentFollowThrough, setCommitmentFollowThrough] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
   const [loadingStreak, setLoadingStreak] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const activeMicroCommitment = useMemo(
+    () => readSessionLifecycleState(profile?.onboardingData ?? null).activeMicroCommitment,
+    [profile?.onboardingData],
+  );
 
   const loadStreak = useCallback(async () => {
     if (!user) {
@@ -97,11 +105,13 @@ export default function DashboardCheckinCard() {
           mood,
           energyStressLevel: energy,
           reflection,
+          microCommitmentStatus: commitmentFollowThrough,
         },
         profile?.onboardingData ?? null,
       );
       setStreak(result.streak);
       setReflection("");
+      setCommitmentFollowThrough(null);
       await refresh();
       toast.success("Check-in saved.");
     } catch (err) {
@@ -175,6 +185,50 @@ export default function DashboardCheckinCard() {
           </p>
           <CheckinSlider value={energy} onChange={setEnergy} aria-label="Energy level" />
         </div>
+
+        {activeMicroCommitment ? (
+          <div
+            className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
+            role="group"
+            aria-labelledby="dashboard-checkin-commitment-label"
+          >
+            <p
+              id="dashboard-checkin-commitment-label"
+              className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
+            >
+              Did you follow through on your commitment?
+            </p>
+            <p className={cn(bubbleStyle("Text_body_"), "text-sm text-muted-foreground")}>
+              {activeMicroCommitment}
+            </p>
+            <p className="text-xs text-muted-foreground">No judgment — pick what fits today.</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {COMMITMENT_FOLLOW_THROUGH_OPTIONS.map((option) => {
+                const selected = commitmentFollowThrough === option.value;
+                return (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    variant={selected ? "default" : "outline"}
+                    data-style-ref={selected ? "Button_primary_" : "Button_secondary_"}
+                    className={cn(
+                      selected ? bubbleStyle("Button_primary_") : bubbleStyle("Button_secondary_"),
+                      "h-9 w-full text-sm",
+                    )}
+                    aria-pressed={selected}
+                    onClick={() =>
+                      setCommitmentFollowThrough((current) =>
+                        current === option.value ? null : option.value,
+                      )
+                    }
+                  >
+                    {option.label}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
         <div
           className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-1")}

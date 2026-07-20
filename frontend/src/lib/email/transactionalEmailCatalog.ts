@@ -32,6 +32,7 @@ export type TransactionalEmailId =
   | "reengagement_7_day_inactive"
   | "group_coaching_reminder"
   | "coaching_session_booked"
+  | "coach_kota_read_brief"
   | "notification_module_unlock"
   | "notification_daily_checkin"
   | "notification_gidget_nudge"
@@ -282,6 +283,17 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
     source: "phase2_section8",
     from: TRANSACTIONAL_EMAIL_FROM,
     placeholderReason: "Wix Bookings sends confirmation; Uncloud360 stack does not own this channel yet.",
+  },
+  {
+    id: "coach_kota_read_brief",
+    name: "Kota's Read — coach pre-session brief",
+    trigger: "Premium member books human coach; generate-kota-read edge fn",
+    subject: "Kota's Read — pre-session brief for [member]",
+    priority: "high",
+    channel: "edge_smtp",
+    status: "live",
+    source: "phase2_section8",
+    from: TRANSACTIONAL_EMAIL_FROM,
   },
   {
     id: "notification_module_unlock",

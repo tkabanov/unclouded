@@ -145,6 +145,8 @@ export async function finalizeSessionFromThread(
       typeof payload.resistancePoints === "string" ? payload.resistancePoints : null,
     effectivenessSignal:
       typeof payload.effectivenessSignal === "string" ? payload.effectivenessSignal : null,
+    unresolvedThread:
+      typeof payload.unresolvedThread === "string" ? payload.unresolvedThread : null,
   });
 
   if (!sanitized) {

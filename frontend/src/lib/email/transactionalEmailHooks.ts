@@ -100,6 +100,12 @@ export async function requestTransactionalEmail(
     case "reengagement_7_day_inactive":
     case "group_coaching_reminder":
     case "coaching_session_booked":
+      return placeholderResult(emailId);
+    case "coach_kota_read_brief":
+      return placeholderResult(
+        emailId,
+        "Delivered when a Premium member books a coach — generate-kota-read edge fn emails COACH_BRIEF_INBOX via Resend and logs delivery on coachBooking.",
+      );
     case "notification_module_unlock": {
       const candidates = await listModuleUnlockCandidates();
       const inCohort = candidates.some((candidate) => candidate.userId === payload.userId);

@@ -21,8 +21,8 @@ export default function BookCoachCard() {
       });
       setStatus(
         booking.kotaRead
-          ? "Booking created — Kota's Read is ready for your coach."
-          : "Booking created — Kota's Read is generating for your coach.",
+          ? "Booking created — Kota's Read was sent to your coach team."
+          : "Booking created — Kota's Read is generating for your coach team.",
       );
     } catch (err) {
       console.error(err);

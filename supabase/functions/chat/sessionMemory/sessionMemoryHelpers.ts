@@ -26,6 +26,10 @@ export type SessionMemoryRecord = {
   effectivenessSignal?: string | null;
   /** REQ-16 — user message count when the session was finalized. */
   exchangeCount?: number | null;
+  /** Layer 10 — unfinished thread flagged at session close. */
+  unresolvedThread?: string | null;
+  /** Layer 10 — open / completed / missed once follow-through is known. */
+  commitmentStatus?: string | null;
 };
 
 function readOptionalString(value: unknown, maxLen: number): string | null {
@@ -75,6 +79,8 @@ export function readSessionMemoryRecords(
           typeof entry.exchangeCount === "number" && Number.isFinite(entry.exchangeCount)
             ? Math.max(0, Math.floor(entry.exchangeCount))
             : null,
+        unresolvedThread: readOptionalString(entry.unresolvedThread, 400),
+        commitmentStatus: readOptionalString(entry.commitmentStatus, 40),
       } satisfies SessionMemoryRecord;
     })
     .filter((record): record is SessionMemoryRecord => record !== null)
@@ -115,6 +121,8 @@ export function buildSessionMemoryRecord(
       typeof exchangeCount === "number" && Number.isFinite(exchangeCount)
         ? Math.max(0, Math.floor(exchangeCount))
         : null,
+    unresolvedThread: finalize.unresolvedThread,
+    commitmentStatus: finalize.microCommitmentText ? "open" : null,
   };
 }
 
@@ -183,6 +191,7 @@ export function buildSessionMemoryPromptBlock(
         formatField("resistance", record.resistancePoints ?? null),
         formatField("coaching-mode", record.coachingModeUsed ?? null),
         formatField("effectiveness", record.effectivenessSignal ?? null),
+        formatField("unresolved-thread", record.unresolvedThread ?? null),
       ].join("; "),
     );
   }
@@ -201,7 +210,11 @@ export function formatReturningMemoryHint(
   if (!last) return null;
 
   const hints: string[] = [];
-  if (last.keyPatternOrInsight?.trim()) {
+  if (last.unresolvedThread?.trim()) {
+    hints.push(
+      `Something important was still open: ${sanitizePromptField(last.unresolvedThread, 200)}.`,
+    );
+  } else if (last.keyPatternOrInsight?.trim()) {
     hints.push(`You named a pattern: ${sanitizePromptField(last.keyPatternOrInsight, 200)}.`);
   } else if (last.summaryStub?.trim()) {
     hints.push(

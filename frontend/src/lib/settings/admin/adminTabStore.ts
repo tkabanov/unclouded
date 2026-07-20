@@ -5,6 +5,7 @@ export const ADMIN_SUB_TAB = {
   WORKPLACES: "workplaces",
   ANALYTICS: "analytics",
   OUTREACH: "outreach",
+  COACH_BOOKINGS: "coach_bookings",
   REASSESSMENTS: "reassessments",
   PROMPT_TESTS: "prompt_tests",
 } as const;
@@ -18,6 +19,7 @@ export const ADMIN_SUB_TAB_ORDER: readonly AdminSubTabSlug[] = [
   ADMIN_SUB_TAB.WORKPLACES,
   ADMIN_SUB_TAB.ANALYTICS,
   ADMIN_SUB_TAB.OUTREACH,
+  ADMIN_SUB_TAB.COACH_BOOKINGS,
   ADMIN_SUB_TAB.REASSESSMENTS,
   ADMIN_SUB_TAB.PROMPT_TESTS,
 ];
@@ -29,6 +31,7 @@ export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
   workplaces: "Workplaces",
   analytics: "Analytics",
   outreach: "Outreach",
+  coach_bookings: "Coach briefs",
   reassessments: "Reassessments",
   prompt_tests: "Prompt Tests",
 };

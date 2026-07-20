@@ -3,10 +3,22 @@ import { sanitizePromptField } from "../prompt/profileHelpers.ts";
 import type { ProfileData } from "../prompt/types.ts";
 import { estimatePromptTokens, shouldCompressContext } from "../tokenEstimate.ts";
 import {
+  formatLayer10CommitmentStatus,
+  resolveSessionMemoryCommitmentStatus,
+  type CommitmentCheckInSnapshot,
+} from "./commitmentFollowThrough.ts";
+import {
   readSessionMemoryRecords,
   truncateToMaxWords,
   type SessionMemoryRecord,
 } from "./sessionMemoryHelpers.ts";
+
+export type CompressedSessionCommitmentContext = {
+  records: SessionMemoryRecord[];
+  checkIns: CommitmentCheckInSnapshot[];
+  activeMicroCommitment?: string | null;
+  latestCheckInStatus?: string | null;
+};
 
 export const SESSION_ARC_SUMMARY_KEY = "session_arc_summary" as const;
 export const SESSION_ARC_SOURCE_KEY = "session_arc_source_key" as const;
@@ -88,6 +100,7 @@ export function buildArcSummaryUserPrompt(records: SessionMemoryRecord[]): strin
 export function buildCompressedSessionMemorySectionLines(
   arcSummary: string,
   mostRecent: SessionMemoryRecord,
+  commitmentContext?: CompressedSessionCommitmentContext,
 ): string[] {
   const lines: string[] = [
     `Session arc summary (older sessions compressed; REQ-12): ${sanitizePromptField(arcSummary, 800)}`,
@@ -101,7 +114,18 @@ export function buildCompressedSessionMemorySectionLines(
     "not recorded";
   const commitment =
     sanitizePromptField(mostRecent.microCommitment ?? "", 240) || "none";
-  const status = mostRecent.microCommitment ? "open" : "none";
+  const status = commitmentContext
+    ? formatLayer10CommitmentStatus(
+        resolveSessionMemoryCommitmentStatus(mostRecent, {
+          allRecords: commitmentContext.records,
+          checkIns: commitmentContext.checkIns,
+          activeMicroCommitment: commitmentContext.activeMicroCommitment,
+          latestCheckInStatus: commitmentContext.latestCheckInStatus,
+        }),
+      )
+    : mostRecent.microCommitment
+      ? "open"
+      : "none";
 
   lines.push(
     `Session ${date}: Theme — ${theme}. Insight — ${insight}. Commitment — ${commitment}. Status — ${status}.`,

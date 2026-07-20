@@ -371,6 +371,27 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("exchange_count: 8");
   });
 
+  it("injects session-flagged unresolved threads in Layer 10 section 4", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        onboardingData: {
+          chat_session_memory: [
+            {
+              conversationId: "c1",
+              closedAt: "2026-07-10T18:00:00.000Z",
+              topic: "workload",
+              summaryStub: "Named burnout at work.",
+              unresolvedThread: "whether to tell their manager",
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(prompt).toContain("4. UNRESOLVED THREADS");
+    expect(prompt).toContain("Unresolved from 2026-07-10: whether to tell their manager.");
+  });
+
   it("injects voice emotion acknowledgment when Block 3.36 signal is present", () => {
     const prompt = buildSystemPrompt(
       baseProfile({
@@ -432,7 +453,7 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Feeling word (if submitted): drained");
     expect(prompt).toContain("3. ACTIVE COMMITMENT");
     expect(prompt).toContain("Walk 10 minutes after lunch");
-    expect(prompt).toContain("Status: no");
+    expect(prompt).toContain("Status: missed");
     expect(prompt).not.toContain("stale commitment");
   });
 
@@ -499,6 +520,40 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Recent path reflection answers");
     expect(prompt).toContain("What story are you running?");
     expect(prompt).toContain("handle everything alone");
+  });
+
+  it("maps session memory commitment status to open, completed, or missed", () => {
+    const prompt = buildSystemPrompt(
+      baseProfile({
+        tier: "pro",
+        subscribed: true,
+        liveContext: {
+          activeMicroCommitment: "Walk 10 minutes after lunch",
+          latestCheckIn: {
+            date: "2026-07-10",
+            pulse: 6,
+            feeling: "steady",
+            microCommitmentStatus: "yes",
+          },
+        },
+        onboardingData: {
+          ...(baseProfile().onboardingData as Record<string, unknown>),
+          chat_session_memory: [
+            {
+              conversationId: "c1",
+              closedAt: "2026-07-01",
+              topic: "energy",
+              summaryStub: "Named afternoon slump.",
+              microCommitment: "Walk 10 minutes after lunch",
+              commitmentStatus: "open",
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(prompt).toContain("Status — completed.");
+    expect(prompt).toContain("Status: completed.");
   });
 
   it("includes session memory depth when stored in onboardingData on Pro tier", () => {

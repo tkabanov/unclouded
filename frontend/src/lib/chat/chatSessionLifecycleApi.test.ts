@@ -94,7 +94,7 @@ describe("resolveSessionOpeningTemplate", () => {
 describe("parseSessionFinalizePayload", () => {
   it("parses expanded JSON finalize payload", () => {
     const parsed = parseSessionFinalizePayload(
-      '{"lastSessionTopic":"boundaries","summaryStub":"User named exhaustion at work.","microCommitmentText":"Walk after lunch","emotionalStart":"drained","emotionalEnd":"lighter","keyPatternOrInsight":"over-functioning","resistancePoints":"humor deflection","effectivenessSignal":"open"}',
+      '{"lastSessionTopic":"boundaries","summaryStub":"User named exhaustion at work.","microCommitmentText":"Walk after lunch","emotionalStart":"drained","emotionalEnd":"lighter","keyPatternOrInsight":"over-functioning","resistancePoints":"humor deflection","effectivenessSignal":"open","unresolvedThread":"whether to ask for help"}',
     );
 
     expect(parsed?.lastSessionTopic).toBe("boundaries");
@@ -102,6 +102,7 @@ describe("parseSessionFinalizePayload", () => {
     expect(parsed?.microCommitmentText).toBe("Walk after lunch");
     expect(parsed?.emotionalStart).toBe("drained");
     expect(parsed?.resistancePoints).toBe("humor deflection");
+    expect(parsed?.unresolvedThread).toBe("whether to ask for help");
   });
 
   it("sanitizes delimiter breaks in finalize payload fields", () => {

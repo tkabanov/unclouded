@@ -46,6 +46,7 @@ describe("persistSessionMemory", () => {
         keyPatternOrInsight: "over-functioning",
         resistancePoints: "topic switching",
         effectivenessSignal: "guarded",
+        unresolvedThread: "whether to delegate the project timeline",
       },
       "stabilizer",
     );
@@ -60,6 +61,7 @@ describe("persistSessionMemory", () => {
     expect(records).toHaveLength(2);
     expect(records[1]?.topic).toBe("delegation");
     expect(records[1]?.coachingModeUsed).toBe("stabilizer");
+    expect(records[1]?.unresolvedThread).toBe("whether to delegate the project timeline");
     expect(updateArg.onboardingData.last_session_topic_text).toBe("delegation");
   });
 });

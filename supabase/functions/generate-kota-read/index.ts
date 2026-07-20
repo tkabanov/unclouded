@@ -12,6 +12,10 @@ import {
   sessionMemoryToLines,
   type KotaReadContext,
 } from "../_shared/kotaReadBrief.ts";
+import {
+  parseCoachBriefInbox,
+  sendKotaReadBriefEmail,
+} from "../_shared/kotaReadDelivery.ts";
 import { readSessionMemoryRecords } from "../chat/sessionMemory/sessionMemoryHelpers.ts";
 
 const corsHeaders = {
@@ -164,7 +168,7 @@ Deno.serve(async (req) => {
 
   const { data: booking, error: bookingError } = await auth.supabase
     .from("coachBooking")
-    .select("id, userId")
+    .select("id, userId, scheduledAt")
     .eq("id", bookingId)
     .eq("userId", auth.user.id)
     .maybeSingle();
@@ -179,7 +183,7 @@ Deno.serve(async (req) => {
   const [{ data: profile }, { data: memoryFacts }] = await Promise.all([
     auth.supabase
       .from("profiles")
-      .select("firstName, results, onboardingData")
+      .select("firstName, email, results, onboardingData")
       .eq("id", auth.user.id)
       .maybeSingle(),
     auth.supabase
@@ -211,9 +215,30 @@ Deno.serve(async (req) => {
   }
 
   const serviceClient = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
+  const nowIso = new Date().toISOString();
+  const appOrigin = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
+  const coachInbox = parseCoachBriefInbox(Deno.env.get("COACH_BRIEF_INBOX"));
+  const memberName = profile?.firstName?.trim() || "Member";
+  const memberEmail = typeof profile?.email === "string" ? profile.email : null;
+  const scheduledAt =
+    typeof booking.scheduledAt === "string" ? booking.scheduledAt : null;
+
+  const delivery = await sendKotaReadBriefEmail({
+    to: coachInbox,
+    memberName,
+    memberEmail,
+    scheduledAt,
+    kotaRead,
+    adminConsoleUrl: `${appOrigin}/settings?tab=admin`,
+  });
+
   const { error: updateError } = await serviceClient
     .from("coachBooking")
-    .update({ kotaRead })
+    .update({
+      kotaRead,
+      kotaReadEmailedAt: delivery.ok ? nowIso : null,
+      kotaReadEmailDetail: delivery.detail,
+    })
     .eq("id", bookingId)
     .eq("userId", auth.user.id);
 
@@ -221,5 +246,13 @@ Deno.serve(async (req) => {
     return jsonResponse(500, { error: updateError.message });
   }
 
-  return jsonResponse(200, { ok: true, bookingId, kotaRead });
+  return jsonResponse(200, {
+    ok: true,
+    bookingId,
+    kotaRead,
+    delivery: {
+      status: delivery.ok ? "sent" : "skipped",
+      detail: delivery.detail,
+    },
+  });
 });

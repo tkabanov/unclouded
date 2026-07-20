@@ -19,6 +19,7 @@ function baseFinalize(overrides: Partial<SessionFinalizePayload> = {}): SessionF
     keyPatternOrInsight: "over-functioning at work",
     resistancePoints: "deflected with humor when help was suggested",
     effectivenessSignal: "open but fatigued",
+    unresolvedThread: "whether to tell their manager about burnout",
     ...overrides,
   };
 }
@@ -37,6 +38,7 @@ describe("sessionMemoryHelpers", () => {
     expect(record.coachingModeUsed).toBe("stabilizer");
     expect(record.emotionalStart).toBe("overwhelmed");
     expect(record.resistancePoints).toContain("humor");
+    expect(record.unresolvedThread).toContain("burnout");
     expect(record.microCommitmentDue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
@@ -105,5 +107,23 @@ describe("sessionMemoryHelpers", () => {
 
     expect(hint).toContain("evening scrolling loop");
     expect(hint).toContain("No screens after 10pm");
+  });
+
+  it("prioritizes unresolved thread in returning opener hint", () => {
+    const hint = formatReturningMemoryHint({
+      chat_session_memory: [
+        {
+          conversationId: "c1",
+          closedAt: "2026-07-01",
+          topic: "sleep",
+          summaryStub: "Named poor sleep patterns.",
+          keyPatternOrInsight: "evening scrolling loop",
+          unresolvedThread: "the talk with their manager about workload",
+        },
+      ],
+    });
+
+    expect(hint).toContain("still open");
+    expect(hint).toContain("manager about workload");
   });
 });

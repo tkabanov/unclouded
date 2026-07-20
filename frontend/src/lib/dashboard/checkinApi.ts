@@ -17,8 +17,18 @@ export interface DailyCheckInInput {
   mood: number;
   energyStressLevel: number;
   reflection: string;
+  /** Build Brief Zone H — Yes / Partially / No / I forgot */
+  microCommitmentStatus?: string | null;
   date?: Date;
 }
+
+/** Canonical values stored in micro_commitment_status (Layer 10 follow-through). */
+export const COMMITMENT_FOLLOW_THROUGH_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "partially", label: "Partially" },
+  { value: "no", label: "No" },
+  { value: "I forgot", label: "I forgot" },
+] as const;
 
 export interface DailyCheckInRecord {
   id: string;
@@ -206,13 +216,20 @@ async function tryInsertCheckinTable(
   date: Date,
 ): Promise<boolean> {
   const client = supabase as unknown as UntypedSupabase;
-  const { error } = await client.from("dailyCheckin").insert({
+  const payload: Record<string, unknown> = {
     mood: input.mood,
     energyStressLevel: input.energyStressLevel,
     reflection: input.reflection.trim(),
     userId: userId,
     date: date.toISOString(),
-  });
+  };
+  const microCommitmentStatus = input.microCommitmentStatus?.trim();
+  if (microCommitmentStatus) {
+    payload.microCommitmentStatus = microCommitmentStatus;
+    payload.micro_commitment_status = microCommitmentStatus;
+  }
+
+  const { error } = await client.from("dailyCheckin").insert(payload);
 
   if (!error) return true;
   if (isSchemaUnavailable(error)) return false;
@@ -357,6 +374,7 @@ export async function submitDailyCheckIn(
 
   if (!inserted) {
     const existing = readCheckinsFromOnboarding(onboardingData);
+    const microCommitmentStatus = input.microCommitmentStatus?.trim() || null;
     const nextRecord: DailyCheckInRecord = {
       id: crypto.randomUUID(),
       mood: input.mood,
@@ -364,6 +382,7 @@ export async function submitDailyCheckIn(
       reflection: input.reflection.trim(),
       date: date.toISOString(),
       user: userId,
+      micro_commitment_status: microCommitmentStatus,
     };
 
     const withoutToday = existing.filter(
@@ -383,6 +402,12 @@ export async function submitDailyCheckIn(
               reflection: row.reflection,
               date: row.date,
               userId: row.user,
+              ...(row.micro_commitment_status?.trim()
+                ? {
+                    microCommitmentStatus: row.micro_commitment_status.trim(),
+                    micro_commitment_status: row.micro_commitment_status.trim(),
+                  }
+                : {}),
             })),
             {
               id: nextRecord.id,
@@ -391,6 +416,12 @@ export async function submitDailyCheckIn(
               reflection: nextRecord.reflection,
               date: nextRecord.date,
               userId: nextRecord.user,
+              ...(microCommitmentStatus
+                ? {
+                    microCommitmentStatus,
+                    micro_commitment_status: microCommitmentStatus,
+                  }
+                : {}),
             },
           ],
           [DAILY_CHECK_IN_STREAK_FIELD]: nextStreak,
