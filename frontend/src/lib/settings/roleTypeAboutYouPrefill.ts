@@ -4,6 +4,11 @@ import {
   type AboutYouProfileValues,
 } from "@/lib/enums/aboutYouProfile";
 import { CUSTOMER_ROLE, type CustomerRoleSlug } from "@/lib/enums/customerProfile";
+import {
+  normalizeCustomerRoleTypes,
+  parseCustomerRoleTypesFromProfile,
+  resolvePrimaryCustomerRole,
+} from "@/lib/enums/customerRoleTypes";
 
 export type AboutYouWorkPrefill = Pick<AboutYouProfileValues, "employmentStatus" | "careerStage">;
 
@@ -29,25 +34,42 @@ const ROLE_TYPE_TO_ABOUT_YOU_PREFILL: Partial<
   // "pro" is intentionally omitted — too broad (employed vs self-employed vs leadership).
 };
 
-function isCustomerRoleSlug(value: string): value is CustomerRoleSlug {
-  return Object.values(CUSTOMER_ROLE).includes(value as CustomerRoleSlug);
+export function mapRoleTypesToAboutYouWorkPrefill(
+  roleTypes: readonly string[] | CustomerRoleSlug[] | null | undefined,
+  legacyRoleType?: string | null,
+): AboutYouWorkPrefill {
+  const roles = roleTypes?.length
+    ? normalizeCustomerRoleTypes(roleTypes)
+    : parseCustomerRoleTypesFromProfile(null, legacyRoleType);
+
+  const merged: AboutYouWorkPrefill = {};
+
+  for (const role of roles) {
+    const prefill = ROLE_TYPE_TO_ABOUT_YOU_PREFILL[role] ?? {};
+    if (!merged.employmentStatus && prefill.employmentStatus) {
+      merged.employmentStatus = prefill.employmentStatus;
+    }
+    if (!merged.careerStage && prefill.careerStage) {
+      merged.careerStage = prefill.careerStage;
+    }
+  }
+
+  return merged;
 }
 
+/** @deprecated Use mapRoleTypesToAboutYouWorkPrefill — kept for single-role call sites. */
 export function mapRoleTypeToAboutYouWorkPrefill(
   roleType: string | null | undefined,
 ): AboutYouWorkPrefill {
-  if (!roleType?.trim() || roleType === "admin" || !isCustomerRoleSlug(roleType)) {
-    return {};
-  }
-
-  return ROLE_TYPE_TO_ABOUT_YOU_PREFILL[roleType] ?? {};
+  return mapRoleTypesToAboutYouWorkPrefill(null, roleType);
 }
 
-export function applyRoleTypeAboutYouPrefill<T extends AboutYouWorkPrefill>(
+export function applyRoleTypesAboutYouPrefill<T extends AboutYouWorkPrefill>(
   aboutYou: T,
-  roleType: string | null | undefined,
+  roleTypes: readonly string[] | CustomerRoleSlug[] | null | undefined,
+  legacyRoleType?: string | null,
 ): T {
-  const prefill = mapRoleTypeToAboutYouWorkPrefill(roleType);
+  const prefill = mapRoleTypesToAboutYouWorkPrefill(roleTypes, legacyRoleType);
 
   return {
     ...aboutYou,
@@ -59,3 +81,13 @@ export function applyRoleTypeAboutYouPrefill<T extends AboutYouWorkPrefill>(
       : (prefill.careerStage ?? aboutYou.careerStage),
   };
 }
+
+/** @deprecated Use applyRoleTypesAboutYouPrefill. */
+export function applyRoleTypeAboutYouPrefill<T extends AboutYouWorkPrefill>(
+  aboutYou: T,
+  roleType: string | null | undefined,
+): T {
+  return applyRoleTypesAboutYouPrefill(aboutYou, null, roleType);
+}
+
+export { resolvePrimaryCustomerRole };

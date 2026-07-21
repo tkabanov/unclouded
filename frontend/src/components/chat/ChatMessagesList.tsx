@@ -4,12 +4,15 @@ import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
 import { ChatAssistantTypingCell } from "./ChatAssistantTypingCell";
+import { ChatCommitmentPromptCell } from "./ChatCommitmentPromptCell";
 import { ChatMessageCell } from "./ChatMessageCell";
 import type { ChatMessage } from "./types";
 
 export type ChatMessagesListProps = {
   messages: ChatMessage[];
   isAssistantTyping?: boolean;
+  /** When set, this assistant message renders as the session-close commitment prompt. */
+  commitmentPromptMessageId?: string | null;
   className?: string;
 };
 
@@ -20,6 +23,7 @@ export type ChatMessagesListProps = {
 export function ChatMessagesList({
   messages,
   isAssistantTyping = false,
+  commitmentPromptMessageId = null,
   className,
 }: ChatMessagesListProps) {
   return (
@@ -47,9 +51,13 @@ export function ChatMessagesList({
             "flex min-h-full flex-col justify-end gap-4 px-4 py-4",
           )}
         >
-          {messages.map((message) => (
-            <ChatMessageCell key={message.id} message={message} />
-          ))}
+          {messages.map((message) =>
+            message.id === commitmentPromptMessageId ? (
+              <ChatCommitmentPromptCell key={message.id} message={message} />
+            ) : (
+              <ChatMessageCell key={message.id} message={message} />
+            ),
+          )}
           {isAssistantTyping ? <ChatAssistantTypingCell /> : null}
         </StickToBottom.Content>
       </StickToBottom>

@@ -10,12 +10,18 @@ import {
   aggregateLiveContext,
   isSchemaUnavailable,
   readActiveMicroCommitmentFromOnboarding,
-  readLatestCheckInFromOnboarding,
+  readTodayCheckInFromOnboarding,
   readMicroCommitmentFromOnboardingEnrollment,
   readPathReflectionsFromOnboarding,
   readSessionCountFromOnboarding,
 } from "./liveContext/liveContextHelpers.ts";
 import { resolveEffectiveCheckInStreak } from "./liveContext/streakHelpers.ts";
+import {
+  isCheckInSubmittedToday,
+  mapDailyCheckInRow,
+} from "./liveContext/checkInHelpers.ts";
+import { resolveDaysSinceLastCompletedSession } from "./liveContext/sessionGapHelpers.ts";
+import { formatMemoryFactItemsForPrompt } from "./sessionMemory/memoryFactItemHelpers.ts";
 
 const MAX_RECENT_REFLECTIONS = 9;
 
@@ -27,51 +33,36 @@ function asStringArray(value: unknown): string[] {
     .map((entry) => entry.trim());
 }
 
-async function fetchLatestCheckIn(
+async function fetchTodayCheckIn(
   supabase: SupabaseClient,
   userId: string,
   onboardingData: Record<string, unknown> | null | undefined,
 ): Promise<ChatLatestCheckIn | null> {
   const { data, error } = await supabase
     .from("dailyCheckin")
-    .select("mood, energyStressLevel, reflection, date, createdAt")
+    .select(
+      "mood, energyStressLevel, reflection, feelingWord, date, createdAt, microCommitmentStatus",
+    )
     .eq("userId", userId)
     .order("date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(8);
 
   if (error) {
     if (!isSchemaUnavailable(error)) throw error;
-    return readLatestCheckInFromOnboarding(userId, onboardingData);
+    return readTodayCheckInFromOnboarding(userId, onboardingData);
   }
 
-  if (!data || typeof data !== "object") {
-    return readLatestCheckInFromOnboarding(userId, onboardingData);
+  if (Array.isArray(data)) {
+    for (const row of data) {
+      if (!row || typeof row !== "object") continue;
+      const mapped = mapDailyCheckInRow(row as Record<string, unknown>);
+      if (mapped && isCheckInSubmittedToday(mapped)) {
+        return mapped;
+      }
+    }
   }
 
-  const row = data as Record<string, unknown>;
-  const mood = Number(row.mood);
-  const energy = Number(row.energyStressLevel);
-  const reflection = typeof row.reflection === "string" ? row.reflection : "";
-  const date =
-    typeof row.date === "string"
-      ? row.date
-      : typeof row.createdAt === "string"
-        ? row.createdAt
-        : null;
-  const microCommitmentStatus = null;
-
-  if (Number.isNaN(mood) && Number.isNaN(energy) && !reflection.trim()) {
-    return readLatestCheckInFromOnboarding(userId, onboardingData);
-  }
-
-  return {
-    date,
-    pulse: Number.isFinite(mood) ? mood : null,
-    feeling: reflection.trim() ? reflection.trim() : null,
-    energyStressLevel: Number.isFinite(energy) ? energy : null,
-    microCommitmentStatus: microCommitmentStatus?.trim() ? microCommitmentStatus.trim() : null,
-  };
+  return readTodayCheckInFromOnboarding(userId, onboardingData);
 }
 
 async function fetchCheckInDateKeys(
@@ -553,17 +544,21 @@ function formatMemoryFactsBlock(row: Record<string, unknown> | null): string | n
   if (!row) return null;
   const parts: string[] = [];
   const push = (label: string, value: unknown) => {
-    if (typeof value === "string" && value.trim()) {
-      parts.push(`${label}: ${value.trim()}`);
-    }
+    const formatted =
+      typeof value === "string"
+        ? formatMemoryFactItemsForPrompt(label, value)
+        : null;
+    if (formatted) parts.push(formatted);
   };
   push("Named people", row.peopleInLife);
   push("User language", row.userLanguage);
   push("Open avoidances", row.openAvoidances);
   push("User insights", row.userInsights);
   push("Stated goals", row.statedGoals);
+  if (typeof row.lastUpdated === "string" && row.lastUpdated.trim()) {
+    parts.push(`Facts last updated: ${row.lastUpdated.trim().slice(0, 10)}`);
+  }
   if (parts.length === 0) return null;
-  // Keep compressed (~200 tokens ≈ 800 chars)
   return parts.join("\n").slice(0, 800);
 }
 
@@ -574,7 +569,7 @@ async function fetchMemoryFactsBlock(
   try {
     const { data, error } = await supabase
       .from("userMemoryFacts")
-      .select("peopleInLife, userLanguage, openAvoidances, userInsights, statedGoals")
+      .select("peopleInLife, userLanguage, openAvoidances, userInsights, statedGoals, lastUpdated")
       .eq("userId", userId)
       .maybeSingle();
     if (error) {
@@ -595,44 +590,7 @@ async function fetchDaysSinceLastSession(
   userId: string,
   onboardingData: Record<string, unknown> | null | undefined,
 ): Promise<number | null> {
-  const memory = onboardingData?.chat_session_memory;
-  if (Array.isArray(memory) && memory.length > 0) {
-    const closedAts = memory
-      .map((entry) => {
-        if (!entry || typeof entry !== "object") return null;
-        const closedAt = (entry as Record<string, unknown>).closedAt;
-        return typeof closedAt === "string" ? Date.parse(closedAt) : NaN;
-      })
-      .filter((ms): ms is number => Number.isFinite(ms));
-    if (closedAts.length > 0) {
-      const latest = Math.max(...closedAts);
-      return Math.max(0, Math.floor((Date.now() - latest) / (24 * 60 * 60 * 1000)));
-    }
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from("chatConversation")
-      .select("updatedAt")
-      .eq("userId", userId)
-      .order("updatedAt", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (error || !data) {
-      if (error && !isSchemaUnavailable(error)) {
-        console.warn("daysSinceLastSession fetch failed", error.message);
-      }
-      return null;
-    }
-    const updatedAt = (data as { updatedAt?: string }).updatedAt;
-    if (typeof updatedAt !== "string") return null;
-    const ms = Date.parse(updatedAt);
-    if (!Number.isFinite(ms)) return null;
-    return Math.max(0, Math.floor((Date.now() - ms) / (24 * 60 * 60 * 1000)));
-  } catch (err) {
-    console.warn("daysSinceLastSession error", err);
-    return null;
-  }
+  return resolveDaysSinceLastCompletedSession(supabase, userId, onboardingData);
 }
 
 async function fetchAddendumProfileFlags(
@@ -686,7 +644,7 @@ export async function loadServerLiveContext(
     daysSinceLastSession,
     addendumFlags,
   ] = await Promise.all([
-    fetchLatestCheckIn(supabase, userId, onboardingData),
+    fetchTodayCheckIn(supabase, userId, onboardingData),
     fetchStreakDays(supabase, userId, onboardingData),
     fetchActiveMicroCommitment(supabase, userId, onboardingData),
     fetchCompletedMicroCommitments(supabase, userId, onboardingData),

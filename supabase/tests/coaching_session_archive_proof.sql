@@ -1,0 +1,5 @@
+-- Proof: coachingSessionArchive is user-scoped and append-only on finalize.
+-- Manual smoke (replace UUIDs):
+--   INSERT INTO public."coachingSessionArchive" ("userId", "sessionType", "summaryJson")
+--   VALUES ('<user_a>', 'text', '{"topic":"proof"}'::jsonb);
+--   SELECT count(*) FROM public."coachingSessionArchive" WHERE "userId" = '<user_b>'; -- expect 0

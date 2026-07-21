@@ -4,6 +4,7 @@ import {
   pathMatchesOnboardingEnrollment,
   pathVisibleInLibrary,
   selectOnboardingEnrollmentPaths,
+  userCanAccessPathTier,
   type OnboardingEnrollmentContext,
   type PathEnrollmentCandidate,
 } from "./pathEnrollmentMatching";
@@ -145,7 +146,13 @@ describe("pathVisibleInLibrary", () => {
   const OPEN_PATH = {
     triggerSignals: "enrollment:onboarding; flag:None — all users matching classification",
   };
-  const UNSENT_LETTER_PATH = {
+  const UNSENT_LETTER_PATH: PathEnrollmentCandidate = {
+    id: "c8e1f0a2-4b3d-5e6f-9a0b-1c2d3e4f5a6b",
+    name: "The Unsent Letter",
+    tier: TIER.FREE,
+    pillar: "emotional",
+    classifications:
+      "Capacity Erosion,Alignment Fracture,High Output Hidden Instability",
     triggerSignals: "flag:grief_mode_active; flag:recovery_mode_active; flag:transition_flag",
   };
 
@@ -196,7 +203,7 @@ describe("pathVisibleInLibrary", () => {
   it("shows Unsent Letter when any grief, recovery, or transition flag is active", () => {
     expect(
       pathVisibleInLibrary(UNSENT_LETTER_PATH, {
-        userTier: TIER.PRO,
+        userTier: TIER.FREE,
         recoveryModeActive: false,
         griefModeActive: false,
         transitionFlagActive: true,
@@ -204,12 +211,47 @@ describe("pathVisibleInLibrary", () => {
     ).toBe(true);
     expect(
       pathVisibleInLibrary(UNSENT_LETTER_PATH, {
-        userTier: TIER.PRO,
+        userTier: TIER.FREE,
         recoveryModeActive: false,
         griefModeActive: false,
         transitionFlagActive: false,
       }),
     ).toBe(false);
+  });
+});
+
+describe("Unsent Letter enrollment (REQ-15)", () => {
+  const UNSENT_LETTER_PATH: PathEnrollmentCandidate = {
+    id: "c8e1f0a2-4b3d-5e6f-9a0b-1c2d3e4f5a6b",
+    name: "The Unsent Letter",
+    tier: TIER.FREE,
+    pillar: "emotional",
+    classifications:
+      "Capacity Erosion,Alignment Fracture,High Output Hidden Instability",
+    triggerSignals: "flag:grief_mode_active; flag:recovery_mode_active; flag:transition_flag",
+  };
+
+  it("allows free-tier users with grief flag to enroll (no Pro gate)", () => {
+    expect(userCanAccessPathTier(TIER.FREE, UNSENT_LETTER_PATH.tier)).toBe(true);
+    expect(
+      pathVisibleInLibrary(UNSENT_LETTER_PATH, {
+        userTier: TIER.FREE,
+        recoveryModeActive: false,
+        griefModeActive: true,
+        transitionFlagActive: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("is visible and tier-accessible for free users when grief flag is active", () => {
+    const libraryContext = {
+      userTier: TIER.FREE,
+      recoveryModeActive: false,
+      griefModeActive: true,
+      transitionFlagActive: false,
+    };
+    expect(pathVisibleInLibrary(UNSENT_LETTER_PATH, libraryContext)).toBe(true);
+    expect(UNSENT_LETTER_PATH.tier).toBe(TIER.FREE);
   });
 });
 

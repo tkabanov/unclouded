@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChatReusable } from "./ChatReusable";
-import VoiceSessionMicButton from "./VoiceSessionMicButton";
 import type { ChatConversation, ChatMessage } from "./types";
 import { CHAT_CONVERSATION_DEFAULTS } from "./types";
 import {
@@ -22,12 +21,12 @@ import {
   finalizeSessionFromThread,
   requestConversationTitle,
   requestSessionClose,
+  requestSessionCloseAck,
   requestSessionOpening,
 } from "@/lib/chat/chatSessionLifecycleApi";
+import { resolveCommitmentPromptMessageId } from "@/lib/chat/commitmentPromptHelpers";
 import { readPreferredCoachingMode } from "@/lib/dashboard/coachingModeApi";
 import { formatChatModeBadgeText } from "@/lib/enums/coachingMode";
-import { playVoiceCloseRitualSilence, synthesizeKotaSpeech } from "@/lib/chat/voiceSessionApi";
-import { playKotaSpeech, useVoiceSessionRecorder } from "@/hooks/useVoiceSessionRecorder";
 import { cn } from "@/lib/utils";
 
 export interface ChatPanelMountProps {
@@ -60,15 +59,20 @@ export default function ChatPanelMount({
   const [loading, setLoading] = useState(true);
   const [awaitingAssistantReply, setAwaitingAssistantReply] = useState(false);
   const [awaitingCommitment, setAwaitingCommitment] = useState(false);
+  const [closePromptMessageId, setClosePromptMessageId] = useState<string | null>(null);
   const [sessionClosed, setSessionClosed] = useState(false);
   const [sessionLimitBlocked, setSessionLimitBlocked] = useState(false);
   const openerSentForConversation = useRef<string | null>(null);
   const sessionLimitToastShown = useRef(false);
-  const voiceSessionActiveRef = useRef(false);
 
   const modeBadgeText = useMemo(
     () => formatChatModeBadgeText(readPreferredCoachingMode(onboardingData)),
     [onboardingData],
+  );
+
+  const commitmentPromptMessageId = useMemo(
+    () => resolveCommitmentPromptMessageId(messages, awaitingCommitment, closePromptMessageId),
+    [awaitingCommitment, closePromptMessageId, messages],
   );
 
   const reload = useCallback(async () => {
@@ -94,15 +98,15 @@ export default function ChatPanelMount({
 
   useEffect(() => {
     setAwaitingCommitment(false);
+    setClosePromptMessageId(null);
     setSessionClosed(false);
     setSessionLimitBlocked(false);
     openerSentForConversation.current = null;
     sessionLimitToastShown.current = false;
-    voiceSessionActiveRef.current = false;
   }, [conversationId]);
 
   const sendAssistantMessage = useCallback(
-    async (assistantText: string, threadSnapshot: ChatMessage[], options?: { speak?: boolean }) => {
+    async (assistantText: string, threadSnapshot: ChatMessage[]) => {
       const assistantMessage = await insertAssistantMessage({
         conversationId,
         userId,
@@ -113,15 +117,6 @@ export default function ChatPanelMount({
       setMessages(nextThread);
       await touchConversationAfterMessage(userId, conversationId, assistantText);
       onThreadUpdated?.();
-
-      if (options?.speak) {
-        try {
-          const audio = await synthesizeKotaSpeech(assistantText);
-          await playKotaSpeech(audio);
-        } catch {
-          toast.error("Couldn't play Kota's voice reply.");
-        }
-      }
 
       return { assistantMessage, nextThread };
     },
@@ -214,6 +209,7 @@ export default function ChatPanelMount({
         conversationId,
       );
       setAwaitingCommitment(false);
+      setClosePromptMessageId(null);
       setSessionClosed(true);
       onSessionClosed?.();
       toast.success("Session saved. Your coach will remember this conversation.");
@@ -222,14 +218,9 @@ export default function ChatPanelMount({
   );
 
   const sendMessage = useCallback(
-    async (text: string, options?: { viaVoice?: boolean; voiceEmotionDetected?: boolean }) => {
+    async (text: string) => {
       const trimmed = text.trim();
-      const viaVoice = options?.viaVoice === true;
       if (!trimmed || awaitingAssistantReply || sessionClosed) return;
-
-      if (viaVoice) {
-        voiceSessionActiveRef.current = true;
-      }
 
       const optimisticId = `pending-${crypto.randomUUID()}`;
       const optimisticUserMessage: ChatMessage = {
@@ -258,7 +249,15 @@ export default function ChatPanelMount({
 
         if (awaitingCommitment) {
           try {
-            await finalizeSession(threadForAi);
+            const ackText = await requestSessionCloseAck(
+              threadForAi,
+              profileData,
+              context,
+              conversationId,
+              "text",
+            );
+            const { nextThread } = await sendAssistantMessage(ackText, threadForAi);
+            await finalizeSession(nextThread);
           } catch {
             toast.error("Couldn't save your session. Please try again.");
           } finally {
@@ -273,12 +272,9 @@ export default function ChatPanelMount({
             context,
             profileData,
             conversationId,
-            viaVoice ? "voice" : "text",
-            viaVoice ? options?.voiceEmotionDetected : undefined,
+            "text",
           );
-          const { nextThread } = await sendAssistantMessage(assistantText, threadForAi, {
-            speak: viaVoice,
-          });
+          const { nextThread } = await sendAssistantMessage(assistantText, threadForAi);
           void maybeGenerateConversationTitle(nextThread);
         } catch (error) {
           if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
@@ -318,7 +314,6 @@ export default function ChatPanelMount({
   const handleEndSession = useCallback(async () => {
     if (awaitingAssistantReply || sessionClosed || messages.length === 0) return;
 
-    const viaVoice = voiceSessionActiveRef.current;
     setAwaitingAssistantReply(true);
     try {
       const closeText = await requestSessionClose(
@@ -326,12 +321,10 @@ export default function ChatPanelMount({
         profileData,
         context,
         conversationId,
-        viaVoice ? "voice" : "text",
+        "text",
       );
-      if (viaVoice) {
-        await playVoiceCloseRitualSilence();
-      }
-      await sendAssistantMessage(closeText, messages, { speak: viaVoice });
+      const { assistantMessage } = await sendAssistantMessage(closeText, messages);
+      setClosePromptMessageId(assistantMessage.id);
       setAwaitingCommitment(true);
     } catch {
       toast.error("Couldn't close the session. Please try again.");
@@ -359,16 +352,6 @@ export default function ChatPanelMount({
     [sendMessage],
   );
 
-  const voiceRecorder = useVoiceSessionRecorder({
-    enabled: true,
-    onTranscript: (transcript, options) =>
-      sendMessage(transcript, {
-        viaVoice: true,
-        voiceEmotionDetected: options?.emotionDetected,
-      }),
-    onError: (error) => toast.error(error.message),
-  });
-
   return (
     <div
       className={cn("flex h-full min-h-0 flex-col", className)}
@@ -394,23 +377,14 @@ export default function ChatPanelMount({
             composerDisabled={
               awaitingAssistantReply ||
               sessionClosed ||
-              sessionLimitBlocked ||
-              voiceRecorder.recording ||
-              voiceRecorder.transcribing
-            }
-            composerLeadingSlot={
-              <VoiceSessionMicButton
-                recording={voiceRecorder.recording}
-                transcribing={voiceRecorder.transcribing}
-                silenceHoldActive={voiceRecorder.silenceHoldActive}
-                disabled={awaitingAssistantReply || sessionClosed || sessionLimitBlocked}
-                onToggle={voiceRecorder.toggleRecording}
-              />
+              sessionLimitBlocked
             }
             isAssistantTyping={awaitingAssistantReply}
             onEndSession={sessionClosed ? undefined : () => void handleEndSession()}
             endSessionDisabled={awaitingAssistantReply || messages.length === 0}
             endSessionLabel={awaitingCommitment ? "Waiting for commitment…" : "End session"}
+            awaitingCommitment={awaitingCommitment}
+            commitmentPromptMessageId={commitmentPromptMessageId}
             className="flex-1 min-h-0"
           />
         </>

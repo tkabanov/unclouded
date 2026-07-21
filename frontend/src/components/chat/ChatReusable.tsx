@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { ChatCommitmentAwaitingBanner } from "./ChatCommitmentAwaitingBanner";
 import { ChatComposer, type ChatComposerProps } from "./ChatComposer";
 import { ChatFloatingDisclaimer } from "./ChatFloatingDisclaimer";
 import { ChatHeader } from "./ChatHeader";
@@ -22,6 +23,8 @@ export type ChatReusableProps = {
   onEndSession?: () => void;
   endSessionDisabled?: boolean;
   endSessionLabel?: string;
+  awaitingCommitment?: boolean;
+  commitmentPromptMessageId?: string | null;
   className?: string;
 };
 
@@ -42,6 +45,8 @@ export function ChatReusable({
   onEndSession,
   endSessionDisabled,
   endSessionLabel,
+  awaitingCommitment = false,
+  commitmentPromptMessageId = null,
   className,
 }: ChatReusableProps) {
   return (
@@ -55,9 +60,14 @@ export function ChatReusable({
         endSessionLabel={endSessionLabel}
       />
 
-      <ChatMessagesList messages={messages} isAssistantTyping={isAssistantTyping} />
+      <ChatMessagesList
+        messages={messages}
+        isAssistantTyping={isAssistantTyping}
+        commitmentPromptMessageId={commitmentPromptMessageId}
+      />
 
       <div className="relative shrink-0">
+        {awaitingCommitment ? <ChatCommitmentAwaitingBanner channel="text" /> : null}
         <ChatFloatingDisclaimer collapsed={disclaimerCollapsed} />
         <ChatComposer
           value={composerValue}
@@ -66,6 +76,7 @@ export function ChatReusable({
           onSuggestionSend={onSuggestionSend}
           disabled={composerDisabled}
           leadingSlot={composerLeadingSlot}
+          mode={awaitingCommitment ? "commitment" : "default"}
         />
       </div>
     </section>

@@ -1,6 +1,6 @@
 /**
  * REQ-16 — Post-launch prompt library review signals for admin analytics.
- * Aggregates anonymized profile session memory + load signals (admin SELECT on profiles).
+ * Primary source: coachingSessionArchive (unbounded). Legacy JSON memory fallback for pre-archive users.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -10,15 +10,33 @@ import {
   LOAD_SIGNAL_QUESTIONS,
 } from "@/lib/enums/onboardingQuestions";
 import {
+  groupArchiveRowsByUser,
+  buildSessionArchiveCsv,
+  type CoachingSessionArchiveRow,
+} from "@/lib/admin/coachingSessionArchiveAnalyticsHelpers";
+import {
   readSessionMemoryRecords,
   type SessionMemoryRecord,
 } from "../../../../supabase/functions/chat/sessionMemory/sessionMemoryHelpers.ts";
 
 export const PROMPT_REVIEW_PROFILE_SELECT =
-  "classification, onboardingData, createdAt" as const;
+  "id, classification, onboardingData, createdAt" as const;
+
+export const PROMPT_REVIEW_ARCHIVE_SELECT =
+  "userId, finalizedAt, exchangeCount, classificationAtSession, loadSignalsSnapshot, summaryJson" as const;
 
 export const PROMPT_REVIEW_CADENCE =
   "Formal prompt library review at 6, 12, and 18 months post-launch (2-day Dr. Sam review)." as const;
+
+export const PROMPT_REVIEW_CADENCE_CHECKLIST = [
+  "6 months — classification engagement + exchange distribution",
+  "12 months — commitment follow-through by category",
+  "18 months — load-signal disengagement cohorts + export CSV for Dr. Sam",
+] as const;
+
+/** REQ-16 — archive is primary; JSON cap remains for Layer 10 prompt only. */
+export const PROMPT_REVIEW_DATA_LIMITATION =
+  "Signals are sourced from coachingSessionArchive (full finalized history). Users without archive rows fall back to profiles.onboardingData chat_session_memory (≤5 sessions). Export CSV below for formal 6/12/18-month reviews." as const;
 
 const CONTINUED_ENGAGEMENT_WINDOW_DAYS = 30;
 const DISENGAGEMENT_THRESHOLD_DAYS = 14;
@@ -29,6 +47,7 @@ const EXCHANGE_BUCKETS = [
 ] as const;
 
 export type PromptReviewProfileRow = {
+  id?: string | null;
   classification?: string | null;
   onboardingData?: Record<string, unknown> | null;
   createdAt?: string | null;
@@ -63,7 +82,9 @@ export type LoadSignalDisengagementRow = {
 
 export type PromptReviewSignals = {
   profilesAnalyzed: number;
-  sessionsInMemory: number;
+  sessionsAnalyzed: number;
+  archivedSessions: number;
+  legacyMemorySessions: number;
   classificationEngagement: ClassificationEngagementRow[];
   exchangeCountDistribution: ExchangeCountBucketRow[];
   peakExchangeBucket: string | null;
@@ -72,6 +93,7 @@ export type PromptReviewSignals = {
   commitmentByCategory: CommitmentCategoryRow[];
   loadSignalDisengagement: LoadSignalDisengagementRow[];
   reviewCadence: string;
+  dataLimitation: string;
 };
 
 function readClassification(row: PromptReviewProfileRow): string {
@@ -219,9 +241,28 @@ function exchangeBucketLabel(exchangeCount: number): string {
   return EXCHANGE_BUCKETS[0].label;
 }
 
+function resolveUserSessionRecords(
+  profile: PromptReviewProfileRow,
+  archiveByUserId: Map<string, SessionMemoryRecord[]>,
+): { records: SessionMemoryRecord[]; fromArchive: boolean } {
+  const userId = profile.id?.trim();
+  if (userId) {
+    const archived = archiveByUserId.get(userId);
+    if (archived && archived.length > 0) {
+      return { records: archived, fromArchive: true };
+    }
+  }
+
+  return {
+    records: readSessionMemoryRecords(profile.onboardingData ?? {}),
+    fromArchive: false,
+  };
+}
+
 export function aggregatePromptLibraryReviewSignals(
   profiles: PromptReviewProfileRow[],
   now = new Date(),
+  archiveByUserId: Map<string, SessionMemoryRecord[]> = new Map(),
 ): PromptReviewSignals {
   const classificationStats = new Map<
     string,
@@ -231,7 +272,9 @@ export function aggregatePromptLibraryReviewSignals(
   const exchangeBuckets = new Map<string, { count: number; themes: string[] }>();
   let exchangeTotal = 0;
   let exchangeSamples = 0;
-  let sessionsInMemory = 0;
+  let sessionsAnalyzed = 0;
+  let archivedSessions = 0;
+  let legacyMemorySessions = 0;
 
   let commitmentTracked = 0;
   let commitmentFollowed = 0;
@@ -242,8 +285,13 @@ export function aggregatePromptLibraryReviewSignals(
   for (const profile of profiles) {
     const classification = readClassification(profile);
     const onboarding = profile.onboardingData ?? {};
-    const records = readSessionMemoryRecords(onboarding);
-    sessionsInMemory += records.length;
+    const { records, fromArchive } = resolveUserSessionRecords(profile, archiveByUserId);
+    sessionsAnalyzed += records.length;
+    if (fromArchive) {
+      archivedSessions += records.length;
+    } else {
+      legacyMemorySessions += records.length;
+    }
 
     const classRow = classificationStats.get(classification) ?? {
       users: 0,
@@ -357,7 +405,9 @@ export function aggregatePromptLibraryReviewSignals(
 
   return {
     profilesAnalyzed: profiles.length,
-    sessionsInMemory,
+    sessionsAnalyzed,
+    archivedSessions,
+    legacyMemorySessions,
     classificationEngagement,
     exchangeCountDistribution,
     peakExchangeBucket,
@@ -368,15 +418,59 @@ export function aggregatePromptLibraryReviewSignals(
     commitmentByCategory,
     loadSignalDisengagement,
     reviewCadence: PROMPT_REVIEW_CADENCE,
+    dataLimitation: PROMPT_REVIEW_DATA_LIMITATION,
   };
 }
 
-export async function fetchPromptLibraryReviewSignals(): Promise<PromptReviewSignals> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(PROMPT_REVIEW_PROFILE_SELECT);
+export async function fetchCoachingSessionArchiveRows(options?: {
+  from?: string;
+  to?: string;
+}): Promise<CoachingSessionArchiveRow[]> {
+  let query = supabase.from("coachingSessionArchive").select(PROMPT_REVIEW_ARCHIVE_SELECT);
 
+  if (options?.from) {
+    query = query.gte("finalizedAt", options.from);
+  }
+  if (options?.to) {
+    query = query.lte("finalizedAt", options.to);
+  }
+
+  const { data, error } = await query.order("finalizedAt", { ascending: false });
   if (error) throw error;
 
-  return aggregatePromptLibraryReviewSignals((data ?? []) as PromptReviewProfileRow[]);
+  return (data ?? []) as CoachingSessionArchiveRow[];
+}
+
+export async function fetchPromptLibraryReviewSignals(): Promise<PromptReviewSignals> {
+  const [profilesResult, archiveResult] = await Promise.all([
+    supabase.from("profiles").select(PROMPT_REVIEW_PROFILE_SELECT),
+    fetchCoachingSessionArchiveRows(),
+  ]);
+
+  if (profilesResult.error) throw profilesResult.error;
+
+  const archiveByUserId = groupArchiveRowsByUser(archiveResult);
+  return aggregatePromptLibraryReviewSignals(
+    (profilesResult.data ?? []) as PromptReviewProfileRow[],
+    new Date(),
+    archiveByUserId,
+  );
+}
+
+export async function exportSessionArchiveCsv(options?: {
+  from?: string;
+  to?: string;
+}): Promise<string> {
+  const rows = await fetchCoachingSessionArchiveRows(options);
+  return buildSessionArchiveCsv(rows);
+}
+
+export function downloadSessionArchiveCsv(csv: string, filename = "coaching-session-archive.csv"): void {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }

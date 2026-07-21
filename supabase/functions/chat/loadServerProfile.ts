@@ -5,6 +5,7 @@ import { loadServerLiveContext } from "./loadServerLiveContext.ts";
 type ProfileRow = {
   firstName?: string | null;
   roleType?: string | null;
+  roleTypes?: string[] | null;
   primaryPillar?: string | null;
   tier?: string | null;
   subscribed?: boolean | null;
@@ -66,6 +67,7 @@ type ProfileRow = {
 const PROFILE_SELECT_COLUMNS = [
   "firstName",
   "roleType",
+  "roleTypes",
   "primaryPillar",
   "tier",
   "subscribed",
@@ -228,6 +230,7 @@ export async function loadServerProfile(
   return {
     firstName: typeof row.firstName === "string" ? row.firstName : undefined,
     roleType: typeof row.roleType === "string" ? row.roleType : undefined,
+    roleTypes: Array.isArray(row.roleTypes) ? row.roleTypes : undefined,
     primaryPillar: typeof row.primaryPillar === "string" ? row.primaryPillar : undefined,
     tier: typeof row.tier === "string" ? row.tier : null,
     subscribed: row.subscribed === true,

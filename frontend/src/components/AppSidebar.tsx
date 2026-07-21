@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatCustomerRoleTypesForDisplay } from "@/lib/enums/customerRoleTypes";
 import {
   LayoutDashboard,
   MessageCircle,
@@ -10,12 +11,14 @@ import {
   ChevronDown,
   LifeBuoy,
   BarChart3,
+  Mic,
   type LucideIcon,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useUserProfile } from "@/lib/userProfile";
 import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import { EMPLOYER_PORTAL_ROUTE } from "@/lib/employer/routes";
+import { VOICE_SESSION_ROUTE } from "@/lib/chat/voiceSessionAccess";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -51,10 +54,13 @@ export function AppSidebar() {
   const [crisisOpen, setCrisisOpen] = useState(false);
 
   const classificationName = profile?.results?.classification?.name;
-  const roleType = profile?.roleType;
+  const roleLabel =
+    profile?.roleTypes?.length
+      ? formatCustomerRoleTypesForDisplay(profile.roleTypes)
+      : profile?.roleType || null;
   const modeValue =
-    roleType && classificationName
-      ? `${roleType} • ${classificationName}`
+    roleLabel && classificationName
+      ? `${roleLabel} • ${classificationName}`
       : SIDEBAR_MODE_VALUE_PLACEHOLDER;
 
   return (
@@ -106,6 +112,19 @@ export function AppSidebar() {
                 {!collapsed && <span>{item.title}</span>}
               </NavLink>
             ))}
+            <NavLink
+              to={VOICE_SESSION_ROUTE}
+              data-style-ref="Link_nav_"
+              title="Voice session"
+              className={cn(
+                bubbleStyle("Link_nav_"),
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+                collapsed && "w-9 justify-center px-0",
+              )}
+            >
+              <Mic className="h-4 w-4 shrink-0" aria-hidden />
+              {!collapsed && <span>Voice session</span>}
+            </NavLink>
             {isHrContact ? (
               <NavLink
                 to={EMPLOYER_PORTAL_ROUTE}

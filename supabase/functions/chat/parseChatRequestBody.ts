@@ -10,6 +10,7 @@ export type ChatRequestBody = {
   sessionType?: "text" | "voice" | "quick_checkin";
   exchangeCount?: number;
   promptTestScenarioId?: string;
+  promptLibraryVersionId?: string;
   voiceEmotionDetected?: boolean;
 };
 
@@ -38,6 +39,9 @@ export function parseChatRequestBody(raw: unknown): ChatRequestBody {
   const promptTestScenarioId =
     typeof body.promptTestScenarioId === "string" ? body.promptTestScenarioId.trim() : undefined;
 
+  const promptLibraryVersionId =
+    typeof body.promptLibraryVersionId === "string" ? body.promptLibraryVersionId.trim() : undefined;
+
   const voiceEmotionDetected = body.voiceEmotionDetected === true ? true : undefined;
 
   return {
@@ -48,6 +52,7 @@ export function parseChatRequestBody(raw: unknown): ChatRequestBody {
     sessionType,
     exchangeCount,
     promptTestScenarioId: promptTestScenarioId || undefined,
+    promptLibraryVersionId: promptLibraryVersionId || undefined,
     voiceEmotionDetected,
   };
 }

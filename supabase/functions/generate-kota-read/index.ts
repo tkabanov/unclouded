@@ -5,6 +5,7 @@ import {
   buildKotaReadUserPrompt,
   buildPathsLine,
   buildScoresLine,
+  filterSessionMemoryForKotaRead,
   formatKotaReadBrief,
   KOTA_READ_SYSTEM_PROMPT,
   parseKotaReadBrief,
@@ -89,7 +90,9 @@ async function buildKotaReadContext(
     profile.results && typeof profile.results === "object"
       ? (profile.results as Record<string, unknown>)
       : null;
-  const sessionRecords = readSessionMemoryRecords(onboardingData);
+  const sessionRecords = filterSessionMemoryForKotaRead(
+    readSessionMemoryRecords(onboardingData),
+  );
 
   return {
     firstName: profile.firstName?.trim() || "Member",

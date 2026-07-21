@@ -1,5 +1,9 @@
 import { useMemo } from "react";
 
+import CustomerRoleChipGroup from "@/components/CustomerRoleChipGroup";
+import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
+import { toggleCustomerRoleSelection } from "@/lib/enums/customerRoleTypes";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -49,6 +53,8 @@ const EMPTY_SELECT_VALUE = "__empty__";
 
 interface SettingsAboutYouSectionProps {
   form: AboutYouFormState;
+  roleTypes: CustomerRoleSlug[];
+  onRoleTypesChange: (roles: CustomerRoleSlug[]) => void;
   onChange: <K extends keyof AboutYouFormState>(key: K, value: AboutYouFormState[K]) => void;
 }
 
@@ -102,7 +108,12 @@ function SectionHeading({ children }: { children: string }) {
   );
 }
 
-export default function SettingsAboutYouSection({ form, onChange }: SettingsAboutYouSectionProps) {
+export default function SettingsAboutYouSection({
+  form,
+  roleTypes,
+  onRoleTypesChange,
+  onChange,
+}: SettingsAboutYouSectionProps) {
   const timeZoneOptions = useMemo(() => getTimeZoneOptions(), []);
 
   const completedCount = useMemo(
@@ -161,6 +172,19 @@ export default function SettingsAboutYouSection({ form, onChange }: SettingsAbou
 
       <section className="flex flex-col gap-4">
         <SectionHeading>Life Stage</SectionHeading>
+        <div className="flex flex-col gap-2">
+          <Label className={bubbleStyle("Text_label_")}>Current roles</Label>
+          <p className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}>
+            Select all that apply — the same roles you chose during onboarding.
+          </p>
+          <CustomerRoleChipGroup
+            selected={roleTypes}
+            onToggle={(slug) =>
+              onRoleTypesChange(toggleCustomerRoleSelection(roleTypes, slug))
+            }
+            className="max-w-none mx-0"
+          />
+        </div>
         <ProfileSelectField
           id="about-age-range"
           label="Age range"

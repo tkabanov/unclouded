@@ -1,7 +1,11 @@
 export { default as ChatPanelMount } from "./ChatPanelMount";
 export type { ChatPanelMountProps } from "./ChatPanelMount";
+export { ChatCommitmentAwaitingBanner } from "./ChatCommitmentAwaitingBanner";
+export type { ChatCommitmentAwaitingBannerProps, ChatCommitmentChannel } from "./ChatCommitmentAwaitingBanner";
+export { ChatCommitmentPromptCell } from "./ChatCommitmentPromptCell";
+export type { ChatCommitmentPromptCellProps } from "./ChatCommitmentPromptCell";
 export { ChatComposer } from "./ChatComposer";
-export type { ChatComposerProps } from "./ChatComposer";
+export type { ChatComposerInputMode, ChatComposerProps } from "./ChatComposer";
 export { ChatFloatingDisclaimer } from "./ChatFloatingDisclaimer";
 export type { ChatFloatingDisclaimerProps } from "./ChatFloatingDisclaimer";
 export { ChatHeader } from "./ChatHeader";
@@ -23,6 +27,7 @@ export type { ConversationThreadCellProps } from "./ConversationThreadCell";
 export {
   CHAT_ASSISTANT_DISCLAIMER,
   CHAT_BEHAVIOR_HTML,
+  CHAT_COMMITMENT_COMPOSER,
   CHAT_COMPOSER_DEFAULTS,
   CHAT_COMPOSER_MODES,
   CHAT_CONVERSATION_DEFAULTS,

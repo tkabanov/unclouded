@@ -1,5 +1,9 @@
 project_id = "szkextipgpupqoppccoy"
 
+# Keep edge workers alive for EdgeRuntime.waitUntil background tasks (REQ-01 memory extraction).
+[edge_runtime]
+policy = "per_worker"
+
 [auth]
 site_url = "http://127.0.0.1:3000"
 additional_redirect_urls = [
@@ -16,6 +20,9 @@ enable_confirmations = false
 verify_jwt = true
 
 [functions.chat-staging]
+verify_jwt = true
+
+[functions.prompt-library]
 verify_jwt = true
 
 # Section 3 — PuP 360 PDF narrative assembly (Pro / Premium).

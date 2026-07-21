@@ -55,8 +55,7 @@ export async function submitQuickCheckin(
     throw new Error("Unexpected chat response for quick check-in");
   }
 
-  await updatePulseBaselineAfterCheckIn(userId, input.pulse);
-
+  const checkInDate = new Date().toISOString();
   const client = supabase as unknown as {
     from: (table: string) => ReturnType<typeof supabase.from>;
   };
@@ -65,7 +64,12 @@ export async function submitQuickCheckin(
     mood: input.pulse,
     energyStressLevel: input.pulse,
     reflection: trimmedText,
-    date: new Date().toISOString(),
+    date: checkInDate,
+  });
+
+  await updatePulseBaselineAfterCheckIn(userId, input.pulse, {
+    checkInDate,
+    checkInAlreadyPersisted: true,
   });
 
   return { conversationId: conversation.id, reply };

@@ -45,6 +45,13 @@ export const CHAT_COMPOSER_DEFAULTS = {
   send_label: "Send",
 } as const;
 
+/** Composer copy while the session waits for a micro-commitment reply. */
+export const CHAT_COMMITMENT_COMPOSER = {
+  input_caption: "Your commitment",
+  input_placeholder: "One specific thing you'll do before we talk again…",
+  send_label: "Save commitment",
+} as const;
+
 /** Static HTML from IR element bTIne (chat scroll inversion styles). */
 export const CHAT_BEHAVIOR_HTML = `<style>
 #rg-chat {

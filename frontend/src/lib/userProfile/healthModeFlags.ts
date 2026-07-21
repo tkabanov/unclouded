@@ -1,3 +1,6 @@
+import { CUSTOMER_ROLE } from "@/lib/enums/customerProfile";
+import { profileHasCustomerRole } from "@/lib/enums/customerRoleTypes";
+
 export interface HealthModeFlags {
   recoveryModeActive: boolean;
   griefModeActive: boolean;
@@ -14,6 +17,7 @@ export interface HealthModeProfileSource {
     trauma_informed_mode?: boolean;
   } | null;
   roleType?: string | null;
+  roleTypes?: readonly string[] | null;
   aboutYou?: {
     careerStage?: string | null;
     employmentStatus?: string | null;
@@ -51,7 +55,9 @@ export function resolveTransitionFlagActive(
   const loadSignals = readLoadSignals(onboardingData);
   if (loadSignals?.transition_flag === true) return true;
 
-  if (profile?.roleType === "transition") return true;
+  if (profileHasCustomerRole(profile?.roleTypes, profile?.roleType, CUSTOMER_ROLE.TRANSITION)) {
+    return true;
+  }
 
   const careerStage = profile?.aboutYou?.careerStage?.trim().toLowerCase();
   if (careerStage === "career_transition") return true;

@@ -61,6 +61,11 @@ export default function ConversationThreadCell({
                 className={cn(bubbleStyle("Text_body_"), "block truncate text-sm font-medium")}
               >
                 {conversation.title}
+                {conversation.sessionType === "voice" ? (
+                  <span className="ml-1.5 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-secondary-foreground">
+                    Voice
+                  </span>
+                ) : null}
               </span>
               <span
                 data-style-ref="Text_caption_"

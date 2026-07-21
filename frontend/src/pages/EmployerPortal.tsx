@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
+import EmployerAssessmentBaselinePanel from "@/components/employer/EmployerAssessmentBaselinePanel";
 import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import {
   fetchEmployerMetrics,
@@ -95,6 +96,12 @@ export default function EmployerPortalPage() {
           workplaceName={selectedWorkplace?.name}
           metrics={metrics}
           loading={workplacesLoading || metricsLoading}
+        />
+
+        <EmployerAssessmentBaselinePanel
+          metrics={metrics}
+          loading={workplacesLoading || metricsLoading}
+          className="mt-4"
         />
       </div>
     </DashboardLayout>

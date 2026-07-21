@@ -31,6 +31,7 @@ const EMPTY_FORM: ProfileFormState = {
   firstName: "",
   lastName: "",
   sobrietyStartDate: "",
+  roleTypes: [],
 };
 
 export default function SettingsProfileTab() {
@@ -189,7 +190,12 @@ export default function SettingsProfileTab() {
         ) : null}
       </div>
 
-      <SettingsAboutYouSection form={aboutYouForm} onChange={updateAboutYouField} />
+      <SettingsAboutYouSection
+        form={aboutYouForm}
+        roleTypes={form.roleTypes}
+        onRoleTypesChange={(roles) => updateField("roleTypes", roles)}
+        onChange={updateAboutYouField}
+      />
 
       <SettingsWorkplaceAggregateOptInSection />
 

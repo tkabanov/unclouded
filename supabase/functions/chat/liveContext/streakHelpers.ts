@@ -28,7 +28,7 @@ export function computeStreakFromDateKeys(
   return streak;
 }
 
-function calendarDaysBetween(laterKey: string, earlierKey: string): number {
+export function calendarDaysBetween(laterKey: string, earlierKey: string): number {
   const later = new Date(`${laterKey.slice(0, 10)}T12:00:00.000Z`);
   const earlier = new Date(`${earlierKey.slice(0, 10)}T12:00:00.000Z`);
   return Math.round((later.getTime() - earlier.getTime()) / 86_400_000);

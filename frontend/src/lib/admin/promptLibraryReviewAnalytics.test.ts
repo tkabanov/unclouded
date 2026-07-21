@@ -51,7 +51,7 @@ describe("aggregatePromptLibraryReviewSignals", () => {
     );
 
     expect(signals.profilesAnalyzed).toBe(2);
-    expect(signals.sessionsInMemory).toBe(3);
+    expect(signals.sessionsAnalyzed).toBe(3);
     expect(signals.classificationEngagement[0]?.classification).toBe("Building Momentum");
     expect(signals.classificationEngagement[0]?.continuedEngagementRate).toBe(1);
     expect(signals.classificationEngagement[1]?.continuedEngagementRate).toBe(0);

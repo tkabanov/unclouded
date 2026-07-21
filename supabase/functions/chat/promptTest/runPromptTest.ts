@@ -48,6 +48,10 @@ export function buildPromptTestProfile(scenario: PromptTestScenarioDefinition): 
     onboardingData[CHAT_SESSION_MEMORY_KEY] = fixture.sessionMemory;
   }
 
+  if (fixture.lastSessionTopic?.trim()) {
+    onboardingData.last_session_topic_text = fixture.lastSessionTopic.trim();
+  }
+
   return {
     firstName: "Alex",
     roleType: "professional",

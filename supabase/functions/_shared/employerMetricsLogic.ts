@@ -8,9 +8,15 @@ import {
   EMPLOYER_WEEKLY_TREND_WEEKS,
   type WeeklyTrendPoint,
 } from "./employerMetricsTrendHelpers.ts";
+import {
+  computeEmployerAssessmentBaseline,
+  EMPTY_EMPLOYER_ASSESSMENT_BASELINE,
+  type EmployerAssessmentBaseline,
+} from "./employerAssessmentBaselineHelpers.ts";
 
 export { EMPLOYER_MIN_COHORT_SIZE } from "./employerMetricsTrendHelpers.ts";
 export type { WeeklyTrendPoint } from "./employerMetricsTrendHelpers.ts";
+export type { EmployerAssessmentBaseline } from "./employerAssessmentBaselineHelpers.ts";
 
 export type EmployerMetricSnapshot = {
   cohortSize: number;
@@ -21,6 +27,7 @@ export type EmployerMetricSnapshot = {
   pathEngagementPercent: number | null;
   activeUsersPercent: number | null;
   sessionsPerUser: number | null;
+  assessmentBaseline: EmployerAssessmentBaseline;
 };
 
 type UntypedFrom = SupabaseClient;
@@ -32,6 +39,7 @@ const EMPTY_SNAPSHOT: Omit<EmployerMetricSnapshot, "cohortSize" | "suppressed"> 
   pathEngagementPercent: null,
   activeUsersPercent: null,
   sessionsPerUser: null,
+  assessmentBaseline: EMPTY_EMPLOYER_ASSESSMENT_BASELINE,
 };
 
 function average(values: number[]): number | null {
@@ -73,7 +81,8 @@ export async function computeEmployerMetricsForUserIds(
     .slice(0, 10);
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [{ data: checkins }, { data: sessions }, { data: enrollments }] = await Promise.all([
+  const [{ data: checkins }, { data: sessions }, { data: enrollments }, { data: profiles }] =
+    await Promise.all([
     client
       .from("dailyCheckin")
       .select("userId, mood, date, createdAt")
@@ -85,6 +94,10 @@ export async function computeEmployerMetricsForUserIds(
       .in("userId", userIds)
       .gte("createdAt", trendCutoffDate),
     client.from("pathEnrollment").select("userId, status").in("userId", userIds),
+    client
+      .from("profiles")
+      .select("classification, stabilityScore, performanceScore, alignmentScore, results")
+      .in("id", userIds),
   ]);
 
   const checkinRows = (checkins ?? [])
@@ -138,6 +151,20 @@ export async function computeEmployerMetricsForUserIds(
     .filter((row) => row.date >= thirtyDaysAgo.slice(0, 10))
     .map((row) => row.mood);
 
+  const assessmentRows = (profiles ?? []).map((row) => row as Record<string, unknown>);
+  const assessmentBaseline = computeEmployerAssessmentBaseline(
+    assessmentRows.map((row) => ({
+      classification: typeof row.classification === "string" ? row.classification : null,
+      stabilityScore: typeof row.stabilityScore === "number" ? row.stabilityScore : null,
+      performanceScore: typeof row.performanceScore === "number" ? row.performanceScore : null,
+      alignmentScore: typeof row.alignmentScore === "number" ? row.alignmentScore : null,
+      results:
+        row.results && typeof row.results === "object" && !Array.isArray(row.results)
+          ? (row.results as Record<string, unknown>)
+          : null,
+    })),
+  );
+
   return {
     cohortSize: userIds.length,
     suppressed: false,
@@ -147,6 +174,7 @@ export async function computeEmployerMetricsForUserIds(
     pathEngagementPercent,
     activeUsersPercent: Math.round((activeUsers / userIds.length) * 1000) / 10,
     sessionsPerUser: Math.round((totalSessions / userIds.length) * 100) / 100,
+    assessmentBaseline,
   };
 }
 

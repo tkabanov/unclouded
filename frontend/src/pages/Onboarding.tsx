@@ -23,6 +23,8 @@ import {
   type HealthFlagsPayload,
 } from "@/lib/enums/onboardingQuestions";
 import { ONBOARDING_STEP, type OnboardingStepSlug } from "@/lib/enums/onboardingSteps";
+import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
+import { syncLegacyRoleType } from "@/lib/enums/customerRoleTypes";
 import {
   ONBOARDING_WORKFLOW_EVENTS,
   advanceStep,
@@ -49,7 +51,7 @@ const Onboarding = () => {
   const [completingOnboarding, setCompletingOnboarding] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [roleType, setRoleType] = useState("");
+  const [roleTypes, setRoleTypes] = useState<CustomerRoleSlug[]>([]);
   const [primaryPillar, setPrimaryPillar] = useState("");
   const [stabilityScores, setStabilityScores] = useState<Record<string, number>>({});
   const [performanceScores, setPerformanceScores] = useState<Record<string, number>>({});
@@ -169,7 +171,8 @@ const Onboarding = () => {
         {
           firstName,
           lastName,
-          roleType,
+          roleTypes,
+          roleType: syncLegacyRoleType(roleTypes) ?? "",
           primaryPillar,
           stabilityScores,
           performanceScores,
@@ -225,12 +228,17 @@ const Onboarding = () => {
       case ONBOARDING_STEP.ROLE:
         return (
           <OnboardingRole
-            onNext={async (role) => {
-              setRoleType(role);
+            onNext={async (roles) => {
+              setRoleTypes(roles);
+              const legacyRoleType = syncLegacyRoleType(roles);
               try {
                 await persistOnboardingDraft({
-                  roleType: role,
-                  onboardingData: buildOnboardingData({ roleType: role }),
+                  roleTypes: roles,
+                  roleType: legacyRoleType ?? undefined,
+                  onboardingData: buildOnboardingData({
+                    roleTypes: roles,
+                    roleType: legacyRoleType,
+                  }),
                 });
               } catch (err) {
                 console.error("Failed to persist role selection", err);
@@ -269,7 +277,7 @@ const Onboarding = () => {
       case ONBOARDING_STEP.PERFORMANCE:
         return (
           <OnboardingPerformance
-            role={roleType}
+            roles={roleTypes}
             onNext={async (scores) => {
               setPerformanceScores(scores);
               try {

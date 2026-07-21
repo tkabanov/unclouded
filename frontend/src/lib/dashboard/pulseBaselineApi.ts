@@ -1,12 +1,19 @@
 import { supabase } from "@/integrations/supabase/client";
 import {
-  compute14DayPulseBaseline,
-  detectSignificantPulseDrop,
+  assessPulseBaselineUpdate,
+  excludePersistedCheckIn,
   type PulseMoodEntry,
 } from "../../../../supabase/functions/chat/pulseBaseline.ts";
 
 type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
+};
+
+export type PulseBaselineUpdateOptions = {
+  /** ISO timestamp for the check-in being submitted. */
+  checkInDate?: string;
+  /** When true (default), fetched history already includes this check-in in dailyCheckin. */
+  checkInAlreadyPersisted?: boolean;
 };
 
 function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
@@ -55,18 +62,26 @@ async function fetchRecentMoods(userId: string): Promise<PulseMoodEntry[]> {
 
 /**
  * Recompute pulse baseline after a check-in and persist to profiles.
+ * REQ-05: significant drop is measured against the baseline *before* this mood is included.
  */
 export async function updatePulseBaselineAfterCheckIn(
   userId: string,
   newMood: number,
+  options: PulseBaselineUpdateOptions = {},
 ): Promise<{ pulseBaseline: number | null; significantPulseDrop: boolean }> {
+  const checkInDate = options.checkInDate ?? new Date().toISOString();
+  const checkInAlreadyPersisted = options.checkInAlreadyPersisted ?? true;
   const moods = await fetchRecentMoods(userId);
-  const withNewMood = moods.some((entry) => entry.mood === newMood)
-    ? moods
-    : [{ date: new Date().toISOString(), mood: newMood }, ...moods];
 
-  const pulseBaseline = compute14DayPulseBaseline(withNewMood);
-  const significantPulseDrop = detectSignificantPulseDrop(newMood, pulseBaseline);
+  const priorMoods = checkInAlreadyPersisted
+    ? excludePersistedCheckIn(moods, newMood, checkInDate)
+    : moods;
+
+  const { pulseBaseline, significantPulseDrop } = assessPulseBaselineUpdate(
+    priorMoods,
+    newMood,
+    checkInDate,
+  );
 
   const { error } = await supabase
     .from("profiles")

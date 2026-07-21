@@ -15,7 +15,7 @@ INSERT INTO public.path (
   'c8e1f0a2-4b3d-5e6f-9a0b-1c2d3e4f5a6b',
   'The Unsent Letter',
   'Directed Writing · Grief / Recovery / Transition — write what can never be sent. Kota witnesses; nothing is mailed.',
-  'pro',
+  'free',
   'emotional',
   'directed_writing',
   4,

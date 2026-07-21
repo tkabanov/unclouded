@@ -23,6 +23,7 @@ export interface ConversationListItem {
   modifiedDate: string | null;
   /** Composer quick-prompt mode stored on conversation context (bTIRi). */
   coaching_mode?: ChatComposerMode;
+  sessionType?: ChatSessionType;
 }
 
 type ConversationRow = {
@@ -30,6 +31,7 @@ type ConversationRow = {
   title?: string | null;
   modifiedDate?: string | null;
   updatedAt?: string | null;
+  sessionType?: ChatSessionType | null;
 };
 
 type UntypedSupabase = {
@@ -52,6 +54,10 @@ function isChatComposerMode(value: unknown): value is ChatComposerMode {
   return CHAT_COMPOSER_MODES.some((mode) => mode.id === value);
 }
 
+function isChatSessionType(value: unknown): value is ChatSessionType {
+  return CHAT_SESSION_TYPES.some((type) => type === value);
+}
+
 function mapConversationRow(
   row: ConversationRow,
   previewText = "",
@@ -63,6 +69,7 @@ function mapConversationRow(
     previewText: previewText.trim() || DEFAULT_PREVIEW_TEXT,
     modifiedDate: row.modifiedDate ?? row.updatedAt ?? null,
     coaching_mode: coachingMode,
+    sessionType: row.sessionType ?? undefined,
   };
 }
 
@@ -81,6 +88,7 @@ function readOnboardingConversations(
           title: typeof entry.title === "string" ? entry.title : null,
           modifiedDate:
             typeof entry.modifiedDate === "string" ? entry.modifiedDate : null,
+          sessionType: isChatSessionType(entry.sessionType) ? entry.sessionType : undefined,
         },
         typeof entry.previewText === "string" ? entry.previewText : "",
         isChatComposerMode(entry.coaching_mode) ? entry.coaching_mode : undefined,
@@ -99,6 +107,7 @@ type OnboardingConversationRow = {
   previewText: string;
   modifiedDate: string | null;
   coaching_mode?: ChatComposerMode;
+  sessionType?: ChatSessionType;
 };
 
 function toOnboardingRow(item: ConversationListItem): OnboardingConversationRow {
@@ -108,6 +117,7 @@ function toOnboardingRow(item: ConversationListItem): OnboardingConversationRow 
     previewText: item.previewText,
     modifiedDate: item.modifiedDate,
     coaching_mode: item.coaching_mode,
+    sessionType: item.sessionType,
   };
 }
 
@@ -173,7 +183,7 @@ async function tryFetchFromConversationTable(
 
   let { data, error } = await client
     .from("chatConversation")
-    .select("id, title, updatedAt")
+    .select("id, title, updatedAt, sessionType")
     .eq("userId", userId)
     .order("updatedAt", { ascending: false });
 
@@ -223,7 +233,7 @@ async function tryCreateInConversationTable(
       userId: userId,
       sessionType,
     })
-    .select("id, title, updatedAt")
+    .select("id, title, updatedAt, sessionType")
     .single();
 
   if (error) {
@@ -252,6 +262,7 @@ export async function createConversation(
       id: crypto.randomUUID(),
       title: title,
       modifiedDate: now,
+      sessionType,
     },
     DEFAULT_PREVIEW_TEXT,
   );
@@ -333,7 +344,7 @@ async function tryFetchConversationFromTable(
 
   let { data, error } = await client
     .from("chatConversation")
-    .select("id, title, updatedAt")
+    .select("id, title, updatedAt, sessionType")
     .eq("id", conversationId)
     .eq("userId", userId)
     .maybeSingle();

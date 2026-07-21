@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { CUSTOMER_ROLE } from "@/lib/enums/customerProfile";
 import {
   canCompleteOnboarding,
   completeOnboarding,
@@ -27,7 +27,8 @@ vi.mock("./email/transactionalEmailHooks", () => ({
 const BASE_DATA: OnboardingCompletionData = {
   firstName: "Sam",
   lastName: "Taylor",
-  roleType: "founder",
+  roleTypes: [CUSTOMER_ROLE.PRO],
+  roleType: CUSTOMER_ROLE.PRO,
   primaryPillar: "stability",
   stabilityScores: { sleep: 3 },
   performanceScores: { focus: 3 },

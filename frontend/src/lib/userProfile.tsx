@@ -6,6 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
+import { parseCustomerRoleTypesFromProfile, syncLegacyRoleType } from "@/lib/enums/customerRoleTypes";
 import { classifications, type ResultsData } from "./classification";
 import type { ReflectionAnswers } from "./reassessment";
 import {
@@ -20,6 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 export interface UserProfile {
   firstName: string;
   roleType: string;
+  roleTypes: CustomerRoleSlug[];
   primaryPillar: string;
   results: ResultsData | null;
   onboardingCompleted: boolean;
@@ -47,6 +50,7 @@ export interface OnboardingPayload {
   firstName: string;
   lastName: string;
   roleType: string;
+  roleTypes: CustomerRoleSlug[];
   primaryPillar: string;
   results: ResultsData;
   onboardingData: Record<string, unknown>;
@@ -65,6 +69,7 @@ export interface OnboardingDraftPayload {
   firstName?: string;
   lastName?: string;
   roleType?: string;
+  roleTypes?: CustomerRoleSlug[];
   primaryPillar?: string;
   onboardingData?: Record<string, unknown>;
 }
@@ -94,7 +99,7 @@ interface UserProfileContextType {
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
 
 const PROFILE_SELECT =
-  "firstName, roleType, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
+  "firstName, roleType, roleTypes, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
 
 export function UserProfileProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -125,6 +130,10 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       setProfileState({
         firstName: data.firstName ?? "",
         roleType: data.roleType ?? "",
+        roleTypes: parseCustomerRoleTypesFromProfile(
+          Array.isArray(data.roleTypes) ? (data.roleTypes as string[]) : null,
+          data.roleType,
+        ),
         primaryPillar: data.primaryPillar ?? "",
         results: (data.results as unknown as ResultsData | null) ?? null,
         onboardingCompleted: data.onboardingCompleted ?? false,
@@ -175,7 +184,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             email: user.email ?? null,
             firstName: payload.firstName,
             lastName: payload.lastName,
-            roleType: payload.roleType,
+            roleType: syncLegacyRoleType(payload.roleTypes) ?? payload.roleType,
+            roleTypes: payload.roleTypes,
             primaryPillar: payload.primaryPillar,
             results: payload.results as unknown as never,
             onboardingData: payload.onboardingData as unknown as never,
@@ -224,7 +234,12 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       const updates: Record<string, unknown> = {};
       if (payload.firstName !== undefined) updates.firstName = payload.firstName;
       if (payload.lastName !== undefined) updates.lastName = payload.lastName;
-      if (payload.roleType !== undefined) updates.roleType = payload.roleType;
+      if (payload.roleTypes !== undefined) {
+        updates.roleTypes = payload.roleTypes;
+        updates.roleType = syncLegacyRoleType(payload.roleTypes) ?? payload.roleType ?? null;
+      } else if (payload.roleType !== undefined) {
+        updates.roleType = payload.roleType;
+      }
       if (payload.primaryPillar !== undefined) updates.primaryPillar = payload.primaryPillar;
       if (payload.onboardingData !== undefined) {
         const existing = profile?.onboardingData ?? {};

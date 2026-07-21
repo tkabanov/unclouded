@@ -218,7 +218,7 @@ export function formatReturningMemoryHint(
     hints.push(`You named a pattern: ${sanitizePromptField(last.keyPatternOrInsight, 200)}.`);
   } else if (last.summaryStub?.trim()) {
     hints.push(
-      `I remember: ${sanitizePromptField(truncateToMaxWords(last.summaryStub, 40), 240)}.`,
+      `Last time you said: ${sanitizePromptField(truncateToMaxWords(last.summaryStub, 40), 240)}.`,
     );
   }
 

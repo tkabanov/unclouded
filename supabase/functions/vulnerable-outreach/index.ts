@@ -140,24 +140,50 @@ Deno.serve(async (req) => {
   let expiredSubscriptionsRemoved = 0;
 
   for (const candidate of preCandidates) {
-    const { data: lastSession, error: sessionError } = await supabase
-      .from("chatConversation")
-      .select("updatedAt")
+    const { data: lastArchive, error: archiveError } = await supabase
+      .from("coachingSessionArchive")
+      .select("finalizedAt")
       .eq("userId", candidate.id)
-      .order("updatedAt", { ascending: false })
+      .order("finalizedAt", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (sessionError) {
+    let lastActivity: string | null = null;
+
+    if (archiveError && archiveError.code !== "42P01") {
       sendResults.push({
         userId: candidate.id,
-        detail: `session_lookup_error: ${sessionError.message}`,
+        detail: `archive_lookup_error: ${archiveError.message}`,
       });
       continue;
     }
 
-    const lastActivity =
-      typeof lastSession?.updatedAt === "string" ? lastSession.updatedAt : null;
+    if (typeof lastArchive?.finalizedAt === "string") {
+      lastActivity = lastArchive.finalizedAt;
+    } else {
+      const { data: lastSession, error: sessionError } = await supabase
+        .from("chatConversation")
+        .select("finalizedAt, updatedAt")
+        .eq("userId", candidate.id)
+        .order("updatedAt", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (sessionError) {
+        sendResults.push({
+          userId: candidate.id,
+          detail: `session_lookup_error: ${sessionError.message}`,
+        });
+        continue;
+      }
+
+      lastActivity =
+        typeof lastSession?.finalizedAt === "string"
+          ? lastSession.finalizedAt
+          : typeof lastSession?.updatedAt === "string"
+            ? lastSession.updatedAt
+            : null;
+    }
 
     if (
       !isInactiveForOutreach({

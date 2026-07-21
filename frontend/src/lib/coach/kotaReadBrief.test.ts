@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildKotaReadUserPrompt,
+  filterSessionMemoryForKotaRead,
   formatKotaReadBrief,
   formatPatternLine,
   parseKotaReadBrief,
+  resolveOpenCommitmentLine,
 } from "../../../../supabase/functions/_shared/kotaReadBrief.ts";
 
 describe("kotaReadBrief", () => {
@@ -62,6 +64,49 @@ describe("kotaReadBrief", () => {
 
     expect(prompt).toContain("Classification: Capacity Erosion");
     expect(prompt).toContain("Open commitment:");
+    expect(prompt).toContain("last 90 days");
     expect(prompt).toContain('"patterns"');
+  });
+
+  it("filters session memory to the last 90 days", () => {
+    const filtered = filterSessionMemoryForKotaRead(
+      [
+        {
+          conversationId: "old",
+          closedAt: "2026-01-01T12:00:00.000Z",
+          topic: "old",
+          summaryStub: "old theme",
+        },
+        {
+          conversationId: "recent",
+          closedAt: "2026-07-01T12:00:00.000Z",
+          topic: "recent",
+          summaryStub: "recent theme",
+        },
+      ],
+      new Date("2026-07-20T12:00:00.000Z"),
+    );
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0]?.topic).toBe("recent");
+  });
+
+  it("reports open commitment only when follow-through status is open", () => {
+    const line = resolveOpenCommitmentLine(
+      [
+        {
+          conversationId: "c1",
+          closedAt: "2026-07-10",
+          topic: "sleep",
+          summaryStub: "Named poor sleep.",
+          microCommitment: "No screens after 10pm",
+          commitmentStatus: "completed",
+        },
+      ],
+      { micro_commitment_active_text: "No screens after 10pm" },
+      new Date("2026-07-20"),
+    );
+
+    expect(line).toBe("Open commitment: none recorded");
   });
 });

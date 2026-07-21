@@ -14,6 +14,10 @@ import {
   buildCompressedSessionMemorySectionLines,
   readSessionArcSummary,
 } from "../sessionMemory/sessionArcSummary.ts";
+import {
+  resolveCheckInFeelingWord,
+  resolveTodayCheckIn,
+} from "../liveContext/checkInHelpers.ts";
 import { canAccessSessionMemoryInPrompt } from "../tierGateHelpers.ts";
 import { buildAboutYouContextBlock } from "./aboutYouContext.ts";
 import {
@@ -46,24 +50,15 @@ function buildCommitmentResolutionContext(profile: ProfileData, liveContext: Cha
 }
 
 function buildCurrentSessionOpenData(profile: ProfileData, liveContext: ChatLiveContext): string[] {
-  const checkIn = liveContext.latestCheckIn;
+  const checkIn = resolveTodayCheckIn(liveContext.latestCheckIn);
   const commitmentContext = buildCommitmentResolutionContext(profile, liveContext);
-  const hasCheckIn =
-    checkIn &&
-    (checkIn.pulse != null ||
-      (checkIn.feeling && checkIn.feeling.trim()) ||
-      checkIn.energyStressLevel != null ||
-      (checkIn.microCommitmentStatus && checkIn.microCommitmentStatus.trim()));
 
-  if (!hasCheckIn || !checkIn) {
+  if (!checkIn) {
     return ["Check-in pulse score: not submitted today", "Feeling word: not submitted today"];
   }
 
   const pulse = asNumberText(checkIn.pulse);
-  const feeling =
-    checkIn.feeling?.trim()
-      ? sanitizePromptField(checkIn.feeling, 80)
-      : "not recorded";
+  const feelingWord = resolveCheckInFeelingWord(checkIn) ?? "not recorded";
   const commitmentStatus =
     commitmentContext.activeMicroCommitment?.trim() || checkIn.microCommitmentStatus?.trim()
       ? formatLayer10CommitmentStatus(
@@ -73,7 +68,7 @@ function buildCurrentSessionOpenData(profile: ProfileData, liveContext: ChatLive
 
   return [
     `Check-in pulse score (if submitted today): ${pulse}/10`,
-    `Feeling word (if submitted): ${feeling}`,
+    `Feeling word (if submitted): ${feelingWord}`,
     `Commitment status from last session (if tracked): ${commitmentStatus}`,
   ];
 }
@@ -86,7 +81,9 @@ function buildRecentSessionMemorySection(
   commitmentContext?: ReturnType<typeof buildCommitmentResolutionContext>,
 ): string[] {
   if (!canAccessSessionMemoryInPrompt(tier, subscribed)) {
-    return ["Not available on Free tier."];
+    return [
+      "Not available on Free tier (Layer 10 always assembles; full session memory is Pro/Premium per Build Brief §12).",
+    ];
   }
 
   const records = readSessionMemoryRecords(onboardingData);
@@ -282,6 +279,7 @@ function buildPreviousSessionCrisisFlag(liveContext: ChatLiveContext): string[] 
     return [
       "Was the previous session a Level 2+ crisis event? yes.",
       "Activate Crisis Aftercare Protocol (Block 3.31) for this session open.",
+      "Do NOT open with prior coaching topic recap — use hard-place framing and an honest check-in only.",
     ];
   }
   if (liveContext.hasPriorCrisisSession === false) {

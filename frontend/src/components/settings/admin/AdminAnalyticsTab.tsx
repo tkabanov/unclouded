@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   ADMIN_ANALYTICS_NOTICE_COPY,
   ADMIN_STAT_AVG_MODULES_LABEL,
@@ -14,7 +15,10 @@ import {
   type AdminAnalyticsSnapshot,
 } from "@/lib/settings/admin/adminAnalyticsApi";
 import {
+  downloadSessionArchiveCsv,
+  exportSessionArchiveCsv,
   fetchPromptLibraryReviewSignals,
+  PROMPT_REVIEW_CADENCE_CHECKLIST,
   type PromptReviewSignals,
 } from "@/lib/admin/promptLibraryReviewAnalytics";
 import { MODULE_SLUGS } from "@/lib/modules/moduleSlugs";
@@ -42,6 +46,7 @@ export default function AdminAnalyticsTab() {
   const [stats, setStats] = useState<AdminAnalyticsSnapshot>(EMPTY_STATS);
   const [promptReview, setPromptReview] = useState<PromptReviewSignals | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exportingArchive, setExportingArchive] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +68,19 @@ export default function AdminAnalyticsTab() {
       cancelled = true;
     };
   }, []);
+
+  async function handleExportSessionArchive() {
+    setExportingArchive(true);
+    try {
+      const csv = await exportSessionArchiveCsv();
+      downloadSessionArchiveCsv(csv);
+      toast.success("Session archive CSV downloaded.");
+    } catch {
+      toast.error("Couldn't export session archive.");
+    } finally {
+      setExportingArchive(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -133,10 +151,28 @@ export default function AdminAnalyticsTab() {
             <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
               {promptReview.reviewCadence}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {promptReview.profilesAnalyzed} profiles · {promptReview.sessionsInMemory} closed
-              sessions in memory
+            <p className="text-xs text-amber-800 dark:text-amber-200">
+              {promptReview.dataLimitation}
             </p>
+            <p className="text-xs text-muted-foreground">
+              {promptReview.profilesAnalyzed} profiles · {promptReview.sessionsAnalyzed} sessions
+              analyzed ({promptReview.archivedSessions} archive ·{" "}
+              {promptReview.legacyMemorySessions} legacy memory)
+            </p>
+            <ul className="list-inside list-disc text-xs text-muted-foreground">
+              {PROMPT_REVIEW_CADENCE_CHECKLIST.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={exportingArchive}
+              onClick={() => void handleExportSessionArchive()}
+            >
+              {exportingArchive ? "Exporting…" : "Export session archive CSV"}
+            </Button>
           </div>
 
           <ReviewSection title="1. Classification → continued engagement">

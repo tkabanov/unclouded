@@ -1,4 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
+import {
+  formatCustomerRoleTypesForDisplay,
+  parseCustomerRoleTypesFromProfile,
+} from "@/lib/enums/customerRoleTypes";
 import DashboardLayout from "@/components/DashboardLayout";
 import ChatPageContent from "@/components/chat/ChatPageContent";
 import ChatPanelMount from "@/components/chat/ChatPanelMount";
@@ -51,7 +55,12 @@ export default function Chat() {
     if (!profile) return undefined;
     const parts: string[] = [];
     if (profile.firstName) parts.push(`Name: ${profile.firstName}`);
-    if (profile.roleType) parts.push(`Primary role: ${profile.roleType}`);
+    const roles = parseCustomerRoleTypesFromProfile(profile.roleTypes, profile.roleType);
+    if (roles.length > 0) {
+      parts.push(`Roles: ${formatCustomerRoleTypesForDisplay(roles)}`);
+    } else if (profile.roleType) {
+      parts.push(`Primary role: ${profile.roleType}`);
+    }
     if (profile.primaryPillar) parts.push(`Focus area: ${profile.primaryPillar}`);
     const cls = profile.results?.classification?.name;
     if (cls) parts.push(`Current pattern: ${cls}`);
@@ -63,6 +72,7 @@ export default function Chat() {
     return {
       firstName: profile.firstName,
       roleType: profile.roleType,
+      roleTypes: profile.roleTypes,
       primaryPillar: profile.primaryPillar,
       results: profile.results as unknown as Record<string, unknown> | null,
       onboardingData: profile.onboardingData,

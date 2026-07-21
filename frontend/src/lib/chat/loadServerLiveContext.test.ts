@@ -54,7 +54,6 @@ describe("loadServerLiveContext", () => {
           return chain;
         }),
         order: vi.fn(() => chain),
-        limit: vi.fn(() => chain),
         in: vi.fn(() => {
           if (table === "pathSession") {
             return createQueryResult([
@@ -69,15 +68,6 @@ describe("loadServerLiveContext", () => {
           return createQueryResult([]);
         }),
         maybeSingle: vi.fn(() => {
-          if (table === "dailyCheckin") {
-            return createQueryResult({
-              mood: 4,
-              energyStressLevel: 5,
-              reflection: "steady",
-              date: "2026-07-16",
-              microCommitmentStatus: "done",
-            });
-          }
           if (table === "pathEnrollment") {
             return createQueryResult({
               status: "active",
@@ -94,6 +84,41 @@ describe("loadServerLiveContext", () => {
             return createQueryResult({ microCommitment: "Text a friend" });
           }
           return createQueryResult(null);
+        }),
+        limit: vi.fn((count?: number) => {
+          if (table === "dailyCheckin" && count === 8) {
+            return {
+              then: (
+                resolve: (value: Awaited<ReturnType<typeof createQueryResult>>) => void,
+              ) =>
+                createQueryResult([
+                  {
+                    mood: 4,
+                    energyStressLevel: 5,
+                    feelingWord: "steady",
+                    reflection: "Focused morning.",
+                    date: "2026-07-16T08:00:00.000Z",
+                    microCommitmentStatus: "done",
+                  },
+                ]).then(resolve),
+            };
+          }
+          if (table === "pathResponse") {
+            return {
+              then: (
+                resolve: (value: Awaited<ReturnType<typeof createQueryResult>>) => void,
+              ) =>
+                createQueryResult([
+                  {
+                    questionText: "What felt heaviest?",
+                    answerText: "Deadlines",
+                    createdAt: "2026-07-09T12:00:00.000Z",
+                    pathSession: { title: "Session 1", path: { name: "Hard Seasons" } },
+                  },
+                ]).then(resolve),
+            };
+          }
+          return chain;
         }),
         then: undefined as never,
       };
@@ -156,8 +181,9 @@ describe("loadServerLiveContext", () => {
           userId,
           mood: 2,
           energyStressLevel: 4,
-          reflection: "fallback check-in",
-          date: "2026-07-15",
+          feelingWord: "fallback",
+          reflection: "fallback check-in prose",
+          date: "2026-07-16T08:00:00.000Z",
         },
       ],
       chat_conversations: [{ id: "c1" }],
@@ -174,7 +200,7 @@ describe("loadServerLiveContext", () => {
 
     const result = await loadServerLiveContext(supabase, userId, onboarding);
 
-    expect(result.latestCheckIn?.feeling).toBe("fallback check-in");
+    expect(result.latestCheckIn?.feeling).toBe("fallback");
     expect(result.streakDays).toBe(1);
     expect(result.activeMicroCommitment).toBe("Onboarding commitment");
     expect(result.sessionCount).toBe(1);
@@ -211,6 +237,7 @@ describe("aggregateLiveContext", () => {
 
 describe("onboarding liveContext readers", () => {
   it("reads streak, check-in, session count, and path reflections from onboardingData", () => {
+    const today = new Date().toISOString();
     const onboarding = {
       dailyCheckInStreak: 4,
       daily_checkins: [
@@ -218,8 +245,9 @@ describe("onboarding liveContext readers", () => {
           userId: "user-1",
           mood: 3,
           energyStressLevel: 5,
-          reflection: "okay day",
-          date: "2026-07-10",
+          feelingWord: "okay",
+          reflection: "okay day details",
+          date: today,
         },
       ],
       chat_conversations: [{ id: "c1" }, { id: "c2" }],
@@ -233,7 +261,7 @@ describe("onboarding liveContext readers", () => {
     };
 
     expect(readStreakFromOnboarding(onboarding)).toBe(4);
-    expect(readLatestCheckInFromOnboarding("user-1", onboarding)?.feeling).toBe("okay day");
+    expect(readLatestCheckInFromOnboarding("user-1", onboarding)?.feeling).toBe("okay");
     expect(readSessionCountFromOnboarding(onboarding)).toBe(2);
     expect(readPathReflectionsFromOnboarding(onboarding)).toHaveLength(1);
     expect(readActiveMicroCommitmentFromOnboarding(onboarding)).toBe("Walk after lunch");

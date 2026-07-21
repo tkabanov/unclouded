@@ -1,6 +1,7 @@
 import { computeResults, type ResultsData } from "@/lib/classification";
 import { scheduleWelcomeEmailAfterOnboarding } from "@/lib/email/transactionalEmailHooks";
-import type { HealthFlagsPayload } from "@/lib/enums/onboardingQuestions";
+import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
+import { syncLegacyRoleType } from "@/lib/enums/customerRoleTypes";
 import { computeOnboardingModulePreview } from "@/lib/modules/moduleScheduler";
 import { autoEnrollPathsAfterOnboarding } from "@/lib/paths/pathsOnboardingEnrollmentApi";
 import { recordInitialAssessment } from "@/lib/reassessment/completeReassessment";
@@ -19,6 +20,7 @@ const REQUIRED_LOAD_SIGNAL_FIELDS = [
 export interface OnboardingCompletionData {
   firstName: string;
   lastName: string;
+  roleTypes: CustomerRoleSlug[];
   roleType: string;
   primaryPillar: string;
   stabilityScores: Record<string, number>;
@@ -96,7 +98,8 @@ export async function completeOnboarding(
   const payload: OnboardingPayload = {
     firstName: data.firstName,
     lastName: data.lastName,
-    roleType: data.roleType,
+    roleTypes: data.roleTypes,
+    roleType: syncLegacyRoleType(data.roleTypes) ?? data.roleType,
     primaryPillar: data.primaryPillar,
     results,
     modulesCompletedCount: 0,

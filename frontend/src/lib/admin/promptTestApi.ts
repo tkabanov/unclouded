@@ -19,7 +19,10 @@ async function getAuthToken(): Promise<string> {
   return token;
 }
 
-export async function runPromptTestScenario(scenarioId: string): Promise<PromptTestRunResult> {
+export async function runPromptTestScenario(
+  scenarioId: string,
+  promptLibraryVersionId?: string,
+): Promise<PromptTestRunResult> {
   const target = resolvePromptTestChatTarget();
   const token = await getAuthToken();
 
@@ -29,10 +32,12 @@ export async function runPromptTestScenario(scenarioId: string): Promise<PromptT
       "Content-Type": "application/json",
       apikey: target.publishableKey,
       Authorization: `Bearer ${token}`,
+      ...(promptLibraryVersionId ? { "x-prompt-library-slot": "draft" } : {}),
     },
     body: JSON.stringify({
       lifecycle: "prompt_test",
       promptTestScenarioId: scenarioId,
+      promptLibraryVersionId,
       messages: [],
     }),
   });
@@ -63,13 +68,14 @@ export async function runPromptTestScenario(scenarioId: string): Promise<PromptT
 export async function runAllPromptTestScenarios(
   scenarioIds: string[],
   onProgress?: (scenarioId: string, index: number, total: number) => void,
+  promptLibraryVersionId?: string,
 ): Promise<PromptTestRunResult[]> {
   const results: PromptTestRunResult[] = [];
 
   for (let index = 0; index < scenarioIds.length; index += 1) {
     const scenarioId = scenarioIds[index];
     onProgress?.(scenarioId, index, scenarioIds.length);
-    results.push(await runPromptTestScenario(scenarioId));
+    results.push(await runPromptTestScenario(scenarioId, promptLibraryVersionId));
   }
 
   return results;

@@ -57,6 +57,7 @@ export default function PathsLibraryCatalogPanel({
     onboardingData: profile?.onboardingData ?? null,
     results: profile?.results ?? null,
     roleType: profile?.roleType ?? null,
+    roleTypes: profile?.roleTypes ?? null,
     aboutYou: profile?.aboutYou ?? null,
   });
   const moduleProfile = useMemo(() => toModuleProfileInput(profile), [profile]);

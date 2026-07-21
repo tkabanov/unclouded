@@ -1,5 +1,10 @@
 import { buildChatContextBlock } from "./prompt/chatContext.ts";
 import {
+  CUSTOMER_ROLE,
+  parseCustomerRoleTypesFromProfile,
+  profileHasCustomerRole,
+} from "../_shared/customerRoleTypes.ts";
+import {
   buildModuleIncompleteProbes,
   buildModuleProfileDataLines,
 } from "./prompt/moduleContext.ts";
@@ -43,6 +48,8 @@ import {
   sanitizePromptField,
   substitutePlaceholders,
 } from "./prompt/profileHelpers.ts";
+import { resolvePromptLayer } from "./prompt/promptLibraryStaticLayers.ts";
+import type { PromptLibraryLayerMap } from "./prompt/promptLibraryStaticLayers.ts";
 import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
 import type { CoachingModeSlug, ProfileData, ChatLiveContext } from "./prompt/types.ts";
 
@@ -151,7 +158,7 @@ function resolveLoadModifierBlocks(
   const transitionFlag =
     onboardingData.transition_flag === true ||
     loadSignals.transition_flag === true ||
-    profile.roleType === "transition" ||
+    profileHasCustomerRole(profile.roleTypes, profile.roleType, CUSTOMER_ROLE.TRANSITION) ||
     profile.aboutYou?.careerStage === "career_transition" ||
     profile.aboutYou?.employmentStatus === "between_roles";
   if (transitionFlag) blocks.push(LOAD_MODIFIERS.major_transition);
@@ -208,7 +215,10 @@ function buildUserDataBlock(
   const confidenceDisplay = confidenceFromProfile || confidenceLevel;
 
   const safeName = sanitizePromptField(profile.firstName, 60) || "unknown";
-  const safeRole = sanitizePromptField(profile.roleType, 80) || "unknown";
+  const customerRoles = parseCustomerRoleTypesFromProfile(profile.roleTypes, profile.roleType);
+  const safeRole =
+    sanitizePromptField(customerRoles.length > 0 ? customerRoles.join(", ") : profile.roleType, 120) ||
+    "unknown";
   const safePillar = sanitizePromptField(profile.primaryPillar, 80) || "unknown";
   const safePressure = sanitizePromptField(results.pressure_profile, 120) || "unknown";
   const safeTradeoff = sanitizePromptField(results.tradeoff_statement, 300) || "unknown";
@@ -307,7 +317,11 @@ function buildModuleModifierBlocks(
  * fingerprint → trauma → directed writing → incomplete/opening → user data →
  * 10 Chat Context → 11 Decision → 12 Adaptive Human Guidance → 13 Tradeoff + Final.
  */
-export function buildSystemPrompt(profile: ProfileData | undefined, context?: string): string {
+export function buildSystemPrompt(
+  profile: ProfileData | undefined,
+  context?: string,
+  promptLayers?: PromptLibraryLayerMap,
+): string {
   const safeProfile = profile ?? {};
   const results = asRecord(safeProfile.results);
   const onboardingData = asRecord(safeProfile.onboardingData);
@@ -328,10 +342,10 @@ export function buildSystemPrompt(profile: ProfileData | undefined, context?: st
   const displayName = sanitizeDisplayName(safeProfile.firstName);
 
   const blocks: string[] = [
-    MASTER_PHILOSOPHY_PROMPT,
-    SAFETY_BOUNDARIES,
-    MASTER_BASE_PROMPT.split("[USER_FIRST_NAME]").join(displayName),
-    GENERAL_RULES_PROMPT,
+    resolvePromptLayer(promptLayers, "master_philosophy", MASTER_PHILOSOPHY_PROMPT),
+    resolvePromptLayer(promptLayers, "safety_boundaries", SAFETY_BOUNDARIES),
+    resolvePromptLayer(promptLayers, "master_base", MASTER_BASE_PROMPT).split("[USER_FIRST_NAME]").join(displayName),
+    resolvePromptLayer(promptLayers, "general_rules", GENERAL_RULES_PROMPT),
     substitutePlaceholders(MODE_PROMPTS[modes.primary], placeholders),
   ];
 
@@ -348,8 +362,12 @@ export function buildSystemPrompt(profile: ProfileData | undefined, context?: st
 
   blocks.push(STATE_MODIFIERS[nervousSystem] ?? STATE_MODIFIERS.regulated);
 
-  if (results.recovery_mode_active === true) blocks.push(RECOVERY_PROTOCOL);
-  if (results.grief_mode_active === true) blocks.push(GRIEF_PROTOCOL);
+  if (results.recovery_mode_active === true) {
+    blocks.push(resolvePromptLayer(promptLayers, "recovery_protocol", RECOVERY_PROTOCOL));
+  }
+  if (results.grief_mode_active === true) {
+    blocks.push(resolvePromptLayer(promptLayers, "grief_protocol", GRIEF_PROTOCOL));
+  }
 
   blocks.push(...buildModuleModifierBlocks(onboardingData, modulesCompleted, safeProfile.moduleProfile, results));
   const moduleIncompleteProbes = buildModuleIncompleteProbes(safeProfile);
@@ -360,11 +378,13 @@ export function buildSystemPrompt(profile: ProfileData | undefined, context?: st
   const fingerprintModifier = findFingerprintModifier(fingerprint, FINGERPRINT_MODIFIERS);
   if (fingerprintModifier) blocks.push(fingerprintModifier);
 
-  if (isTraumaInformedMode(results)) blocks.push(TRAUMA_PROTOCOL);
+  if (isTraumaInformedMode(results)) {
+    blocks.push(resolvePromptLayer(promptLayers, "trauma_protocol", TRAUMA_PROTOCOL));
+  }
 
   const liveContext = resolveLiveContext(safeProfile);
   if (liveContext.activePathProgress?.pathSubMode === "directed_writing") {
-    blocks.push(DIRECTED_WRITING_PROTOCOL);
+    blocks.push(resolvePromptLayer(promptLayers, "directed_writing", DIRECTED_WRITING_PROTOCOL));
   }
 
   const stabilityNote = buildStabilitySafetyNote(results);
@@ -391,10 +411,10 @@ export function buildSystemPrompt(profile: ProfileData | undefined, context?: st
   }
 
   blocks.push(
-    DECISION_INTELLIGENCE_PROMPT,
-    ADAPTIVE_GUIDANCE_PROMPT,
-    TRADEOFF_ENGINE_PROMPT,
-    ADAPTIVE_INTELLIGENCE_PROMPT,
+    resolvePromptLayer(promptLayers, "decision_intelligence", DECISION_INTELLIGENCE_PROMPT),
+    resolvePromptLayer(promptLayers, "adaptive_guidance", ADAPTIVE_GUIDANCE_PROMPT),
+    resolvePromptLayer(promptLayers, "tradeoff_engine", TRADEOFF_ENGINE_PROMPT),
+    resolvePromptLayer(promptLayers, "adaptive_intelligence", ADAPTIVE_INTELLIGENCE_PROMPT),
   );
 
   return blocks.filter(Boolean).join("\n\n---\n\n");

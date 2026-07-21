@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildFallbackSessionFinalizePayload,
   parseSessionFinalizePayload,
   readLastSessionTopic,
   resolveSessionOpeningTemplate,
@@ -112,6 +113,39 @@ describe("parseSessionFinalizePayload", () => {
 
     expect(parsed?.lastSessionTopic).not.toMatch(/---/);
     expect(parsed?.lastSessionTopic).toContain("work");
+  });
+
+  it("parses markdown-fenced and snake_case finalize JSON", () => {
+    const parsed = parseSessionFinalizePayload(`\`\`\`json
+{"last_session_topic":"sleep","summary_stub":"User named poor sleep.","micro_commitment_text":"Lights out by 10"}
+\`\`\``);
+
+    expect(parsed?.lastSessionTopic).toBe("sleep");
+    expect(parsed?.summaryStub).toContain("sleep");
+    expect(parsed?.microCommitmentText).toBe("Lights out by 10");
+  });
+
+  it("builds fallback finalize payload from thread messages", () => {
+    const parsed = buildFallbackSessionFinalizePayload([
+      {
+        id: "u1",
+        role: "user",
+        parts: [{ type: "text", text: "I'm exhausted at work" }],
+      },
+      {
+        id: "a1",
+        role: "assistant",
+        parts: [{ type: "text", text: "What feels most doable this week?" }],
+      },
+      {
+        id: "u2",
+        role: "user",
+        parts: [{ type: "text", text: "Walk after lunch tomorrow" }],
+      },
+    ]);
+
+    expect(parsed?.lastSessionTopic).toContain("exhausted");
+    expect(parsed?.microCommitmentText).toBe("Walk after lunch tomorrow");
   });
 });
 

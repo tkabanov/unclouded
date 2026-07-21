@@ -8,22 +8,26 @@ import {
   getPerformanceStepCopyForRole,
 } from "@/lib/enums/onboardingQuestions";
 import { CUSTOMER_ROLE, type CustomerRoleSlug } from "@/lib/enums/customerProfile";
+import {
+  normalizeCustomerRoleTypes,
+  resolvePrimaryCustomerRole,
+} from "@/lib/enums/customerRoleTypes";
 
 interface OnboardingPerformanceProps {
-  role?: string;
+  roles?: readonly string[];
   onNext: (scores: { pq1: number; pq2: number; pq3: number; pq4: number; pq5: number; performance_score: number }) => void;
 }
 
-function resolvePerformanceRole(role?: string): CustomerRoleSlug {
-  const roles = Object.values(CUSTOMER_ROLE) as CustomerRoleSlug[];
-  if (role && roles.includes(role as CustomerRoleSlug)) {
-    return role as CustomerRoleSlug;
+function resolvePerformanceRole(roles?: readonly string[]): CustomerRoleSlug {
+  const normalized = normalizeCustomerRoleTypes(roles);
+  if (normalized.length > 0) {
+    return resolvePrimaryCustomerRole(normalized);
   }
   return CUSTOMER_ROLE.PRO;
 }
 
-const OnboardingPerformance = ({ role, onNext }: OnboardingPerformanceProps) => {
-  const resolvedRole = useMemo(() => resolvePerformanceRole(role), [role]);
+const OnboardingPerformance = ({ roles, onNext }: OnboardingPerformanceProps) => {
+  const resolvedRole = useMemo(() => resolvePerformanceRole(roles), [roles]);
   const questions = useMemo(() => getPerformanceQuestionsForRole(resolvedRole), [resolvedRole]);
   const stepCopy = useMemo(() => getPerformanceStepCopyForRole(resolvedRole), [resolvedRole]);
   const [answers, setAnswers] = useState<Record<string, number>>({});

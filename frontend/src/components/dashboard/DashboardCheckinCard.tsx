@@ -15,6 +15,19 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 
+export const CHECKIN_FEELING_WORD_OPTIONS = [
+  "drained",
+  "overwhelmed",
+  "anxious",
+  "steady",
+  "hopeful",
+  "tired",
+  "grateful",
+  "numb",
+  "sad",
+  "angry",
+] as const;
+
 const moodValueClass = cn(
   bubbleStyle("Text_label_"),
   "text-sm font-semibold text-primary",
@@ -61,6 +74,7 @@ export default function DashboardCheckinCard() {
   const { refresh } = useUserProfile();
   const [mood, setMood] = useState(7);
   const [energy, setEnergy] = useState(7);
+  const [feelingWord, setFeelingWord] = useState<string | null>(null);
   const [reflection, setReflection] = useState("");
   const [commitmentFollowThrough, setCommitmentFollowThrough] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
@@ -104,6 +118,7 @@ export default function DashboardCheckinCard() {
         {
           mood,
           energyStressLevel: energy,
+          feelingWord,
           reflection,
           microCommitmentStatus: commitmentFollowThrough,
         },
@@ -111,6 +126,7 @@ export default function DashboardCheckinCard() {
       );
       setStreak(result.streak);
       setReflection("");
+      setFeelingWord(null);
       setCommitmentFollowThrough(null);
       await refresh();
       toast.success("Check-in saved.");
@@ -231,13 +247,44 @@ export default function DashboardCheckinCard() {
         ) : null}
 
         <div
+          className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
+          role="group"
+          aria-labelledby="dashboard-checkin-feeling-label"
+        >
+          <p
+            id="dashboard-checkin-feeling-label"
+            className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
+          >
+            Feeling word
+          </p>
+          <p className="text-xs text-muted-foreground">Pick one word for how you feel right now.</p>
+          <div className="flex flex-wrap gap-2">
+            {CHECKIN_FEELING_WORD_OPTIONS.map((option) => {
+              const selected = feelingWord === option;
+              return (
+                <Button
+                  key={option}
+                  type="button"
+                  variant={selected ? "default" : "outline"}
+                  className="h-8 px-3 text-sm capitalize"
+                  aria-pressed={selected}
+                  onClick={() => setFeelingWord((current) => (current === option ? null : option))}
+                >
+                  {option}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div
           className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-1")}
         >
           <label
             htmlFor="dashboard-checkin-reflection"
             className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
           >
-            Brief reflection
+            Brief reflection (optional)
           </label>
           <textarea
             id="dashboard-checkin-reflection"

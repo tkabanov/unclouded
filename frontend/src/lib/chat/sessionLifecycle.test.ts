@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildCheckInOpeningTemplate,
+  buildSessionLifecycleInstruction,
   readTodayCheckInOpening,
   resolveSessionOpeningTemplate,
 } from "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts";
@@ -110,6 +111,27 @@ describe("resolveSessionOpeningTemplate", () => {
     expect(opening.template).not.toContain("check-in today");
   });
 
+  it("buildSessionLifecycleInstruction forbids coaching topic recap on crisis aftercare open", () => {
+    const instruction = buildSessionLifecycleInstruction(
+      "session_open",
+      baseProfile({
+        firstName: "Fedor",
+        onboardingData: {
+          last_session_topic_text: "Navigating pressure to be productive after work",
+        },
+        liveContext: {
+          hasPriorCrisisSession: true,
+        },
+      }),
+    );
+
+    expect(instruction).toContain("Opening kind: crisis_aftercare");
+    expect(instruction).toContain("hard place");
+    expect(instruction).toContain("Do NOT recap prior coaching topics");
+    expect(instruction).toContain("Do NOT reference last_session_topic");
+    expect(instruction).not.toContain("One specific context sentence before agenda");
+  });
+
   it("uses after-module opening when a module was completed recently", () => {
     const opening = resolveSessionOpeningTemplate(
       baseProfile({
@@ -182,6 +204,37 @@ describe("resolveSessionOpeningTemplate", () => {
     expect(opening.template).not.toContain("still open");
   });
 
+  it("uses return after absence when gap is 10+ days and no check-in today", () => {
+    const opening = resolveSessionOpeningTemplate(
+      baseProfile({
+        liveContext: {
+          daysSinceLastSession: 14,
+        },
+      }),
+    );
+
+    expect(opening.kind).toBe("return_after_absence");
+    expect(opening.template).toContain("Good to have you back");
+  });
+
+  it("prefers today's check-in opening over return after absence", () => {
+    const opening = resolveSessionOpeningTemplate(
+      baseProfile({
+        liveContext: {
+          daysSinceLastSession: 14,
+          latestCheckIn: {
+            date: new Date().toISOString(),
+            pulse: 5,
+            feeling: "steady",
+          },
+        },
+      }),
+    );
+
+    expect(opening.kind).toBe("check_in_today");
+    expect(opening.template).not.toContain("Good to have you back");
+  });
+
   it("formats combined feeling and pulse check-in opening", () => {
     expect(
       buildCheckInOpeningTemplate("Alex", { feelingWord: "steady", pulse: 7 }),
@@ -190,7 +243,7 @@ describe("resolveSessionOpeningTemplate", () => {
 });
 
 describe("buildSessionLifecycleInstruction — session_close", () => {
-  it("forces Block 3.33 commitment-to-values bridge on session close", async () => {
+  it("asks for commitment only — values bridge is deferred to session_close_ack", async () => {
     const { buildSessionLifecycleInstruction } = await import(
       "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts"
     );
@@ -204,20 +257,127 @@ describe("buildSessionLifecycleInstruction — session_close", () => {
       }),
     );
 
-    expect(instruction).toContain("Block 3.33");
-    expect(instruction).toContain("COMMITMENT-TO-VALUES BRIDGE");
-    expect(instruction).toContain("Do not skip step 3");
-    expect(instruction).toContain("be present with my kids at dinner");
+    expect(instruction).toContain("COMMITMENT REQUEST");
+    expect(instruction).toContain("Do NOT ask \"How does this connect to what you actually care about most right now?\"");
+    expect(instruction).toContain("What's one thing you're willing to do before we talk again?");
+    expect(instruction).not.toContain("COMMITMENT-TO-VALUES BRIDGE");
   });
 
-  it("asks for values connection when no anchor is stored", async () => {
+  it("does not include values anchor note on session_close", async () => {
     const { buildSessionLifecycleInstruction } = await import(
       "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts"
     );
 
     const instruction = buildSessionLifecycleInstruction("session_close", baseProfile());
-    expect(instruction).toContain("How does this connect to what you actually care about most right now?");
+    expect(instruction).not.toContain("No stored values anchor on file");
+  });
+});
+
+describe("buildSessionLifecycleInstruction — session_close_ack", () => {
+  it("applies Block 3.33 values bridge after the user states commitment", async () => {
+    const { buildSessionLifecycleInstruction } = await import(
+      "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts"
+    );
+
+    const instruction = buildSessionLifecycleInstruction(
+      "session_close_ack",
+      baseProfile({
+        liveContext: {
+          memoryFactsBlock: "Stated goals: be present with my kids at dinner",
+        },
+      }),
+    );
+
+    expect(instruction).toContain("COMMITMENT-TO-VALUES BRIDGE");
+    expect(instruction).toContain("be present with my kids at dinner");
+    expect(instruction).toContain("do NOT ask another question");
+    expect(instruction).toContain("You said");
+    expect(instruction).toContain("Do NOT repeat or paraphrase the previous assistant message");
+    expect(instruction).not.toContain("What's one thing you're willing to do before we talk again?");
+  });
+
+  it("infers values link when no anchor is stored", async () => {
+    const { buildSessionLifecycleInstruction } = await import(
+      "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts"
+    );
+
+    const instruction = buildSessionLifecycleInstruction("session_close_ack", baseProfile());
     expect(instruction).toContain("No stored values anchor on file");
+    expect(instruction).toContain("do not ask another question");
+    expect(instruction).toContain('Do NOT ask "How does this connect to what you actually care about most right now?"');
+  });
+});
+
+describe("buildSessionCloseAckUserPrompt", () => {
+  it("includes user commitment, prior assistant text, and anti-repeat rules", async () => {
+    const { buildSessionCloseAckUserPrompt } = await import(
+      "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts"
+    );
+
+    const prompt = buildSessionCloseAckUserPrompt(
+      [
+        {
+          id: "u1",
+          role: "user",
+          parts: [{ type: "text", text: "Work is crushing me." }],
+        },
+        {
+          id: "a1",
+          role: "assistant",
+          parts: [
+            {
+              type: "text",
+              text: "What's one thing you're willing to do before we talk again?",
+            },
+          ],
+        },
+        {
+          id: "u2",
+          role: "user",
+          parts: [{ type: "text", text: "Text my sister tomorrow morning." }],
+        },
+      ],
+      baseProfile({
+        liveContext: {
+          memoryFactsBlock: "Stated goals: be present with my kids at dinner",
+        },
+      }),
+    );
+
+    expect(prompt).toContain("Text my sister tomorrow morning.");
+    expect(prompt).toContain("What's one thing you're willing to do before we talk again?");
+    expect(prompt).toContain("DO NOT repeat or paraphrase this");
+    expect(prompt).toContain("be present with my kids at dinner");
+    expect(prompt).toContain("You said");
+    expect(prompt).toContain("COMMITMENT-TO-VALUES BRIDGE");
+  });
+});
+
+describe("buildSessionCloseUserPrompt", () => {
+  it("asks for commitment only without values bridge", async () => {
+    const { buildSessionCloseUserPrompt } = await import(
+      "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts"
+    );
+
+    const prompt = buildSessionCloseUserPrompt(
+      [
+        {
+          id: "u1",
+          role: "user",
+          parts: [{ type: "text", text: "I keep avoiding hard conversations." }],
+        },
+        {
+          id: "a1",
+          role: "assistant",
+          parts: [{ type: "text", text: "What would asking for help look like?" }],
+        },
+      ],
+      baseProfile(),
+    );
+
+    expect(prompt).toContain("COMMITMENT REQUEST");
+    expect(prompt).toContain("What's one thing you're willing to do before we talk again?");
+    expect(prompt).not.toContain("COMMITMENT-TO-VALUES BRIDGE");
   });
 });
 

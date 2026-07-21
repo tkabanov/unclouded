@@ -24,3 +24,50 @@ export function detectSignificantPulseDrop(newMood: number, baseline: number | n
   if (baseline === null || !Number.isFinite(newMood)) return false;
   return newMood <= baseline - 3;
 }
+
+/**
+ * Remove one persisted check-in row from history (same calendar day + mood).
+ * Used when the DB fetch already includes the submission being evaluated.
+ */
+export function excludePersistedCheckIn(
+  moods: PulseMoodEntry[],
+  newMood: number,
+  checkInDate: string,
+): PulseMoodEntry[] {
+  const targetDay = checkInDate.slice(0, 10);
+  let removed = false;
+  return moods.filter((entry) => {
+    if (removed) return true;
+    if (entry.date.slice(0, 10) === targetDay && entry.mood === newMood) {
+      removed = true;
+      return false;
+    }
+    return true;
+  });
+}
+
+export type PulseBaselineAssessment = {
+  /** Rolling 14-day average after including the new check-in. */
+  pulseBaseline: number | null;
+  /** Baseline from prior check-ins only (REQ-05 comparison point). */
+  baselineBeforeCheckIn: number | null;
+  significantPulseDrop: boolean;
+};
+
+/**
+ * REQ-05: compare new mood against the existing baseline, then roll baseline forward.
+ */
+export function assessPulseBaselineUpdate(
+  priorMoods: PulseMoodEntry[],
+  newMood: number,
+  newEntryDate: string,
+): PulseBaselineAssessment {
+  const baselineBeforeCheckIn = compute14DayPulseBaseline(priorMoods);
+  const significantPulseDrop = detectSignificantPulseDrop(newMood, baselineBeforeCheckIn);
+  const pulseBaseline = compute14DayPulseBaseline([
+    ...priorMoods,
+    { date: newEntryDate, mood: newMood },
+  ]);
+
+  return { pulseBaseline, baselineBeforeCheckIn, significantPulseDrop };
+}

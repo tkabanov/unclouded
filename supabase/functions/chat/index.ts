@@ -11,8 +11,17 @@ import {
 } from "./crisisDetect.ts";
 import { loadServerProfile } from "./loadServerProfile.ts";
 import {
+  buildFallbackSessionFinalizePayload,
+  buildSessionCloseAckUserPrompt,
+  buildSessionCloseUserPrompt,
+  buildSessionFinalizeUserPrompt,
   buildSessionLifecycleInstruction,
   parseSessionFinalizePayload,
+  sanitizeSessionCloseReplyText,
+  SESSION_CLOSE_ACK_SYSTEM_PROMPT,
+  SESSION_CLOSE_SYSTEM_PROMPT,
+  SESSION_FINALIZE_RETRY_SYSTEM_PROMPT,
+  SESSION_FINALIZE_SYSTEM_PROMPT,
   type ChatLifecycleMode,
 } from "./prompt/sessionLifecycle.ts";
 import {
@@ -21,6 +30,13 @@ import {
 } from "./tierGate.ts";
 import { parseChatRequestBody } from "./parseChatRequestBody.ts";
 import { persistSessionMemory } from "./persistSessionMemory.ts";
+import {
+  buildArchiveInsertFromFinalize,
+  buildQuickCheckinArchiveSummary,
+  persistCoachingSessionArchive,
+  readClassificationKey,
+  readLoadSignalsSnapshot,
+} from "./sessionMemory/coachingSessionArchive.ts";
 import { extractMemoryFacts } from "./extractMemoryFacts.ts";
 import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
 import { truncateConversationMessages } from "./truncateConversationMessages.ts";
@@ -42,6 +58,9 @@ import { extractAllUserTexts, buildSessionTranscript } from "./crisisDetect.ts";
 import { handleVoiceTranscribe, handleVoiceTts, resolveVoiceRoute } from "./voice/voiceEdgeHandlers.ts";
 import { detectSignificantLifeEventInThread } from "./significantLifeEventDetect.ts";
 import { persistSignificantLifeEventFlag } from "./persistSignificantLifeEventFlag.ts";
+import { scheduleEdgeBackgroundWork } from "../_shared/edgeBackground.ts";
+import { resolvePromptLibraryLayers } from "./prompt/loadPromptLibraryVersion.ts";
+import type { PromptLibraryLayerMap } from "./prompt/promptLibraryStaticLayers.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,8 +86,9 @@ function buildSystemWithLifecycle(
   profileData: ProfileData | undefined,
   context: string | undefined,
   lifecycle: ChatLifecycleMode | undefined,
+  promptLayers?: PromptLibraryLayerMap,
 ): string {
-  const base = buildSystemPrompt(profileData, context);
+  const base = buildSystemPrompt(profileData, context, promptLayers);
   if (!lifecycle) return base;
   const instruction = buildSessionLifecycleInstruction(lifecycle, profileData ?? {});
   return `${base}\n\n---\n\n${instruction}`;
@@ -192,6 +212,15 @@ Deno.serve(async (req: Request) => {
       return jsonError(404, "Profile not found");
     }
 
+    const preferDraft =
+      Deno.env.get("PROMPT_LIBRARY_PREFER_DRAFT") === "true" ||
+      req.headers.get("x-prompt-library-slot") === "draft";
+    const { layers: promptLayers } = await resolvePromptLibraryLayers(supabase, {
+      versionId: body.promptLibraryVersionId ?? null,
+      preferDraft,
+      createdBy: user.id,
+    });
+
     if (lifecycle === "prompt_test") {
       if (profileData.roleType !== "admin") {
         return jsonError(403, "Prompt tests require admin access.");
@@ -218,7 +247,12 @@ Deno.serve(async (req: Request) => {
         ).length;
       }
 
-      const system = buildSystemWithLifecycle(testProfile, testContext, testLifecycle);
+      const system = buildSystemWithLifecycle(
+        testProfile,
+        testContext,
+        testLifecycle,
+        promptLayers,
+      );
 
       const crisisLevel =
         classifyCrisisInThread(testMessages, testContext) ??
@@ -227,6 +261,7 @@ Deno.serve(async (req: Request) => {
       if (requiresCrisisHardStop(crisisLevel)) {
         const evaluation = evaluatePromptTestDivergence(CRISIS_RESPONSE_TEXT, scenario.checks, {
           crisisHardStop: true,
+          crisisLevel,
         });
         return jsonResponse(200, {
           scenarioId: scenario.id,
@@ -326,7 +361,34 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    let system = buildSystemWithLifecycle(profileData, context, lifecycle);
+    // Dedicated close turns — bypass full Kota coaching stack (avoids echo of prior assistant message).
+    if (lifecycle === "session_close") {
+      const result = await generateText({
+        model,
+        system: SESSION_CLOSE_SYSTEM_PROMPT,
+        prompt: buildSessionCloseUserPrompt(uiMessages, profileData),
+      });
+      const text = sanitizeSessionCloseReplyText(result.text);
+      if (!text) {
+        return jsonError(500, "Failed to generate session close message");
+      }
+      return jsonResponse(200, { text });
+    }
+
+    if (lifecycle === "session_close_ack") {
+      const result = await generateText({
+        model,
+        system: SESSION_CLOSE_ACK_SYSTEM_PROMPT,
+        prompt: buildSessionCloseAckUserPrompt(uiMessages, profileData),
+      });
+      const text = sanitizeSessionCloseReplyText(result.text);
+      if (!text) {
+        return jsonError(500, "Failed to generate session close acknowledgment");
+      }
+      return jsonResponse(200, { text });
+    }
+
+    let system = buildSystemWithLifecycle(profileData, context, lifecycle, promptLayers);
 
     // REQ-12: compress older session summaries into a generated arc when context exceeds ~6k tokens.
     const compressed = await applySessionMemoryCompressionIfNeeded(
@@ -336,7 +398,7 @@ Deno.serve(async (req: Request) => {
       system,
     );
     if (compressed) {
-      system = buildSystemWithLifecycle(profileData, context, lifecycle);
+      system = buildSystemWithLifecycle(profileData, context, lifecycle, promptLayers);
     }
 
     if (lifecycle === "session_finalize") {
@@ -344,18 +406,33 @@ Deno.serve(async (req: Request) => {
         return jsonError(400, "conversationId is required for session finalize");
       }
 
-      const result = await generateText({
-        model,
-        system,
-        messages: await convertToModelMessages(uiMessages),
-      });
-      const parsed = parseSessionFinalizePayload(result.text);
+      const finalizePrompt = buildSessionFinalizeUserPrompt(uiMessages, profileData);
+      let parsed = null;
+
+      for (let attempt = 0; attempt < 2 && !parsed; attempt += 1) {
+        const result = await generateText({
+          model,
+          system:
+            attempt === 0 ? SESSION_FINALIZE_SYSTEM_PROMPT : SESSION_FINALIZE_RETRY_SYSTEM_PROMPT,
+          prompt: finalizePrompt,
+        });
+        parsed = parseSessionFinalizePayload(result.text);
+        if (!parsed) {
+          console.warn("session_finalize JSON parse failed", {
+            attempt,
+            preview: result.text.slice(0, 400),
+          });
+        }
+      }
+
+      parsed ??= buildFallbackSessionFinalizePayload(uiMessages);
       if (!parsed) {
         return jsonError(500, "Failed to parse session finalize payload");
       }
 
       const coachingModeUsed = resolveCoachingModes(profileData).primary;
       const finalizeExchangeCount = extractAllUserTexts(uiMessages).length;
+      const sessionType = requestSessionType ?? "text";
       await persistSessionMemory(
         supabase,
         user.id,
@@ -365,12 +442,29 @@ Deno.serve(async (req: Request) => {
         finalizeExchangeCount,
       );
 
-      // REQ-01: post-session longitudinal memory extraction (best-effort).
+      await persistCoachingSessionArchive(
+        supabase,
+        buildArchiveInsertFromFinalize({
+          userId: user.id,
+          conversationId,
+          sessionType,
+          finalize: parsed,
+          coachingModeUsed,
+          exchangeCount: finalizeExchangeCount,
+          hadCrisisEscalation: false,
+          profileResults: profileData.results ?? null,
+          onboardingData: profileData.onboardingData ?? null,
+        }),
+      );
+
+      // REQ-01: post-session longitudinal memory extraction (background; worker held via waitUntil).
       const openaiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
       if (openaiKey) {
         const transcript = buildSessionTranscript(uiMessages);
         if (transcript.trim()) {
-          void extractMemoryFacts(supabase, user.id, transcript, openaiKey);
+          scheduleEdgeBackgroundWork(
+            extractMemoryFacts(supabase, user.id, transcript, openaiKey),
+          );
         }
       }
 
@@ -381,6 +475,47 @@ Deno.serve(async (req: Request) => {
         .eq("id", user.id);
 
       return jsonResponse(200, parsed);
+    }
+
+    if (requestSessionType === "quick_checkin") {
+      const generated = await generateText({
+        model,
+        system,
+        messages: await convertToModelMessages(uiMessages),
+      });
+      const reply = enforceQuickCheckinResponse(generated.text);
+      if (quickCheckinResponseViolatesRules(generated.text)) {
+        console.info("quick_checkin response normalized", {
+          originalLength: generated.text.length,
+          normalizedLength: reply.length,
+        });
+      }
+
+      const latestUserText = extractAllUserTexts(uiMessages).at(-1) ?? "";
+      const pulseMatch = latestUserText.match(/Pulse:\s*(\d+)\/10/i);
+      const pulse = pulseMatch ? Number(pulseMatch[1]) : null;
+      const userText = latestUserText.replace(/^Pulse:\s*\d+\/10\.?\s*/i, "").trim();
+
+      if (conversationId) {
+        const coachingModeUsed = resolveCoachingModes(profileData).primary;
+        await persistCoachingSessionArchive(supabase, {
+          userId: user.id,
+          conversationId,
+          sessionType: "quick_checkin",
+          exchangeCount: 1,
+          coachingModeUsed,
+          hadCrisisEscalation: false,
+          classificationAtSession: readClassificationKey(profileData.results ?? null),
+          loadSignalsSnapshot: readLoadSignalsSnapshot(profileData.onboardingData ?? null),
+          summaryJson: buildQuickCheckinArchiveSummary({
+            pulse: pulse ?? 0,
+            userText,
+            kotaReply: reply,
+          }),
+        });
+      }
+
+      return jsonResponse(200, { quickCheckin: true, text: reply });
     }
 
     const result = streamText({

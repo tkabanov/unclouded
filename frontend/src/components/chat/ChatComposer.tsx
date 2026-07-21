@@ -3,7 +3,13 @@ import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
-import { CHAT_COMPOSER_DEFAULTS, CHAT_COMPOSER_MODES } from "./types";
+import {
+  CHAT_COMMITMENT_COMPOSER,
+  CHAT_COMPOSER_DEFAULTS,
+  CHAT_COMPOSER_MODES,
+} from "./types";
+
+export type ChatComposerInputMode = "default" | "commitment";
 
 export type ChatComposerProps = {
   value: string;
@@ -12,6 +18,7 @@ export type ChatComposerProps = {
   onSuggestionSend?: (text: string) => void;
   disabled?: boolean;
   leadingSlot?: ReactNode;
+  mode?: ChatComposerInputMode;
   className?: string;
 };
 
@@ -25,8 +32,12 @@ export function ChatComposer({
   onSuggestionSend,
   disabled = false,
   leadingSlot,
+  mode = "default",
   className,
 }: ChatComposerProps) {
+  const isCommitmentMode = mode === "commitment";
+  const copy = isCommitmentMode ? CHAT_COMMITMENT_COMPOSER : CHAT_COMPOSER_DEFAULTS;
+
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (!disabled && value.trim()) {
@@ -38,26 +49,29 @@ export function ChatComposer({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "flex w-full shrink-0 flex-col gap-3 border-t border-border px-6 pb-4 pt-4",
+        "flex w-full shrink-0 flex-col gap-3 border-t px-6 pb-4 pt-4",
+        isCommitmentMode ? "border-primary/30 bg-primary/5" : "border-border",
         className,
       )}
     >
-      <div className="flex flex-wrap gap-2">
-        {CHAT_COMPOSER_MODES.map((mode) => (
-          <button
-            key={mode.id}
-            type="button"
-            disabled={disabled}
-            onClick={() => onSuggestionSend?.(mode.label)}
-            className={cn(
-              "min-h-10 rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground",
-              disabled && "cursor-not-allowed opacity-50",
-            )}
-          >
-            {mode.label}
-          </button>
-        ))}
-      </div>
+      {!isCommitmentMode ? (
+        <div className="flex flex-wrap gap-2">
+          {CHAT_COMPOSER_MODES.map((suggestion) => (
+            <button
+              key={suggestion.id}
+              type="button"
+              disabled={disabled}
+              onClick={() => onSuggestionSend?.(suggestion.label)}
+              className={cn(
+                "min-h-10 rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground",
+                disabled && "cursor-not-allowed opacity-50",
+              )}
+            >
+              {suggestion.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div className="flex items-end gap-2">
         {leadingSlot}
@@ -67,7 +81,7 @@ export function ChatComposer({
             data-style-ref="Text_caption_"
             className={bubbleStyle("Text_caption_")}
           >
-            {CHAT_COMPOSER_DEFAULTS.input_caption}
+            {copy.input_caption}
           </label>
           <input
             id="chat-composer-input"
@@ -75,7 +89,8 @@ export function ChatComposer({
             data-style-ref="Input_default_"
             value={value}
             disabled={disabled}
-            placeholder={CHAT_COMPOSER_DEFAULTS.input_placeholder}
+            placeholder={copy.input_placeholder}
+            aria-describedby={isCommitmentMode ? "chat-commitment-hint" : undefined}
             onChange={(event) => onChange(event.target.value)}
             className={cn(
               bubbleStyle("Input_default_"),
@@ -94,9 +109,14 @@ export function ChatComposer({
           )}
         >
           <Send className="h-3.5 w-3.5" aria-hidden />
-          {CHAT_COMPOSER_DEFAULTS.send_label}
+          {copy.send_label}
         </button>
       </div>
+      {isCommitmentMode ? (
+        <p id="chat-commitment-hint" className="text-xs text-muted-foreground">
+          Kota will briefly acknowledge your commitment, then save the session.
+        </p>
+      ) : null}
     </form>
   );
 }

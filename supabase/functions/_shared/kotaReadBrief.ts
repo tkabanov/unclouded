@@ -1,5 +1,15 @@
 /** Block 3.35 — structured Kota's Read coach handoff brief. */
 
+import { DAILY_CHECKINS_ONBOARDING_KEY } from "../chat/liveContext/liveContextHelpers.ts";
+import {
+  readCommitmentCheckInsFromOnboarding,
+  resolveActiveCommitmentStatus,
+  resolveSessionMemoryCommitmentStatus,
+} from "../chat/sessionMemory/commitmentFollowThrough.ts";
+import type { SessionMemoryRecord } from "../chat/sessionMemory/sessionMemoryHelpers.ts";
+
+export const KOTA_READ_SESSION_WINDOW_DAYS = 90;
+
 export type KotaReadPattern = {
   pattern: string;
   trigger: string;
@@ -141,7 +151,7 @@ export function buildKotaReadUserPrompt(context: KotaReadContext): string {
     context.pathsLine,
     context.openCommitmentLine,
     "",
-    "Recent session memory:",
+    "Recent session memory (last 90 days):",
     context.sessionMemoryLines.length > 0
       ? context.sessionMemoryLines.join("\n")
       : "(none recorded)",
@@ -177,6 +187,51 @@ export function buildScoresLine(results: Record<string, unknown> | null): string
   return `Scores — Stability ${stability.toFixed(1)}, Performance ${performance.toFixed(1)}, Alignment ${alignment.toFixed(1)}`;
 }
 
+export function filterSessionMemoryForKotaRead(
+  records: SessionMemoryRecord[],
+  referenceDate: Date = new Date(),
+  windowDays: number = KOTA_READ_SESSION_WINDOW_DAYS,
+): SessionMemoryRecord[] {
+  const cutoffMs = referenceDate.getTime() - windowDays * 24 * 60 * 60 * 1000;
+  return records.filter((record) => {
+    const closedMs = Date.parse(record.closedAt);
+    return Number.isFinite(closedMs) && closedMs >= cutoffMs;
+  });
+}
+
+function readActiveMicroCommitment(
+  onboardingData: Record<string, unknown> | null,
+): string | null {
+  if (!onboardingData) return null;
+  const keys = ["micro_commitment_active_text", "micro_commitment_active", "activeMicroCommitment"];
+  for (const key of keys) {
+    const value = onboardingData[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function readLatestCheckinCommitmentStatus(
+  onboardingData: Record<string, unknown> | null,
+): string | null {
+  if (!onboardingData) return null;
+  const raw = onboardingData[DAILY_CHECKINS_ONBOARDING_KEY];
+  if (!Array.isArray(raw) || raw.length === 0) return null;
+
+  for (const entry of [...raw].reverse()) {
+    if (!entry || typeof entry !== "object") continue;
+    const row = entry as Record<string, unknown>;
+    const status =
+      typeof row.microCommitmentStatus === "string"
+        ? row.microCommitmentStatus
+        : typeof row.micro_commitment_status === "string"
+          ? row.micro_commitment_status
+          : null;
+    if (status?.trim()) return status.trim();
+  }
+  return null;
+}
+
 export function sessionMemoryToLines(
   records: Array<{
     topic: string;
@@ -200,20 +255,38 @@ export function sessionMemoryToLines(
 }
 
 export function resolveOpenCommitmentLine(
-  sessionRecords: Array<{ microCommitment?: string | null }>,
+  sessionRecords: SessionMemoryRecord[],
   onboardingData: Record<string, unknown> | null,
+  now: Date = new Date(),
 ): string {
+  const checkIns = readCommitmentCheckInsFromOnboarding(onboardingData);
+  const activeMicroCommitment = readActiveMicroCommitment(onboardingData);
+  const latestCheckInStatus = readLatestCheckinCommitmentStatus(onboardingData);
+
   for (let index = sessionRecords.length - 1; index >= 0; index -= 1) {
-    const commitment = sessionRecords[index]?.microCommitment?.trim();
-    if (commitment) return `Open commitment: ${commitment}`;
+    const record = sessionRecords[index];
+    if (!record.microCommitment?.trim()) continue;
+    const status = resolveSessionMemoryCommitmentStatus(record, {
+      allRecords: sessionRecords,
+      checkIns,
+      activeMicroCommitment,
+      latestCheckInStatus,
+      now,
+    });
+    if (status === "open") {
+      return `Open commitment: ${record.microCommitment.trim()}`;
+    }
   }
 
-  const keys = ["micro_commitment_active_text", "micro_commitment_active", "activeMicroCommitment"];
-  for (const key of keys) {
-    const value = onboardingData?.[key];
-    if (typeof value === "string" && value.trim()) {
-      return `Open commitment: ${value.trim()}`;
-    }
+  const activeStatus = resolveActiveCommitmentStatus({
+    records: sessionRecords,
+    checkIns,
+    activeMicroCommitment,
+    latestCheckInStatus,
+    now,
+  });
+  if (activeStatus === "open" && activeMicroCommitment) {
+    return `Open commitment: ${activeMicroCommitment}`;
   }
 
   return "Open commitment: none recorded";

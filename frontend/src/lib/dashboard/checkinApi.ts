@@ -5,6 +5,7 @@ import {
   resolveEffectiveCheckInStreak,
   toCheckInDateKey,
 } from "../../../../supabase/functions/chat/liveContext/streakHelpers.ts";
+import { mapDailyCheckInRow } from "../../../../supabase/functions/chat/liveContext/checkInHelpers.ts";
 
 /** Bubble user field from workflow bTIWG streak update. */
 export const DAILY_CHECK_IN_STREAK_FIELD = "dailyCheckInStreak" as const;
@@ -16,6 +17,8 @@ export const DAILY_CHECKINS_ONBOARDING_KEY = "daily_checkins" as const;
 export interface DailyCheckInInput {
   mood: number;
   energyStressLevel: number;
+  /** US-400 — single feeling word (Layer 10), separate from brief reflection. */
+  feelingWord?: string | null;
   reflection: string;
   /** Build Brief Zone H — Yes / Partially / No / I forgot */
   microCommitmentStatus?: string | null;
@@ -35,6 +38,7 @@ export interface DailyCheckInRecord {
   mood: number;
   energy_stress_level: number;
   reflection: string;
+  feeling_word?: string | null;
   date: string;
   user: string;
   micro_commitment_status?: string | null;
@@ -80,6 +84,12 @@ function readCheckinsFromOnboarding(
       const mood = Number(row.mood ?? row.mood);
       const energy = Number(row.energyStressLevel ?? row.energy_stress_level);
       const reflection = typeof row.reflection === "string" ? row.reflection : "";
+      const feelingWord =
+        typeof row.feelingWord === "string"
+          ? row.feelingWord
+          : typeof row.feeling_word === "string"
+            ? row.feeling_word
+            : null;
       const date = typeof row.date === "string" ? row.date : "";
       const user = typeof row.userId === "string" ? row.userId : "";
       const microCommitmentStatus =
@@ -94,6 +104,7 @@ function readCheckinsFromOnboarding(
         mood,
         energy_stress_level: energy,
         reflection,
+        feeling_word: feelingWord,
         date,
         user,
         micro_commitment_status: microCommitmentStatus,
@@ -223,6 +234,10 @@ async function tryInsertCheckinTable(
     userId: userId,
     date: date.toISOString(),
   };
+  const feelingWord = input.feelingWord?.trim();
+  if (feelingWord) {
+    payload.feelingWord = feelingWord;
+  }
   const microCommitmentStatus = input.microCommitmentStatus?.trim();
   if (microCommitmentStatus) {
     payload.microCommitmentStatus = microCommitmentStatus;
@@ -251,17 +266,22 @@ async function tryUpdateUserStreakTable(userId: string, streak: number): Promise
 }
 
 function mapCheckinRecordToLatest(record: DailyCheckInRecord): LatestDailyCheckIn {
-  return {
-    date: record.date || null,
-    pulse: Number.isFinite(record.mood) ? record.mood : null,
-    feeling: record.reflection.trim() ? record.reflection.trim() : null,
-    energyStressLevel: Number.isFinite(record.energy_stress_level)
-      ? record.energy_stress_level
-      : null,
-    microCommitmentStatus: record.micro_commitment_status?.trim()
-      ? record.micro_commitment_status.trim()
-      : null,
-  };
+  return (
+    mapDailyCheckInRow({
+      mood: record.mood,
+      energy_stress_level: record.energy_stress_level,
+      reflection: record.reflection,
+      feelingWord: record.feeling_word ?? "",
+      date: record.date,
+      micro_commitment_status: record.micro_commitment_status,
+    }) ?? {
+      date: record.date || null,
+      pulse: null,
+      feeling: null,
+      energyStressLevel: null,
+      microCommitmentStatus: null,
+    }
+  );
 }
 
 async function tryFetchLatestCheckinFromTable(
@@ -270,7 +290,7 @@ async function tryFetchLatestCheckinFromTable(
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("dailyCheckin")
-    .select("mood, energyStressLevel, reflection, date, createdAt")
+    .select("mood, energyStressLevel, reflection, feelingWord, date, createdAt, microCommitmentStatus")
     .eq("userId", userId)
     .order("date", { ascending: false })
     .limit(1)
@@ -283,34 +303,7 @@ async function tryFetchLatestCheckinFromTable(
 
   if (!data || typeof data !== "object") return null;
 
-  const row = data as Record<string, unknown>;
-  const mood = Number(row.mood);
-  const energy = Number(row.energyStressLevel);
-  const reflection = typeof row.reflection === "string" ? row.reflection : "";
-  const date =
-    typeof row.date === "string"
-      ? row.date
-      : typeof row.createdAt === "string"
-        ? row.createdAt
-        : null;
-  const microCommitmentStatus =
-    typeof row.microCommitmentStatus === "string"
-      ? row.microCommitmentStatus
-      : typeof row.micro_commitment_status === "string"
-        ? row.micro_commitment_status
-        : null;
-
-  if (Number.isNaN(mood) && Number.isNaN(energy) && !reflection.trim()) {
-    return null;
-  }
-
-  return {
-    date,
-    pulse: Number.isFinite(mood) ? mood : null,
-    feeling: reflection.trim() ? reflection.trim() : null,
-    energyStressLevel: Number.isFinite(energy) ? energy : null,
-    microCommitmentStatus: microCommitmentStatus?.trim() ? microCommitmentStatus.trim() : null,
-  };
+  return mapDailyCheckInRow(data as Record<string, unknown>);
 }
 
 function readLatestCheckinFromOnboarding(
@@ -380,6 +373,7 @@ export async function submitDailyCheckIn(
       mood: input.mood,
       energy_stress_level: input.energyStressLevel,
       reflection: input.reflection.trim(),
+      feeling_word: input.feelingWord?.trim() || null,
       date: date.toISOString(),
       user: userId,
       micro_commitment_status: microCommitmentStatus,
@@ -400,6 +394,7 @@ export async function submitDailyCheckIn(
               mood: row.mood,
               energyStressLevel: row.energy_stress_level,
               reflection: row.reflection,
+              ...(row.feeling_word?.trim() ? { feelingWord: row.feeling_word.trim() } : {}),
               date: row.date,
               userId: row.user,
               ...(row.micro_commitment_status?.trim()
@@ -414,6 +409,9 @@ export async function submitDailyCheckIn(
               mood: nextRecord.mood,
               energyStressLevel: nextRecord.energy_stress_level,
               reflection: nextRecord.reflection,
+              ...(nextRecord.feeling_word?.trim()
+                ? { feelingWord: nextRecord.feeling_word.trim() }
+                : {}),
               date: nextRecord.date,
               userId: nextRecord.user,
               ...(microCommitmentStatus
@@ -437,7 +435,10 @@ export async function submitDailyCheckIn(
 
   // REQ-05: rolling 14-day pulse baseline + significant drop flag
   try {
-    await updatePulseBaselineAfterCheckIn(userId, input.mood);
+    await updatePulseBaselineAfterCheckIn(userId, input.mood, {
+      checkInDate: date.toISOString(),
+      checkInAlreadyPersisted: inserted,
+    });
   } catch {
     // Non-blocking — check-in itself already succeeded.
   }

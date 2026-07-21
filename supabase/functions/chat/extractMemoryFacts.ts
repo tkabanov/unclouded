@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
+import {
+  joinMemoryFactItems,
+  mergeMemoryFactFieldWithDates,
+  splitStoredMemoryFactItems,
+  toMemoryFactDateKey,
+} from "./sessionMemory/memoryFactItemHelpers.ts";
+
 const MAX_ITEMS_PER_FIELD = 5;
 
 type MemoryFactFields = {
@@ -20,54 +27,27 @@ function capItems(items: string[]): string[] {
 }
 
 function splitStoredItems(value: string | null | undefined): string[] {
-  if (!value?.trim()) return [];
-  return value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return splitStoredMemoryFactItems(value);
 }
 
 function joinItems(items: string[] | undefined): string | null {
   if (!items || items.length === 0) return null;
-  const capped = capItems(items);
-  return capped.length > 0 ? capped.join("\n") : null;
+  return joinMemoryFactItems(capItems(items));
 }
 
 /** REQ-01: merge new extraction with stored facts; newest unique items first; cap at 5 per field. */
 export function mergeMemoryFactField(
   existing: string | null | undefined,
   incoming: string | null | undefined,
+  dateKey: string = toMemoryFactDateKey(),
 ): string | null {
-  const existingItems = splitStoredItems(existing);
-  const incomingItems = splitStoredItems(incoming);
-  const seen = new Set<string>();
-  const merged: string[] = [];
-
-  for (const item of incomingItems) {
-    const key = item.toLowerCase();
-    const alreadyStored = existingItems.some((stored) => stored.toLowerCase() === key);
-    if (alreadyStored || seen.has(key)) continue;
-    seen.add(key);
-    merged.push(item);
-    if (merged.length >= MAX_ITEMS_PER_FIELD) {
-      return merged.join("\n");
-    }
-  }
-
-  for (const item of existingItems) {
-    const key = item.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    merged.push(item);
-    if (merged.length >= MAX_ITEMS_PER_FIELD) break;
-  }
-
-  return merged.length > 0 ? merged.join("\n") : null;
+  return mergeMemoryFactFieldWithDates(existing, incoming, dateKey);
 }
 
 function mergeExtractedFields(
   existing: MemoryFactFields | null | undefined,
   extracted: ExtractedMemoryPayload,
+  dateKey: string,
 ): MemoryFactFields {
   const prior = existing ?? {
     peopleInLife: null,
@@ -78,14 +58,15 @@ function mergeExtractedFields(
   };
 
   return {
-    peopleInLife: mergeMemoryFactField(prior.peopleInLife, joinItems(extracted.peopleInLife)),
-    userLanguage: mergeMemoryFactField(prior.userLanguage, joinItems(extracted.userLanguage)),
+    peopleInLife: mergeMemoryFactField(prior.peopleInLife, joinItems(extracted.peopleInLife), dateKey),
+    userLanguage: mergeMemoryFactField(prior.userLanguage, joinItems(extracted.userLanguage), dateKey),
     openAvoidances: mergeMemoryFactField(
       prior.openAvoidances,
       joinItems(extracted.openAvoidances),
+      dateKey,
     ),
-    userInsights: mergeMemoryFactField(prior.userInsights, joinItems(extracted.userInsights)),
-    statedGoals: mergeMemoryFactField(prior.statedGoals, joinItems(extracted.statedGoals)),
+    userInsights: mergeMemoryFactField(prior.userInsights, joinItems(extracted.userInsights), dateKey),
+    statedGoals: mergeMemoryFactField(prior.statedGoals, joinItems(extracted.statedGoals), dateKey),
   };
 }
 
@@ -150,6 +131,7 @@ async function extractWithOpenAi(
 
 /**
  * Extract memory facts from a transcript and upsert into userMemoryFacts.
+ * Called from session_finalize via scheduleEdgeBackgroundWork (EdgeRuntime.waitUntil).
  * Graceful no-op on any failure.
  */
 export async function extractMemoryFacts(
@@ -168,12 +150,15 @@ export async function extractMemoryFacts(
       .eq("userId", userId)
       .maybeSingle();
 
+    const now = new Date().toISOString();
+    const dateKey = toMemoryFactDateKey(new Date(now));
+
     const merged = mergeExtractedFields(
       (existingRow as MemoryFactFields | null) ?? null,
       extracted,
+      dateKey,
     );
 
-    const now = new Date().toISOString();
     const row = {
       userId,
       ...merged,

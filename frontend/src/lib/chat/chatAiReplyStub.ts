@@ -89,6 +89,12 @@ function isCrisisPayload(payload: Record<string, unknown>): payload is { crisis:
   return payload.crisis === true && typeof payload.text === "string";
 }
 
+function isQuickCheckinPayload(
+  payload: Record<string, unknown>,
+): payload is { quickCheckin: true; text: string } {
+  return payload.quickCheckin === true && typeof payload.text === "string";
+}
+
 function isConversationTitlePayload(
   payload: Record<string, unknown>,
 ): payload is { title: string } {
@@ -100,6 +106,16 @@ function isFinalizePayload(payload: Record<string, unknown>): boolean {
     typeof payload.lastSessionTopic === "string" &&
     typeof payload.summaryStub === "string"
   );
+}
+
+/** session_close / session_close_ack dedicated JSON replies. */
+function isLifecycleTextPayload(
+  payload: Record<string, unknown>,
+): payload is { text: string } {
+  if (typeof payload.text !== "string" || !payload.text.trim()) return false;
+  if (payload.crisis === true || payload.quickCheckin === true) return false;
+  if (isFinalizePayload(payload) || isConversationTitlePayload(payload)) return false;
+  return true;
 }
 
 export async function callChatEdge(
@@ -141,6 +157,12 @@ export async function callChatEdge(
     }
     if (isCrisisPayload(payload)) {
       return payload.text;
+    }
+    if (isQuickCheckinPayload(payload)) {
+      return payload.text;
+    }
+    if (isLifecycleTextPayload(payload)) {
+      return payload.text.trim();
     }
     if (params.expectJson) {
       return payload;

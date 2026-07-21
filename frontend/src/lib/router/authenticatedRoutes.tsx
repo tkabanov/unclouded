@@ -7,6 +7,7 @@ import Journal from "@/pages/Journal";
 import Paths from "@/pages/Paths";
 import Settings from "@/pages/Settings";
 import EmployerPortal from "@/pages/EmployerPortal";
+import VoiceSession from "@/pages/VoiceSession";
 
 export type AppRouteMeta = {
   requiresAuth: true;
@@ -22,6 +23,7 @@ export const authenticatedRouteDefs: AuthenticatedRouteDef[] = [
   { path: "/onboarding", element: <Onboarding /> },
   { path: "/dashboard", element: <Dashboard /> },
   { path: "/chat", element: <Chat /> },
+  { path: "/coaching/voice", element: <VoiceSession /> },
   { path: "/journal", element: <Journal /> },
   { path: "/settings", element: <Settings /> },
   { path: "/settings/know-yourself/:moduleSlug", element: <ModuleWizard /> },

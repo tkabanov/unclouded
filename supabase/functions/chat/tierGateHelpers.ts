@@ -52,7 +52,7 @@ export function isFreeTierUser(
   return normalized === "free" || normalized === "explorer" || normalized === "";
 }
 
-/** Layer 10 item 2 — Pro/Premium only; Free gets "Not available on Free tier." */
+/** Layer 10 item 2 content — Pro/Premium only; Free still gets the section shell (OVR-013). */
 export function canAccessSessionMemoryInPrompt(
   tier: string | null | undefined,
   subscribed: boolean | null | undefined,
@@ -95,7 +95,7 @@ export function shouldRecordNewSession(
   lifecycle: string | undefined,
 ): boolean {
   if (!conversationId || isContinuingSession(conversationId, usage)) return false;
-  if (lifecycle === "session_finalize" || lifecycle === "conversation_title") return false;
+  if (lifecycle === "session_finalize" || lifecycle === "conversation_title" || lifecycle === "session_close_ack") return false;
   return true;
 }
 

@@ -57,6 +57,7 @@ export async function requestSessionOpening(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
+  sessionType?: "text" | "voice" | "quick_checkin",
 ): Promise<string> {
   return callChatEdge({
     lifecycle: "session_open",
@@ -64,6 +65,7 @@ export async function requestSessionOpening(
     profileData,
     context,
     conversationId,
+    sessionType,
   }) as Promise<string>;
 }
 
@@ -74,14 +76,39 @@ export async function requestSessionClose(
   conversationId?: string,
   sessionType?: "text" | "voice" | "quick_checkin",
 ): Promise<string> {
-  return callChatEdge({
+  const response = await callChatEdge({
     lifecycle: "session_close",
     messages,
     profileData,
     context,
     conversationId,
     sessionType,
-  }) as Promise<string>;
+  });
+  if (typeof response !== "string" || !response.trim()) {
+    throw new Error("Invalid session close response");
+  }
+  return response.trim();
+}
+
+export async function requestSessionCloseAck(
+  messages: ChatMessage[],
+  profileData?: ProfileData,
+  context?: string,
+  conversationId?: string,
+  sessionType?: "text" | "voice" | "quick_checkin",
+): Promise<string> {
+  const response = await callChatEdge({
+    lifecycle: "session_close_ack",
+    messages,
+    profileData,
+    context,
+    conversationId,
+    sessionType,
+  });
+  if (typeof response !== "string" || !response.trim()) {
+    throw new Error("Invalid session close acknowledgment response");
+  }
+  return response.trim();
 }
 
 export async function requestConversationTitle(
@@ -112,6 +139,7 @@ export async function finalizeSessionFromThread(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
+  sessionType?: "text" | "voice" | "quick_checkin",
 ): Promise<SessionFinalizePayload> {
   if (!conversationId?.trim()) {
     throw new Error("conversationId is required to finalize a session");
@@ -123,6 +151,7 @@ export async function finalizeSessionFromThread(
     profileData,
     context,
     conversationId,
+    sessionType,
     expectJson: true,
   });
 

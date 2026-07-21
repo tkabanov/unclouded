@@ -5,6 +5,10 @@ import type {
   ChatPathReflectionAnswer,
   ChatReassessmentContext,
 } from "../prompt/types.ts";
+import {
+  isCheckInSubmittedToday,
+  mapDailyCheckInRow,
+} from "./checkInHelpers.ts";
 
 export const DAILY_CHECKINS_ONBOARDING_KEY = "daily_checkins" as const;
 export const DAILY_CHECK_IN_STREAK_FIELD = "dailyCheckInStreak" as const;
@@ -107,26 +111,13 @@ type DailyCheckInRecord = {
   mood: number;
   energy_stress_level: number;
   reflection: string;
+  feeling_word?: string | null;
   date: string;
   user: string;
   micro_commitment_status?: string | null;
 };
 
-function mapCheckinRecordToLatest(record: DailyCheckInRecord): ChatLatestCheckIn {
-  return {
-    date: record.date || null,
-    pulse: Number.isFinite(record.mood) ? record.mood : null,
-    feeling: record.reflection.trim() ? record.reflection.trim() : null,
-    energyStressLevel: Number.isFinite(record.energy_stress_level)
-      ? record.energy_stress_level
-      : null,
-    microCommitmentStatus: record.micro_commitment_status?.trim()
-      ? record.micro_commitment_status.trim()
-      : null,
-  };
-}
-
-export function readLatestCheckInFromOnboarding(
+export function readTodayCheckInFromOnboarding(
   userId: string,
   onboardingData: Record<string, unknown> | null | undefined,
 ): ChatLatestCheckIn | null {
@@ -140,6 +131,12 @@ export function readLatestCheckInFromOnboarding(
       const mood = Number(row.mood);
       const energy = Number(row.energyStressLevel ?? row.energy_stress_level);
       const reflection = typeof row.reflection === "string" ? row.reflection : "";
+      const feelingWord =
+        typeof row.feelingWord === "string"
+          ? row.feelingWord
+          : typeof row.feeling_word === "string"
+            ? row.feeling_word
+            : "";
       const date = typeof row.date === "string" ? row.date : "";
       const user = typeof row.userId === "string" ? row.userId : "";
       const microCommitmentStatus =
@@ -154,6 +151,7 @@ export function readLatestCheckInFromOnboarding(
         mood,
         energy_stress_level: energy,
         reflection,
+        feeling_word: feelingWord,
         date,
         user,
         micro_commitment_status: microCommitmentStatus,
@@ -163,8 +161,29 @@ export function readLatestCheckInFromOnboarding(
     .filter((row) => row.user === userId)
     .sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
-  if (records.length === 0) return null;
-  return mapCheckinRecordToLatest(records[0]);
+  for (const record of records) {
+    const mapped = mapDailyCheckInRow({
+      mood: record.mood,
+      energy_stress_level: record.energy_stress_level,
+      reflection: record.reflection,
+      feelingWord: record.feeling_word ?? "",
+      date: record.date,
+      micro_commitment_status: record.micro_commitment_status,
+    });
+    if (mapped && isCheckInSubmittedToday(mapped)) {
+      return mapped;
+    }
+  }
+
+  return null;
+}
+
+/** @deprecated Prefer readTodayCheckInFromOnboarding for Layer 10 session-open context. */
+export function readLatestCheckInFromOnboarding(
+  userId: string,
+  onboardingData: Record<string, unknown> | null | undefined,
+): ChatLatestCheckIn | null {
+  return readTodayCheckInFromOnboarding(userId, onboardingData);
 }
 
 export function readSessionCountFromOnboarding(

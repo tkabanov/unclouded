@@ -6,7 +6,13 @@ import {
   splitGenderIdentityForForm,
   splitStateRegionForForm,
 } from "@/lib/enums/aboutYouProfile";
-import { applyRoleTypeAboutYouPrefill } from "@/lib/settings/roleTypeAboutYouPrefill";
+import { applyRoleTypesAboutYouPrefill } from "@/lib/settings/roleTypeAboutYouPrefill";
+import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
+import {
+  normalizeCustomerRoleTypes,
+  parseCustomerRoleTypesFromProfile,
+  syncLegacyRoleType,
+} from "@/lib/enums/customerRoleTypes";
 import { supabase } from "@/integrations/supabase/client";
 
 const SOBRIETY_DATE_KEY = "sobriety_start_date";
@@ -20,6 +26,7 @@ export interface ProfileFormState {
   firstName: string;
   lastName: string;
   sobrietyStartDate: string;
+  roleTypes: CustomerRoleSlug[];
 }
 
 export interface AboutYouFormState {
@@ -86,6 +93,7 @@ type ProfileSettingsRow = AboutYouRow & {
   firstName?: string | null;
   lastName?: string | null;
   roleType?: string | null;
+  roleTypes?: string[] | null;
   onboardingData?: Record<string, unknown> | null;
 };
 
@@ -117,7 +125,7 @@ function mapAboutYouFromProfileRow(
   row: ProfileSettingsRow | null | undefined,
 ): AboutYouFormState {
   const aboutYou = mapAboutYouRowToForm(row);
-  return applyRoleTypeAboutYouPrefill(aboutYou, row?.roleType);
+  return applyRoleTypesAboutYouPrefill(aboutYou, row?.roleTypes, row?.roleType);
 }
 
 function validateAboutYouCustomFields(values: AboutYouFormState): void {
@@ -165,6 +173,7 @@ export async function loadProfileForm(userId: string): Promise<ProfileFormState>
     lastName: data?.lastName ?? "",
     sobrietyStartDate:
       typeof onboarding[SOBRIETY_DATE_KEY] === "string" ? onboarding[SOBRIETY_DATE_KEY] : "",
+    roleTypes: [],
   };
 }
 
@@ -174,30 +183,39 @@ export async function loadProfileSettingsForms(userId: string): Promise<{
 }> {
   const { data, error } = await supabase
     .from("profiles")
-    .select(`firstName, lastName, roleType, onboardingData, ${ABOUT_YOU_SELECT}`)
+    .select(`firstName, lastName, roleType, roleTypes, onboardingData, ${ABOUT_YOU_SELECT}`)
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
+  const row = data as ProfileSettingsRow | null;
   const onboarding =
-    (data?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
+    (row?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
 
   return {
-    personal: {
-      firstName: data?.firstName ?? "",
-      lastName: data?.lastName ?? "",
-      sobrietyStartDate:
-        typeof onboarding[SOBRIETY_DATE_KEY] === "string" ? onboarding[SOBRIETY_DATE_KEY] : "",
-    },
-    aboutYou: mapAboutYouFromProfileRow(data as ProfileSettingsRow | null),
+    personal: mapProfileRowToForm(row, onboarding),
+    aboutYou: mapAboutYouFromProfileRow(row),
+  };
+}
+
+function mapProfileRowToForm(
+  row: ProfileSettingsRow | null | undefined,
+  onboarding: Record<string, unknown>,
+): ProfileFormState {
+  return {
+    firstName: row?.firstName ?? "",
+    lastName: row?.lastName ?? "",
+    sobrietyStartDate:
+      typeof onboarding[SOBRIETY_DATE_KEY] === "string" ? onboarding[SOBRIETY_DATE_KEY] : "",
+    roleTypes: parseCustomerRoleTypesFromProfile(row?.roleTypes, row?.roleType),
   };
 }
 
 export async function loadAboutYouForm(userId: string): Promise<AboutYouFormState> {
   const { data, error } = await supabase
     .from("profiles")
-    .select(`${ABOUT_YOU_SELECT}, roleType`)
+    .select(`${ABOUT_YOU_SELECT}, roleType, roleTypes`)
     .eq("id", userId)
     .maybeSingle();
 
@@ -220,11 +238,15 @@ export async function saveProfileForm(userId: string, values: ProfileFormState):
   const trimmedFirstName = values.firstName.trim();
   const trimmedLastName = values.lastName.trim();
 
+  const roleTypes = normalizeCustomerRoleTypes(values.roleTypes);
+
   const { error } = await supabase
     .from("profiles")
     .update({
       firstName: trimmedFirstName || existing?.firstName || null,
       lastName: trimmedLastName || existing?.lastName || null,
+      roleTypes,
+      roleType: syncLegacyRoleType(roleTypes),
       onboardingData: {
         ...onboarding,
         [SOBRIETY_DATE_KEY]: values.sobrietyStartDate || null,

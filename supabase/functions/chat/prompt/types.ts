@@ -55,6 +55,7 @@ export type ModuleProfileFields = {
 export type ProfileData = {
   firstName?: string;
   roleType?: string;
+  roleTypes?: string[] | null;
   primaryPillar?: string;
   tier?: string | null;
   subscribed?: boolean | null;

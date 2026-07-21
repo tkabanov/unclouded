@@ -6,6 +6,7 @@ import AddWorkplacePopup from "@/components/settings/admin/AddWorkplacePopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import AdminManagerDirectReportsPanel from "@/components/settings/admin/AdminManagerDirectReportsPanel";
 import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
+import EmployerAssessmentBaselinePanel from "@/components/employer/EmployerAssessmentBaselinePanel";
 import ManagerTeamAggregatePanel from "@/components/employer/ManagerTeamAggregatePanel";
 import {
   createAdminWorkplace,
@@ -265,10 +266,16 @@ export default function AdminWorkplacesTab() {
                 </Button>
               </div>
               {metricsById[workplace.workplaceId] || metricsLoadingById[workplace.workplaceId] ? (
-                <EmployerContinuousMetricsPanel
-                  metrics={metricsById[workplace.workplaceId] ?? null}
-                  loading={metricsLoadingById[workplace.workplaceId]}
-                />
+                <>
+                  <EmployerContinuousMetricsPanel
+                    metrics={metricsById[workplace.workplaceId] ?? null}
+                    loading={metricsLoadingById[workplace.workplaceId]}
+                  />
+                  <EmployerAssessmentBaselinePanel
+                    metrics={metricsById[workplace.workplaceId] ?? null}
+                    loading={metricsLoadingById[workplace.workplaceId]}
+                  />
+                </>
               ) : null}
               {managerAggregateById[workplace.workplaceId] ||
               managerAggregateLoadingById[workplace.workplaceId] ? (
