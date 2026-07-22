@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  coerceFiniteNumber,
   computePulseDropPoints,
   formatPulseDropSummary,
   mapPulseDropOutreachCandidate,
@@ -11,6 +12,33 @@ describe("adminPulseDropOutreachApi", () => {
     expect(computePulseDropPoints(7.5, 4)).toBe(3.5);
     expect(computePulseDropPoints(6, 6)).toBe(0);
     expect(computePulseDropPoints(null, 4)).toBeNull();
+  });
+
+  it("coerces numeric strings from PostgREST", () => {
+    expect(coerceFiniteNumber("5.71")).toBe(5.71);
+    expect(coerceFiniteNumber(null)).toBeNull();
+  });
+
+  it("maps profile + latest check-in when pulseBaseline is a numeric string", () => {
+    const candidate = mapPulseDropOutreachCandidate(
+      {
+        id: "user-2",
+        firstName: "Alex",
+        email: "req04-absence@test.com",
+        pulseBaseline: "6" as unknown as number,
+        significantPulseDrop: true,
+        updatedAt: "2026-07-21T12:20:46.000Z",
+        results: { grief_mode_active: false, recovery_mode_active: false },
+      },
+      { userId: "user-2", mood: 2, date: "2026-07-21T12:20:45.000Z" },
+    );
+
+    expect(candidate.pulseBaseline).toBe(6);
+    expect(candidate.latestPulse).toBe(2);
+    expect(candidate.pulseDropPoints).toBe(4);
+    expect(formatPulseDropSummary(candidate.pulseBaseline, candidate.latestPulse)).toBe(
+      "2 (−4 from 6)",
+    );
   });
 
   it("maps profile + latest check-in into outreach candidate", () => {

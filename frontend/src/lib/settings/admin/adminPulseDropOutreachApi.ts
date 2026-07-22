@@ -41,6 +41,16 @@ type LatestCheckinRow = {
   date: string;
 };
 
+/** PostgREST returns NUMERIC columns as strings — normalize before display math. */
+export function coerceFiniteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
 export function computePulseDropPoints(
   baseline: number | null,
   latestPulse: number | null,
@@ -55,14 +65,8 @@ export function mapPulseDropOutreachCandidate(
   profile: PulseDropProfileRow,
   latestCheckin: LatestCheckinRow | undefined,
 ): PulseDropOutreachCandidate {
-  const latestPulse =
-    typeof latestCheckin?.mood === "number" && Number.isFinite(latestCheckin.mood)
-      ? latestCheckin.mood
-      : null;
-  const pulseBaseline =
-    typeof profile.pulseBaseline === "number" && Number.isFinite(profile.pulseBaseline)
-      ? profile.pulseBaseline
-      : null;
+  const latestPulse = coerceFiniteNumber(latestCheckin?.mood);
+  const pulseBaseline = coerceFiniteNumber(profile.pulseBaseline);
   const healthFlags = resolveHealthModeFlags(profile);
 
   return {

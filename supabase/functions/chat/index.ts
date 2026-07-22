@@ -61,6 +61,10 @@ import { persistSignificantLifeEventFlag } from "./persistSignificantLifeEventFl
 import { scheduleEdgeBackgroundWork } from "../_shared/edgeBackground.ts";
 import { resolvePromptLibraryLayers } from "./prompt/loadPromptLibraryVersion.ts";
 import type { PromptLibraryLayerMap } from "./prompt/promptLibraryStaticLayers.ts";
+import {
+  enforceQuickCheckinResponse,
+  quickCheckinResponseViolatesRules,
+} from "./quickCheckinResponse.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

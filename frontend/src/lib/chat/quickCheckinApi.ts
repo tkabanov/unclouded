@@ -3,8 +3,13 @@ import { callChatEdge } from "@/lib/chat/chatAiReplyStub";
 import type { ChatMessage } from "@/components/chat/types";
 import {
   createConversation,
+  touchConversationAfterMessage,
   type ChatSessionType,
 } from "@/lib/chat/chatConversationsApi";
+import {
+  insertAssistantMessage,
+  insertUserMessage,
+} from "@/lib/chat/chatMessagesApi";
 import { updatePulseBaselineAfterCheckIn } from "@/lib/dashboard/pulseBaselineApi";
 
 export type QuickCheckinInput = {
@@ -54,6 +59,21 @@ export async function submitQuickCheckin(
   if (typeof reply !== "string") {
     throw new Error("Unexpected chat response for quick check-in");
   }
+
+  const userContent = userMessage.content;
+  await insertUserMessage({
+    conversationId: conversation.id,
+    userId,
+    content: userContent,
+    onboardingData,
+  });
+  await insertAssistantMessage({
+    conversationId: conversation.id,
+    userId,
+    content: reply,
+    onboardingData,
+  });
+  await touchConversationAfterMessage(userId, conversation.id, reply);
 
   const checkInDate = new Date().toISOString();
   const client = supabase as unknown as {

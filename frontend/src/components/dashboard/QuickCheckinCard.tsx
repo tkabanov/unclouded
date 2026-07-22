@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardUserContext } from "@/hooks/useDashboardUser";
 import { submitQuickCheckin } from "@/lib/chat/quickCheckinApi";
+import { CHAT_ROUTE, CONVERSATION_SEARCH_PARAM } from "@/lib/chat/routes";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 
 export default function QuickCheckinCard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useDashboardUserContext();
   const [pulse, setPulse] = useState(7);
@@ -32,7 +35,7 @@ export default function QuickCheckinCard() {
         profile?.onboardingData ?? null,
       );
       setText("");
-      toast.success(result.reply.slice(0, 120) || "Quick check-in saved.");
+      navigate(`${CHAT_ROUTE}?${CONVERSATION_SEARCH_PARAM}=${encodeURIComponent(result.conversationId)}`);
     } catch (err) {
       console.error("Quick check-in failed", err);
       toast.error("Could not complete quick check-in.");
