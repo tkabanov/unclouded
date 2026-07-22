@@ -32,7 +32,12 @@ export async function createCoachBooking(params?: {
     .select("id, userId, scheduledAt, status, kotaRead, createdAt")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (error.code === "42501" || error.message.toLowerCase().includes("policy")) {
+      throw new Error("Premium membership is required to book a human coach.");
+    }
+    throw error;
+  }
 
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;

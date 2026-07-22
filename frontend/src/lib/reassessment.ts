@@ -11,25 +11,48 @@ export interface ReflectionQuestion {
 export const reflectionQuestions: ReflectionQuestion[] = [
   {
     field: "reflection_q1",
-    question: "Looking back at the past 90 days, what shifted most for you?",
+    question: "Looking back over the last 90 days, what feels genuinely different now?",
     placeholder: "e.g. I'm sleeping better and I react less to small setbacks…",
   },
   {
     field: "reflection_q2",
-    question: "What are you still working on that feels unfinished?",
+    question: "What still feels hard or unresolved?",
     placeholder: "e.g. Evenings still feel heavy and I struggle to wind down…",
   },
   {
     field: "reflection_q3",
-    question: "What did you do differently because of your coaching sessions?",
+    question: "What's one change or win you're proud of?",
     placeholder: "e.g. I finally set a boundary at work and it held…",
   },
   {
     field: "reflection_q4",
-    question: "What do you want to focus on in the next 90 days?",
+    question: "What would you like your coach to focus on for the next season?",
     placeholder: "e.g. Building a consistent morning routine and follow-through…",
   },
 ];
+
+/** Lovable prototype field aliases (legacy demo / import paths). */
+export const LEGACY_REFLECTION_FIELD_ALIASES: Record<string, string> = {
+  whats_different: "reflection_q1",
+  still_hard: "reflection_q2",
+  proud_of: "reflection_q3",
+  focus_next: "reflection_q4",
+};
+
+export function readReflectionAnswer(
+  reflections: ReflectionAnswers | null | undefined,
+  field: string,
+): string {
+  const direct = reflections?.[field]?.trim();
+  if (direct) return direct;
+  for (const [legacyField, mappedField] of Object.entries(LEGACY_REFLECTION_FIELD_ALIASES)) {
+    if (mappedField === field) {
+      const legacy = reflections?.[legacyField]?.trim();
+      if (legacy) return legacy;
+    }
+  }
+  return "";
+}
 
 export type ReflectionAnswers = Record<string, string>;
 

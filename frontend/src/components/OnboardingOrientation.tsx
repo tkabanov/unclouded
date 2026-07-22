@@ -1,16 +1,27 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { ORIENTATION_ANSWERS } from "@/lib/enums/onboardingQuestions";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
+import {
+  onboardingOptionButtonClass,
+  onboardingOptionLabelClass,
+} from "@/components/onboarding/onboardingOptionStyles";
 
-interface OnboardingOrientationProps {
+interface OnboardingOrientationProps extends OnboardingStepChromeProps {
+  defaultSelected?: number | null;
   onNext: (orientation_score: number) => void;
+  onSaveAndContinueLater: (patch: { orientationScore: number }) => void;
 }
 
-const OnboardingOrientation = ({ onNext }: OnboardingOrientationProps) => {
-  const [selected, setSelected] = useState<number | null>(null);
+const OnboardingOrientation = ({
+  defaultSelected = null,
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingOrientationProps) => {
+  const [selected, setSelected] = useState<number | null>(defaultSelected);
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
@@ -36,13 +47,15 @@ const OnboardingOrientation = ({ onNext }: OnboardingOrientationProps) => {
                   onClick={() => setSelected(opt.score)}
                   className={cn(
                     bubbleStyle("Group_transparent_"),
-                    "w-full text-left px-4 py-3 rounded-lg border-2 transition-all text-sm",
-                    isSelected
-                      ? "border-primary bg-primary/10 text-foreground font-medium"
-                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                    onboardingOptionButtonClass(isSelected, "px-4 py-3 border-2"),
                   )}
                 >
-                  <span className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
+                  <span
+                    className={onboardingOptionLabelClass(
+                      isSelected,
+                      bubbleStyle("Text_inter_13__400__white_copy_copy_"),
+                    )}
+                  >
                     {opt.label}
                   </span>
                 </button>
@@ -51,18 +64,14 @@ const OnboardingOrientation = ({ onNext }: OnboardingOrientationProps) => {
           </div>
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={() => selected !== null && onNext(selected)}
-            disabled={selected === null}
-            className={cn(bubbleStyle("Button_primary_"), "group")}
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={() => selected !== null && onNext(selected)}
+          continueDisabled={selected === null}
+          onSaveAndContinueLater={() =>
+            onSaveAndContinueLater({ orientationScore: selected ?? 0 })
+          }
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

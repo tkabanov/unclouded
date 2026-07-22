@@ -11,6 +11,7 @@ import {
   type SessionMemoryRecord,
 } from "../../../../supabase/functions/chat/sessionMemory/sessionMemoryHelpers.ts";
 import { callChatEdge } from "@/lib/chat/chatAiReplyStub";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 export {
   CHAT_SESSION_MEMORY_KEY,
@@ -181,6 +182,11 @@ export async function finalizeSessionFromThread(
   if (!sanitized) {
     throw new Error("Session finalize payload incomplete");
   }
+
+  trackProductEvent("session_completed", {
+    conversation_id: conversationId,
+    session_type: sessionType ?? "text",
+  });
 
   return sanitized;
 }

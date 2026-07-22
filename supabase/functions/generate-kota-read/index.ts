@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
   const [{ data: profile }, { data: memoryFacts }] = await Promise.all([
     auth.supabase
       .from("profiles")
-      .select("firstName, email, results, onboardingData")
+      .select("firstName, email, results, onboardingData, tier")
       .eq("id", auth.user.id)
       .maybeSingle(),
     auth.supabase
@@ -195,6 +195,11 @@ Deno.serve(async (req) => {
       .eq("userId", auth.user.id)
       .maybeSingle(),
   ]);
+
+  const tier = typeof profile?.tier === "string" ? profile.tier.trim().toLowerCase() : "";
+  if (tier !== "premium") {
+    return jsonResponse(403, { error: "Premium membership required" });
+  }
 
   const context = await buildKotaReadContext(
     auth.supabase,

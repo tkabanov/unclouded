@@ -8,6 +8,7 @@ import {
   signOutEverywhere,
 } from "@/lib/auth/sessionAuth";
 import { completePasswordRecovery } from "@/lib/auth/passwordResetApi";
+import { identifyUser, resetUser } from "@/lib/analytics/productAnalytics";
 
 interface AuthContextType {
   user: User | null;
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       if (event === "SIGNED_OUT" || !nextSession) {
+        resetUser();
         applyAuthState(setSession, setUser, setLoading, null, null);
         return;
       }
@@ -59,10 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       applyAuthState(setSession, setUser, setLoading, nextSession, validatedUser);
+      identifyUser(validatedUser.id);
     });
 
     void resolveValidatedAuthSession().then(({ session: currentSession, user: currentUser }) => {
       applyAuthState(setSession, setUser, setLoading, currentSession, currentUser);
+      if (currentUser) identifyUser(currentUser.id);
     });
 
     return () => {
@@ -73,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     clearRecoveryAuthorization();
+    resetUser();
     await signOutEverywhere();
     applyAuthState(setSession, setUser, setLoading, null, null);
   };

@@ -7,6 +7,7 @@ import {
   daysUntilPremiumOnDemand,
   hasPremiumOnDemandFeature,
   isReassessmentDue,
+  resolveReassessmentCtaState,
   THIRTY_DAYS_MS,
 } from "@/lib/reassessment/reassessmentEntitlements";
 import { NINETY_DAYS_MS } from "@/lib/reassessment";
@@ -73,5 +74,47 @@ describe("reassessmentEntitlements", () => {
         day0Ms + NINETY_DAYS_MS + 1,
       ),
     ).toBe(true);
+  });
+});
+
+describe("resolveReassessmentCtaState", () => {
+  it("prompts free users to upgrade", () => {
+    expect(
+      resolveReassessmentCtaState({
+        tier: TIER.FREE,
+        lastAssessmentDate: day0,
+        nextReassessmentDate: next90,
+      }).kind,
+    ).toBe("upgrade");
+  });
+
+  it("locks Pro users until the 90-day date", () => {
+    const state = resolveReassessmentCtaState(
+      { tier: TIER.PRO, lastAssessmentDate: day0, nextReassessmentDate: next90 },
+      day0Ms + 1000,
+    );
+    expect(state).toEqual({ kind: "locked", cycleDays: 90, daysRemaining: expect.any(Number) });
+  });
+
+  it("uses 30-day copy for premium on-demand waiting period", () => {
+    const state = resolveReassessmentCtaState(
+      {
+        tier: TIER.PREMIUM,
+        lastAssessmentDate: day0,
+        nextReassessmentDate: next90,
+        canReassessOnDemand: true,
+      },
+      day0Ms + 1000,
+    );
+    expect(state).toEqual({ kind: "locked", cycleDays: 30, daysRemaining: expect.any(Number) });
+  });
+
+  it("opens reassessment when due", () => {
+    expect(
+      resolveReassessmentCtaState(
+        { tier: TIER.PRO, lastAssessmentDate: day0, nextReassessmentDate: next90 },
+        day0Ms + NINETY_DAYS_MS + 1000,
+      ),
+    ).toEqual({ kind: "available", label: "Start reassessment" });
   });
 });

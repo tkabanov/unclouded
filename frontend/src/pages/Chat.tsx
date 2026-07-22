@@ -5,7 +5,7 @@ import {
 } from "@/lib/enums/customerRoleTypes";
 import DashboardLayout from "@/components/DashboardLayout";
 import ChatPageContent from "@/components/chat/ChatPageContent";
-import ChatPanelMount from "@/components/chat/ChatPanelMount";
+import ConversationPanelMount from "@/components/chat/ConversationPanelMount";
 import ChatWelcomePanel from "@/components/chat/ChatWelcomePanel";
 import ConversationSidebar from "@/components/chat/ConversationSidebar";
 import DeleteConversationPopup from "@/components/chat/DeleteConversationPopup";
@@ -128,7 +128,7 @@ export default function Chat() {
         }
         panel={
           conversationId && user ? (
-            <ChatPanelMount
+            <ConversationPanelMount
               key={conversationId}
               conversationId={conversationId}
               userId={user.id}

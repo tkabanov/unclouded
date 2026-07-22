@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
+import { onboardingOptionButtonClass } from "@/components/onboarding/onboardingOptionStyles";
 
-interface OnboardingStateSignalsProps {
+interface OnboardingStateSignalsProps extends OnboardingStepChromeProps {
   firstName: string;
+  defaultAnswers?: Record<string, string>;
   onNext: (signals: { nervous_system_state: string; energy_level_signal: string }) => void;
+  onSaveAndContinueLater: (patch: { stateSignals: Record<string, string> }) => void;
 }
 
 const questions = [
@@ -31,10 +34,24 @@ const questions = [
   },
 ];
 
-const OnboardingStateSignals = ({ firstName, onNext }: OnboardingStateSignalsProps) => {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+const OnboardingStateSignals = ({
+  firstName,
+  defaultAnswers = {},
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingStateSignalsProps) => {
+  const [answers, setAnswers] = useState<Record<string, string>>(defaultAnswers);
 
   const allAnswered = questions.every((q) => answers[q.field] !== undefined);
+
+  const handleContinue = () => {
+    if (!allAnswered) return;
+    onNext({
+      nervous_system_state: answers.nervous_system_state,
+      energy_level_signal: answers.energy_level_signal,
+    });
+  };
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
@@ -65,12 +82,7 @@ const OnboardingStateSignals = ({ firstName, onNext }: OnboardingStateSignalsPro
                     <button
                       key={opt.value}
                       onClick={() => setAnswers((prev) => ({ ...prev, [q.field]: opt.value }))}
-                      className={cn(
-                        "w-full text-left px-3.5 py-2.5 rounded-lg border transition-all text-sm",
-                        isSelected
-                          ? "border-primary bg-primary/10 text-foreground font-medium"
-                          : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
-                      )}
+                      className={onboardingOptionButtonClass(isSelected)}
                     >
                       {opt.label}
                     </button>
@@ -81,21 +93,12 @@ const OnboardingStateSignals = ({ firstName, onNext }: OnboardingStateSignalsPro
           ))}
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={() => allAnswered && onNext({
-              nervous_system_state: answers.nervous_system_state,
-              energy_level_signal: answers.energy_level_signal,
-            })}
-            disabled={!allAnswered}
-            className="group"
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={handleContinue}
+          continueDisabled={!allAnswered}
+          onSaveAndContinueLater={() => onSaveAndContinueLater({ stateSignals: answers })}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

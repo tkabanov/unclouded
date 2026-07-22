@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { ArrowRight, Heart, Briefcase, Activity } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Heart, Briefcase, Activity } from "lucide-react";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { CUSTOMER_PILLAR_ORDER, CUSTOMER_PILLAR_LABELS, CUSTOMER_PILLAR_DESCRIPTIONS, type CustomerPillarSlug } from "@/lib/enums/customerProfile";
 
-interface OnboardingPillarProps {
+interface OnboardingPillarProps extends OnboardingStepChromeProps {
   firstName: string;
+  defaultSelected?: string | null;
   onNext: (pillar: string) => void;
+  onSaveAndContinueLater: (patch: { primaryPillar: string }) => void;
 }
 
 const PILLAR_ICONS: Record<CustomerPillarSlug, typeof Heart> = {
@@ -23,8 +26,14 @@ const pillars = CUSTOMER_PILLAR_ORDER.map((id) => ({
   icon: PILLAR_ICONS[id],
 }));
 
-const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
-  const [selected, setSelected] = useState<string | null>(null);
+const OnboardingPillar = ({
+  firstName,
+  defaultSelected = null,
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingPillarProps) => {
+  const [selected, setSelected] = useState<string | null>(defaultSelected);
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
@@ -53,10 +62,10 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
                 onClick={() => setSelected(pillar.id)}
                 className={cn(
                   bubbleStyle(isSelected ? "Group_chip_active_" : "Group_chip_"),
-                  "flex items-center gap-3 px-4 py-3.5 rounded-lg border-2 transition-all text-sm font-medium w-full",
+                  "flex items-center gap-3 px-4 py-3.5 rounded-lg border-2 transition-all text-sm w-full",
                   isSelected
-                    ? "border-primary bg-primary/10 text-foreground"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                    ? "border-primary bg-primary/10 text-foreground font-semibold"
+                    : "border-border bg-background font-normal text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
                 )}
               >
                 <Icon
@@ -67,7 +76,12 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
                   )}
                 />
                 <div className="min-w-0 flex-1">
-                  <div className={bubbleStyle("Text_label_copy_")}>
+                  <div
+                    className={cn(
+                      bubbleStyle("Text_label_copy_"),
+                      isSelected ? "!font-semibold" : "!font-normal",
+                    )}
+                  >
                     {pillar.label}
                   </div>
                   <div
@@ -98,18 +112,14 @@ const OnboardingPillar = ({ firstName, onNext }: OnboardingPillarProps) => {
           </p>
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={() => selected && onNext(selected)}
-            disabled={!selected}
-            className={cn(bubbleStyle("Button_primary_"), "group")}
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={() => selected && onNext(selected)}
+          continueDisabled={!selected}
+          onSaveAndContinueLater={() =>
+            onSaveAndContinueLater({ primaryPillar: selected ?? "" })
+          }
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

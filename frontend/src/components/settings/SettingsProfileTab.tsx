@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import SettingsAboutYouSection from "@/components/settings/SettingsAboutYouSection";
 import SettingsKnowYourselfSection from "@/components/settings/SettingsKnowYourselfSection";
+import SettingsReferralStatsSection from "@/components/settings/SettingsReferralStatsSection";
 import {
   SettingsManagerTeamAggregateSection,
   SettingsWorkplaceAggregateOptInSection,
@@ -189,6 +190,8 @@ export default function SettingsProfileTab() {
           </section>
         ) : null}
       </div>
+
+      <SettingsReferralStatsSection />
 
       <SettingsAboutYouSection
         form={aboutYouForm}

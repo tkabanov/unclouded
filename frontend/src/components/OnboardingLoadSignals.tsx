@@ -1,20 +1,26 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { LOAD_SIGNAL_QUESTIONS } from "@/lib/enums/onboardingQuestions";
 import { ONBOARDING_STEP } from "@/lib/enums/onboardingSteps";
 import { getStepDisplayNumber, ONBOARDING_SCORED_STEP_COUNT } from "@/lib/onboardingWizard";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
+import {
+  onboardingOptionButtonClass,
+  onboardingOptionLabelClass,
+} from "@/components/onboarding/onboardingOptionStyles";
 
-interface OnboardingLoadSignalsProps {
+interface OnboardingLoadSignalsProps extends OnboardingStepChromeProps {
   firstName: string;
+  defaultAnswers?: Record<string, string>;
   onNext: (signals: {
     cognitive_load_signal: string;
     relational_load_signal: string;
     environmental_load_signal: string;
     financial_load_signal: string;
   }) => void;
+  onSaveAndContinueLater: (patch: { loadSignals: Record<string, string> }) => void;
 }
 
 const questions = LOAD_SIGNAL_QUESTIONS;
@@ -27,8 +33,14 @@ const LOAD_SIGNAL_CUSTOM_STATE_KEYS: Record<string, string> = {
   financial_load_signal: "load_signal_financial",
 };
 
-const OnboardingLoadSignals = ({ firstName, onNext }: OnboardingLoadSignalsProps) => {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+const OnboardingLoadSignals = ({
+  firstName,
+  defaultAnswers = {},
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingLoadSignalsProps) => {
+  const [answers, setAnswers] = useState<Record<string, string>>(defaultAnswers);
 
   const allAnswered = questions.every((q) => answers[q.field] !== undefined);
 
@@ -100,13 +112,15 @@ const OnboardingLoadSignals = ({ firstName, onNext }: OnboardingLoadSignalsProps
                       onClick={() => handleSelect(q.field, opt.slug)}
                       className={cn(
                         bubbleStyle("Group_transparent_"),
-                        "w-full text-left px-3.5 py-2.5 rounded-lg border transition-all text-sm",
-                        isSelected
-                          ? "border-primary bg-primary/10 text-foreground font-medium"
-                          : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                        onboardingOptionButtonClass(isSelected),
                       )}
                     >
-                      <span className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
+                      <span
+                        className={onboardingOptionLabelClass(
+                          isSelected,
+                          bubbleStyle("Text_inter_13__400__white_copy_copy_"),
+                        )}
+                      >
                         {opt.label}
                       </span>
                     </button>
@@ -117,18 +131,12 @@ const OnboardingLoadSignals = ({ firstName, onNext }: OnboardingLoadSignalsProps
           ))}
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={handleContinue}
-            disabled={!allAnswered}
-            className={cn(bubbleStyle("Button_primary_"), "group")}
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={handleContinue}
+          continueDisabled={!allAnswered}
+          onSaveAndContinueLater={() => onSaveAndContinueLater({ loadSignals: answers })}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

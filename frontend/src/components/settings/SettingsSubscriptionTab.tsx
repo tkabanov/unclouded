@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays, Mail, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import SubscriptionPlanCard from "@/components/settings/SubscriptionPlanCard";
 import {
+  applyFoundingMemberPlanPricing,
   getCurrentTierLabel,
   loadSubscriptionPlans,
   PREMIUM_CONTACT_EMAIL,
@@ -25,6 +26,7 @@ import {
 } from "@/lib/settings/subscriptionApi";
 import type { PlanId } from "@/lib/plans";
 import { useAuth } from "@/hooks/useAuth";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { useUserProfile } from "@/lib/userProfile";
 import {
   canShowPremiumOnDemandLocked,
@@ -32,6 +34,7 @@ import {
   daysUntilPremiumOnDemand,
   isReassessmentDue,
 } from "@/lib/reassessment/reassessmentEntitlements";
+import { FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +67,11 @@ export default function SettingsSubscriptionTab() {
   const showPremiumOnDemandLocked =
     !reassessmentDue && !showReassessNow && canShowPremiumOnDemandLocked(dateCtx);
   const daysUntilOnDemand = daysUntilPremiumOnDemand(dateCtx);
+  const isFoundingSignup = profile?.signupPlan === FOUNDING_SIGNUP_PLAN;
+  const displayPlans = useMemo(
+    () => applyFoundingMemberPlanPricing(plans, profile?.signupPlan),
+    [plans, profile?.signupPlan],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -86,6 +94,7 @@ export default function SettingsSubscriptionTab() {
   const handleSelectPlan = useCallback(
     async (planId: PlanId) => {
       if (!user || busy) return;
+      trackProductEvent("plan_upgrade_clicked", { plan_id: planId });
       setBusy(true);
       try {
         const result = await selectSubscriptionPlan(planId);
@@ -96,6 +105,12 @@ export default function SettingsSubscriptionTab() {
         if (result.status !== "ok") {
           toast.error(result.message ?? "Couldn't update your subscription.");
           return;
+        }
+        if (planId === "pro" && result.subscribed === true) {
+          trackProductEvent("free_to_pro_conversion", {
+            plan_id: planId,
+            signup_plan: profile?.signupPlan ?? null,
+          });
         }
         await refresh();
         toast.success(
@@ -110,7 +125,7 @@ export default function SettingsSubscriptionTab() {
         setBusy(false);
       }
     },
-    [busy, refresh, user],
+    [busy, profile?.signupPlan, refresh, user],
   );
 
   const handleBillingUpdate = useCallback(async () => {
@@ -237,10 +252,20 @@ export default function SettingsSubscriptionTab() {
         </div>
       ) : null}
 
+      {isFoundingSignup ? (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm text-muted-foreground">
+          <p className="font-semibold text-foreground">Founding member pricing</p>
+          <p className="mt-1">
+            You signed up through a founding campaign. Pro is shown at $19/month — that rate locks
+            in for life once billing connects.
+          </p>
+        </div>
+      ) : null}
+
       <div
         className={cn(bubbleStyle("RepeatingGroup_list_"), "grid items-start gap-4 md:grid-cols-3")}
       >
-        {plans.map((plan) => (
+        {displayPlans.map((plan) => (
           <SubscriptionPlanCard
             key={plan.id}
             plan={plan}

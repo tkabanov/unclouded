@@ -94,7 +94,12 @@ export async function requestTransactionalEmail(
     case "billing_confirmation":
     case "payment_failed":
     case "subscription_cancelled":
+      return placeholderResult(emailId);
     case "onboarding_dropoff":
+      return skippedResult(
+        emailId,
+        "Delivered by scheduled edge function onboarding-dropoff (Resend when RESEND_API_KEY is set).",
+      );
     case "milestone_recovery":
     case "path_completion":
     case "reengagement_7_day_inactive":

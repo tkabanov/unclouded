@@ -212,3 +212,14 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | User taps **End session**. Kota asks for one micro-commitment (`session_close`). User replies once. Kota acknowledges with values bridge + ending statement (`session_close_ack`) — no extra «How are you leaving…?» turn — then `session_finalize` persists memory. Close/ack use dedicated prompts (not the full coaching stack) so the commitment question is not echoed. |
 | **Code** | `supabase/functions/chat/prompt/sessionLifecycle.ts`, `supabase/functions/chat/index.ts`, `frontend/src/components/chat/ChatPanelMount.tsx`, `frontend/src/lib/chat/chatSessionLifecycleApi.ts` |
 
+### OVR-021 — Referrals: organic-only (no ReferralPartner entity)
+
+| | |
+|---|---|
+| **Date** | 2026-07-22 |
+| **Overrides** | Bubble `ReferralPartner` data type (US-902 AC: “ReferralPartner data type exists”); separate B2B partner portal |
+| **Authoritative spec** | US-902 (unique referral links); US-903 (admin partner effectiveness) |
+| **Current behavior** | **Organic model:** each user gets `profiles.referralCode` (share card / REQ-09). Inbound attribution via `profiles.referredByUserId` (FK to referrer) with `profiles.referredByReferralCode` as signup URL snapshot. Admin aggregates sign-ups + paid conversions per referrer. Users see own referral count via `count_my_referral_signups()`. Optional static admin labels map known B2B codes to display names — no DB entity. |
+| **Deferred** | `referralPartner` table, partner login portal, commission tracking |
+| **Code** | `frontend/src/lib/share/referralCodeApi.ts`, `frontend/src/lib/share/referralAttribution.ts`, `frontend/src/lib/settings/admin/referralSignUpAnalytics.ts`, `frontend/src/lib/share/referralStatsApi.ts`, `frontend/src/lib/settings/admin/referralPartnerLabels.ts` |
+

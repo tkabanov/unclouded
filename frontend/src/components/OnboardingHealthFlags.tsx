@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import {
@@ -11,16 +9,29 @@ import {
 } from "@/lib/enums/onboardingQuestions";
 import { ONBOARDING_STEP } from "@/lib/enums/onboardingSteps";
 import { getStepDisplayNumber, ONBOARDING_SCORED_STEP_COUNT } from "@/lib/onboardingWizard";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
+import {
+  onboardingOptionButtonClass,
+  onboardingOptionLabelClass,
+} from "@/components/onboarding/onboardingOptionStyles";
 
-interface OnboardingHealthFlagsProps {
+interface OnboardingHealthFlagsProps extends OnboardingStepChromeProps {
+  defaultSelected?: string[];
   onNext: (data: HealthFlagsPayload) => void;
+  onSaveAndContinueLater: (patch: { healthFlags: HealthFlagsPayload }) => void;
 }
 
 const options = HEALTH_FLAG_OPTIONS;
 const stepNumber = getStepDisplayNumber(ONBOARDING_STEP.HEALTH_WELLNESS_FLAGS);
 
-const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+const OnboardingHealthFlags = ({
+  defaultSelected = [],
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingHealthFlagsProps) => {
+  const [selected, setSelected] = useState<Set<string>>(new Set(defaultSelected));
 
   const handleToggle = (slug: string) => {
     setSelected((prev) => toggleHealthFlagSelection(prev, slug));
@@ -77,10 +88,7 @@ const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
                 onClick={() => handleToggle(opt.slug)}
                 className={cn(
                   bubbleStyle("Group_transparent_"),
-                  "w-full text-left px-3.5 py-3 rounded-lg border transition-all text-sm flex items-start gap-3",
-                  isSelected
-                    ? "border-primary bg-primary/10 text-foreground font-medium"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                  onboardingOptionButtonClass(isSelected, "px-3.5 py-3 flex items-start gap-3"),
                 )}
               >
                 <span
@@ -101,7 +109,12 @@ const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
                     </svg>
                   )}
                 </span>
-                <span className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
+                <span
+                  className={onboardingOptionLabelClass(
+                    isSelected,
+                    bubbleStyle("Text_inter_13__400__white_copy_copy_"),
+                  )}
+                >
                   {opt.label}
                 </span>
               </button>
@@ -109,18 +122,16 @@ const OnboardingHealthFlags = ({ onNext }: OnboardingHealthFlagsProps) => {
           })}
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={handleContinue}
-            disabled={!hasSelection}
-            className={cn(bubbleStyle("Button_primary_"), "group")}
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={handleContinue}
+          continueDisabled={!hasSelection}
+          onSaveAndContinueLater={() =>
+            onSaveAndContinueLater({
+              healthFlags: buildHealthFlagsFromSelection(Array.from(selected)),
+            })
+          }
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

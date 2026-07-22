@@ -114,6 +114,23 @@ Edge function: `supabase/functions/reassessment-due`.
 
 **Schedule (live):** `pg_cron` job `daily-reassessment-due` at **15:00 UTC** → `invoke_scheduled_edge_function('reassessment-due')`. Frontend hooks may also invoke the same function for dry-run/cohort checks.
 
+### Onboarding drop-off (US-905)
+
+Edge function: `supabase/functions/onboarding-dropoff`.
+
+- Selects profiles where `onboardingCompleted = false`, `email IS NOT NULL`, account age **≥ 24 hours**, and `onboardingDropoffEmailedAt` is null.
+- Stamps `onboardingDropoffEmailedAt` after each attempt (send or Resend skip).
+- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); subject: *Your PuP 360 results are waiting for you*; CTA links to `{APP_ORIGIN}/onboarding`.
+- Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <ONBOARDING_DROPOFF_CRON_SECRET>`.
+
+**Schedule (live on project `szkextipgpupqoppccoy`):** `pg_cron` job `daily-onboarding-dropoff` at **16:00 UTC** → `invoke_scheduled_edge_function('onboarding-dropoff')` (vault: `project_url`, `edge_cron_service_role_key`, optional `onboarding_dropoff_cron_secret`). Migration: `20260722130000_onboarding_dropoff_email.sql`.
+
+Manual smoke:
+```sql
+SELECT public.invoke_scheduled_edge_function('onboarding-dropoff');
+-- then: SELECT id, status_code, content FROM net._http_response ORDER BY id DESC LIMIT 1;
+```
+
 ## Verification checklist (developer / PM)
 
 1. Apply **recovery** template in Supabase Dashboard.

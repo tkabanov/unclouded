@@ -9,6 +9,10 @@ export interface DashboardMainSlots {
   greetingRow?: ReactNode;
   /** Banners and CTAs between greeting row and grid. */
   beforeGrid?: ReactNode;
+  /** Full-width assessment results card (Lovable dashboard). */
+  assessmentResults?: ReactNode;
+  /** Day 0 vs Day 90 progress after reassessment (Lovable dashboard). */
+  reassessmentProgress?: ReactNode;
   /** Left column — daily check-in + insights (DASH-04, DASH-05). */
   dailyCheckIn?: ReactNode;
   /** Right column — next deep-dive module preview (DASH Zone G). */
@@ -61,6 +65,14 @@ export default function DashboardMain({ slots = {}, className }: DashboardMainPr
 
           {slots.beforeGrid}
 
+          {slots.reassessmentProgress ? (
+            <DashboardSlot>{slots.reassessmentProgress}</DashboardSlot>
+          ) : null}
+
+          {slots.assessmentResults ? (
+            <DashboardSlot>{slots.assessmentResults}</DashboardSlot>
+          ) : null}
+
           <div
             className="grid w-full grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start"
           >
@@ -83,9 +95,11 @@ export default function DashboardMain({ slots = {}, className }: DashboardMainPr
               <DashboardSlot>
                 {slots.journalPreview}
               </DashboardSlot>
-              <DashboardSlot>
-                {slots.crisisSupport}
-              </DashboardSlot>
+              {slots.crisisSupport ? (
+                <DashboardSlot>
+                  {slots.crisisSupport}
+                </DashboardSlot>
+              ) : null}
             </div>
           </div>
         </div>

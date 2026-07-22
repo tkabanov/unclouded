@@ -47,10 +47,10 @@ export default function CustomerRoleChipGroup({
             onClick={() => onToggle(id)}
             className={cn(
               bubbleStyle(isSelected ? "Group_chip_active_" : "Group_chip_"),
-              "flex items-center gap-3 px-4 py-3.5 rounded-lg border-2 transition-all text-sm font-medium w-full",
+              "flex items-center gap-3 px-4 py-3.5 rounded-lg border-2 transition-all text-sm w-full",
               isSelected
-                ? "border-primary bg-primary/10 text-foreground"
-                : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5",
+                ? "border-primary bg-primary/10 text-foreground font-semibold"
+                : "border-border bg-background font-normal text-muted-foreground hover:border-primary/40 hover:bg-primary/5",
             )}
           >
             <Icon
@@ -61,7 +61,14 @@ export default function CustomerRoleChipGroup({
               )}
             />
             <div className="min-w-0 flex-1">
-              <div className={bubbleStyle("Text_label_copy_")}>{CUSTOMER_ROLE_LABELS[id]}</div>
+              <div
+                className={cn(
+                  bubbleStyle("Text_label_copy_"),
+                  isSelected ? "!font-semibold" : "!font-normal",
+                )}
+              >
+                {CUSTOMER_ROLE_LABELS[id]}
+              </div>
               <div
                 className={cn(
                   bubbleStyle("Text_small_"),

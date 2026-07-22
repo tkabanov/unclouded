@@ -36,14 +36,20 @@ export function buildClassificationShareCardMetadata(params: {
 }): ClassificationShareCardMetadata {
   const classificationKey = params.classificationKey.trim();
   const entry = classifications[classificationKey];
-  const origin = (params.origin ?? "https://uncloud360.ai").replace(/\/$/, "");
   const referralCode = generateReferralCode(params.referralCode);
 
   return {
     classificationKey,
     classificationName: entry?.name ?? "Your PuP 360 Profile",
     tagline: resolveTagline(classificationKey),
-    shareUrl: `${origin}/signup?ref=${encodeURIComponent(referralCode)}`,
+    shareUrl: buildReferralShareUrl(referralCode, params.origin),
     referralCode,
   };
+}
+
+/** Personal referral signup link (no classification card required). */
+export function buildReferralShareUrl(referralCode: string, origin?: string): string {
+  const resolvedOrigin = (origin ?? "https://uncloud360.ai").replace(/\/$/, "");
+  const code = generateReferralCode(referralCode);
+  return `${resolvedOrigin}/signup?ref=${encodeURIComponent(code)}`;
 }

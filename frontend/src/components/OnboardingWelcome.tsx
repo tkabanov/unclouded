@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 
 interface OnboardingWelcomeProps {
   onNext: () => void;
+  onSkip: () => void;
 }
 
-const OnboardingWelcome = ({ onNext }: OnboardingWelcomeProps) => (
+const OnboardingWelcome = ({ onNext, onSkip }: OnboardingWelcomeProps) => (
   <div
     className="flex flex-1 items-center justify-center px-4 py-12"
   >
@@ -40,6 +41,9 @@ const OnboardingWelcome = ({ onNext }: OnboardingWelcomeProps) => (
         <Button variant="cta" size="lg" onClick={onNext} className="group">
           Get started
           <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+        </Button>
+        <Button type="button" variant="ghost" onClick={onSkip}>
+          Skip
         </Button>
       </div>
     </div>

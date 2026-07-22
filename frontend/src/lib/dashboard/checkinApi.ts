@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { updatePulseBaselineAfterCheckIn } from "@/lib/dashboard/pulseBaselineApi";
 import {
   computeStreakFromDateKeys,
@@ -442,6 +443,8 @@ export async function submitDailyCheckIn(
   } catch {
     // Non-blocking — check-in itself already succeeded.
   }
+
+  trackProductEvent("check_in_completed", { streak: nextStreak });
 
   return { streak: nextStreak };
 }

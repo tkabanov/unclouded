@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   ShieldCheck,
@@ -34,6 +34,9 @@ import { bubbleStyle } from "@/lib/bubbleStyles";
 import { useUserProfile } from "@/lib/userProfile";
 import { isSettingsAdminUser } from "@/lib/settings/isSettingsAdminUser";
 import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/onboardingStatus";
+import { captureReferralFromSearch } from "@/lib/share/referralAttribution";
+import { capturePlanFromSearch } from "@/lib/share/planAttribution";
+import { captureUtmFromSearch } from "@/lib/share/utmAttribution";
 
 /* ── shared bits ─────────────────────────────────────── */
 
@@ -92,14 +95,17 @@ function FeatureCard({
 
 /* ── page ────────────────────────────────────────────── */
 
+const SIGNUP_PATH = "/signup";
+
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const authenticated = Boolean(user);
   const { profile, loading: profileLoading } = useUserProfile();
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
+  const [postAuthRedirect, setPostAuthRedirect] = useState<false | "login" | "signup">(false);
 
   const destination = () => resolvePostAuthRoute(profile);
 
@@ -128,19 +134,45 @@ const Index = () => {
     }
   };
 
-  const handleAuthSuccess = () => {
+  const handleLoginSuccess = () => {
     setLoginOpen(false);
     setSignupOpen(false);
-    setRedirecting(true);
+    setPostAuthRedirect("login");
   };
 
-  // After a successful auth action, wait for the profile to hydrate, then route.
+  const handleSignupSuccess = () => {
+    setLoginOpen(false);
+    setSignupOpen(false);
+    setPostAuthRedirect("signup");
+  };
+
+  // Sign-up always starts onboarding; sign-in waits for profile to pick dashboard vs onboarding.
   useEffect(() => {
-    if (redirecting && user && !profileLoading) {
-      navigate(destination());
+    if (!postAuthRedirect || !user) return;
+
+    if (postAuthRedirect === "signup") {
+      navigate("/onboarding", { replace: true });
+      setPostAuthRedirect(false);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [redirecting, user, profileLoading, profile]);
+
+    if (profileLoading) return;
+    navigate(resolvePostAuthRoute(profile), { replace: true });
+    setPostAuthRedirect(false);
+  }, [postAuthRedirect, user, profileLoading, profile, navigate]);
+
+  // Referral and marketing links land on /signup?ref=… — open the signup popup.
+  useEffect(() => {
+    captureReferralFromSearch(location.search);
+    captureUtmFromSearch(location.search);
+    capturePlanFromSearch(location.search);
+  }, [location.search]);
+
+  useEffect(() => {
+    if (location.pathname !== SIGNUP_PATH || user) return;
+    setLoginOpen(false);
+    setSignupOpen(true);
+  }, [location.pathname, user]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -244,18 +276,12 @@ const Index = () => {
                 Private · AI-Powered · Coaching Only
               </SectionTag>
             </div>
-            <h1
-              data-style-ref="Text_heading_1_"
-              className={bubbleStyle("Text_heading_1_")}
-            >
+            <h1 className="text-5xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-7xl">
               Find clarity.
               <br />
               <span className="bg-gradient-brand bg-clip-text text-transparent">Move forward.</span>
             </h1>
-            <p
-              data-style-ref="Text_body_muted_"
-              className={cn("mx-auto mt-7 max-w-2xl", bubbleStyle("Text_body_muted_"))}
-            >
+            <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
               Uncloud360 is your private AI coaching companion — helping you grow professionally,
               emotionally, and personally. Not therapy. Not medical advice. Just clear, intelligent
               coaching built around you.
@@ -634,13 +660,13 @@ const Index = () => {
       <AuthDialog
         open={loginOpen}
         onOpenChange={setLoginOpen}
-        onSuccess={handleAuthSuccess}
+        onSuccess={handleLoginSuccess}
         onSwitchToSignup={() => setSignupOpen(true)}
       />
       <SignupPopup
         open={signupOpen}
         onOpenChange={setSignupOpen}
-        onSuccess={handleAuthSuccess}
+        onSuccess={handleSignupSuccess}
         onSwitchToLogin={() => setLoginOpen(true)}
       />
     </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Shield } from "lucide-react";
 import AdminPathsTab from "@/components/settings/admin/AdminPathsTab";
 import AdminResourcesTab from "@/components/settings/admin/AdminResourcesTab";
+import AdminInsightsTab from "@/components/settings/admin/AdminInsightsTab";
 import AdminPlansTab from "@/components/settings/admin/AdminPlansTab";
 import AdminWorkplacesTab from "@/components/settings/admin/AdminWorkplacesTab";
 import AdminAnalyticsTab from "@/components/settings/admin/AdminAnalyticsTab";
@@ -39,7 +40,7 @@ export default function SettingsAdminShell() {
           <p
             className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
           >
-            Manage guided paths, resources, plans, workplaces, analytics, outreach monitoring, coach briefs, reassessment history, and prompt tests.
+            Manage guided paths, resources, insights, plans, workplaces, analytics, outreach monitoring, coach briefs, reassessment history, and prompt tests.
           </p>
         </div>
       </div>
@@ -74,6 +75,7 @@ export default function SettingsAdminShell() {
       <div className="w-full">
         {activeSubTab === ADMIN_SUB_TAB.PATHS && <AdminPathsTab />}
         {activeSubTab === ADMIN_SUB_TAB.RESOURCES && <AdminResourcesTab />}
+        {activeSubTab === ADMIN_SUB_TAB.INSIGHTS && <AdminInsightsTab />}
         {activeSubTab === ADMIN_SUB_TAB.PLANS && <AdminPlansTab />}
         {activeSubTab === ADMIN_SUB_TAB.WORKPLACES && <AdminWorkplacesTab />}
         {activeSubTab === ADMIN_SUB_TAB.ANALYTICS && <AdminAnalyticsTab />}

@@ -1,6 +1,7 @@
 export const ADMIN_SUB_TAB = {
   PATHS: "paths",
   RESOURCES: "resources",
+  INSIGHTS: "insights",
   PLANS: "plans",
   WORKPLACES: "workplaces",
   ANALYTICS: "analytics",
@@ -15,6 +16,7 @@ export type AdminSubTabSlug = (typeof ADMIN_SUB_TAB)[keyof typeof ADMIN_SUB_TAB]
 export const ADMIN_SUB_TAB_ORDER: readonly AdminSubTabSlug[] = [
   ADMIN_SUB_TAB.PATHS,
   ADMIN_SUB_TAB.RESOURCES,
+  ADMIN_SUB_TAB.INSIGHTS,
   ADMIN_SUB_TAB.PLANS,
   ADMIN_SUB_TAB.WORKPLACES,
   ADMIN_SUB_TAB.ANALYTICS,
@@ -27,6 +29,7 @@ export const ADMIN_SUB_TAB_ORDER: readonly AdminSubTabSlug[] = [
 export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
   paths: "Paths",
   resources: "Resources",
+  insights: "Insights",
   plans: "Plans",
   workplaces: "Workplaces",
   analytics: "Analytics",

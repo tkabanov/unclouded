@@ -40,6 +40,7 @@ export interface VoiceSessionPanelProps {
   onboardingData?: Record<string, unknown> | null;
   context?: string;
   profileData?: ChatAiProfileData;
+  onThreadUpdated?: () => void;
   onSessionClosed?: () => void;
   className?: string;
 }
@@ -51,6 +52,7 @@ export default function VoiceSessionPanel({
   onboardingData,
   context,
   profileData,
+  onThreadUpdated,
   onSessionClosed,
   className,
 }: VoiceSessionPanelProps) {
@@ -116,6 +118,7 @@ export default function VoiceSessionPanel({
       const nextThread = [...threadSnapshot, assistantMessage];
       setMessages(nextThread);
       await touchConversationAfterMessage(userId, conversationId, assistantText);
+      onThreadUpdated?.();
 
       try {
         const audio = await synthesizeKotaSpeech(assistantText);
@@ -126,7 +129,7 @@ export default function VoiceSessionPanel({
 
       return { assistantMessage, nextThread };
     },
-    [conversationId, onboardingData, userId],
+    [conversationId, onboardingData, onThreadUpdated, userId],
   );
 
   const maybeGenerateConversationTitle = useCallback(
@@ -157,11 +160,12 @@ export default function VoiceSessionPanel({
                 sessionType: "voice",
               },
         );
+        onThreadUpdated?.();
       } catch (error) {
         console.error("Failed to generate conversation title", error);
       }
     },
-    [conversationId, conversationMeta?.title, userId],
+    [conversationId, conversationMeta?.title, onThreadUpdated, userId],
   );
 
   const maybeSendSessionOpener = useCallback(

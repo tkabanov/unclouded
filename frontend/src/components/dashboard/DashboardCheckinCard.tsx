@@ -11,6 +11,7 @@ import {
   fetchDailyCheckInStreak,
   submitDailyCheckIn,
 } from "@/lib/dashboard/checkinApi";
+import { DASHBOARD_DAILY_CHECKIN_ID } from "@/lib/dashboard/routes";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
@@ -140,6 +141,7 @@ export default function DashboardCheckinCard() {
 
   return (
     <div
+      id={DASHBOARD_DAILY_CHECKIN_ID}
       data-style-ref="Group_card_"
       className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4")}
     >

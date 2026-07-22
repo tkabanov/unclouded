@@ -31,6 +31,7 @@ const App = () => (
             <RecoveryHashRedirect />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/signup" element={<Index />} />
               <Route path="/reset_pw" element={<ResetPassword />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<AdminRouteGuard />}>

@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
+import {
+  onboardingOptionButtonClass,
+  onboardingOptionLabelClass,
+} from "@/components/onboarding/onboardingOptionStyles";
 import {
   getPerformanceQuestionsForRole,
   getPerformanceStepCopyForRole,
@@ -13,9 +17,11 @@ import {
   resolvePrimaryCustomerRole,
 } from "@/lib/enums/customerRoleTypes";
 
-interface OnboardingPerformanceProps {
+interface OnboardingPerformanceProps extends OnboardingStepChromeProps {
   roles?: readonly string[];
+  defaultAnswers?: Record<string, number>;
   onNext: (scores: { pq1: number; pq2: number; pq3: number; pq4: number; pq5: number; performance_score: number }) => void;
+  onSaveAndContinueLater: (patch: { performanceScores: Record<string, number> }) => void;
 }
 
 function resolvePerformanceRole(roles?: readonly string[]): CustomerRoleSlug {
@@ -26,11 +32,17 @@ function resolvePerformanceRole(roles?: readonly string[]): CustomerRoleSlug {
   return CUSTOMER_ROLE.PRO;
 }
 
-const OnboardingPerformance = ({ roles, onNext }: OnboardingPerformanceProps) => {
+const OnboardingPerformance = ({
+  roles,
+  defaultAnswers = {},
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingPerformanceProps) => {
   const resolvedRole = useMemo(() => resolvePerformanceRole(roles), [roles]);
   const questions = useMemo(() => getPerformanceQuestionsForRole(resolvedRole), [resolvedRole]);
   const stepCopy = useMemo(() => getPerformanceStepCopyForRole(resolvedRole), [resolvedRole]);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, number>>(defaultAnswers);
 
   const allAnswered = questions.every((q) => answers[q.field] !== undefined);
 
@@ -87,13 +99,15 @@ const OnboardingPerformance = ({ roles, onNext }: OnboardingPerformanceProps) =>
                       onClick={() => handleSelect(q.field, answer.score)}
                       className={cn(
                         bubbleStyle("Group_transparent_"),
-                        "w-full text-left px-3.5 py-2.5 rounded-lg border transition-all text-sm",
-                        isSelected
-                          ? "border-primary bg-primary/10 text-foreground font-medium"
-                          : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                        onboardingOptionButtonClass(isSelected),
                       )}
                     >
-                      <span className={bubbleStyle("Text_inter_13__400__white_copy_copy_")}>
+                      <span
+                        className={onboardingOptionLabelClass(
+                          isSelected,
+                          bubbleStyle("Text_inter_13__400__white_copy_copy_"),
+                        )}
+                      >
                         {answer.label}
                       </span>
                     </button>
@@ -104,18 +118,12 @@ const OnboardingPerformance = ({ roles, onNext }: OnboardingPerformanceProps) =>
           ))}
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={handleContinue}
-            disabled={!allAnswered}
-            className={cn(bubbleStyle("Button_primary_"), "group")}
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={handleContinue}
+          continueDisabled={!allAnswered}
+          onSaveAndContinueLater={() => onSaveAndContinueLater({ performanceScores: answers })}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-import { Cloud, Target } from "lucide-react";
+import coachAvatar from "@/assets/coach-avatar.png";
+import { Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
@@ -20,13 +21,14 @@ export function ChatCommitmentPromptCell({ message, className }: ChatCommitmentP
       role="article"
       aria-label="Session closing — your commitment is needed"
     >
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 ring-2 ring-primary/30">
-        <Cloud
-          data-style-ref="Icon_default_"
-          className={cn(bubbleStyle("Icon_default_"), "h-4 w-4 text-primary")}
-          aria-hidden
-        />
-      </div>
+      <img
+        src={coachAvatar}
+        alt=""
+        width={28}
+        height={28}
+        className="mt-0.5 h-7 w-7 shrink-0 rounded-full bg-accent/50 ring-2 ring-primary/30"
+        loading="lazy"
+      />
 
       <div className="flex min-w-0 max-w-[92%] flex-col gap-3 rounded-2xl border-2 border-primary/35 bg-primary/5 px-4 py-3 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">

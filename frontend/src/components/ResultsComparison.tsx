@@ -8,6 +8,7 @@ import {
   computeScoreDeltas,
   summarizeProgress,
   reflectionQuestions,
+  readReflectionAnswer,
   NINETY_DAYS_MS,
   type ReflectionAnswers,
 } from "@/lib/reassessment";
@@ -45,8 +46,15 @@ interface ResultsComparisonProps {
 }
 
 function scoreColor(score: number) {
-  return score < 3.2 ? "bg-destructive" : score < 3.8 ? "bg-amber-500" : "bg-primary";
+  return score < 3.2 ? "bg-destructive" : score < 3.8 ? "bg-amber-500" : "bg-emerald-500";
 }
+
+const COMPACT_REFLECTION_ORDER = [
+  "reflection_q1",
+  "reflection_q3",
+  "reflection_q2",
+  "reflection_q4",
+] as const;
 
 function formatModeLabel(mode: string | null | undefined): string {
   if (!mode) return "updated";
@@ -73,14 +81,14 @@ function resolvePriorLabel(priorAssessmentDate: string | null | undefined): stri
 function DeltaBadge({ delta }: { delta: number }) {
   if (delta >= 0.2) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-primary">
+      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
         <ArrowUpRight className="h-3.5 w-3.5" /> +{delta.toFixed(1)}
       </span>
     );
   }
   if (delta <= -0.2) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600">
+      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-destructive">
         <ArrowDownRight className="h-3.5 w-3.5" /> {delta.toFixed(1)}
       </span>
     );
@@ -99,12 +107,16 @@ function CompareBar({
   second,
   delta,
   priorLabel,
+  currentLabel,
+  compact,
 }: {
   label: string;
   first: number;
   second: number;
   delta: number;
   priorLabel: string;
+  currentLabel: string;
+  compact?: boolean;
 }) {
   return (
     <div className="space-y-2">
@@ -113,7 +125,14 @@ function CompareBar({
         <DeltaBadge delta={delta} />
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-28 shrink-0 text-[11px] text-muted-foreground">{priorLabel}</span>
+        <span
+          className={cn(
+            "shrink-0 text-[11px] text-muted-foreground",
+            compact ? "w-14" : "w-28",
+          )}
+        >
+          {priorLabel}
+        </span>
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-muted-foreground/40"
@@ -125,7 +144,14 @@ function CompareBar({
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-28 shrink-0 text-[11px] font-medium text-foreground">Today</span>
+        <span
+          className={cn(
+            "shrink-0 text-[11px] font-medium text-foreground",
+            compact ? "w-14" : "w-28",
+          )}
+        >
+          {currentLabel}
+        </span>
         <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
           <div
             className={cn("h-full rounded-full transition-all duration-700", scoreColor(second))}
@@ -136,12 +162,12 @@ function CompareBar({
           {second.toFixed(1)}
         </span>
       </div>
-      {delta <= -0.2 ? (
+      {!compact && delta <= -0.2 ? (
         <p className="text-xs text-amber-700 dark:text-amber-500">
           Hard seasons show up in data. This is information, not failure.
         </p>
       ) : null}
-      {delta > -0.2 && delta < 0.2 ? (
+      {!compact && delta > -0.2 && delta < 0.2 ? (
         <p className="text-xs text-muted-foreground">Holding steady is not nothing.</p>
       ) : null}
     </div>
@@ -170,13 +196,17 @@ const ResultsComparison = ({
   const summary = summarizeProgress(first, second, firstName);
   const trajectory = computeTrajectoryType(first, second);
   const trajectoryCopy = trajectoryLanguage(trajectory);
-  const answeredReflections = reflectionQuestions.filter(
-    (q) => (reflections?.[q.field] ?? "").trim().length > 0
-  );
+  const reflectionFields = compact ? COMPACT_REFLECTION_ORDER : reflectionQuestions.map((q) => q.field);
+  const reflectionQuestionByField = new Map(reflectionQuestions.map((q) => [q.field, q]));
+  const answeredReflections = reflectionFields
+    .map((field) => reflectionQuestionByField.get(field))
+    .filter((q): q is (typeof reflectionQuestions)[number] => Boolean(q))
+    .filter((q) => readReflectionAnswer(reflections, q.field).length > 0);
   const isPremium = tier === TIER.PREMIUM;
   const isPro = tier === TIER.PRO;
   const showPdfButton = isPremium || isPro;
-  const priorLabel = resolvePriorLabel(priorAssessmentDate);
+  const priorLabel = compact ? "Day 0" : resolvePriorLabel(priorAssessmentDate);
+  const currentLabel = compact ? "Day 90" : "Today";
   const pdfLabel = isPremium
     ? "Download my PuP 360 report"
     : "Download my PuP 360 summary";
@@ -215,9 +245,9 @@ const ResultsComparison = ({
           className={cn(
             "text-xs",
             summary.overallDelta >= 0.2
-              ? "bg-primary text-primary-foreground hover:bg-primary"
+              ? "bg-emerald-600 text-white hover:bg-emerald-600"
               : summary.overallDelta <= -0.2
-                ? "bg-amber-600 text-white hover:bg-amber-600"
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive"
                 : "bg-muted text-foreground hover:bg-muted"
           )}
         >
@@ -235,6 +265,8 @@ const ResultsComparison = ({
             second={d.second}
             delta={d.delta}
             priorLabel={priorLabel}
+            currentLabel={currentLabel}
+            compact={compact}
           />
         ))}
       </div>
@@ -259,9 +291,15 @@ const ResultsComparison = ({
         )}
         <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-muted-foreground">
           <span>Pressure:</span>
-          <span>{first.pressure_profile}</span>
-          <ArrowRight className="h-3 w-3" />
-          <span className="font-medium text-foreground">{second.pressure_profile}</span>
+          {first.pressure_profile !== second.pressure_profile ? (
+            <>
+              <span className="line-through">{first.pressure_profile}</span>
+              <ArrowRight className="h-3 w-3" />
+              <span className="font-medium text-foreground">{second.pressure_profile}</span>
+            </>
+          ) : (
+            <span className="font-medium text-foreground">{second.pressure_profile}</span>
+          )}
         </div>
       </div>
 
@@ -275,7 +313,7 @@ const ResultsComparison = ({
               <div key={q.field} className="space-y-0.5">
                 <p className="text-sm font-medium text-foreground">{q.question}</p>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  {reflections?.[q.field]}
+                  {readReflectionAnswer(reflections, q.field)}
                 </p>
               </div>
             ))}

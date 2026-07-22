@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export interface UserProfile {
   firstName: string;
+  lastName: string;
   roleType: string;
   roleTypes: CustomerRoleSlug[];
   primaryPillar: string;
@@ -30,6 +31,7 @@ export interface UserProfile {
   onboardingData: Record<string, unknown> | null;
   subscribed: boolean;
   tier: string | null;
+  signupPlan: string | null;
   lastAssessmentDate: string | null;
   nextReassessmentDate: string | null;
   canReassessOnDemand: boolean;
@@ -99,7 +101,7 @@ interface UserProfileContextType {
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
 
 const PROFILE_SELECT =
-  "firstName, roleType, roleTypes, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
+  "firstName, lastName, roleType, roleTypes, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, signupPlan, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
 
 export function UserProfileProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -112,14 +114,19 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
+    const requestUserId = user.id;
     if (!options?.silent) {
       setLoading(true);
     }
     const { data, error } = await supabase
       .from("profiles")
       .select(PROFILE_SELECT)
-      .eq("id", user.id)
+      .eq("id", requestUserId)
       .maybeSingle();
+
+    if (!user || user.id !== requestUserId) {
+      return;
+    }
 
     if (error) {
       console.error("Failed to load profile", error);
@@ -129,6 +136,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     } else if (data) {
       setProfileState({
         firstName: data.firstName ?? "",
+        lastName: data.lastName ?? "",
         roleType: data.roleType ?? "",
         roleTypes: parseCustomerRoleTypesFromProfile(
           Array.isArray(data.roleTypes) ? (data.roleTypes as string[]) : null,
@@ -142,6 +150,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
           (data.onboardingData as unknown as Record<string, unknown> | null) ?? null,
         subscribed: data.subscribed ?? false,
         tier: data.tier ?? null,
+        signupPlan: data.signupPlan ?? null,
         lastAssessmentDate: data.lastAssessmentDate ?? null,
         nextReassessmentDate: data.nextReassessmentDate ?? null,
         canReassessOnDemand: data.canReassessOnDemand ?? false,
@@ -167,8 +176,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (authLoading) return;
+    setProfileState(null);
     loadProfile();
-  }, [authLoading, loadProfile]);
+  }, [authLoading, user?.id, loadProfile]);
 
   const saveOnboarding = useCallback(
     async (payload: OnboardingPayload, options?: SaveOnboardingOptions) => {

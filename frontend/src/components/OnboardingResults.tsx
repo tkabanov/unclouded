@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import { ArrowRight, Shield, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Shield, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { computeResults } from "@/lib/classification";
@@ -9,6 +8,8 @@ import {
   type OnboardingModulePreview,
 } from "@/lib/modules/moduleScheduler";
 import ClassificationShareCard from "@/components/share/ClassificationShareCard";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
 
 interface OnboardingResultsProps {
   firstName: string;
@@ -32,6 +33,7 @@ interface OnboardingResultsProps {
   modulePreview?: OnboardingModulePreview;
   referralCode?: string | null;
   onComplete: () => void;
+  onSaveAndContinueLater: () => void;
 }
 
 function ScoreGauge({ label, score }: { label: string; score: number }) {
@@ -72,6 +74,8 @@ const OnboardingResults = ({
   modulePreview: modulePreviewProp,
   referralCode,
   onComplete,
+  onSaveAndContinueLater,
+  savingLater,
 }: OnboardingResultsProps) => {
   const results = useMemo(
     () =>
@@ -255,18 +259,12 @@ const OnboardingResults = ({
           </p>
         </div>
 
-        {/* CTA (bTIQe) */}
-        <div className="text-center pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={onComplete}
-            className="group"
-          >
-            Go to my dashboard
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={onComplete}
+          continueLabel="Go to my dashboard"
+          onSaveAndContinueLater={onSaveAndContinueLater}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
+import { onboardingOptionButtonClass } from "@/components/onboarding/onboardingOptionStyles";
 
-interface OnboardingBehavioralProps {
+interface OnboardingBehavioralProps extends OnboardingStepChromeProps {
   firstName: string;
+  defaultAnswers?: Record<string, string>;
   onNext: (data: { pressure_response_pattern: string; non_followthrough_reason: string }) => void;
+  onSaveAndContinueLater: (patch: { behavioralPatterns: Record<string, string> }) => void;
 }
 
 const questions = [
@@ -33,10 +36,24 @@ const questions = [
   },
 ];
 
-const OnboardingBehavioral = ({ firstName, onNext }: OnboardingBehavioralProps) => {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+const OnboardingBehavioral = ({
+  firstName,
+  defaultAnswers = {},
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingBehavioralProps) => {
+  const [answers, setAnswers] = useState<Record<string, string>>(defaultAnswers);
 
   const allAnswered = questions.every((q) => answers[q.field] !== undefined);
+
+  const handleContinue = () => {
+    if (!allAnswered) return;
+    onNext({
+      pressure_response_pattern: answers.pressure_response_pattern,
+      non_followthrough_reason: answers.non_followthrough_reason,
+    });
+  };
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
@@ -67,12 +84,7 @@ const OnboardingBehavioral = ({ firstName, onNext }: OnboardingBehavioralProps) 
                     <button
                       key={opt.value}
                       onClick={() => setAnswers((prev) => ({ ...prev, [q.field]: opt.value }))}
-                      className={cn(
-                        "w-full text-left px-3.5 py-2.5 rounded-lg border transition-all text-sm",
-                        isSelected
-                          ? "border-primary bg-primary/10 text-foreground font-medium"
-                          : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
-                      )}
+                      className={onboardingOptionButtonClass(isSelected)}
                     >
                       {opt.label}
                     </button>
@@ -83,21 +95,12 @@ const OnboardingBehavioral = ({ firstName, onNext }: OnboardingBehavioralProps) 
           ))}
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={() => allAnswered && onNext({
-              pressure_response_pattern: answers.pressure_response_pattern,
-              non_followthrough_reason: answers.non_followthrough_reason,
-            })}
-            disabled={!allAnswered}
-            className="group"
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={handleContinue}
+          continueDisabled={!allAnswered}
+          onSaveAndContinueLater={() => onSaveAndContinueLater({ behavioralPatterns: answers })}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

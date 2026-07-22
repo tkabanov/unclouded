@@ -124,3 +124,54 @@ export function addNinetyDaysIso(fromIso: string = new Date().toISOString()): st
   const base = Number.isNaN(t) ? Date.now() : t;
   return new Date(base + NINETY_DAYS_MS).toISOString();
 }
+
+export type ReassessmentCtaState =
+  | { kind: "upgrade" }
+  | { kind: "available"; label: "Start reassessment" | "Reassess now" }
+  | { kind: "locked"; cycleDays: 30 | 90; daysRemaining: number };
+
+/** Dashboard reassessment button — always visible after onboarding. */
+export function resolveReassessmentCtaState(
+  ctx: ReassessmentDateContext,
+  nowMs = Date.now(),
+): ReassessmentCtaState {
+  if (!isPaidReassessmentTier(ctx.tier)) {
+    return { kind: "upgrade" };
+  }
+
+  if (canAccessReassessment(ctx, nowMs)) {
+    return {
+      kind: "available",
+      label: canShowReassessNow(ctx, nowMs) && !isReassessmentDue(ctx, nowMs)
+        ? "Reassess now"
+        : "Start reassessment",
+    };
+  }
+
+  if (canShowPremiumOnDemandLocked(ctx, nowMs)) {
+    return {
+      kind: "locked",
+      cycleDays: 30,
+      daysRemaining: daysUntilPremiumOnDemand(ctx, nowMs),
+    };
+  }
+
+  return {
+    kind: "locked",
+    cycleDays: 90,
+    daysRemaining: daysUntilReassessmentDue(ctx, nowMs),
+  };
+}
+
+export function reassessmentCtaButtonLabel(state: ReassessmentCtaState): string {
+  switch (state.kind) {
+    case "upgrade":
+      return "Unlock Your 90-Day Reassessment";
+    case "available":
+      return state.label;
+    case "locked": {
+      const dayWord = state.daysRemaining === 1 ? "Day" : "Days";
+      return `${state.cycleDays}-Day Reassessment Available In ${state.daysRemaining} ${dayWord}`;
+    }
+  }
+}

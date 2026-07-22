@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { createConversation } from "@/lib/chat/chatConversationsApi";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import {
   canStartNewChatSession,
   FREE_TIER_UPSELL_MESSAGE,
@@ -38,6 +39,7 @@ export function useNewConversation({
         onboardingData,
       })
     ) {
+      trackProductEvent("paywall_shown", { surface: "new_conversation" });
       toast.error(FREE_TIER_UPSELL_MESSAGE);
       return;
     }
@@ -45,6 +47,7 @@ export function useNewConversation({
     setCreating(true);
     try {
       const created = await createConversation(userId, onboardingData ?? null);
+      trackProductEvent("session_started", { conversation_id: created.id });
       setConversationId(created.id);
       onCreated?.();
     } catch {

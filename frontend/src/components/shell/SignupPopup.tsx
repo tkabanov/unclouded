@@ -6,6 +6,25 @@ import {
   getSignUpErrorMessage,
   signUpWithEmailPassword,
 } from "@/lib/auth/credentialsApi";
+import {
+  buildPendingAttributionProperties,
+  trackProductEvent,
+} from "@/lib/analytics/productAnalytics";
+import {
+  buildSignupPlanMetadata,
+  clearPendingSignupPlan,
+  peekPendingSignupPlan,
+} from "@/lib/share/planAttribution";
+import {
+  buildSignupReferralMetadata,
+  clearPendingReferralCode,
+  peekPendingReferralCode,
+} from "@/lib/share/referralAttribution";
+import {
+  buildSignupUtmMetadata,
+  clearPendingUtmParams,
+  peekPendingUtmParams,
+} from "@/lib/share/utmAttribution";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -66,8 +85,24 @@ const SignupPopup = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: SignupP
     }
 
     setLoading(true);
+    const referralCode = peekPendingReferralCode();
+    const utmParams = peekPendingUtmParams();
+    const signupPlan = peekPendingSignupPlan();
+    const metadata = {
+      ...buildSignupReferralMetadata(referralCode),
+      ...buildSignupUtmMetadata(utmParams),
+      ...buildSignupPlanMetadata(signupPlan),
+    };
     try {
-      await signUpWithEmailPassword(parsed.data.email, parsed.data.password);
+      await signUpWithEmailPassword(
+        parsed.data.email,
+        parsed.data.password,
+        Object.keys(metadata).length > 0 ? metadata : undefined,
+      );
+      clearPendingReferralCode();
+      clearPendingUtmParams();
+      clearPendingSignupPlan();
+      trackProductEvent("signup_completed", buildPendingAttributionProperties());
       toast.success("Account created — let's get you set up.");
       handleOpenChange(false);
       onSuccess();

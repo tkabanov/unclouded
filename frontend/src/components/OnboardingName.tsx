@@ -1,29 +1,39 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
 
 export interface OnboardingNameValues {
   firstName: string;
   lastName: string;
 }
 
-interface OnboardingNameProps {
+interface OnboardingNameProps extends OnboardingStepChromeProps {
+  defaultFirstName?: string;
+  defaultLastName?: string;
   onNext: (values: OnboardingNameValues) => void;
+  onSaveAndContinueLater: (values: OnboardingNameValues) => void;
 }
 
-const OnboardingName = ({ onNext }: OnboardingNameProps) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+const OnboardingName = ({
+  defaultFirstName = "",
+  defaultLastName = "",
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingNameProps) => {
+  const [firstName, setFirstName] = useState(defaultFirstName);
+  const [lastName, setLastName] = useState(defaultLastName);
 
   const trimmedFirstName = firstName.trim();
   const trimmedLastName = lastName.trim();
   const canContinue = trimmedFirstName.length > 0 && trimmedLastName.length > 0;
+  const currentValues = { firstName: trimmedFirstName, lastName: trimmedLastName };
 
   const handleContinue = () => {
     if (!canContinue) return;
-    onNext({ firstName: trimmedFirstName, lastName: trimmedLastName });
+    onNext(currentValues);
   };
 
   return (
@@ -74,18 +84,12 @@ const OnboardingName = ({ onNext }: OnboardingNameProps) => {
           </div>
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className="group"
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={handleContinue}
+          continueDisabled={!canContinue}
+          onSaveAndContinueLater={() => onSaveAndContinueLater(currentValues)}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

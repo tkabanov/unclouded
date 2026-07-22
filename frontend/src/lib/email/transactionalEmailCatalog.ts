@@ -203,14 +203,13 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
   {
     id: "onboarding_dropoff",
     name: "Onboarding drop-off",
-    trigger: "Onboarding incomplete after 24hr",
+    trigger: "Onboarding incomplete after 24hr (daily cron → edge fn onboarding-dropoff)",
     subject: "Your PuP 360 results are waiting for you",
     priority: "high",
     channel: "edge_smtp",
-    status: "placeholder",
+    status: "live",
     source: "phase2_section8",
     from: TRANSACTIONAL_EMAIL_FROM,
-    placeholderReason: PLACEHOLDER_EDGE_SMTP,
   },
   {
     id: "reassessment_90_day",

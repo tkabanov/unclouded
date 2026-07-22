@@ -1,4 +1,8 @@
 import { computeResults, type ResultsData } from "@/lib/classification";
+import {
+  identifyUser,
+  trackProductEvent,
+} from "@/lib/analytics/productAnalytics";
 import { scheduleWelcomeEmailAfterOnboarding } from "@/lib/email/transactionalEmailHooks";
 import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
 import { syncLegacyRoleType } from "@/lib/enums/customerRoleTypes";
@@ -123,6 +127,14 @@ export async function completeOnboarding(
   await runOnboardingProfilePipeline(userId);
 
   await markOnboardingComplete();
+
+  trackProductEvent("onboarding_completed");
+  trackProductEvent("classification_assigned", {
+    classification: results.classification?.name ?? results.classification?.key ?? null,
+  });
+  identifyUser(userId, {
+    classification: results.classification?.name ?? results.classification?.key ?? null,
+  });
 
   try {
     await recordInitialAssessment(userId, results);

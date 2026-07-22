@@ -15,6 +15,7 @@ export const DASHBOARD_ROUTE = "/dashboard" as const;
 /** Two-column dashboard grid. */
 
 /** Left column anchor — daily check-in widget group (DASH-04). */
+export const DASHBOARD_DAILY_CHECKIN_ID = "dashboard-daily-checkin" as const;
 
 /** Right column widget slots (DASH-05–DASH-07). */
 

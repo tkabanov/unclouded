@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 import { ChatCommitmentAwaitingBanner } from "./ChatCommitmentAwaitingBanner";
 import { ChatComposer, type ChatComposerProps } from "./ChatComposer";
-import { ChatFloatingDisclaimer } from "./ChatFloatingDisclaimer";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessagesList } from "./ChatMessagesList";
+import { CHAT_COMPOSER_DISCLAIMER } from "./types";
 import type { ChatConversation, ChatMessage } from "./types";
 
 export type ChatReusableProps = {
@@ -15,11 +16,10 @@ export type ChatReusableProps = {
   composerValue: string;
   onComposerChange: ChatComposerProps["onChange"];
   onSend: ChatComposerProps["onSend"];
-  onSuggestionSend?: ChatComposerProps["onSuggestionSend"];
+  onSuggestionSend?: (text: string) => void;
   composerDisabled?: boolean;
   composerLeadingSlot?: ReactNode;
   isAssistantTyping?: boolean;
-  disclaimerCollapsed?: boolean;
   onEndSession?: () => void;
   endSessionDisabled?: boolean;
   endSessionLabel?: string;
@@ -29,7 +29,7 @@ export type ChatReusableProps = {
 };
 
 /**
- * RE - chat shell (bTIRW): header, messages, composer, floating disclaimer.
+ * Lovable-style chat shell: optional session header, messages, composer with footer disclaimer.
  */
 export function ChatReusable({
   conversation,
@@ -41,7 +41,6 @@ export function ChatReusable({
   composerDisabled,
   composerLeadingSlot,
   isAssistantTyping,
-  disclaimerCollapsed,
   onEndSession,
   endSessionDisabled,
   endSessionLabel,
@@ -50,34 +49,39 @@ export function ChatReusable({
   className,
 }: ChatReusableProps) {
   return (
-    <section
-      className={cn("flex h-full min-h-0 flex-col", className)}
-    >
-      <ChatHeader
-        conversation={conversation}
-        onEndSession={onEndSession}
-        endSessionDisabled={endSessionDisabled}
-        endSessionLabel={endSessionLabel}
-      />
+    <section className={cn("flex h-full min-h-0 flex-col", className)}>
+      {onEndSession ? (
+        <ChatHeader
+          conversation={conversation}
+          onEndSession={onEndSession}
+          endSessionDisabled={endSessionDisabled}
+          endSessionLabel={endSessionLabel}
+        />
+      ) : null}
 
       <ChatMessagesList
         messages={messages}
         isAssistantTyping={isAssistantTyping}
         commitmentPromptMessageId={commitmentPromptMessageId}
+        onSuggestionSend={onSuggestionSend}
+        suggestionsDisabled={composerDisabled}
       />
 
-      <div className="relative shrink-0">
+      <div className="relative shrink-0 border-t border-border bg-card/60 px-4 py-3">
         {awaitingCommitment ? <ChatCommitmentAwaitingBanner channel="text" /> : null}
-        <ChatFloatingDisclaimer collapsed={disclaimerCollapsed} />
-        <ChatComposer
-          value={composerValue}
-          onChange={onComposerChange}
-          onSend={onSend}
-          onSuggestionSend={onSuggestionSend}
-          disabled={composerDisabled}
-          leadingSlot={composerLeadingSlot}
-          mode={awaitingCommitment ? "commitment" : "default"}
-        />
+        <div className="mx-auto w-full max-w-3xl">
+          <ChatComposer
+            value={composerValue}
+            onChange={onComposerChange}
+            onSend={onSend}
+            disabled={composerDisabled}
+            leadingSlot={composerLeadingSlot}
+            mode={awaitingCommitment ? "commitment" : "default"}
+          />
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            {CHAT_COMPOSER_DISCLAIMER}
+          </p>
+        </div>
       </div>
     </section>
   );

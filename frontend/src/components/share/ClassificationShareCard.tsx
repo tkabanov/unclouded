@@ -16,6 +16,10 @@ import {
   SHARE_CARD_BRAND,
 } from "@/lib/share/classificationShareCardImage";
 import { ensureReferralCode } from "@/lib/share/referralCodeApi";
+import {
+  fetchMyReferralSignUpCount,
+  formatReferralSignUpCountMessage,
+} from "@/lib/share/referralStatsApi";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import logoIconUrl from "@/assets/uncloud-icon.png";
@@ -35,38 +39,38 @@ function ClassificationShareCardPreview({
   return (
     <div
       className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-border shadow-sm"
-      style={{ aspectRatio: "9 / 16", backgroundColor: SHARE_CARD_BRAND.background }}
+      style={{ backgroundColor: SHARE_CARD_BRAND.background }}
       aria-hidden
     >
       <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: SHARE_CARD_BRAND.teal }} />
-      <div className="flex h-full flex-col items-center px-6 pb-8 pt-10 text-center">
-        <img src={logoIconUrl} alt="" className="h-16 w-auto" />
-        <div className="mt-8 space-y-4">
+      <div className="flex flex-col items-center px-5 py-6 text-center">
+        <img src={logoIconUrl} alt="" className="h-11 w-auto" />
+        <div className="mt-4 space-y-2">
           <p
-            className="text-2xl font-bold leading-tight"
+            className="text-xl font-bold leading-tight"
             style={{ color: SHARE_CARD_BRAND.navy }}
           >
             {card.classificationName}
           </p>
-          <p className="text-sm leading-relaxed" style={{ color: SHARE_CARD_BRAND.muted }}>
+          <p className="text-sm leading-snug" style={{ color: SHARE_CARD_BRAND.muted }}>
             {card.tagline}
           </p>
         </div>
         <div
-          className="mt-auto w-full rounded-2xl px-4 py-5"
+          className="mt-5 w-full rounded-xl px-4 py-3.5"
           style={{ backgroundColor: SHARE_CARD_BRAND.tealLight }}
         >
           <p className="text-sm font-semibold" style={{ color: SHARE_CARD_BRAND.teal }}>
             Join me on Uncloud360
           </p>
           <p
-            className="mt-2 break-all text-xs font-medium"
+            className="mt-1.5 break-all text-xs font-medium"
             style={{ color: SHARE_CARD_BRAND.navy }}
           >
             {card.shareUrl.replace(/^https?:\/\//, "")}
           </p>
         </div>
-        <p className="mt-4 text-xs font-semibold" style={{ color: SHARE_CARD_BRAND.muted }}>
+        <p className="mt-3 text-xs font-semibold" style={{ color: SHARE_CARD_BRAND.muted }}>
           Uncloud360™
         </p>
       </div>
@@ -83,6 +87,8 @@ export default function ClassificationShareCard({
   const { user } = useAuth();
   const [referralCode, setReferralCode] = useState<string | null>(referralCodeProp ?? null);
   const [loadingCode, setLoadingCode] = useState(!referralCodeProp && Boolean(user));
+  const [referralCount, setReferralCount] = useState<number | null>(null);
+  const [loadingReferralCount, setLoadingReferralCount] = useState(Boolean(user));
   const [busyAction, setBusyAction] = useState<string | null>(null);
 
   useEffect(() => {
@@ -110,6 +116,32 @@ export default function ClassificationShareCard({
       cancelled = true;
     };
   }, [referralCodeProp, user]);
+
+  useEffect(() => {
+    if (!user) {
+      setReferralCount(null);
+      setLoadingReferralCount(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingReferralCount(true);
+
+    fetchMyReferralSignUpCount()
+      .then((count) => {
+        if (!cancelled) setReferralCount(count);
+      })
+      .catch(() => {
+        if (!cancelled) setReferralCount(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingReferralCount(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const resolvedOrigin =
     origin ?? (typeof window !== "undefined" ? window.location.origin : "https://uncloud360.ai");
@@ -234,6 +266,14 @@ export default function ClassificationShareCard({
       <div className={cn(bubbleStyle("Group_badge_primary_"), "inline-flex w-fit px-3 py-1 text-xs font-medium")}>
         {loadingCode ? "Preparing referral link…" : `Referral code: ${card.referralCode}`}
       </div>
+
+      {user && (loadingReferralCount || referralCount != null) ? (
+        <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+          {loadingReferralCount
+            ? "Checking referral sign-ups…"
+            : formatReferralSignUpCountMessage(referralCount ?? 0)}
+        </p>
+      ) : null}
 
       <div className="grid gap-2 sm:grid-cols-2">
         <Button

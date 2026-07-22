@@ -164,3 +164,25 @@ export async function requestInvoices(): Promise<BillingInvoice[]> {
 }
 
 export { PREMIUM_CONTACT_EMAIL };
+
+export const FOUNDING_MEMBER_PRO_PRICE = "$19";
+export const FOUNDING_MEMBER_BADGE = "Founding member";
+
+/** Apply founding campaign pricing to the Pro plan row when captured at signup. */
+export function applyFoundingMemberPlanPricing(
+  plans: SubscriptionPlanRow[],
+  signupPlan: string | null | undefined,
+): SubscriptionPlanRow[] {
+  if (signupPlan !== "founding") return plans;
+
+  return plans.map((plan) =>
+    plan.id === "pro"
+      ? {
+          ...plan,
+          price: FOUNDING_MEMBER_PRO_PRICE,
+          badge: FOUNDING_MEMBER_BADGE,
+          tagline: "Your founding member rate — locked for life once billing connects.",
+        }
+      : plan,
+  );
+}

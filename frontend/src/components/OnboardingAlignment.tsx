@@ -1,17 +1,24 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { ALIGNMENT_QUESTIONS } from "@/lib/enums/onboardingQuestions";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
+import { onboardingOptionButtonClass } from "@/components/onboarding/onboardingOptionStyles";
 
-interface OnboardingAlignmentProps {
+interface OnboardingAlignmentProps extends OnboardingStepChromeProps {
+  defaultAnswers?: Record<string, number>;
   onNext: (scores: { aq1: number; aq2: number; aq3: number; aq4: number; aq5: number; alignment_score: number }) => void;
+  onSaveAndContinueLater: (patch: { alignmentScores: Record<string, number> }) => void;
 }
 
 const questions = ALIGNMENT_QUESTIONS;
 
-const OnboardingAlignment = ({ onNext }: OnboardingAlignmentProps) => {
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+const OnboardingAlignment = ({
+  defaultAnswers = {},
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingAlignmentProps) => {
+  const [answers, setAnswers] = useState<Record<string, number>>(defaultAnswers);
 
   const allAnswered = questions.every((q) => answers[q.field] !== undefined);
 
@@ -60,12 +67,7 @@ const OnboardingAlignment = ({ onNext }: OnboardingAlignmentProps) => {
                     <button
                       key={answer.slug}
                       onClick={() => handleSelect(q.field, answer.score)}
-                      className={cn(
-                        "w-full text-left px-3.5 py-2.5 rounded-lg border transition-all text-sm",
-                        isSelected
-                          ? "border-primary bg-primary/10 text-foreground font-medium"
-                          : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
-                      )}
+                      className={onboardingOptionButtonClass(isSelected)}
                     >
                       {answer.label}
                     </button>
@@ -76,18 +78,12 @@ const OnboardingAlignment = ({ onNext }: OnboardingAlignmentProps) => {
           ))}
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={handleContinue}
-            disabled={!allAnswered}
-            className="group"
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={handleContinue}
+          continueDisabled={!allAnswered}
+          onSaveAndContinueLater={() => onSaveAndContinueLater({ alignmentScores: answers })}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

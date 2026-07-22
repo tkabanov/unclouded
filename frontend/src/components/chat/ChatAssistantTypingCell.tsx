@@ -1,34 +1,33 @@
-import { Cloud } from "lucide-react";
+import coachAvatar from "@/assets/coach-avatar.png";
 import { cn } from "@/lib/utils";
-import { bubbleStyle } from "@/styles";
 
 export type ChatAssistantTypingCellProps = {
   className?: string;
 };
 
 /**
- * Assistant typing indicator shown while waiting for AI reply.
+ * Lovable-style assistant typing indicator.
  */
 export function ChatAssistantTypingCell({ className }: ChatAssistantTypingCellProps) {
   return (
-    <div className={cn("flex w-full items-start gap-2", className)} aria-live="polite" aria-busy="true">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
-        <Cloud
-          data-style-ref="Icon_default_"
-          className={cn(bubbleStyle("Icon_default_"), "h-4 w-4")}
-          aria-hidden
+    <div
+      className={cn("group flex w-full max-w-[95%] flex-col gap-2 is-assistant", className)}
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="flex w-fit min-w-0 max-w-full items-start gap-2">
+        <img
+          src={coachAvatar}
+          alt=""
+          width={28}
+          height={28}
+          className="mt-0.5 h-7 w-7 shrink-0 rounded-full bg-accent/50"
+          loading="lazy"
         />
-      </div>
-
-      <div className="flex items-center gap-1 rounded-2xl bg-muted px-4 py-3">
-        <span className="sr-only">Assistant is typing</span>
-        {[0, 1, 2].map((index) => (
-          <span
-            key={index}
-            className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/60"
-            style={{ animationDelay: `${index * 150}ms` }}
-          />
-        ))}
+        <p className="text-sm text-muted-foreground animate-pulse">
+          <span className="sr-only">Assistant is typing</span>
+          Thinking…
+        </p>
       </div>
     </div>
   );

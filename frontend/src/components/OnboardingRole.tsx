@@ -1,18 +1,25 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import CustomerRoleChipGroup from "@/components/CustomerRoleChipGroup";
+import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
+import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
 import { toggleCustomerRoleSelection } from "@/lib/enums/customerRoleTypes";
 
-interface OnboardingRoleProps {
+interface OnboardingRoleProps extends OnboardingStepChromeProps {
+  defaultSelected?: CustomerRoleSlug[];
   onNext: (roles: CustomerRoleSlug[]) => void;
+  onSaveAndContinueLater: (patch: { roleTypes: CustomerRoleSlug[] }) => void;
 }
 
-const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
-  const [selected, setSelected] = useState<CustomerRoleSlug[]>([]);
+const OnboardingRole = ({
+  defaultSelected = [],
+  onNext,
+  onSaveAndContinueLater,
+  savingLater,
+}: OnboardingRoleProps) => {
+  const [selected, setSelected] = useState<CustomerRoleSlug[]>(defaultSelected);
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
@@ -41,18 +48,12 @@ const OnboardingRole = ({ onNext }: OnboardingRoleProps) => {
           </p>
         </div>
 
-        <div className="pt-2">
-          <Button
-            variant="cta"
-            size="lg"
-            onClick={() => selected.length > 0 && onNext(selected)}
-            disabled={selected.length === 0}
-            className={cn(bubbleStyle("Button_primary_"), "group")}
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </div>
+        <OnboardingStepActions
+          onContinue={() => selected.length > 0 && onNext(selected)}
+          continueDisabled={selected.length === 0}
+          onSaveAndContinueLater={() => onSaveAndContinueLater({ roleTypes: selected })}
+          savingLater={savingLater}
+        />
       </div>
     </div>
   );

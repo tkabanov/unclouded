@@ -1,7 +1,6 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import PathsPageHeader from "@/components/paths/PathsPageHeader";
-import { CrisisSupportCard } from "@/components/crisis";
 import PathsTabBar from "@/components/paths/PathsTabBar";
 import PathsGridPanel from "@/components/paths/PathsGridPanel";
 import PathsResourcesPanel from "@/components/paths/PathsResourcesPanel";
@@ -70,9 +69,6 @@ function PathsPageBody() {
             className="flex w-full flex-col gap-6"
           >
             <PathsPageHeader />
-            <div>
-              <CrisisSupportCard />
-            </div>
 
             <div className="flex w-full flex-col gap-4">
               <PathsTabBar activeTab={activeTab} onSelectTab={setActiveTab} />

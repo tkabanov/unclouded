@@ -174,6 +174,14 @@ export async function getLatestReassessmentResult(
   return rows.find((row) => !row.isInitial) ?? null;
 }
 
+/** Day-0 baseline from assessment history (initial onboarding row). */
+export async function getInitialAssessmentResult(
+  userId: string,
+): Promise<AssessmentResultRow | null> {
+  const rows = await listAssessmentResults(userId);
+  return rows.find((row) => row.isInitial) ?? null;
+}
+
 /** Admin: list distinct users who have assessment history (US-504). */
 export async function listUsersWithAssessmentHistory(): Promise<
   Array<{ userId: string; firstName: string | null; email: string | null; count: number }>

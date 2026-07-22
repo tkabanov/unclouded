@@ -21,6 +21,16 @@ import {
   PROMPT_REVIEW_CADENCE_CHECKLIST,
   type PromptReviewSignals,
 } from "@/lib/admin/promptLibraryReviewAnalytics";
+import {
+  ADMIN_REFERRAL_SIGNUPS_EMPTY_TEXT,
+  ADMIN_REFERRAL_SIGNUPS_HEADING,
+  ADMIN_REFERRAL_SIGNUPS_SUBTITLE,
+  fetchReferralSignUpStats,
+  formatReferralConversionRate,
+  formatReferralSignUpDate,
+  type ReferralSignUpStat,
+} from "@/lib/settings/admin/referralSignUpAnalytics";
+import { formatReferralPartnerLabel } from "@/lib/settings/admin/referralPartnerLabels";
 import { MODULE_SLUGS } from "@/lib/modules/moduleSlugs";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -44,6 +54,7 @@ const EMPTY_STATS: AdminAnalyticsSnapshot = {
 
 export default function AdminAnalyticsTab() {
   const [stats, setStats] = useState<AdminAnalyticsSnapshot>(EMPTY_STATS);
+  const [referralSignUps, setReferralSignUps] = useState<ReferralSignUpStat[]>([]);
   const [promptReview, setPromptReview] = useState<PromptReviewSignals | null>(null);
   const [loading, setLoading] = useState(true);
   const [exportingArchive, setExportingArchive] = useState(false);
@@ -51,10 +62,15 @@ export default function AdminAnalyticsTab() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([fetchAdminAnalytics(), fetchPromptLibraryReviewSignals()])
-      .then(([snapshot, review]) => {
+    Promise.all([
+      fetchAdminAnalytics(),
+      fetchReferralSignUpStats(),
+      fetchPromptLibraryReviewSignals(),
+    ])
+      .then(([snapshot, referralStats, review]) => {
         if (!cancelled) {
           setStats(snapshot);
+          setReferralSignUps(referralStats);
           setPromptReview(review);
         }
       })
@@ -142,6 +158,24 @@ export default function AdminAnalyticsTab() {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
+        <h3 className={bubbleStyle("Text_heading_3_")}>{ADMIN_REFERRAL_SIGNUPS_HEADING}</h3>
+        <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+          {ADMIN_REFERRAL_SIGNUPS_SUBTITLE}
+        </p>
+        <ReviewTable
+          headers={["Referral code", "Sign-ups", "Paid", "Conv. rate", "Last sign-up"]}
+          rows={referralSignUps.map((row) => [
+            formatReferralPartnerLabel(row.referralCode),
+            String(row.signUpCount),
+            String(row.paidConversionCount),
+            formatReferralConversionRate(row.conversionRate),
+            formatReferralSignUpDate(row.lastSignUpAt),
+          ])}
+          emptyText={ADMIN_REFERRAL_SIGNUPS_EMPTY_TEXT}
+        />
       </div>
 
       {promptReview ? (
