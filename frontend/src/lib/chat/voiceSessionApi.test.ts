@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  computeTimeDomainRms,
   createVoiceSilenceWatcher,
+  isLikelyWhisperSilenceHallucination,
+  isVoiceInputSilent,
   playVoiceCloseRitualSilence,
+  resolveVoiceRecordingMimeType,
   VOICE_CLOSE_SILENCE_MS,
+  VOICE_INPUT_SILENCE_RMS,
   VOICE_SILENCE_HOLD_MS,
 } from "./voiceSessionApi";
 
@@ -53,5 +58,46 @@ describe("voiceSessionApi", () => {
     await promise;
     expect(settled).toBe(true);
     vi.useRealTimers();
+  });
+
+  it("flags common Whisper silence hallucinations on short clips", () => {
+    expect(isLikelyWhisperSilenceHallucination("you", 0.2)).toBe(true);
+    expect(isLikelyWhisperSilenceHallucination("you you", 0.3)).toBe(true);
+    expect(isLikelyWhisperSilenceHallucination("you", 1)).toBe(false);
+    expect(isLikelyWhisperSilenceHallucination("I feel overwhelmed", 0.2)).toBe(false);
+  });
+
+  it("flags pure-silence tokens regardless of clip length", () => {
+    // Long silent clip (e.g. 15s of room tone) still gets rejected.
+    expect(isLikelyWhisperSilenceHallucination("Silence.", 15)).toBe(true);
+    expect(isLikelyWhisperSilenceHallucination("[BLANK_AUDIO]", 12)).toBe(true);
+    expect(isLikelyWhisperSilenceHallucination("[silence]", 8)).toBe(true);
+    expect(isLikelyWhisperSilenceHallucination("...", 20)).toBe(true);
+    expect(isLikelyWhisperSilenceHallucination("", 20)).toBe(true);
+    // A real sentence of the same length is never a hallucination.
+    expect(isLikelyWhisperSilenceHallucination("I sat in silence for a while", 15)).toBe(false);
+  });
+
+  it("computeTimeDomainRms measures frame energy", () => {
+    expect(computeTimeDomainRms(new Float32Array([0, 0, 0, 0]))).toBe(0);
+    expect(computeTimeDomainRms(new Float32Array([]))).toBe(0);
+    expect(computeTimeDomainRms(new Float32Array([0.5, -0.5, 0.5, -0.5]))).toBeCloseTo(0.5);
+  });
+
+  it("isVoiceInputSilent uses the input silence RMS threshold", () => {
+    expect(isVoiceInputSilent(0)).toBe(true);
+    expect(isVoiceInputSilent(VOICE_INPUT_SILENCE_RMS - 0.001)).toBe(true);
+    expect(isVoiceInputSilent(VOICE_INPUT_SILENCE_RMS + 0.05)).toBe(false);
+  });
+
+  it("resolveVoiceRecordingMimeType prefers explicit opus webm when supported", () => {
+    const original = globalThis.MediaRecorder;
+    globalThis.MediaRecorder = class {
+      static isTypeSupported(type: string) {
+        return type === "audio/webm;codecs=opus" || type === "audio/webm";
+      }
+    } as unknown as typeof MediaRecorder;
+    expect(resolveVoiceRecordingMimeType()).toBe("audio/webm;codecs=opus");
+    globalThis.MediaRecorder = original;
   });
 });

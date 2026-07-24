@@ -52,6 +52,10 @@ export async function handleVoiceTranscribe(req: Request): Promise<Response> {
   const whisperForm = new FormData();
   whisperForm.append("file", file, file.name || "voice.webm");
   whisperForm.append("model", "whisper-1");
+  const language = formData.get("language");
+  if (typeof language === "string" && language.trim()) {
+    whisperForm.append("language", language.trim());
+  }
 
   const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",

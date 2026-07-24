@@ -4,7 +4,12 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { detectVoiceEmotionFromBlob } from "@/lib/chat/voiceEmotionSignal";
+import {
+  decodeVoiceBlobToMonoSamples,
+  detectVoiceEmotionFromBlob,
+  measureMeanRmsFromSamples,
+  voiceBlobHasAudibleSpeech,
+} from "@/lib/chat/voiceEmotionSignal";
 
 const CHAT_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
@@ -20,6 +25,102 @@ export const VOICE_SILENCE_HOLD_MS = 5000;
 export const VOICE_CLOSE_SILENCE_MS = 2500;
 
 export const KOTA_TTS_VOICE = "nova" as const;
+
+const VOICE_RECORDING_MIME_CANDIDATES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg;codecs=opus",
+] as const;
+
+/** Prefer explicit codecs — embedded Chromium often records silence/garbage with the default mime. */
+export function resolveVoiceRecordingMimeType(): string | undefined {
+  if (typeof MediaRecorder === "undefined") return undefined;
+  for (const mime of VOICE_RECORDING_MIME_CANDIDATES) {
+    if (MediaRecorder.isTypeSupported(mime)) return mime;
+  }
+  return undefined;
+}
+
+export function voiceRecordingUploadFilename(mimeType: string): string {
+  if (mimeType.includes("mp4")) return "voice.m4a";
+  if (mimeType.includes("ogg")) return "voice.ogg";
+  return "voice.webm";
+}
+
+export const VOICE_INPUT_MEDIA_CONSTRAINTS: MediaStreamConstraints = {
+  audio: {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+    channelCount: 1,
+  },
+};
+
+/**
+ * Live-input RMS (from an AnalyserNode time-domain frame) below this counts as
+ * silence for the REQ-14 5s hold. Driving the hold from real audio level — not
+ * from MediaRecorder `dataavailable` chunks, which fire even during silence.
+ */
+export const VOICE_INPUT_SILENCE_RMS = 0.01;
+
+/** RMS of a time-domain frame (values in [-1, 1]) from an AnalyserNode. */
+export function computeTimeDomainRms(frame: Float32Array): number {
+  if (frame.length === 0) return 0;
+  let sum = 0;
+  for (let i = 0; i < frame.length; i++) {
+    const value = frame[i] ?? 0;
+    sum += value * value;
+  }
+  return Math.sqrt(sum / frame.length);
+}
+
+export function isVoiceInputSilent(frameRms: number, threshold = VOICE_INPUT_SILENCE_RMS): boolean {
+  return frameRms < threshold;
+}
+
+const WHISPER_SILENCE_HALLUCINATION = /^(you(\s+you)*\.?|thank you\.?|thanks for watching\.?)$/i;
+
+/**
+ * Phrases Whisper emits on silent / near-silent clips regardless of clip length
+ * (a long clip of room tone still yields these). Bare punctuation counts too.
+ */
+const WHISPER_PURE_SILENCE_TOKENS =
+  /^(\[?\s*(silence|blank[_\s]?audio|inaudible|no speech|music|applause)\s*\]?\.?|[.…]{1,}|·+)$/i;
+
+/** Whisper often returns these on near-silent or corrupt clips (common in embedded browsers). */
+export function isLikelyWhisperSilenceHallucination(text: string, durationSec: number): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+  if (WHISPER_PURE_SILENCE_TOKENS.test(trimmed)) return true;
+  if (durationSec >= 0.6) return false;
+  return WHISPER_SILENCE_HALLUCINATION.test(trimmed);
+}
+
+export type VoiceRecordingValidation =
+  | { ok: true; uploadFilename: string; durationSec: number }
+  | { ok: false; reason: "empty" | "undecodable" | "too_quiet" };
+
+export async function validateVoiceRecordingBlob(
+  blob: Blob,
+  mimeType: string,
+): Promise<VoiceRecordingValidation> {
+  if (blob.size === 0) return { ok: false, reason: "empty" };
+
+  const decoded = await decodeVoiceBlobToMonoSamples(blob);
+  if (!decoded) return { ok: false, reason: "undecodable" };
+
+  const meanRms = measureMeanRmsFromSamples(decoded.samples, decoded.sampleRate);
+  if (!voiceBlobHasAudibleSpeech(meanRms)) {
+    return { ok: false, reason: "too_quiet" };
+  }
+
+  return {
+    ok: true,
+    uploadFilename: voiceRecordingUploadFilename(mimeType),
+    durationSec: decoded.durationSec,
+  };
+}
 
 export type VoiceTranscriptionResult = {
   text: string;
@@ -51,10 +152,14 @@ async function parseVoiceError(response: Response, fallback: string): Promise<ne
   throw new Error(message);
 }
 
-export async function transcribeVoiceBlob(audio: Blob): Promise<VoiceTranscriptionResult> {
+export async function transcribeVoiceBlob(
+  audio: Blob,
+  options?: { filename?: string; durationSec?: number },
+): Promise<VoiceTranscriptionResult> {
   const form = new FormData();
-  form.append("file", audio, "voice.webm");
+  form.append("file", audio, options?.filename ?? "voice.webm");
   form.append("model", "whisper-1");
+  form.append("language", "en");
 
   const [response, emotionAnalysis] = await Promise.all([
     fetch(`${CHAT_ENDPOINT}?voice=transcribe`, {
@@ -71,6 +176,14 @@ export async function transcribeVoiceBlob(audio: Blob): Promise<VoiceTranscripti
 
   const payload = (await response.json()) as { text?: string };
   const text = typeof payload.text === "string" ? payload.text.trim() : "";
+
+  if (
+    options?.durationSec !== undefined &&
+    text &&
+    isLikelyWhisperSilenceHallucination(text, options.durationSec)
+  ) {
+    throw new Error("No speech detected.");
+  }
 
   return { text, emotionDetected: emotionAnalysis.emotionDetected };
 }

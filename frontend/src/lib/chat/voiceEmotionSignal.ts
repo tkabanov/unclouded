@@ -12,6 +12,61 @@ export type VoiceEmotionAnalysis = {
 /** Minimum RMS mean to treat the clip as speech (not silence/noise). */
 export const VOICE_EMOTION_MIN_SPEECH_RMS = 0.008;
 
+function collectWindowedMeanRms(samples: Float32Array, sampleRate: number, windowMs = 50): number {
+  if (samples.length === 0 || sampleRate <= 0) return 0;
+
+  const windowSize = Math.max(1, Math.floor((sampleRate * windowMs) / 1000));
+  const rmsValues: number[] = [];
+
+  for (let i = 0; i < samples.length; i += windowSize) {
+    rmsValues.push(rmsWindow(samples, i, Math.min(i + windowSize, samples.length)));
+  }
+
+  if (rmsValues.length === 0) return 0;
+  return rmsValues.reduce((acc, value) => acc + value, 0) / rmsValues.length;
+}
+
+/** Mean RMS of a decoded clip — used to reject silent recordings before Whisper. */
+export function measureMeanRmsFromSamples(samples: Float32Array, sampleRate: number): number {
+  return collectWindowedMeanRms(samples, sampleRate);
+}
+
+export async function decodeVoiceBlobToMonoSamples(
+  blob: Blob,
+): Promise<{ samples: Float32Array; sampleRate: number; durationSec: number } | null> {
+  if (typeof AudioContext === "undefined" || blob.size === 0) {
+    return null;
+  }
+
+  const audioContext = new AudioContext();
+  try {
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    return {
+      samples: audioBuffer.getChannelData(0),
+      sampleRate: audioBuffer.sampleRate,
+      durationSec: audioBuffer.duration,
+    };
+  } catch {
+    return null;
+  } finally {
+    await audioContext.close().catch(() => undefined);
+  }
+}
+
+export async function measureVoiceBlobMeanRms(blob: Blob): Promise<number | null> {
+  const decoded = await decodeVoiceBlobToMonoSamples(blob);
+  if (!decoded) return null;
+  return measureMeanRmsFromSamples(decoded.samples, decoded.sampleRate);
+}
+
+export function voiceBlobHasAudibleSpeech(
+  meanRms: number,
+  minRms = VOICE_EMOTION_MIN_SPEECH_RMS,
+): boolean {
+  return meanRms >= minRms;
+}
+
 /** Coefficient-of-variation threshold for elevated vocal dynamics. */
 export const VOICE_EMOTION_CV_THRESHOLD = 0.55;
 
@@ -46,7 +101,7 @@ export function analyzeVoiceEmotionFromSamples(
     return { emotionDetected: false };
   }
 
-  const mean = rmsValues.reduce((acc, value) => acc + value, 0) / rmsValues.length;
+  const mean = collectWindowedMeanRms(samples, sampleRate, windowMs);
   if (mean < VOICE_EMOTION_MIN_SPEECH_RMS) {
     return { emotionDetected: false };
   }
@@ -67,19 +122,9 @@ export function analyzeVoiceEmotionFromSamples(
 
 /** Decode a recorded voice blob and detect vocal emotion (browser only). */
 export async function detectVoiceEmotionFromBlob(blob: Blob): Promise<VoiceEmotionAnalysis> {
-  if (typeof AudioContext === "undefined" || blob.size === 0) {
+  const decoded = await decodeVoiceBlobToMonoSamples(blob);
+  if (!decoded) {
     return { emotionDetected: false };
   }
-
-  const audioContext = new AudioContext();
-  try {
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
-    const channelData = audioBuffer.getChannelData(0);
-    return analyzeVoiceEmotionFromSamples(channelData, audioBuffer.sampleRate);
-  } catch {
-    return { emotionDetected: false };
-  } finally {
-    await audioContext.close().catch(() => undefined);
-  }
+  return analyzeVoiceEmotionFromSamples(decoded.samples, decoded.sampleRate);
 }
