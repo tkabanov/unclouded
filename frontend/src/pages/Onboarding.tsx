@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import ReassessmentFlow from "@/components/ReassessmentFlow";
 import ReassessmentResultsReview from "@/components/reassessment/ReassessmentResultsReview";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
+import OnboardingWorkplaceCode from "@/components/OnboardingWorkplaceCode";
 import OnboardingName from "@/components/OnboardingName";
 import OnboardingRole from "@/components/OnboardingRole";
 import OnboardingPillar from "@/components/OnboardingPillar";
@@ -22,6 +23,7 @@ import { ensureReferralCode } from "@/lib/share/referralCodeApi";
 import { computeOnboardingModulePreview } from "@/lib/modules/moduleScheduler";
 import {
   EMPTY_HEALTH_FLAGS,
+  ONBOARDING_WORKPLACE_CODE_SKIPPED_KEY,
   buildOnboardingDraftPayload,
   mergeOnboardingFormState,
   readOnboardingFormStateFromProfile,
@@ -198,7 +200,14 @@ const Onboarding = () => {
     hydratedFromProfile.current = true;
     applyFormPatch(form);
     if (resumeStep) {
-      setStep(resumeStep);
+      const onboardingData = profile.onboardingData ?? {};
+      const skippedWorkplaceCode =
+        onboardingData[ONBOARDING_WORKPLACE_CODE_SKIPPED_KEY] === true;
+      setStep(
+        resumeStep === ONBOARDING_STEP.WORKPLACE_CODE && skippedWorkplaceCode
+          ? ONBOARDING_STEP.NAME
+          : resumeStep,
+      );
     }
   }, [applyFormPatch, profile, profileLoading]);
 
@@ -231,6 +240,23 @@ const Onboarding = () => {
       cancelled = true;
     };
   }, [step, user]);
+
+  const skipWorkplaceCode = useCallback(async () => {
+    const nextStep = advanceStep(ONBOARDING_STEP.WORKPLACE_CODE);
+    if (!nextStep) return;
+    try {
+      await persistOnboardingDraft({
+        onboardingData: {
+          ...(profile?.onboardingData ?? {}),
+          [ONBOARDING_WORKPLACE_CODE_SKIPPED_KEY]: true,
+          onboardingStep: nextStep,
+        },
+      });
+      setStep(nextStep);
+    } catch (err) {
+      console.error("Failed to skip workplace code step", err);
+    }
+  }, [persistOnboardingDraft, profile?.onboardingData]);
 
   const handleComplete = async () => {
     if (!user) {
@@ -280,6 +306,15 @@ const Onboarding = () => {
           <OnboardingWelcome
             onNext={() => void completeStep(ONBOARDING_STEP.WELCOME)}
             onSkip={() => navigate("/dashboard")}
+          />
+        );
+      case ONBOARDING_STEP.WORKPLACE_CODE:
+        return (
+          <OnboardingWorkplaceCode
+            onNext={() => void completeStep(ONBOARDING_STEP.WORKPLACE_CODE)}
+            onSkip={() => void skipWorkplaceCode()}
+            onEnrolled={() => refresh()}
+            savingLater={savingLater}
           />
         );
       case ONBOARDING_STEP.NAME:

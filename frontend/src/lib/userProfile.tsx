@@ -31,6 +31,9 @@ export interface UserProfile {
   onboardingData: Record<string, unknown> | null;
   subscribed: boolean;
   tier: string | null;
+  accountType: string;
+  enterpriseTier: string | null;
+  enrollmentDate: string | null;
   signupPlan: string | null;
   lastAssessmentDate: string | null;
   nextReassessmentDate: string | null;
@@ -101,7 +104,7 @@ interface UserProfileContextType {
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
 
 const PROFILE_SELECT =
-  "firstName, lastName, roleType, roleTypes, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, signupPlan, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
+  "firstName, lastName, roleType, roleTypes, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, accountType, enterpriseTier, enrollmentDate, signupPlan, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
 
 export function UserProfileProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -150,6 +153,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
           (data.onboardingData as unknown as Record<string, unknown> | null) ?? null,
         subscribed: data.subscribed ?? false,
         tier: data.tier ?? null,
+        accountType: data.accountType ?? "individual",
+        enterpriseTier: data.enterpriseTier ?? null,
+        enrollmentDate: data.enrollmentDate ?? null,
         signupPlan: data.signupPlan ?? null,
         lastAssessmentDate: data.lastAssessmentDate ?? null,
         nextReassessmentDate: data.nextReassessmentDate ?? null,
@@ -273,7 +279,12 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       if (!user) throw new Error("Not authenticated");
       if (!profile?.results) throw new Error("No prior assessment results");
 
-      const tier = resolveCurrentTier(profile.subscribed, profile.tier);
+      const tier = resolveCurrentTier(
+        profile.subscribed,
+        profile.tier,
+        profile.accountType,
+        profile.enterpriseTier,
+      );
       const result = await completeReassessment({
         userId: user.id,
         tier,

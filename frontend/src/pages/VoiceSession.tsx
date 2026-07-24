@@ -70,6 +70,8 @@ export default function VoiceSession() {
       !canStartNewChatSession({
         tier: profile?.tier ?? null,
         subscribed: profile?.subscribed ?? false,
+        accountType: profile?.accountType ?? null,
+        enterpriseTier: profile?.enterpriseTier ?? null,
         onboardingData: profile?.onboardingData ?? null,
       })
     ) {

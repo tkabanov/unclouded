@@ -1,8 +1,15 @@
 import type { WeeklyTrendPoint } from "@/lib/employer/employerMetricsHelpers";
 
+export type TrendSparklinePlottedPoint = {
+  x: number;
+  y: number;
+  weekStart: string;
+};
+
 export type TrendSparklineGeometry = {
   polyline: string;
   lastPoint: { x: number; y: number } | null;
+  plottedPoints: TrendSparklinePlottedPoint[];
 };
 
 export function buildTrendSparklineGeometry(
@@ -30,14 +37,15 @@ export function buildTrendSparklineGeometry(
       const x = padding + (index / lastIndex) * innerWidth;
       const normalized = (point.value - minValue) / range;
       const y = padding + innerHeight - normalized * innerHeight;
-      return { x, y };
+      return { x, y, weekStart: point.weekStart };
     })
-    .filter((point): point is { x: number; y: number } => point !== null);
+    .filter((point): point is TrendSparklinePlottedPoint => point !== null);
 
   if (plotted.length === 0) return null;
 
   return {
     polyline: plotted.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" "),
     lastPoint: plotted[plotted.length - 1] ?? null,
+    plottedPoints: plotted,
   };
 }

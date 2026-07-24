@@ -55,4 +55,31 @@ describe("chatSessionLimit", () => {
       true,
     );
   });
+
+  it("bypasses session limits for enterprise accounts", () => {
+    const onboardingData = {
+      chat_ai_monthly_usage: {
+        monthKey,
+        sessionConversationIds: ["1", "2", "3", "4", "5", "6", "7", "8"],
+      },
+    };
+    expect(
+      isAtFreeTierSessionLimit({
+        tier: "free",
+        subscribed: false,
+        accountType: "enterprise",
+        enterpriseTier: "pro",
+        onboardingData,
+      }),
+    ).toBe(false);
+    expect(
+      canStartNewChatSession({
+        tier: "free",
+        subscribed: false,
+        accountType: "enterprise",
+        enterpriseTier: "pro",
+        onboardingData,
+      }),
+    ).toBe(true);
+  });
 });

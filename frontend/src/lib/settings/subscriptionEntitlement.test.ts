@@ -59,6 +59,10 @@ describe("resolveCurrentTier", () => {
     expect(resolveCurrentTier(true, null)).toBe("pro");
     expect(resolveCurrentTier(false, null)).toBe("free");
   });
+
+  it("uses enterprise tier when accountType is enterprise", () => {
+    expect(resolveCurrentTier(false, "free", "enterprise", "premium")).toBe("premium");
+  });
 });
 
 describe("subscriptionEntitlement helpers", () => {

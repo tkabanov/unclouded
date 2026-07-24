@@ -7,10 +7,18 @@ export const ADMIN_WORKPLACES_ONBOARDING_KEY = "admin_workplaces" as const;
 
 export { isValidUuid };
 
+export type ContractTier = "pro" | "premium";
+
 export interface AdminWorkplaceRecord {
   workplaceId: string;
   name: string;
   contactEmail: string;
+  contractTier: ContractTier;
+  seatCount: number;
+  contractStartDate: string | null;
+  contractEndDate: string | null;
+  isActive: boolean;
+  activeSeats?: number;
   /** False for legacy onboarding-only rows with non-UUID ids — metrics need the DB table. */
   metricsReady: boolean;
 }
@@ -18,12 +26,22 @@ export interface AdminWorkplaceRecord {
 export type AdminWorkplaceFormState = {
   name: string;
   contactEmail: string;
+  contractTier: ContractTier;
+  seatCount: number;
+  contractStartDate: string;
+  contractEndDate: string;
+  isActive: boolean;
 };
 
 type WorkplaceRow = {
   id?: string;
   name?: string;
   contactEmail?: string;
+  contractTier?: string;
+  seatCount?: number;
+  contractStartDate?: string | null;
+  contractEndDate?: string | null;
+  isActive?: boolean;
 };
 
 type UntypedSupabase = {
@@ -35,6 +53,10 @@ export type AdminWorkplacesLoadResult = {
   dataSource: AdminDataSource;
 };
 
+function normalizeContractTier(value: string | null | undefined): ContractTier {
+  return value?.trim().toLowerCase() === "premium" ? "premium" : "pro";
+}
+
 function toAdminWorkplace(row: WorkplaceRow, metricsReady: boolean): AdminWorkplaceRecord | null {
   const name = row.name?.trim();
   const contactEmail = row.contactEmail?.trim();
@@ -45,6 +67,11 @@ function toAdminWorkplace(row: WorkplaceRow, metricsReady: boolean): AdminWorkpl
     workplaceId,
     name,
     contactEmail,
+    contractTier: normalizeContractTier(row.contractTier),
+    seatCount: typeof row.seatCount === "number" && row.seatCount > 0 ? row.seatCount : 50,
+    contractStartDate: row.contractStartDate ?? null,
+    contractEndDate: row.contractEndDate ?? null,
+    isActive: row.isActive !== false,
     metricsReady: metricsReady && isValidUuid(workplaceId),
   };
 }
@@ -99,7 +126,9 @@ async function writeOnboardingWorkplaces(userId: string, rows: WorkplaceRow[]): 
 
 async function tryFetchWorkplacesFromTable(): Promise<AdminWorkplaceRecord[] | null> {
   const client = supabase as unknown as UntypedSupabase;
-  const { data, error } = await client.from("workplace").select("id, name, contactEmail");
+  const { data, error } = await client.from("workplace").select(
+    'id, name, contactEmail, contractTier, seatCount, contractStartDate, contractEndDate, isActive',
+  );
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -135,6 +164,26 @@ function validateWorkplaceForm(form: AdminWorkplaceFormState): void {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail.trim())) {
     throw new Error("Enter a valid contact email.");
   }
+  if (!Number.isFinite(form.seatCount) || form.seatCount <= 0) {
+    throw new Error("Seat count must be at least 1.");
+  }
+}
+
+function normalizeOptionalDate(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+function workplaceInsertPayload(form: AdminWorkplaceFormState): Record<string, unknown> {
+  return {
+    name: form.name.trim(),
+    contactEmail: form.contactEmail.trim(),
+    contractTier: form.contractTier,
+    seatCount: form.seatCount,
+    contractStartDate: normalizeOptionalDate(form.contractStartDate),
+    contractEndDate: normalizeOptionalDate(form.contractEndDate),
+    isActive: form.isActive,
+  };
 }
 
 export async function createAdminWorkplace(
@@ -146,11 +195,8 @@ export async function createAdminWorkplace(
   const client = supabase as unknown as UntypedSupabase;
   const { data: inserted, error: tableError } = await client
     .from("workplace")
-    .insert({
-      name: form.name.trim(),
-      contactEmail: form.contactEmail.trim(),
-    } as never)
-    .select("id, name, contactEmail")
+    .insert(workplaceInsertPayload(form) as never)
+    .select('id, name, contactEmail, contractTier, seatCount, contractStartDate, contractEndDate, isActive')
     .maybeSingle();
 
   if (!tableError && inserted) {
@@ -165,6 +211,11 @@ export async function createAdminWorkplace(
     id: crypto.randomUUID(),
     name: form.name.trim(),
     contactEmail: form.contactEmail.trim(),
+    contractTier: form.contractTier,
+    seatCount: form.seatCount,
+    contractStartDate: normalizeOptionalDate(form.contractStartDate),
+    contractEndDate: normalizeOptionalDate(form.contractEndDate),
+    isActive: form.isActive,
   };
 
   const existing = await readOnboardingWorkplaces(userId);
@@ -203,14 +254,25 @@ function workplaceRowFromForm(form: AdminWorkplaceFormState, workplaceId: string
     id: workplaceId,
     name: form.name.trim(),
     contactEmail: form.contactEmail.trim(),
+    contractTier: form.contractTier,
+    seatCount: form.seatCount,
+    contractStartDate: normalizeOptionalDate(form.contractStartDate),
+    contractEndDate: normalizeOptionalDate(form.contractEndDate),
+    isActive: form.isActive,
   };
 }
 
 function workplaceRowFromRecord(workplace: AdminWorkplaceRecord): WorkplaceRow {
-  return workplaceRowFromForm(
-    { name: workplace.name, contactEmail: workplace.contactEmail },
-    workplace.workplaceId,
-  );
+  return {
+    id: workplace.workplaceId,
+    name: workplace.name,
+    contactEmail: workplace.contactEmail,
+    contractTier: workplace.contractTier,
+    seatCount: workplace.seatCount,
+    contractStartDate: workplace.contractStartDate,
+    contractEndDate: workplace.contractEndDate,
+    isActive: workplace.isActive,
+  };
 }
 
 export async function updateAdminWorkplace(
@@ -225,12 +287,9 @@ export async function updateAdminWorkplace(
   const client = supabase as unknown as UntypedSupabase;
   const { data: updatedRow, error: tableError } = await client
     .from("workplace")
-    .update({
-      name: row.name,
-      contactEmail: row.contactEmail,
-    } as never)
+    .update(workplaceInsertPayload(form) as never)
     .eq("id", workplaceId)
-    .select("id, name, contactEmail")
+    .select('id, name, contactEmail, contractTier, seatCount, contractStartDate, contractEndDate, isActive')
     .maybeSingle();
 
   if (!tableError && updatedRow) {
@@ -257,6 +316,34 @@ export async function updateAdminWorkplace(
   return updated;
 }
 
+export function adminWorkplaceToForm(workplace: AdminWorkplaceRecord): AdminWorkplaceFormState {
+  return {
+    name: workplace.name,
+    contactEmail: workplace.contactEmail,
+    contractTier: workplace.contractTier,
+    seatCount: workplace.seatCount,
+    contractStartDate: workplace.contractStartDate ?? "",
+    contractEndDate: workplace.contractEndDate ?? "",
+    isActive: workplace.isActive,
+  };
+}
+
+export async function fetchAdminWorkplaceActiveSeats(workplaceId: string): Promise<number> {
+  const { data, error } = await supabase.rpc("count_workplace_active_seats", {
+    p_workplace_id: workplaceId,
+  });
+  if (error) throw error;
+  return typeof data === "number" ? data : Number(data ?? 0);
+}
+
 export function emptyAdminWorkplaceForm(): AdminWorkplaceFormState {
-  return { name: "", contactEmail: "" };
+  return {
+    name: "",
+    contactEmail: "",
+    contractTier: "pro",
+    seatCount: 50,
+    contractStartDate: "",
+    contractEndDate: "",
+    isActive: true,
+  };
 }

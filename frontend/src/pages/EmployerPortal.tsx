@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
 import EmployerAssessmentBaselinePanel from "@/components/employer/EmployerAssessmentBaselinePanel";
+import EmployerEnrollmentCodesPanel from "@/components/employer/EmployerEnrollmentCodesPanel";
+import WorkplaceMembersPanel from "@/components/workplace/WorkplaceMembersPanel";
 import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import {
   fetchEmployerMetrics,
@@ -103,6 +105,21 @@ export default function EmployerPortalPage() {
           loading={workplacesLoading || metricsLoading}
           className="mt-4"
         />
+
+        {selectedWorkplaceId ? (
+          <>
+            <WorkplaceMembersPanel
+              workplaceId={selectedWorkplaceId}
+              disabled={workplacesLoading || metricsLoading}
+              compact
+              className="mt-4"
+            />
+            <EmployerEnrollmentCodesPanel
+              workplaceId={selectedWorkplaceId}
+              disabled={workplacesLoading || metricsLoading}
+            />
+          </>
+        ) : null}
       </div>
     </DashboardLayout>
   );

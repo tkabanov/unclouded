@@ -67,11 +67,20 @@ function labelForClassificationKey(key: string): string {
     .join(" ");
 }
 
+function parseFiniteScore(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
 export type EmployerProfileAssessmentRow = {
   classification?: string | null;
-  stabilityScore?: number | null;
-  performanceScore?: number | null;
-  alignmentScore?: number | null;
+  stabilityScore?: number | string | null;
+  performanceScore?: number | string | null;
+  alignmentScore?: number | string | null;
   results?: Record<string, unknown> | null;
 };
 
@@ -84,14 +93,17 @@ export function computeEmployerAssessmentBaseline(
   const classificationCounts = new Map<string, number>();
 
   for (const row of rows) {
-    if (typeof row.stabilityScore === "number" && Number.isFinite(row.stabilityScore)) {
-      stabilityScores.push(row.stabilityScore);
+    const stabilityScore = parseFiniteScore(row.stabilityScore);
+    if (stabilityScore !== null) {
+      stabilityScores.push(stabilityScore);
     }
-    if (typeof row.performanceScore === "number" && Number.isFinite(row.performanceScore)) {
-      performanceScores.push(row.performanceScore);
+    const performanceScore = parseFiniteScore(row.performanceScore);
+    if (performanceScore !== null) {
+      performanceScores.push(performanceScore);
     }
-    if (typeof row.alignmentScore === "number" && Number.isFinite(row.alignmentScore)) {
-      alignmentScores.push(row.alignmentScore);
+    const alignmentScore = parseFiniteScore(row.alignmentScore);
+    if (alignmentScore !== null) {
+      alignmentScores.push(alignmentScore);
     }
 
     const key = normalizeClassificationKey(row.classification ?? null, row.results ?? null);

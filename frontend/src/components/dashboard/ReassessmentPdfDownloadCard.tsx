@@ -52,7 +52,12 @@ export default function ReassessmentPdfDownloadCard() {
 
   const { profile } = useUserProfile();
 
-  const tier = resolveCurrentTier(!!profile?.subscribed, profile?.tier);
+  const tier = resolveCurrentTier(
+    !!profile?.subscribed,
+    profile?.tier,
+    profile?.accountType,
+    profile?.enterpriseTier,
+  );
 
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
 

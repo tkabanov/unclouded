@@ -12,6 +12,8 @@ export interface UseEmptyConversationBootstrapOptions {
   onboardingData?: Record<string, unknown> | null;
   tier?: string | null;
   subscribed?: boolean | null;
+  accountType?: string | null;
+  enterpriseTier?: string | null;
   setConversationId: (id: string | null) => void;
   onBootstrapped?: () => void | Promise<void>;
 }
@@ -27,6 +29,8 @@ export function useEmptyConversationBootstrap({
   onboardingData,
   tier,
   subscribed,
+  accountType,
+  enterpriseTier,
   setConversationId,
   onBootstrapped,
 }: UseEmptyConversationBootstrapOptions): void {
@@ -39,6 +43,8 @@ export function useEmptyConversationBootstrap({
       !canStartNewChatSession({
         tier,
         subscribed,
+        accountType,
+        enterpriseTier,
         onboardingData,
       })
     ) {
@@ -54,7 +60,9 @@ export function useEmptyConversationBootstrap({
       await onBootstrapped?.();
     })();
   }, [
+    accountType,
     conversations.length,
+    enterpriseTier,
     loading,
     onboardingData,
     onBootstrapped,

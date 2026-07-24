@@ -155,9 +155,9 @@ export async function computeEmployerMetricsForUserIds(
   const assessmentBaseline = computeEmployerAssessmentBaseline(
     assessmentRows.map((row) => ({
       classification: typeof row.classification === "string" ? row.classification : null,
-      stabilityScore: typeof row.stabilityScore === "number" ? row.stabilityScore : null,
-      performanceScore: typeof row.performanceScore === "number" ? row.performanceScore : null,
-      alignmentScore: typeof row.alignmentScore === "number" ? row.alignmentScore : null,
+      stabilityScore: row.stabilityScore ?? null,
+      performanceScore: row.performanceScore ?? null,
+      alignmentScore: row.alignmentScore ?? null,
       results:
         row.results && typeof row.results === "object" && !Array.isArray(row.results)
           ? (row.results as Record<string, unknown>)

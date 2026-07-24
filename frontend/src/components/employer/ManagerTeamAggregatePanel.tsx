@@ -18,6 +18,15 @@ type ManagerTeamAggregatePanelProps = {
 
 const STABILITY_BAND_ORDER: StabilityBand[] = ["high", "moderate", "low"];
 
+/** REQ-11 counsel gate — off during dev; set VITE_MANAGER_AGGREGATE_LEGAL_BANNER=true before production launch. */
+const SHOW_MANAGER_AGGREGATE_LEGAL_BANNER =
+  import.meta.env.VITE_MANAGER_AGGREGATE_LEGAL_BANNER === "true";
+
+function ManagerAggregateLegalNotice() {
+  if (!SHOW_MANAGER_AGGREGATE_LEGAL_BANNER) return null;
+  return <ManagerAggregateLegalBanner />;
+}
+
 export function ManagerAggregateLegalBanner() {
   return (
     <div
@@ -48,7 +57,7 @@ export default function ManagerTeamAggregatePanel({
   if (loading) {
     return (
       <div className={cn("flex flex-col gap-4", className)}>
-        <ManagerAggregateLegalBanner />
+        <ManagerAggregateLegalNotice />
         <p className="text-sm text-muted-foreground">Loading team aggregate…</p>
       </div>
     );
@@ -57,7 +66,7 @@ export default function ManagerTeamAggregatePanel({
   if (!snapshot) {
     return (
       <div className={cn("flex flex-col gap-4", className)}>
-        <ManagerAggregateLegalBanner />
+        <ManagerAggregateLegalNotice />
         <p className="text-sm text-muted-foreground">Load aggregate metrics to preview this view.</p>
       </div>
     );
@@ -69,7 +78,7 @@ export default function ManagerTeamAggregatePanel({
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      <ManagerAggregateLegalBanner />
+      <ManagerAggregateLegalNotice />
 
       <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-4")}>
         <header className="space-y-1">

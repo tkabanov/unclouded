@@ -34,8 +34,8 @@ export default function EmployerTrendSparkline({
     <div className={cn("flex flex-col gap-1", className)}>
       <svg
         width={140}
-        height={36}
-        viewBox="0 0 140 36"
+        height={48}
+        viewBox="0 0 140 48"
         role="img"
         aria-label="Weekly trend sparkline"
         className="w-full max-w-[160px]"
@@ -48,14 +48,20 @@ export default function EmployerTrendSparkline({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {geometry.lastPoint ? (
-          <circle
-            cx={geometry.lastPoint.x}
-            cy={geometry.lastPoint.y}
-            r={2.5}
-            className="fill-primary"
-          />
-        ) : null}
+        {geometry.plottedPoints.map((point) => (
+          <g key={point.weekStart}>
+            <circle cx={point.x} cy={point.y} r={2.5} className="fill-primary" />
+            <text
+              x={point.x}
+              y={46}
+              textAnchor="middle"
+              className="fill-muted-foreground"
+              fontSize={8}
+            >
+              {formatWeekLabel(point.weekStart)}
+            </text>
+          </g>
+        ))}
       </svg>
       <div className="flex justify-between text-[10px] text-muted-foreground">
         <span>{firstLabel}</span>

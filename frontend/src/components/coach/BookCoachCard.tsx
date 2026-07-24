@@ -23,7 +23,12 @@ const EXTERNAL_COACH_URL =
 export default function BookCoachCard() {
   const navigate = useNavigate();
   const { profile } = useUserProfile();
-  const tier = resolveCurrentTier(!!profile?.subscribed, profile?.tier);
+  const tier = resolveCurrentTier(
+    !!profile?.subscribed,
+    profile?.tier,
+    profile?.accountType,
+    profile?.enterpriseTier,
+  );
   const canGroup = canBookGroupCoachSession(tier);
   const canOneOnOne = canBookHumanCoach(tier);
   const [oneOnOneBusy, setOneOnOneBusy] = useState(false);

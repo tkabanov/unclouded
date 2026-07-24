@@ -1,7 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
 import { EMPLOYER_MIN_COHORT_SIZE } from "@/lib/employer/employerMetricsHelpers";
-import type { EmployerMetricSnapshot } from "@/lib/employer/employerMetricsApi.types";
+import {
+  EMPTY_EMPLOYER_ASSESSMENT_BASELINE,
+  type EmployerMetricSnapshot,
+} from "@/lib/employer/employerMetricsApi.types";
 import { isValidUuid } from "@/lib/uuid/isValidUuid";
 
 export type { EmployerMetricSnapshot } from "@/lib/employer/employerMetricsApi.types";
@@ -36,5 +39,9 @@ export async function fetchEmployerMetrics(workplaceId: string): Promise<Employe
     throw new Error(payload?.error ?? "Invalid employer metrics response");
   }
 
-  return payload.metrics;
+  return {
+    ...payload.metrics,
+    assessmentBaseline:
+      payload.metrics.assessmentBaseline ?? EMPTY_EMPLOYER_ASSESSMENT_BASELINE,
+  };
 }

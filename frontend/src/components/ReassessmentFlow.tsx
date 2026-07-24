@@ -58,7 +58,12 @@ export default function ReassessmentFlow() {
   const [priorAssessmentDate, setPriorAssessmentDate] = useState<string | null>(null);
   const [baselineReady, setBaselineReady] = useState(false);
 
-  const tier = resolveCurrentTier(!!profile?.subscribed, profile?.tier);
+  const tier = resolveCurrentTier(
+    !!profile?.subscribed,
+    profile?.tier,
+    profile?.accountType,
+    profile?.enterpriseTier,
+  );
   const accessAllowed = canAccessReassessment({
     tier,
     lastAssessmentDate: profile?.lastAssessmentDate ?? null,

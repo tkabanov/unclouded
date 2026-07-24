@@ -37,6 +37,8 @@ export default function Chat() {
     onboardingData: profile?.onboardingData ?? null,
     tier: profile?.tier ?? null,
     subscribed: profile?.subscribed ?? false,
+    accountType: profile?.accountType ?? null,
+    enterpriseTier: profile?.enterpriseTier ?? null,
     setConversationId,
     onCreated: bumpSidebar,
   });
@@ -46,9 +48,17 @@ export default function Chat() {
       isAtFreeTierSessionLimit({
         tier: profile?.tier ?? null,
         subscribed: profile?.subscribed ?? false,
+        accountType: profile?.accountType ?? null,
+        enterpriseTier: profile?.enterpriseTier ?? null,
         onboardingData: profile?.onboardingData ?? null,
       }),
-    [profile?.onboardingData, profile?.subscribed, profile?.tier],
+    [
+      profile?.accountType,
+      profile?.enterpriseTier,
+      profile?.onboardingData,
+      profile?.subscribed,
+      profile?.tier,
+    ],
   );
 
   const context = useMemo(() => {
@@ -121,6 +131,8 @@ export default function Chat() {
             onboardingData={profile?.onboardingData ?? null}
             tier={profile?.tier ?? null}
             subscribed={profile?.subscribed ?? false}
+            accountType={profile?.accountType ?? null}
+            enterpriseTier={profile?.enterpriseTier ?? null}
             onRenameRequest={handleRenameRequest}
             onDeleteRequest={handleDeleteRequest}
             listVersion={sidebarListVersion}

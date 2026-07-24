@@ -14,6 +14,8 @@ export interface ConversationSidebarProps {
   onboardingData?: Record<string, unknown> | null;
   tier?: string | null;
   subscribed?: boolean | null;
+  accountType?: string | null;
+  enterpriseTier?: string | null;
   onRenameRequest: (conversation: ConversationListItem) => void;
   onDeleteRequest: (conversation: ConversationListItem) => void;
   listVersion?: number;
@@ -25,6 +27,8 @@ export default function ConversationSidebar({
   onboardingData,
   tier,
   subscribed,
+  accountType,
+  enterpriseTier,
   onRenameRequest,
   onDeleteRequest,
   listVersion = 0,
@@ -78,6 +82,8 @@ export default function ConversationSidebar({
     onboardingData,
     tier,
     subscribed,
+    accountType,
+    enterpriseTier,
     setConversationId,
     onBootstrapped: loadConversations,
   });

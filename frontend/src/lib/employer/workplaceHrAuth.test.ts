@@ -46,6 +46,15 @@ describe("workplaceHrAuth", () => {
         workplaceContactEmail: "hr@acme.com",
       }),
     ).toBe(false);
+
+    expect(
+      canAccessWorkplaceMetrics({
+        userEmail: "delegate@acme.com",
+        roleType: "founder",
+        workplaceContactEmail: "hr@acme.com",
+        hasHrDelegateRole: true,
+      }),
+    ).toBe(true);
   });
 
   it("normalizes email casing and whitespace", () => {

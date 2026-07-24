@@ -223,3 +223,43 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Deferred** | `referralPartner` table, partner login portal, commission tracking |
 | **Code** | `frontend/src/lib/share/referralCodeApi.ts`, `frontend/src/lib/share/referralAttribution.ts`, `frontend/src/lib/settings/admin/referralSignUpAnalytics.ts`, `frontend/src/lib/share/referralStatsApi.ts`, `frontend/src/lib/settings/admin/referralPartnerLabels.ts` |
 
+### OVR-022 — Workplace roster: admin + HR member and role management
+
+| | |
+|---|---|
+| **Date** | 2026-07-23 |
+| **Overrides** | Bubble/migration assumption that only platform admin assigns org membership; HR access only via single `contactEmail` with no roster UI |
+| **Authoritative spec** | Owner request — admin and HR add people and manage HR/manager rights |
+| **Current behavior** | Admin → Workplaces and `/employer` include **Workplace members** panel: add existing accounts by email, **send email invitations** for new users (auto-enroll on signup), remove members, toggle delegated **HR** and **Manager**, wire direct reports. Primary HR remains `workplace.contactEmail`. HR delegates also gain employer portal via role table. |
+| **Code** | `supabase/migrations/20260723180000_workplace_member_management.sql`, `supabase/migrations/20260723190000_workplace_invitations.sql`, `supabase/functions/workplace-members/`, `frontend/src/components/workplace/WorkplaceMembersPanel.tsx`, `frontend/src/lib/workplace/workplaceMembersApi.ts` |
+
+### OVR-023 — Manager aggregate legal banner (env-gated)
+
+| | |
+|---|---|
+| **Date** | 2026-07-24 |
+| **Overrides** | REQ-11 UI requirement to always show «Legal review required before deployment» on manager team aggregate |
+| **Authoritative spec** | REQ-11 counsel sign-off before production manager view |
+| **Current behavior** | Amber legal banner is **hidden by default** (dev and current deploys). Set `VITE_MANAGER_AGGREGATE_LEGAL_BANNER=true` when counsel gate must block the view again. Aggregate metrics card still renders below when data is available. |
+| **Code** | `frontend/src/components/employer/ManagerTeamAggregatePanel.tsx` |
+
+### OVR-024 — HR workplace aggregate opt-in on Profile
+
+| | |
+|---|---|
+| **Date** | 2026-07-24 |
+| **Overrides** | Test doc row implying only `workplaceId` employees see Profile opt-in |
+| **Authoritative spec** | Owner request — HR users need the same anonymized-data consent toggle as enrolled employees |
+| **Current behavior** | Settings → Profile shows **Workplace team aggregate** opt-in when the user has `profiles.workplaceId` **or** HR access to any workplace (primary contact or delegated HR). Same `managerAggregateOptIn` field; HR-only users see workplace-focused helper copy. |
+| **Code** | `frontend/src/components/settings/SettingsWorkplaceAggregateSection.tsx`, `frontend/src/hooks/useHrWorkplaces.ts` |
+
+### OVR-025 — Primary HR auto-enrollment when workplace is created
+
+| | |
+|---|---|
+| **Date** | 2026-07-24 |
+| **Overrides** | Gap doc note that HR contact email alone does not set `profiles.workplaceId` |
+| **Authoritative spec** | Owner request — HR contact account should be enrolled in the workplace automatically |
+| **Current behavior** | On workplace **INSERT** or **contactEmail** / **isActive** update, and on **signup** when email matches `workplace.contactEmail`, the matching profile is enrolled via `enroll_profile_in_workplace` (enterprise tier, `workplaceId`, seats). Existing workplaces backfilled once in migration. |
+| **Code** | `supabase/migrations/20260724100000_sync_workplace_hr_contact_enrollment.sql` |
+

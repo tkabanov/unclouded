@@ -21,6 +21,15 @@ export type EmployerAssessmentBaseline = {
   hasSuppressedClassificationCells: boolean;
 };
 
+export const EMPTY_EMPLOYER_ASSESSMENT_BASELINE: EmployerAssessmentBaseline = {
+  stabilityBands: null,
+  avgStability: null,
+  avgPerformance: null,
+  avgAlignment: null,
+  classificationDistribution: [],
+  hasSuppressedClassificationCells: false,
+};
+
 export type EmployerMetricSnapshot = {
   cohortSize: number;
   suppressed: boolean;

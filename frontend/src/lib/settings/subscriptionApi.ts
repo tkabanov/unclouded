@@ -1,5 +1,6 @@
 import { PLANS, PREMIUM_CONTACT_EMAIL, type Plan, type PlanId } from "@/lib/plans";
 import { getTierSubscriptionLabel, type TierSlug } from "@/lib/enums/subscription";
+import { resolveUserEntitlement } from "@/lib/entitlements/userEntitlementHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getCurrentTierLabel as getEntitlementTierLabel,
@@ -75,12 +76,13 @@ export async function loadSubscriptionPlans(): Promise<SubscriptionPlanRow[]> {
   });
 }
 
-export function resolveCurrentTier(subscribed: boolean, tier?: string | null): TierSlug {
-  const normalized = (tier ?? "").toLowerCase();
-  if (normalized === "pro" || normalized === "premium" || normalized === "free") {
-    return normalized;
-  }
-  return subscribed ? "pro" : "free";
+export function resolveCurrentTier(
+  subscribed: boolean,
+  tier?: string | null,
+  accountType?: string | null,
+  enterpriseTier?: string | null,
+): TierSlug {
+  return resolveUserEntitlement({ subscribed, tier, accountType, enterpriseTier }).tier;
 }
 
 export function resolveCurrentTierFromEntitlement(
@@ -89,8 +91,13 @@ export function resolveCurrentTierFromEntitlement(
   return resolveEntitlementTier(entitlement);
 }
 
-export function getCurrentTierLabel(subscribed: boolean, tier?: string | null): string {
-  return getTierSubscriptionLabel(resolveCurrentTier(subscribed, tier));
+export function getCurrentTierLabel(
+  subscribed: boolean,
+  tier?: string | null,
+  accountType?: string | null,
+  enterpriseTier?: string | null,
+): string {
+  return getTierSubscriptionLabel(resolveCurrentTier(subscribed, tier, accountType, enterpriseTier));
 }
 
 export function getCurrentTierLabelFromEntitlement(

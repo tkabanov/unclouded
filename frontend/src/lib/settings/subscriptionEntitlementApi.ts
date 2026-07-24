@@ -1,46 +1,49 @@
 import { getTierSubscriptionLabel, type TierSlug } from "@/lib/enums/subscription";
+import { resolveUserEntitlement } from "@/lib/entitlements/userEntitlementHelpers";
 import { supabase } from "@/integrations/supabase/client";
 
 export type SubscriptionEntitlement = {
   subscribed: boolean;
   tier: TierSlug;
+  accountType?: "individual" | "enterprise";
+  enterpriseTier?: string | null;
 };
 
 export type SubscriptionPlanChangeResult = {
-  status: "ok" | "billing_required" | "invalid_plan" | "error";
+  status: "ok" | "billing_required" | "invalid_plan" | "enterprise_covered" | "error";
   subscribed?: boolean;
   tier?: string | null;
   message?: string;
 };
-
-function normalizeTierSlug(value: string | null | undefined, subscribed: boolean): TierSlug {
-  const normalized = (value ?? "").toLowerCase();
-  if (normalized === "pro" || normalized === "premium" || normalized === "free") {
-    return normalized;
-  }
-  return subscribed ? "pro" : "free";
-}
 
 export async function loadSubscriptionEntitlement(
   userId: string,
 ): Promise<SubscriptionEntitlement> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("subscribed, tier")
+    .select("subscribed, tier, accountType, enterpriseTier")
     .eq("id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
-  const subscribed = data?.subscribed === true;
+  const resolved = resolveUserEntitlement({
+    subscribed: data?.subscribed,
+    tier: data?.tier,
+    accountType: data?.accountType,
+    enterpriseTier: data?.enterpriseTier,
+  });
+
   return {
-    subscribed,
-    tier: normalizeTierSlug(data?.tier ?? null, subscribed),
+    subscribed: resolved.subscribed,
+    tier: resolved.tier,
+    accountType: resolved.accountType,
+    enterpriseTier: data?.enterpriseTier ?? null,
   };
 }
 
 export function resolveCurrentTier(entitlement: SubscriptionEntitlement): TierSlug {
-  return entitlement.tier;
+  return resolveUserEntitlement(entitlement).tier;
 }
 
 export function getCurrentTierLabel(entitlement: SubscriptionEntitlement): string {
@@ -57,7 +60,8 @@ function parsePlanChangeResult(data: unknown): SubscriptionPlanChangeResult {
   if (
     status !== "ok" &&
     status !== "billing_required" &&
-    status !== "invalid_plan"
+    status !== "invalid_plan" &&
+    status !== "enterprise_covered"
   ) {
     return { status: "error", message: "Unknown subscription response." };
   }

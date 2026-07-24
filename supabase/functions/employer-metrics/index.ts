@@ -15,7 +15,7 @@ import {
   fetchEmployerMetricsForWorkplace,
   type EmployerMetricSnapshot,
 } from "../_shared/employerMetricsLogic.ts";
-import { canAccessWorkplaceMetrics } from "../_shared/workplaceHrAuth.ts";
+import { canAccessWorkplaceHrPortal } from "../_shared/workplaceHrAuth.ts";
 import { isValidUuid } from "../_shared/uuidHelpers.ts";
 
 type MetricsBody = {
@@ -105,13 +105,14 @@ Deno.serve(async (req) => {
   }
 
   const userEmail = profile?.email ?? authData.user.email ?? null;
-  if (
-    !canAccessWorkplaceMetrics({
-      userEmail,
-      roleType: profile?.roleType ?? null,
-      workplaceContactEmail: workplace.contactEmail ?? null,
-    })
-  ) {
+  const allowed = await canAccessWorkplaceHrPortal(admin, {
+    userId: authData.user.id,
+    userEmail,
+    roleType: profile?.roleType ?? null,
+    workplaceId,
+    workplaceContactEmail: workplace.contactEmail ?? null,
+  });
+  if (!allowed) {
     return json({ error: "Forbidden" }, 403);
   }
 

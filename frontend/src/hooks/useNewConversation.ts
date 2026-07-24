@@ -12,6 +12,8 @@ interface UseNewConversationOptions {
   onboardingData?: Record<string, unknown> | null;
   tier?: string | null;
   subscribed?: boolean | null;
+  accountType?: string | null;
+  enterpriseTier?: string | null;
   setConversationId: (id: string | null) => void;
   onCreated?: () => void;
 }
@@ -24,6 +26,8 @@ export function useNewConversation({
   onboardingData,
   tier,
   subscribed,
+  accountType,
+  enterpriseTier,
   setConversationId,
   onCreated,
 }: UseNewConversationOptions) {
@@ -36,6 +40,8 @@ export function useNewConversation({
       !canStartNewChatSession({
         tier,
         subscribed,
+        accountType,
+        enterpriseTier,
         onboardingData,
       })
     ) {
@@ -55,7 +61,7 @@ export function useNewConversation({
     } finally {
       setCreating(false);
     }
-  }, [creating, onboardingData, onCreated, setConversationId, subscribed, tier, userId]);
+  }, [accountType, creating, enterpriseTier, onboardingData, onCreated, setConversationId, subscribed, tier, userId]);
 
   return { createNew, creating };
 }

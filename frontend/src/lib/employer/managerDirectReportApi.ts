@@ -16,6 +16,26 @@ export type WorkplaceMemberOption = {
   managesATeam: boolean;
 };
 
+export const MANAGER_DIRECT_REPORT_DUPLICATE_MESSAGE =
+  "This manager is already linked to that direct report.";
+
+function isManagerDirectReportDuplicate(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === "23505" ||
+    (error.message?.includes("manager_direct_report_distinct_pair") ?? false)
+  );
+}
+
+export function managerDirectReportCreateError(error: {
+  code?: string;
+  message?: string;
+}): Error {
+  if (isManagerDirectReportDuplicate(error)) {
+    return new Error(MANAGER_DIRECT_REPORT_DUPLICATE_MESSAGE);
+  }
+  return new Error(error.message ?? "Couldn't add direct report link.");
+}
+
 function memberLabel(row: {
   id?: string;
   email?: string | null;
@@ -133,10 +153,10 @@ export async function createManagerDirectReport(params: {
     reportUserId: params.reportUserId,
   } as never);
 
-  if (error) throw error;
+  if (error) throw managerDirectReportCreateError(error);
 }
 
 export async function deleteManagerDirectReport(linkId: string): Promise<void> {
   const { error } = await supabase.from("managerDirectReport").delete().eq("id", linkId);
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }

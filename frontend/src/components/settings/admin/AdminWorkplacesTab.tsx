@@ -4,17 +4,19 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AddWorkplacePopup from "@/components/settings/admin/AddWorkplacePopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
-import AdminManagerDirectReportsPanel from "@/components/settings/admin/AdminManagerDirectReportsPanel";
 import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
 import EmployerAssessmentBaselinePanel from "@/components/employer/EmployerAssessmentBaselinePanel";
 import ManagerTeamAggregatePanel from "@/components/employer/ManagerTeamAggregatePanel";
+import WorkplaceMembersPanel from "@/components/workplace/WorkplaceMembersPanel";
 import {
+  adminWorkplaceToForm,
   createAdminWorkplace,
   deleteAdminWorkplace,
   fetchAdminWorkplaces,
   updateAdminWorkplace,
   type AdminWorkplaceRecord,
 } from "@/lib/settings/admin/adminWorkplacesApi";
+import WorkplaceEnrollmentCodesPanel from "@/components/workplace/WorkplaceEnrollmentCodesPanel";
 import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import {
   fetchEmployerMetrics,
@@ -219,7 +221,14 @@ export default function AdminWorkplacesTab() {
                 >
                   {workplace.contactEmail}
                 </p>
+                <p className="text-xs text-muted-foreground">
+                  {workplace.contractTier.toUpperCase()} · {workplace.seatCount} seats ·{" "}
+                  {workplace.isActive ? "Active contract" : "Inactive"}
+                </p>
               </div>
+              {workplace.metricsReady ? (
+                <WorkplaceEnrollmentCodesPanel workplaceId={workplace.workplaceId} disabled={busy} />
+              ) : null}
               <Button
                 type="button"
                 size="sm"
@@ -230,11 +239,11 @@ export default function AdminWorkplacesTab() {
                 Continuous metrics
               </Button>
               {workplace.metricsReady ? (
-                <AdminManagerDirectReportsPanel workplaceId={workplace.workplaceId} disabled={busy} />
+                <WorkplaceMembersPanel workplaceId={workplace.workplaceId} disabled={busy} />
               ) : null}
               <div className="flex flex-col gap-2">
                 <label className="flex flex-col gap-1 text-xs">
-                  <span className="font-medium">Manager preview (REQ-11)</span>
+                  <span className="font-medium">Manager preview</span>
                   <select
                     className="rounded-md border border-input bg-background px-2 py-1.5"
                     value={selectedManagerByWorkplace[workplace.workplaceId] ?? ""}
@@ -320,9 +329,7 @@ export default function AdminWorkplacesTab() {
         busy={busy}
         editWorkplaceId={editWorkplace?.workplaceId ?? null}
         initialForm={
-          editWorkplace
-            ? { name: editWorkplace.name, contactEmail: editWorkplace.contactEmail }
-            : null
+          editWorkplace ? adminWorkplaceToForm(editWorkplace) : null
         }
       />
     </div>

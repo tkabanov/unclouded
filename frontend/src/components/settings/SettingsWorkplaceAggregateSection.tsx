@@ -14,18 +14,29 @@ import {
   type WorkplaceMemberSettings,
 } from "@/lib/employer/workplaceMemberSettingsApi";
 import { useAuth } from "@/hooks/useAuth";
+import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
+export function shouldShowWorkplaceAggregateOptIn(params: {
+  workplaceId: string | null | undefined;
+  isHrContact: boolean;
+}): boolean {
+  return Boolean(params.workplaceId) || params.isHrContact;
+}
+
 export function SettingsWorkplaceAggregateOptInSection() {
   const { user } = useAuth();
+  const { isHrContact, loading: hrWorkplacesLoading } = useHrWorkplaces();
   const [settings, setSettings] = useState<WorkplaceMemberSettings | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(true);
   const [optIn, setOptIn] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
+    setSettingsLoading(true);
 
     void loadWorkplaceMemberSettings(user.id)
       .then((loaded) => {
@@ -35,6 +46,9 @@ export function SettingsWorkplaceAggregateOptInSection() {
       })
       .catch(() => {
         if (!cancelled) toast.error("Couldn't load workplace privacy settings.");
+      })
+      .finally(() => {
+        if (!cancelled) setSettingsLoading(false);
       });
 
     return () => {
@@ -63,18 +77,29 @@ export function SettingsWorkplaceAggregateOptInSection() {
     [saving, user],
   );
 
-  if (!settings?.workplaceId) {
+  if (settingsLoading || hrWorkplacesLoading) {
     return null;
   }
+
+  if (
+    !shouldShowWorkplaceAggregateOptIn({
+      workplaceId: settings?.workplaceId,
+      isHrContact,
+    })
+  ) {
+    return null;
+  }
+
+  const isHrOnly = isHrContact && !settings?.workplaceId;
 
   return (
     <div className={cn(bubbleStyle("Group_card_"), "flex flex-col gap-4 p-6")}>
       <header className="space-y-1">
         <h2 className={bubbleStyle("Text_heading_2_")}>Workplace team aggregate</h2>
         <p className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}>
-          If your manager enables team wellbeing views, you can choose whether your anonymized
-          data may be included in their direct-report aggregate. Managers never see individual
-          scores or who opted in.
+          {isHrOnly
+            ? "Choose whether your anonymized activity may be included in workplace wellbeing aggregates. No individual scores or identities are shared."
+            : "If your manager enables team wellbeing views, you can choose whether your anonymized data may be included in their direct-report aggregate. Managers never see individual scores or who opted in."}
         </p>
       </header>
 

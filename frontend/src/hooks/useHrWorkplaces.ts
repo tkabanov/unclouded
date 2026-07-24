@@ -21,7 +21,7 @@ export function useHrWorkplaces() {
     let cancelled = false;
     setLoading(true);
 
-    void listHrWorkplaces(email)
+    void listHrWorkplaces(email, user?.id ?? null)
       .then((rows) => {
         if (!cancelled) setWorkplaces(rows);
       })
@@ -35,7 +35,7 @@ export function useHrWorkplaces() {
     return () => {
       cancelled = true;
     };
-  }, [profile?.email, user?.email]);
+  }, [profile?.email, user?.email, user?.id]);
 
   return {
     workplaces,

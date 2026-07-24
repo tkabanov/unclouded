@@ -14,7 +14,12 @@ import { cn } from "@/lib/utils";
 export default function DashboardReassessmentButton() {
   const navigate = useNavigate();
   const { profile } = useUserProfile();
-  const tier = resolveCurrentTier(!!profile?.subscribed, profile?.tier);
+  const tier = resolveCurrentTier(
+    !!profile?.subscribed,
+    profile?.tier,
+    profile?.accountType,
+    profile?.enterpriseTier,
+  );
   const dateCtx = {
     tier,
     lastAssessmentDate: profile?.lastAssessmentDate ?? null,

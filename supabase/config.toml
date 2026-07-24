@@ -56,6 +56,17 @@ verify_jwt = true
 [functions.manager-aggregate]
 verify_jwt = true
 
+# Phase 2 §9 — workplace enrollment redemption.
+[functions.redeem-workplace-enrollment]
+verify_jwt = true
+
+# Phase 2 §9 / US-206 — HR enrollment code management.
+[functions.employer-enrollment-codes]
+verify_jwt = true
+
+[functions.workplace-members]
+verify_jwt = true
+
 # Prompt Library addendum — Kota's Read coach prep brief.
 [functions.generate-kota-read]
 verify_jwt = true

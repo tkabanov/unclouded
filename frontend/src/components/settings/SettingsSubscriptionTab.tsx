@@ -35,6 +35,7 @@ import {
   isReassessmentDue,
 } from "@/lib/reassessment/reassessmentEntitlements";
 import { FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
+import { isEnterpriseUser } from "@/lib/entitlements/userEntitlement";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +52,18 @@ export default function SettingsSubscriptionTab() {
   const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
 
   const subscribed = !!profile?.subscribed;
-  const currentTier = resolveCurrentTier(subscribed, profile?.tier);
+  const isEnterprise = isEnterpriseUser({
+    accountType: profile?.accountType,
+    enterpriseTier: profile?.enterpriseTier,
+    subscribed: profile?.subscribed,
+    tier: profile?.tier,
+  });
+  const currentTier = resolveCurrentTier(
+    subscribed,
+    profile?.tier,
+    profile?.accountType,
+    profile?.enterpriseTier,
+  );
   const currentPlanId: PlanId =
     currentTier === "premium" ? "premium" : currentTier === "pro" ? "pro" : "free";
   const dateCtx = {
@@ -100,6 +112,10 @@ export default function SettingsSubscriptionTab() {
         const result = await selectSubscriptionPlan(planId);
         if (result.status === "billing_required") {
           toast.message(result.message ?? "Checkout is not connected yet.");
+          return;
+        }
+        if (result.status === "enterprise_covered") {
+          toast.message(result.message ?? "Your organization covers this subscription.");
           return;
         }
         if (result.status !== "ok") {
@@ -194,20 +210,37 @@ export default function SettingsSubscriptionTab() {
               className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary"
             >
               <span>
-                {getCurrentTierLabel(subscribed, profile?.tier)}
+                {getCurrentTierLabel(
+                  subscribed,
+                  profile?.tier,
+                  profile?.accountType,
+                  profile?.enterpriseTier,
+                )}
               </span>
             </span>
           </div>
         </header>
         <p className="text-sm text-muted-foreground">
           Current tier: <strong>{currentTier}</strong> —{" "}
-          {subscribed
-            ? "You have access to Pro coaching features."
-            : "Upgrade to unlock unlimited coaching and reassessment."}
+          {isEnterprise
+            ? "Covered by your organization. No individual billing or upgrade prompts apply."
+            : subscribed
+              ? "You have access to Pro coaching features."
+              : "Upgrade to unlock unlimited coaching and reassessment."}
         </p>
       </div>
 
-      {reassessmentDue || showReassessNow ? (
+      {isEnterprise ? (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm text-muted-foreground">
+          <p className="font-semibold text-foreground">Organization-covered access</p>
+          <p className="mt-1">
+            Your employer provides Uncloud360 through an enterprise contract. Session limits and
+            individual checkout are disabled for your account.
+          </p>
+        </div>
+      ) : null}
+
+      {!isEnterprise && (reassessmentDue || showReassessNow) ? (
         <div className="flex flex-col gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center">
           <div className="flex flex-1 items-start gap-3">
             <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
@@ -232,7 +265,9 @@ export default function SettingsSubscriptionTab() {
             </Link>
           </Button>
         </div>
-      ) : showPremiumOnDemandLocked ? (
+      ) : null}
+
+      {!isEnterprise && showPremiumOnDemandLocked ? (
         <div className="flex flex-col gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center">
           <div className="flex flex-1 items-start gap-3">
             <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
@@ -252,7 +287,7 @@ export default function SettingsSubscriptionTab() {
         </div>
       ) : null}
 
-      {isFoundingSignup ? (
+      {isFoundingSignup && !isEnterprise ? (
         <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm text-muted-foreground">
           <p className="font-semibold text-foreground">Founding member pricing</p>
           <p className="mt-1">
@@ -262,56 +297,60 @@ export default function SettingsSubscriptionTab() {
         </div>
       ) : null}
 
-      <div
-        className={cn(bubbleStyle("RepeatingGroup_list_"), "grid items-start gap-4 md:grid-cols-3")}
-      >
-        {displayPlans.map((plan) => (
-          <SubscriptionPlanCard
-            key={plan.id}
-            plan={plan}
-            isCurrent={plan.id === currentPlanId}
-            busy={busy}
-            onSelect={(planId) => void handleSelectPlan(planId)}
-            onContactPremium={() => setContactOpen(true)}
-          />
-        ))}
-      </div>
-
-      <div
-        className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}
-      >
-        <header className="space-y-1">
-          <h2 className={bubbleStyle("Text_heading_3_")}>
-            Billing
-          </h2>
-          <p
-            className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
-          >
-            Update payment method or download past invoices. Demo billing stubs return sample data
-            until Stripe is connected in production.
-          </p>
-        </header>
-
+      {!isEnterprise ? (
         <div
-          className="flex flex-wrap gap-3"
+          className={cn(bubbleStyle("RepeatingGroup_list_"), "grid items-start gap-4 md:grid-cols-3")}
         >
-          <Button
-            type="button"
-            className={bubbleStyle("Button_primary_")}
-            onClick={() => void handleBillingUpdate()}
-          >
-            Update payment method
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void handleInvoices()}
-          >
-            View invoices
-          </Button>
+          {displayPlans.map((plan) => (
+            <SubscriptionPlanCard
+              key={plan.id}
+              plan={plan}
+              isCurrent={plan.id === currentPlanId}
+              busy={busy}
+              onSelect={(planId) => void handleSelectPlan(planId)}
+              onContactPremium={() => setContactOpen(true)}
+            />
+          ))}
         </div>
+      ) : null}
 
-      </div>
+      {!isEnterprise ? (
+        <div
+          className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}
+        >
+          <header className="space-y-1">
+            <h2 className={bubbleStyle("Text_heading_3_")}>
+              Billing
+            </h2>
+            <p
+              className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
+            >
+              Update payment method or download past invoices. Demo billing stubs return sample data
+              until Stripe is connected in production.
+            </p>
+          </header>
+
+          <div
+            className="flex flex-wrap gap-3"
+          >
+            <Button
+              type="button"
+              className={bubbleStyle("Button_primary_")}
+              onClick={() => void handleBillingUpdate()}
+            >
+              Update payment method
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void handleInvoices()}
+            >
+              View invoices
+            </Button>
+          </div>
+
+        </div>
+      ) : null}
 
       <Dialog open={portalOpen} onOpenChange={setPortalOpen}>
         <DialogContent>

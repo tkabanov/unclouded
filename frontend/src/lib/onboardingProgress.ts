@@ -8,6 +8,7 @@ import {
 import type { OnboardingDraftPayload, UserProfile } from "@/lib/userProfile";
 
 export const ONBOARDING_PROGRESS_STEP_KEY = "onboardingStep" as const;
+export const ONBOARDING_WORKPLACE_CODE_SKIPPED_KEY = "workplaceCodeSkipped" as const;
 
 export interface OnboardingFormState {
   firstName: string;

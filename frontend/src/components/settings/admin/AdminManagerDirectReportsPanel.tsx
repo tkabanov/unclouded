@@ -8,6 +8,7 @@ import {
   deleteManagerDirectReport,
   listManagerDirectReports,
   listWorkplaceMembers,
+  MANAGER_DIRECT_REPORT_DUPLICATE_MESSAGE,
   type ManagerDirectReportLink,
   type WorkplaceMemberOption,
 } from "@/lib/employer/managerDirectReportApi";
@@ -55,10 +56,31 @@ export default function AdminManagerDirectReportsPanel({
   }, [reload]);
 
   const managerOptions = members.filter((member) => member.managesATeam);
-  const reportOptions = members.filter((member) => member.userId !== managerUserId);
+
+  const linkedReportIdsForManager = new Set(
+    links
+      .filter((link) => link.managerUserId === managerUserId)
+      .map((link) => link.reportUserId),
+  );
+
+  const reportOptions = members.filter(
+    (member) =>
+      member.userId !== managerUserId && !linkedReportIdsForManager.has(member.userId),
+  );
 
   const handleCreate = async () => {
     if (!managerUserId || !reportUserId || busy) return;
+
+    if (
+      links.some(
+        (link) =>
+          link.managerUserId === managerUserId && link.reportUserId === reportUserId,
+      )
+    ) {
+      toast.error(MANAGER_DIRECT_REPORT_DUPLICATE_MESSAGE);
+      return;
+    }
+
     setBusy(true);
     try {
       await createManagerDirectReport({
@@ -97,7 +119,7 @@ export default function AdminManagerDirectReportsPanel({
   return (
     <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-3 text-sm")}>
       <div className="space-y-1">
-        <p className="font-medium text-foreground">Direct report links (REQ-11)</p>
+        <p className="font-medium text-foreground">Direct report links</p>
         <p className="text-xs text-muted-foreground">
           Manager aggregates use opted-in direct reports only — not the whole workplace.
         </p>
@@ -110,7 +132,10 @@ export default function AdminManagerDirectReportsPanel({
             className="rounded-md border border-input bg-background px-2 py-1.5"
             value={managerUserId}
             disabled={disabled || busy}
-            onChange={(event) => setManagerUserId(event.target.value)}
+            onChange={(event) => {
+              setManagerUserId(event.target.value);
+              setReportUserId("");
+            }}
           >
             <option value="">Select manager…</option>
             {managerOptions.map((member) => (

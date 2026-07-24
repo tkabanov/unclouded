@@ -47,4 +47,25 @@ describe("employerAssessmentBaselineHelpers", () => {
     expect(EMPLOYER_CLASSIFICATION_SMALL_CELL_MIN).toBe(2);
     expect(baseline.hasSuppressedClassificationCells).toBe(true);
   });
+
+  it("accepts numeric pillar scores serialized as strings from Postgres", () => {
+    const baseline = computeEmployerAssessmentBaseline([
+      {
+        stabilityScore: "4.2",
+        performanceScore: "3.8",
+        alignmentScore: "4",
+        results: { classification: { key: "building_momentum" } },
+      },
+      {
+        stabilityScore: "2.1",
+        performanceScore: "3",
+        alignmentScore: "2.5",
+        results: { classification: { key: "capacity_erosion" } },
+      },
+    ]);
+
+    expect(baseline.avgStability).toBe(3.15);
+    expect(baseline.avgPerformance).toBe(3.4);
+    expect(baseline.avgAlignment).toBe(3.25);
+  });
 });

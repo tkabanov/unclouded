@@ -1,3 +1,11 @@
+import {
+  resolveUserEntitlement,
+  type UserEntitlementInput,
+} from "../_shared/userEntitlementHelpers.ts";
+
+export type { UserEntitlementInput, ResolvedUserEntitlement } from "../_shared/userEntitlementHelpers.ts";
+export { resolveUserEntitlement } from "../_shared/userEntitlementHelpers.ts";
+
 /** Build Brief §12 upsell when Free tier monthly session limit is reached. */
 export const FREE_TIER_SESSION_LIMIT = 7;
 
@@ -5,6 +13,13 @@ export const FREE_TIER_UPSELL_MESSAGE =
   "You've used your 7 sessions for this month. Pro members get unlimited sessions — your coach is ready when you are.";
 
 export const CHAT_AI_MONTHLY_USAGE_KEY = "chat_ai_monthly_usage" as const;
+
+export type UserEntitlementFields = {
+  accountType?: string | null;
+  enterpriseTier?: string | null;
+  subscribed?: boolean | null;
+  tier?: string | null;
+};
 
 type MonthlyUsageRecord = {
   monthKey: string;
@@ -46,37 +61,39 @@ export function readMonthlyUsage(
 export function isFreeTierUser(
   tier: string | null | undefined,
   subscribed: boolean | null | undefined,
+  accountType?: string | null,
+  enterpriseTier?: string | null,
 ): boolean {
-  if (subscribed === true) return false;
-  const normalized = (tier ?? "free").toLowerCase();
-  return normalized === "free" || normalized === "explorer" || normalized === "";
+  return !resolveUserEntitlement({ tier, subscribed, accountType, enterpriseTier }).bypassSessionLimit;
 }
 
 /** Layer 10 item 2 content — Pro/Premium only; Free still gets the section shell (OVR-013). */
 export function canAccessSessionMemoryInPrompt(
   tier: string | null | undefined,
   subscribed: boolean | null | undefined,
+  accountType?: string | null,
+  enterpriseTier?: string | null,
 ): boolean {
-  return !isFreeTierUser(tier, subscribed);
+  return !isFreeTierUser(tier, subscribed, accountType, enterpriseTier);
 }
 
 export function resolveCurrentTier(
   subscribed: boolean | null | undefined,
   tier: string | null | undefined,
+  accountType?: string | null,
+  enterpriseTier?: string | null,
 ): "free" | "pro" | "premium" {
-  const normalized = (tier ?? "").toLowerCase();
-  if (normalized === "pro" || normalized === "premium" || normalized === "free") {
-    return normalized;
-  }
-  return subscribed === true ? "pro" : "free";
+  return resolveUserEntitlement({ subscribed, tier, accountType, enterpriseTier }).tier;
 }
 
 /** AI journal reflection is Pro/Premium only (US-405). */
 export function canUseJournalAiReflection(
   subscribed: boolean | null | undefined,
   tier: string | null | undefined,
+  accountType?: string | null,
+  enterpriseTier?: string | null,
 ): boolean {
-  const currentTier = resolveCurrentTier(subscribed, tier);
+  const currentTier = resolveCurrentTier(subscribed, tier, accountType, enterpriseTier);
   return currentTier === "pro" || currentTier === "premium";
 }
 

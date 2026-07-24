@@ -5,6 +5,8 @@ export const ONBOARDING_STEP_OPTION_SET_ID = "onboarding_step_os" as const;
 export const ONBOARDING_STEP = {
   /** bTHHu */
   WELCOME: "welcome",
+  /** Phase 2 §9 — optional enterprise enrollment */
+  WORKPLACE_CODE: "workplace_code",
   /** bTHHv */
   NAME: "name",
   /** bTHHw */
@@ -36,6 +38,7 @@ export type OnboardingStepSlug = (typeof ONBOARDING_STEP)[keyof typeof ONBOARDIN
 /** Display strings from ir/inventory.json → onboarding_step_os */
 export const ONBOARDING_STEP_LABELS: Record<OnboardingStepSlug, string> = {
   welcome: "Welcome", // bTHHu
+  workplace_code: "Workplace code", // Phase 2 §9
   name: "Name", // bTHHv
   role: "Role", // bTHHw
   pillar: "Pillar", // bTHIA
@@ -52,6 +55,7 @@ export const ONBOARDING_STEP_LABELS: Record<OnboardingStepSlug, string> = {
 
 export const ONBOARDING_STEP_ORDER: readonly OnboardingStepSlug[] = [
   ONBOARDING_STEP.WELCOME,
+  ONBOARDING_STEP.WORKPLACE_CODE,
   ONBOARDING_STEP.NAME,
   ONBOARDING_STEP.ROLE,
   ONBOARDING_STEP.PILLAR,

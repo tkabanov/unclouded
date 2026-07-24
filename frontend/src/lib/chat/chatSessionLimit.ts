@@ -10,12 +10,16 @@ export { FREE_TIER_SESSION_LIMIT, FREE_TIER_UPSELL_MESSAGE };
 export type SessionLimitCheckInput = {
   tier?: string | null;
   subscribed?: boolean | null;
+  accountType?: string | null;
+  enterpriseTier?: string | null;
   onboardingData?: Record<string, unknown> | null;
 };
 
 /** True when a Free-tier user has consumed all monthly coaching sessions. */
 export function isAtFreeTierSessionLimit(input: SessionLimitCheckInput): boolean {
-  if (!isFreeTierUser(input.tier, input.subscribed)) return false;
+  if (!isFreeTierUser(input.tier, input.subscribed, input.accountType, input.enterpriseTier)) {
+    return false;
+  }
   const usage = readMonthlyUsage(input.onboardingData);
   return usage.sessionConversationIds.length >= FREE_TIER_SESSION_LIMIT;
 }

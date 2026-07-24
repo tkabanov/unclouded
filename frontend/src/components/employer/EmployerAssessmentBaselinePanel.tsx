@@ -2,7 +2,10 @@ import {
   STABILITY_BAND_LABELS,
   type StabilityBand,
 } from "@/lib/employer/managerAggregateHelpers";
-import type { EmployerMetricSnapshot } from "@/lib/employer/employerMetricsApi";
+import {
+  EMPTY_EMPLOYER_ASSESSMENT_BASELINE,
+  type EmployerMetricSnapshot,
+} from "@/lib/employer/employerMetricsApi.types";
 import { EMPLOYER_MIN_COHORT_SIZE } from "@/lib/employer/employerMetricsApi";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -32,7 +35,7 @@ export default function EmployerAssessmentBaselinePanel({
     return null;
   }
 
-  const baseline = metrics.assessmentBaseline;
+  const baseline = metrics.assessmentBaseline ?? EMPTY_EMPLOYER_ASSESSMENT_BASELINE;
 
   return (
     <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-4", className)}>
