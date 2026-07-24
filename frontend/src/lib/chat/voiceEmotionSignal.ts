@@ -67,6 +67,39 @@ export function voiceBlobHasAudibleSpeech(
   return meanRms >= minRms;
 }
 
+/** Share of analysis windows whose RMS meets the speech floor (0–1). */
+export function measureSpeechActiveWindowRatio(
+  samples: Float32Array,
+  sampleRate: number,
+  windowMs = 50,
+  minRms = VOICE_EMOTION_MIN_SPEECH_RMS,
+): number {
+  if (samples.length === 0 || sampleRate <= 0) return 0;
+
+  const windowSize = Math.max(1, Math.floor((sampleRate * windowMs) / 1000));
+  let active = 0;
+  let total = 0;
+
+  for (let i = 0; i < samples.length; i += windowSize) {
+    total += 1;
+    const rms = rmsWindow(samples, i, Math.min(i + windowSize, samples.length));
+    if (rms >= minRms) active += 1;
+  }
+
+  return total === 0 ? 0 : active / total;
+}
+
+/** Room tone can lift mean RMS slightly; sustained speech spans more windows. */
+export const VOICE_MIN_SPEECH_ACTIVE_RATIO = 0.04;
+
+export function voiceBlobHasSustainedSpeech(
+  samples: Float32Array,
+  sampleRate: number,
+  minActiveRatio = VOICE_MIN_SPEECH_ACTIVE_RATIO,
+): boolean {
+  return measureSpeechActiveWindowRatio(samples, sampleRate) >= minActiveRatio;
+}
+
 /** Coefficient-of-variation threshold for elevated vocal dynamics. */
 export const VOICE_EMOTION_CV_THRESHOLD = 0.55;
 

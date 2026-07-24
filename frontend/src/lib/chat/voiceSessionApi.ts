@@ -9,6 +9,7 @@ import {
   detectVoiceEmotionFromBlob,
   measureMeanRmsFromSamples,
   voiceBlobHasAudibleSpeech,
+  voiceBlobHasSustainedSpeech,
 } from "@/lib/chat/voiceEmotionSignal";
 
 const CHAT_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -88,13 +89,45 @@ const WHISPER_SILENCE_HALLUCINATION = /^(you(\s+you)*\.?|thank you\.?|thanks for
 const WHISPER_PURE_SILENCE_TOKENS =
   /^(\[?\s*(silence|blank[_\s]?audio|inaudible|no speech|music|applause)\s*\]?\.?|[.…]{1,}|·+)$/i;
 
+const WHISPER_CJK_SCRIPT = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/;
+
+/** Whisper on silence/noise often emits JP/KR outros even when `language=en` is set. */
+export function isLikelyWhisperForeignSilenceHallucination(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+
+  if (/ご視聴|ご清聴|字幕|チャンネル|視聴|ありがとうございました/.test(trimmed)) {
+    return true;
+  }
+
+  const stripped = trimmed.replace(/[\s.,!?;:。、！？\-—…]/g, "");
+  if (stripped.length === 0) return true;
+
+  let cjkCount = 0;
+  for (const char of stripped) {
+    if (WHISPER_CJK_SCRIPT.test(char)) cjkCount += 1;
+  }
+
+  return cjkCount / stripped.length >= 0.25;
+}
+
 /** Whisper often returns these on near-silent or corrupt clips (common in embedded browsers). */
 export function isLikelyWhisperSilenceHallucination(text: string, durationSec: number): boolean {
   const trimmed = text.trim();
   if (!trimmed) return true;
   if (WHISPER_PURE_SILENCE_TOKENS.test(trimmed)) return true;
-  if (durationSec >= 0.6) return false;
-  return WHISPER_SILENCE_HALLUCINATION.test(trimmed);
+  if (isLikelyWhisperForeignSilenceHallucination(trimmed)) return true;
+  if (durationSec < 0.6 && WHISPER_SILENCE_HALLUCINATION.test(trimmed)) return true;
+  return false;
+}
+
+export function shouldRejectVoiceTranscript(text: string, durationSec?: number): boolean {
+  if (!text.trim()) return true;
+  if (isLikelyWhisperForeignSilenceHallucination(text)) return true;
+  if (durationSec === undefined) {
+    return isLikelyWhisperSilenceHallucination(text, 0);
+  }
+  return isLikelyWhisperSilenceHallucination(text, durationSec);
 }
 
 export type VoiceRecordingValidation =
@@ -111,7 +144,10 @@ export async function validateVoiceRecordingBlob(
   if (!decoded) return { ok: false, reason: "undecodable" };
 
   const meanRms = measureMeanRmsFromSamples(decoded.samples, decoded.sampleRate);
-  if (!voiceBlobHasAudibleSpeech(meanRms)) {
+  if (
+    !voiceBlobHasAudibleSpeech(meanRms) ||
+    !voiceBlobHasSustainedSpeech(decoded.samples, decoded.sampleRate)
+  ) {
     return { ok: false, reason: "too_quiet" };
   }
 
@@ -177,11 +213,7 @@ export async function transcribeVoiceBlob(
   const payload = (await response.json()) as { text?: string };
   const text = typeof payload.text === "string" ? payload.text.trim() : "";
 
-  if (
-    options?.durationSec !== undefined &&
-    text &&
-    isLikelyWhisperSilenceHallucination(text, options.durationSec)
-  ) {
+  if (text && shouldRejectVoiceTranscript(text, options?.durationSec)) {
     throw new Error("No speech detected.");
   }
 

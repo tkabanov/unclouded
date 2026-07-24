@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import {
   computeTimeDomainRms,
   createVoiceSilenceWatcher,
+  isLikelyWhisperForeignSilenceHallucination,
   isLikelyWhisperSilenceHallucination,
   isVoiceInputSilent,
   playVoiceCloseRitualSilence,
   resolveVoiceRecordingMimeType,
+  shouldRejectVoiceTranscript,
   VOICE_CLOSE_SILENCE_MS,
   VOICE_INPUT_SILENCE_RMS,
   VOICE_SILENCE_HOLD_MS,
@@ -76,6 +78,13 @@ describe("voiceSessionApi", () => {
     expect(isLikelyWhisperSilenceHallucination("", 20)).toBe(true);
     // A real sentence of the same length is never a hallucination.
     expect(isLikelyWhisperSilenceHallucination("I sat in silence for a while", 15)).toBe(false);
+  });
+
+  it("flags Japanese/Korean Whisper silence hallucinations on long clips", () => {
+    expect(isLikelyWhisperForeignSilenceHallucination("ご視聴ありがとうございました")).toBe(true);
+    expect(isLikelyWhisperSilenceHallucination("ご視聴ありがとうございました", 15)).toBe(true);
+    expect(shouldRejectVoiceTranscript("ご視聴ありがとうございました", 15)).toBe(true);
+    expect(isLikelyWhisperForeignSilenceHallucination("I need help with boundaries")).toBe(false);
   });
 
   it("computeTimeDomainRms measures frame energy", () => {
