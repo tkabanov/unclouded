@@ -401,19 +401,18 @@ export default function VoiceSessionPanel({
             ? "Tap the mic and say your commitment in your own words."
             : "Tap the mic and speak. Kota replies with voice — no typing needed."}
         </p>
-        <div className="scale-150">
-          <VoiceSessionMicButton
-            recording={voiceRecorder.recording}
-            transcribing={voiceRecorder.transcribing}
-            disabled={
-              awaitingAssistantReply ||
-              sessionClosed ||
-              sessionLimitBlocked ||
-              voiceRecorder.transcribing
-            }
-            onToggle={voiceRecorder.toggleRecording}
-          />
-        </div>
+        <VoiceSessionMicButton
+          recording={voiceRecorder.recording}
+          transcribing={voiceRecorder.transcribing}
+          disabled={
+            awaitingAssistantReply ||
+            sessionClosed ||
+            sessionLimitBlocked ||
+            voiceRecorder.transcribing
+          }
+          onToggle={voiceRecorder.toggleRecording}
+          className="size-14 shrink-0 [&_svg]:size-6"
+        />
         {voiceRecorder.recording ? (
           <p className="max-w-xs text-center text-xs text-muted-foreground animate-pulse">
             {voiceRecorder.silenceHoldActive
