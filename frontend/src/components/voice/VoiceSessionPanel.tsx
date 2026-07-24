@@ -401,21 +401,25 @@ export default function VoiceSessionPanel({
             ? "Tap the mic and say your commitment in your own words."
             : "Tap the mic and speak. Kota replies with voice — no typing needed."}
         </p>
-        <VoiceSessionMicButton
-          recording={voiceRecorder.recording}
-          transcribing={voiceRecorder.transcribing}
-          silenceHoldActive={voiceRecorder.silenceHoldActive}
-          disabled={
-            awaitingAssistantReply ||
-            sessionClosed ||
-            sessionLimitBlocked ||
-            voiceRecorder.transcribing
-          }
-          onToggle={voiceRecorder.toggleRecording}
-          className="scale-150"
-        />
+        <div className="scale-150">
+          <VoiceSessionMicButton
+            recording={voiceRecorder.recording}
+            transcribing={voiceRecorder.transcribing}
+            disabled={
+              awaitingAssistantReply ||
+              sessionClosed ||
+              sessionLimitBlocked ||
+              voiceRecorder.transcribing
+            }
+            onToggle={voiceRecorder.toggleRecording}
+          />
+        </div>
         {voiceRecorder.recording ? (
-          <p className="text-xs text-muted-foreground animate-pulse">Listening…</p>
+          <p className="max-w-xs text-center text-xs text-muted-foreground animate-pulse">
+            {voiceRecorder.silenceHoldActive
+              ? "Still listening — silence is okay."
+              : "Listening…"}
+          </p>
         ) : voiceRecorder.transcribing ? (
           <p className="text-xs text-muted-foreground">Transcribing your words…</p>
         ) : null}
