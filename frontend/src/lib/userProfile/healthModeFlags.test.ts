@@ -62,6 +62,15 @@ describe("resolveHealthModeFlags", () => {
     });
   });
 
+  it("reads transition flag from customer role transition", () => {
+    expect(
+      resolveHealthModeFlags({
+        roleTypes: ["transition"],
+        roleType: "transition",
+      }).transitionFlagActive,
+    ).toBe(true);
+  });
+
   it("reads transition flag from loadSignals and aboutYou career stage", () => {
     expect(
       resolveHealthModeFlags({

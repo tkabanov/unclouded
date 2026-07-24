@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogOverlay,
   DialogPortal,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { useAuth } from "@/hooks/useAuth";
@@ -107,6 +108,7 @@ export default function PathDetailPopup({
   };
   const [busy, setBusy] = useState(false);
   const [stepsText, setStepsText] = useState("");
+  const [stepsLoading, setStepsLoading] = useState(false);
   const [lastStepText, setLastStepText] = useState<string | null>(null);
 
   const dismiss = () => onOpenChange(false);
@@ -144,11 +146,13 @@ export default function PathDetailPopup({
   useEffect(() => {
     if (!open || !pathSlug) {
       setStepsText("");
+      setStepsLoading(false);
       setLastStepText(null);
       return;
     }
 
     let cancelled = false;
+    setStepsLoading(true);
     fetchPathSessionsByKey(pathSlug)
       .then((sessions) => {
         if (cancelled) return;
@@ -178,12 +182,20 @@ export default function PathDetailPopup({
           setStepsText("");
           setLastStepText(null);
         }
+      })
+      .finally(() => {
+        if (!cancelled) setStepsLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
   }, [matchedEnrollment, open, pathSlug]);
+
+  const stepsDisplayText = stepsLoading
+    ? "Loading steps…"
+    : stepsText ||
+      "Session steps are not available yet. If this path was recently added, try again later.";
 
   const handleEnroll = async () => {
     if (!user || !pathSlug) return;
@@ -234,6 +246,7 @@ export default function PathDetailPopup({
             "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-h-[90vh] overflow-y-auto",
           )}
         >
+          <DialogTitle className="sr-only">{pathName}</DialogTitle>
           <header
             className={cn(bubbleStyle("Group_transparent_"), "space-y-3 pr-8")}
           >
@@ -301,7 +314,7 @@ export default function PathDetailPopup({
                   "text-sm leading-relaxed",
                 )}
               >
-                {stepsText || "Loading steps…"}
+                {stepsDisplayText}
               </p>
             </div>
 

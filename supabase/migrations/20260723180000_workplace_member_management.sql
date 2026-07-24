@@ -84,6 +84,7 @@ CREATE POLICY "HR selects workplace member profiles"
   );
 
 DROP POLICY IF EXISTS "Settings admin manages managerDirectReport" ON public."managerDirectReport";
+DROP POLICY IF EXISTS "Admin or HR manages managerDirectReport" ON public."managerDirectReport";
 CREATE POLICY "Admin or HR manages managerDirectReport"
   ON public."managerDirectReport"
   FOR ALL TO authenticated

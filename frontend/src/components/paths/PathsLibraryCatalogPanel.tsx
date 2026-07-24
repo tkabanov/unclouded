@@ -42,7 +42,7 @@ export default function PathsLibraryCatalogPanel({
   className,
   onViewPath,
 }: PathsLibraryCatalogPanelProps) {
-  const { profile } = useUserProfile();
+  const { profile, loading: profileLoading } = useUserProfile();
   const { enrollments } = usePathsEnrollmentStore();
   const [loading, setLoading] = useState(true);
   const [paths, setPaths] = useState<PathCatalogEntry[]>([]);
@@ -53,13 +53,23 @@ export default function PathsLibraryCatalogPanel({
     profile?.tier ?? null,
     profile?.onboardingData ?? null,
   );
-  const healthFlags = resolveHealthModeFlags({
-    onboardingData: profile?.onboardingData ?? null,
-    results: profile?.results ?? null,
-    roleType: profile?.roleType ?? null,
-    roleTypes: profile?.roleTypes ?? null,
-    aboutYou: profile?.aboutYou ?? null,
-  });
+  const healthFlags = useMemo(
+    () =>
+      resolveHealthModeFlags({
+        onboardingData: profile?.onboardingData ?? null,
+        results: profile?.results ?? null,
+        roleType: profile?.roleType ?? null,
+        roleTypes: profile?.roleTypes ?? null,
+        aboutYou: profile?.aboutYou ?? null,
+      }),
+    [
+      profile?.onboardingData,
+      profile?.results,
+      profile?.roleType,
+      profile?.roleTypes,
+      profile?.aboutYou,
+    ],
+  );
   const moduleProfile = useMemo(() => toModuleProfileInput(profile), [profile]);
 
   const enrollmentBySlug = useMemo(() => {
@@ -103,6 +113,8 @@ export default function PathsLibraryCatalogPanel({
     [visiblePaths, selectedTier],
   );
 
+  const catalogLoading = loading || profileLoading;
+
   return (
     <section className={cn("flex w-full flex-col gap-4", className)}>
       <div className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-2")}>
@@ -115,7 +127,7 @@ export default function PathsLibraryCatalogPanel({
       <PathsFilterRow selectedTier={selectedTier} onTierChange={setSelectedTier} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {loading ? (
+        {catalogLoading ? (
           <>
             <Skeleton className="h-56 w-full rounded-xl" />
             <Skeleton className="h-56 w-full rounded-xl" />
