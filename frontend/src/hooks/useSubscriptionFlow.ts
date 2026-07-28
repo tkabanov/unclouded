@@ -18,7 +18,7 @@ import {
   downgradeSuccessMessage,
   KEEP_PREMIUM_SUCCESS_MESSAGE,
   planDisplayName,
-  PREMIUM_UPGRADE_SUCCESS_MESSAGE,
+  premiumUpgradeSuccessMessage,
   resumeSuccessMessage,
   UPGRADE_PAYMENT_FAILED_MESSAGE,
 } from "@/lib/subscription/subscriptionCopy";
@@ -46,6 +46,8 @@ export type UseSubscriptionFlowArgs = {
   applyOverview: (next: SubscriptionOverview | null) => void;
   /** Re-reads the profile so tier-gated UI elsewhere updates immediately. */
   onEntitlementChanged: () => Promise<void> | void;
+  /** Clears the persistent checkout success banner (e.g. after scheduling a downgrade). */
+  onClearCheckoutNotice?: () => void;
 };
 
 export type UseSubscriptionFlow = {
@@ -63,6 +65,7 @@ export function useSubscriptionFlow({
   interval,
   applyOverview,
   onEntitlementChanged,
+  onClearCheckoutNotice,
 }: UseSubscriptionFlowArgs): UseSubscriptionFlow {
   const [dialog, setDialog] = useState<SubscriptionDialog>(null);
   const [pendingAction, setPendingAction] = useState<SubscriptionAction | null>(null);
@@ -194,12 +197,13 @@ export function useSubscriptionFlow({
             formatSubscriptionDate(result.effectiveAt ?? record?.currentPeriodEnd) ??
             "your next billing date";
           await settle(result);
+          onClearCheckoutNotice?.();
           toast.success(downgradeSuccessMessage(label));
         } catch (err) {
           toast.error(err instanceof Error ? err.message : SUBSCRIPTION_ERROR_MESSAGES.downgrade);
         }
       }),
-    [record?.currentPeriodEnd, settle, withPending],
+    [onClearCheckoutNotice, record?.currentPeriodEnd, settle, withPending],
   );
 
   const confirmKeepPremium = useCallback(
@@ -226,7 +230,8 @@ export function useSubscriptionFlow({
             UPGRADE_PAYMENT_FAILED_MESSAGE,
           );
           await settle(result);
-          toast.success(PREMIUM_UPGRADE_SUCCESS_MESSAGE);
+          const creditGranted = (result.overview?.credits.balance ?? 0) >= 1;
+          toast.success(premiumUpgradeSuccessMessage(creditGranted));
         } catch (err) {
           toast.error(err instanceof Error ? err.message : UPGRADE_PAYMENT_FAILED_MESSAGE);
         }

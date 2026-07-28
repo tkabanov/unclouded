@@ -230,6 +230,7 @@ function sleep(ms: number): Promise<void> {
 /**
  * After Stripe Checkout redirect, pull subscription state from Stripe when a
  * webhook hasn't reached the project yet (typical on localhost).
+ * For Premium, also wait for the first credit when sync can grant it.
  */
 export async function reconcileCheckoutReturn(
   expectedTier: PaidTier | null,
@@ -245,11 +246,14 @@ export async function reconcileCheckoutReturn(
       // Customer/subscription may not be visible to Stripe for a moment after redirect.
     }
 
-    if (overview.effectiveTier !== TIER.FREE) {
-      if (!expectedTier || overview.effectiveTier === expectedTier) {
-        return overview;
-      }
+    if (overview.effectiveTier === TIER.FREE) continue;
+    if (expectedTier && overview.effectiveTier !== expectedTier) continue;
+
+    if (overview.effectiveTier === TIER.PREMIUM && overview.credits.balance < 1) {
+      continue;
     }
+
+    return overview;
   }
 
   return overview;

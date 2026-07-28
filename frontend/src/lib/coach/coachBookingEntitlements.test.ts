@@ -54,6 +54,20 @@ describe("resolveOneOnOneButtonState", () => {
 
     expect(state.kind).toBe("bookable");
     expect(state.helper).toContain("August 26, 2026");
+    expect(state.helper).toContain("unless you resume");
+  });
+
+  it("uses expire-only copy when a downgrade is scheduled", () => {
+    const state = resolveOneOnOneButtonState({
+      effectiveTier: TIER.PREMIUM,
+      creditBalance: 4,
+      creditsExpireAtLabel: "August 26, 2026",
+      creditsExpireReason: "downgrade",
+    });
+
+    expect(state.kind).toBe("bookable");
+    expect(state.helper).toContain("Your unused credits will expire on August 26, 2026.");
+    expect(state.helper).not.toContain("unless you resume");
   });
 
   it("blocks the booking below the two-credit cost", () => {

@@ -27,10 +27,13 @@ import {
   cancelDialogCopy,
   checkoutDialogCopy,
   checkoutSuccessMessage,
+  creditsExpireMessage,
   downgradeDialogCopy,
+  downgradeSuccessMessage,
   foundingPricingNotice,
   FOUNDING_TO_PREMIUM_DIALOG_COPY,
   PRO_TO_PREMIUM_DIALOG_COPY,
+  proPlanBeginsMessage,
   scheduledCancelStatusLabel,
   subscriptionSummaryForRecord,
   UPGRADE_PAYMENT_FAILED_MESSAGE,
@@ -260,6 +263,49 @@ describe("AC-10 Premium access and credits continue until the effective date", (
     expect(resolveEffectiveTier(scheduled, NOW)).toBe(TIER.PREMIUM);
     expect(resolveEffectiveTier(scheduled, NOW + 11 * DAY)).toBe(TIER.PRO);
     expect(resolveCreditsExpireAt(scheduled)).toBe(scheduled.scheduledDowngradeEffectiveAt);
+  });
+
+  it("shows dated Pro begin copy, Keep Premium, and expire-only credit wording", () => {
+    const effectiveAt = new Date(NOW + 10 * DAY).toISOString();
+    const scheduled = record({
+      ...activePremium,
+      status: "scheduledToDowngrade",
+      scheduledDowngradeTier: TIER.PRO,
+      scheduledDowngradeEffectiveAt: effectiveAt,
+    });
+
+    const proCard = resolvePlanCardState({
+      cardTier: TIER.PRO,
+      record: scheduled,
+      nowMs: NOW,
+    });
+    expect(proCard.primary).toMatchObject({
+      kind: "futurePlan",
+      label: expect.stringMatching(/^Your Pro plan will begin on /),
+    });
+    expect(proCard.primary).not.toMatchObject({
+      label: "Starts on your downgrade date",
+    });
+
+    expect(
+      resolvePlanCardState({ cardTier: TIER.PREMIUM, record: scheduled, nowMs: NOW }).primary,
+    ).toEqual({ kind: "keepPremium", label: "Keep Premium" });
+
+    const details = buildCurrentPlanDetails(scheduled).map((row) => row.label);
+    expect(details).toContain("Premium active until");
+    expect(details).toContain("Downgrade to Pro scheduled for");
+    expect(details).not.toContain("Next renewal date");
+
+    expect(creditsExpireMessage("August 26, 2026", "downgrade")).toBe(
+      "Your unused credits will expire on August 26, 2026.",
+    );
+    expect(creditsExpireMessage("August 26, 2026", "cancel")).toContain("unless you resume");
+    expect(downgradeSuccessMessage("August 26, 2026")).toContain(
+      "Your Pro subscription will begin on August 26, 2026",
+    );
+    expect(proPlanBeginsMessage("August 26, 2026")).toBe(
+      "Your Pro plan will begin on August 26, 2026",
+    );
   });
 });
 
@@ -543,6 +589,16 @@ describe("Founding Member UI (E2E SUB-FM fixes)", () => {
       "Founding Member",
     );
     expect(checkoutSuccessMessage(TIER.PRO)).toContain("Welcome to Pro!");
+  });
+
+  it("Premium checkout success mentions credit only when granted", () => {
+    expect(checkoutSuccessMessage(TIER.PREMIUM)).toContain("one credit has been added");
+    expect(checkoutSuccessMessage(TIER.PREMIUM, { creditGranted: false })).toContain(
+      "will appear shortly",
+    );
+    expect(checkoutSuccessMessage(TIER.PREMIUM, { creditGranted: false })).not.toContain(
+      "one credit has been added",
+    );
   });
 
   it("checkout dialog uses founding copy when eligible", () => {

@@ -5,6 +5,7 @@ import {
   CREDITS_UNAVAILABLE_MESSAGE,
   creditsExpireMessage,
   nextCreditMessage,
+  type CreditsExpireReason,
 } from "@/lib/subscription/subscriptionCopy";
 import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
 import { bubbleStyle } from "@/styles";
@@ -16,6 +17,8 @@ export interface PremiumCreditsCardProps {
   creditsExpireAt: string | null;
   /** False once Premium has ended: the balance is shown but is not redeemable. */
   redeemable: boolean;
+  /** Cancel keeps "unless you resume"; downgrade uses expire-only copy. */
+  creditsExpireReason?: CreditsExpireReason;
 }
 
 /**
@@ -29,6 +32,7 @@ export default function PremiumCreditsCard({
   nextCreditAt,
   creditsExpireAt,
   redeemable,
+  creditsExpireReason = "cancel",
 }: PremiumCreditsCardProps) {
   const nextCreditLabel = formatSubscriptionDate(nextCreditAt);
   const expiryLabel = formatSubscriptionDate(creditsExpireAt);
@@ -52,7 +56,9 @@ export default function PremiumCreditsCard({
       ) : (
         <>
           {expiryLabel ? (
-            <p className="text-sm text-destructive">{creditsExpireMessage(expiryLabel)}</p>
+            <p className="text-sm text-destructive">
+              {creditsExpireMessage(expiryLabel, creditsExpireReason)}
+            </p>
           ) : nextCreditLabel ? (
             <p className="text-sm text-muted-foreground">{nextCreditMessage(nextCreditLabel)}</p>
           ) : null}

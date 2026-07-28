@@ -122,10 +122,20 @@ export default function SettingsSubscriptionTab() {
     interval,
     applyOverview,
     onEntitlementChanged: refreshProfile,
+    onClearCheckoutNotice: dismissCheckoutNotice,
   });
 
   /** Auto Stripe sync runs at most once per mount (avoids loops when sync cannot clear stale flags). */
   const billingAutoSyncAttemptedRef = useRef(false);
+
+  useEffect(() => {
+    if (
+      activeRecord.status === "scheduledToCancel" ||
+      activeRecord.status === "scheduledToDowngrade"
+    ) {
+      dismissCheckoutNotice();
+    }
+  }, [activeRecord.status]);
 
   useEffect(() => {
     const checkout = searchParams.get("checkout");
@@ -146,18 +156,25 @@ export default function SettingsSubscriptionTab() {
           applyOverview(next);
           void refreshProfile();
           const isFoundingMember = next.subscription?.isFoundingMember ?? false;
-          const successOptions = { isFoundingMember };
+          const creditGranted = next.credits.balance >= 1;
+          const successOptions = { isFoundingMember, creditGranted };
           const tierMatches =
             expectedTier !== null && next.effectiveTier === expectedTier;
           if (tierMatches) {
             showCheckoutNotice(
               checkoutSuccessMessage(expectedTier, successOptions),
-              "success",
+              creditGranted || expectedTier !== TIER.PREMIUM ? "success" : "pending",
             );
           } else if (next.effectiveTier !== TIER.FREE) {
             showCheckoutNotice(
-              checkoutSuccessMessage(next.effectiveTier, successOptions),
-              "success",
+              checkoutSuccessMessage(next.effectiveTier, {
+                ...successOptions,
+                creditGranted:
+                  next.effectiveTier === TIER.PREMIUM ? creditGranted : true,
+              }),
+              next.effectiveTier === TIER.PREMIUM && !creditGranted
+                ? "pending"
+                : "success",
             );
           } else {
             showCheckoutNotice(checkoutSuccessPendingMessage(), "pending");
@@ -223,7 +240,9 @@ export default function SettingsSubscriptionTab() {
     formatSubscriptionDate(resolveNextRenewalAt(activeRecord)) ?? "your next billing date";
 
   const showCheckoutSuccessBanner =
-    checkoutNotice && activeRecord.status !== "scheduledToCancel";
+    checkoutNotice &&
+    activeRecord.status !== "scheduledToCancel" &&
+    activeRecord.status !== "scheduledToDowngrade";
 
   if (loading) {
     return (
@@ -300,6 +319,9 @@ export default function SettingsSubscriptionTab() {
           nextCreditAt={resolveNextCreditAt(activeRecord)}
           creditsExpireAt={resolveCreditsExpireAt(activeRecord)}
           redeemable
+          creditsExpireReason={
+            activeRecord.status === "scheduledToDowngrade" ? "downgrade" : "cancel"
+          }
         />
       ) : null}
 

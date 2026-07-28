@@ -80,6 +80,8 @@ export default function BookCoachCard() {
     effectiveTier: tier,
     creditBalance: overview?.credits.balance ?? 0,
     creditsExpireAtLabel: formatSubscriptionDate(resolveCreditsExpireAt(record)),
+    creditsExpireReason:
+      record?.status === "scheduledToDowngrade" ? "downgrade" : "cancel",
     requiredCredits: overview?.credits.requiredPerSession,
   });
 

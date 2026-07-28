@@ -206,6 +206,8 @@ export const KEEP_PREMIUM_SUCCESS_MESSAGE =
 
 export type CheckoutSuccessOptions = {
   isFoundingMember?: boolean;
+  /** When false, Premium is active but the ledger credit is not visible yet. */
+  creditGranted?: boolean;
 };
 
 export function checkoutSuccessMessage(
@@ -213,6 +215,12 @@ export function checkoutSuccessMessage(
   options: CheckoutSuccessOptions = {},
 ): string {
   if (tier === TIER.PREMIUM) {
+    if (options.creditGranted === false) {
+      return (
+        "Welcome to Premium! Your Premium features are now available. Your first credit will " +
+        "appear shortly."
+      );
+    }
     return (
       "Welcome to Premium! Your Premium features are now available, and one credit has been " +
       "added to your account."
@@ -295,6 +303,14 @@ export const PREMIUM_UPGRADE_SUCCESS_MESSAGE =
   "You're now a Premium member. Your Premium features are available immediately, and one " +
   "credit has been added to your account.";
 
+export function premiumUpgradeSuccessMessage(creditGranted: boolean): string {
+  if (creditGranted) return PREMIUM_UPGRADE_SUCCESS_MESSAGE;
+  return (
+    "You're now a Premium member. Your Premium features are available immediately. Your first " +
+    "credit will appear shortly."
+  );
+}
+
 export const UPGRADE_PAYMENT_FAILED_MESSAGE =
   "We couldn't complete your upgrade. Your Pro subscription is still active, and you have not " +
   "been charged. Please check your payment method and try again.";
@@ -325,8 +341,21 @@ export function nextCreditMessage(dateLabel: string): string {
   return `Your next credit will be added on ${dateLabel}.`;
 }
 
-export function creditsExpireMessage(dateLabel: string): string {
+export type CreditsExpireReason = "cancel" | "downgrade";
+
+export function creditsExpireMessage(
+  dateLabel: string,
+  reason: CreditsExpireReason = "cancel",
+): string {
+  if (reason === "downgrade") {
+    return `Your unused credits will expire on ${dateLabel}.`;
+  }
   return `Your unused credits will expire on ${dateLabel} unless you resume your Premium subscription.`;
+}
+
+/** Pro card label while a Premium→Pro downgrade is scheduled. */
+export function proPlanBeginsMessage(dateLabel: string): string {
+  return `Your Pro plan will begin on ${dateLabel}`;
 }
 
 export const BOOKING_HELPER_ENOUGH_CREDITS =

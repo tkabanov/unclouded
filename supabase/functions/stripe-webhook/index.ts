@@ -24,6 +24,7 @@ import {
   listBillableStripeSubscriptions,
   reconcileDuplicateStripeSubscriptions,
 } from "../_shared/stripeSubscriptionReconcile.ts";
+import { grantPremiumCreditForInvoice } from "../_shared/premiumCreditGrant.ts";
 import { syncStripeSubscriptionForUser } from "../_shared/stripeSubscriptionSync.ts";
 import {
   graceDeadlineFrom,
@@ -127,13 +128,7 @@ async function handleInvoicePaid(
 
   // One credit per successful Premium billing period. The RPC no-ops for
   // non-Premium users and for an invoice it has already credited.
-  const { data, error } = await service.rpc("billing_grant_premium_credit", {
-    p_user_id: userId,
-    p_stripe_invoice_id: invoice.id,
-    p_note: "Monthly Premium credit",
-  });
-  if (error) throw new Error(`billing_grant_premium_credit: ${error.message}`);
-
+  const data = await grantPremiumCreditForInvoice(service, userId, invoice.id);
   console.log(`stripe-webhook: credit for ${userId} → ${JSON.stringify(data)}`);
 }
 

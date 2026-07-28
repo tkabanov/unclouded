@@ -21,18 +21,22 @@ export function buildCurrentPlanDetails(
     if (discountEnds) details.push({ label: "Discount ends", value: discountEnds });
   }
 
+  if (record.status === "scheduledToDowngrade") {
+    const accessEnds = formatSubscriptionDate(resolveAccessEndsAt(record));
+    if (accessEnds) {
+      details.push({ label: "Premium active until", value: accessEnds });
+      details.push({ label: "Downgrade to Pro scheduled for", value: accessEnds });
+    }
+    return details;
+  }
+
   const renewal = formatSubscriptionDate(resolveNextRenewalAt(record));
   if (renewal) details.push({ label: "Next renewal date", value: renewal });
 
   const accessEnds = formatSubscriptionDate(resolveAccessEndsAt(record));
   if (accessEnds && record.status !== "scheduledToCancel") {
     details.push({
-      label:
-        record.status === "scheduledToDowngrade"
-          ? "Downgrade effective"
-          : record.status === "pastDue"
-            ? "Access continues until"
-            : "Access expires",
+      label: record.status === "pastDue" ? "Access continues until" : "Access expires",
       value: accessEnds,
     });
   }

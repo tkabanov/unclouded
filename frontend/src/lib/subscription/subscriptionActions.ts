@@ -7,6 +7,8 @@
  * tab cannot cancel twice or stack a downgrade on a scheduled cancellation.
  */
 import { TIER, type TierSlug } from "@/lib/enums/tier";
+import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
+import { proPlanBeginsMessage } from "@/lib/subscription/subscriptionCopy";
 import {
   normalizeStatus,
   normalizeTier,
@@ -155,9 +157,12 @@ export function resolvePlanCardState(input: PlanCardStateInput): PlanCardState {
       status === "scheduledToDowngrade" &&
       record?.scheduledDowngradeTier === input.cardTier
     ) {
+      const begins =
+        formatSubscriptionDate(record.scheduledDowngradeEffectiveAt) ??
+        "your downgrade date";
       return {
         isCurrent: false,
-        primary: { kind: "futurePlan", label: "Starts on your downgrade date" },
+        primary: { kind: "futurePlan", label: proPlanBeginsMessage(begins) },
         secondary: null,
       };
     }

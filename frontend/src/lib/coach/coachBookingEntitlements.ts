@@ -4,6 +4,7 @@ import {
   CREDITS_UNAVAILABLE_MESSAGE,
   bookingHelperNotEnoughCredits,
   creditsExpireMessage,
+  type CreditsExpireReason,
 } from "@/lib/subscription/subscriptionCopy";
 import { CREDITS_PER_ONE_ON_ONE_SESSION } from "@/lib/subscription/subscriptionState";
 
@@ -42,6 +43,7 @@ export type OneOnOneButtonInput = {
   creditBalance: number;
   /** Date the credits stop working — set while a cancellation or downgrade is scheduled. */
   creditsExpireAtLabel?: string | null;
+  creditsExpireReason?: CreditsExpireReason;
   requiredCredits?: number;
 };
 
@@ -85,7 +87,10 @@ export function resolveOneOnOneButtonState(
     kind: "bookable",
     label: "Book a 1:1 Session",
     helper: input.creditsExpireAtLabel
-      ? `${BOOKING_HELPER_ENOUGH_CREDITS} ${creditsExpireMessage(input.creditsExpireAtLabel)}`
+      ? `${BOOKING_HELPER_ENOUGH_CREDITS} ${creditsExpireMessage(
+          input.creditsExpireAtLabel,
+          input.creditsExpireReason ?? "cancel",
+        )}`
       : BOOKING_HELPER_ENOUGH_CREDITS,
   };
 }

@@ -40,6 +40,7 @@ import {
   reconcileDuplicateStripeSubscriptions,
   listBillableStripeSubscriptions,
 } from "../_shared/stripeSubscriptionReconcile.ts";
+import { grantPremiumCreditFromLatestPaidInvoice } from "../_shared/premiumCreditGrant.ts";
 import { syncStripeSubscriptionForUser } from "../_shared/stripeSubscriptionSync.ts";
 
 type ActionName =
@@ -224,10 +225,27 @@ Deno.serve(async (req) => {
               subscription,
             )
           : subscription;
+
+      // Checkout redirect often lands before invoice.paid; grant against the
+      // latest paid invoice so Premium credits match the tier (idempotent).
+      const syncedTier = resolveEffectiveTier(synced);
+      if (syncedTier === "premium" && synced.stripeSubscriptionId) {
+        try {
+          await grantPremiumCreditFromLatestPaidInvoice(
+            service,
+            stripe,
+            userId,
+            synced.stripeSubscriptionId,
+          );
+        } catch (err) {
+          console.error("stripe-subscription sync credit grant failed", err);
+        }
+      }
+
       return json({
         status: "ok",
         overview: await loadOverview(auth.supabase),
-        effectiveTier: resolveEffectiveTier(synced),
+        effectiveTier: syncedTier,
       });
     }
 
@@ -559,8 +577,14 @@ async function handleConfirmUpgrade(
     if (resumeError) throw new Error(resumeError.message);
   }
 
-  // The credit itself is granted by the `invoice.paid` webhook so a duplicated
-  // callback cannot double-grant it.
+  // Prefer grant-on-sync so the UI sees a credit without waiting for webhook
+  // lag; the ledger key on invoice id still prevents double-grants.
+  try {
+    await grantPremiumCreditFromLatestPaidInvoice(service, stripe, userId, updated.id);
+  } catch (err) {
+    console.error("premium upgrade credit grant failed", err);
+  }
+
   return json({
     status: "ok",
     nextRenewalAt: periodEnd,
