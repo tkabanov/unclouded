@@ -30,6 +30,8 @@ export interface SubscriptionPlanCardProps {
   showFoundingLabel?: boolean;
   details?: PlanCardDetail[];
   notice?: string;
+  /** Full scheduled-cancel badge, e.g. "Canceled — active until April 15, 2026". */
+  scheduledCancelStatus?: string | null;
   pendingLabel?: string | null;
   disabled?: boolean;
   onAction: (action: PlanCardAction) => void;
@@ -49,6 +51,7 @@ export default function SubscriptionPlanCard({
   showFoundingLabel = false,
   details = [],
   notice,
+  scheduledCancelStatus = null,
   pendingLabel = null,
   disabled = false,
   onAction,
@@ -127,8 +130,12 @@ export default function SubscriptionPlanCard({
       <div className="mt-auto space-y-2 pt-2">
         {state.isCurrent ? (
           primary.kind === "resume" ? (
-            <Badge variant="outline" className="w-full justify-center py-2 text-sm">
-              Cancelling at period end
+            <Badge
+              variant="outline"
+              className="w-full justify-center py-2 text-sm"
+              data-testid="scheduled-cancel-status"
+            >
+              {scheduledCancelStatus ?? "Canceled"}
             </Badge>
           ) : (
             <Badge variant="outline" className="w-full justify-center py-2 text-sm">

@@ -31,8 +31,11 @@ import {
   foundingPricingNotice,
   FOUNDING_TO_PREMIUM_DIALOG_COPY,
   PRO_TO_PREMIUM_DIALOG_COPY,
+  scheduledCancelStatusLabel,
+  subscriptionSummaryForRecord,
   UPGRADE_PAYMENT_FAILED_MESSAGE,
 } from "@/lib/subscription/subscriptionCopy";
+import { buildCurrentPlanDetails } from "@/lib/subscription/subscriptionPlanDetails";
 import { findPlanPrice } from "@/lib/subscription/subscriptionFormat";
 import {
   lockedFeature,
@@ -297,8 +300,39 @@ describe("AC-13 cancellation stops renewal without removing access", () => {
 });
 
 describe("AC-14 a scheduled-to-cancel user sees Active until [Date]", () => {
+  const periodEnd = new Date(NOW + 20 * DAY).toISOString();
+  const scheduled = record({
+    ...activePro,
+    status: "scheduledToCancel",
+    cancelAtPeriodEnd: true,
+    currentPeriodEnd: periodEnd,
+  });
+
   it("carries the date into the cancellation copy", () => {
     expect(cancelDialogCopy("Pro", "August 16, 2026").message).toContain("August 16, 2026");
+  });
+
+  it("shows Canceled — active until on the current plan card", () => {
+    const untilLabel = "August 16, 2026";
+    expect(scheduledCancelStatusLabel(untilLabel)).toBe(
+      "Canceled — active until August 16, 2026",
+    );
+    expect(
+      resolvePlanCardState({ cardTier: TIER.PRO, record: scheduled, nowMs: NOW }).primary,
+    ).toEqual({ kind: "resume", label: "Resume subscription" });
+  });
+
+  it("does not show next renewal or duplicate access expiry in plan details", () => {
+    expect(resolveNextRenewalAt(scheduled)).toBeNull();
+    const labels = buildCurrentPlanDetails(scheduled).map((row) => row.label);
+    expect(labels).not.toContain("Next renewal date");
+    expect(labels).not.toContain("Access expires");
+  });
+
+  it("uses a canceled summary instead of an active plan line", () => {
+    const summary = subscriptionSummaryForRecord("Pro", scheduled);
+    expect(summary).toContain("canceled");
+    expect(summary).not.toMatch(/\bis active\b/i);
   });
 });
 

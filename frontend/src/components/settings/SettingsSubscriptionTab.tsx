@@ -27,6 +27,8 @@ import {
   keepPremiumDialogCopy,
   planDisplayName,
   resumeDialogCopy,
+  scheduledCancelStatusLabel,
+  subscriptionSummaryForRecord,
 } from "@/lib/subscription/subscriptionCopy";
 import {
   reconcileCheckoutReturn,
@@ -47,6 +49,7 @@ import {
   resolveEffectiveTier,
   resolveNextCreditAt,
   resolveNextRenewalAt,
+  resolveAccessEndsAt,
   type BillingInterval,
 } from "@/lib/subscription/subscriptionState";
 import { bubbleStyle } from "@/styles";
@@ -211,13 +214,21 @@ export default function SettingsSubscriptionTab() {
   const checkoutTier = flow.dialog?.kind === "checkout" ? flow.dialog.tier : null;
   const planName = planDisplayName(effectiveTier, activeRecord.isFoundingMember);
   const cancelActiveUntilDate = formatSubscriptionDate(activeRecord.currentPeriodEnd);
+  const scheduledCancelBadgeLabel = useMemo(() => {
+    if (activeRecord.status !== "scheduledToCancel") return null;
+    const until = formatSubscriptionDate(resolveAccessEndsAt(activeRecord));
+    return until ? scheduledCancelStatusLabel(until) : null;
+  }, [activeRecord]);
   const renewalLabel =
     formatSubscriptionDate(resolveNextRenewalAt(activeRecord)) ?? "your next billing date";
+
+  const showCheckoutSuccessBanner =
+    checkoutNotice && activeRecord.status !== "scheduledToCancel";
 
   if (loading) {
     return (
       <div className="flex flex-col gap-6">
-        {checkoutNotice ? (
+        {showCheckoutSuccessBanner ? (
           <CheckoutSuccessBanner message={checkoutNotice} onDismiss={dismissCheckoutNotice} />
         ) : null}
         <div className="text-sm text-muted-foreground">Loading subscription…</div>
@@ -231,7 +242,7 @@ export default function SettingsSubscriptionTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      {checkoutNotice ? (
+      {showCheckoutSuccessBanner ? (
         <CheckoutSuccessBanner message={checkoutNotice} onDismiss={dismissCheckoutNotice} />
       ) : null}
 
@@ -257,7 +268,7 @@ export default function SettingsSubscriptionTab() {
           <p className="text-sm text-muted-foreground">
             {effectiveTier === TIER.FREE
               ? "Upgrade to unlock unlimited coaching, premium paths, and reassessment."
-              : `Your ${planName} plan is ${activeRecord.status === "pastDue" ? "past due" : "active"}.`}
+              : subscriptionSummaryForRecord(planName, activeRecord)}
           </p>
         )}
       </div>
@@ -347,6 +358,11 @@ export default function SettingsSubscriptionTab() {
                 }
                 details={state.isCurrent ? buildCurrentPlanDetails(activeRecord) : []}
                 notice={freePlanNotice}
+                scheduledCancelStatus={
+                  state.isCurrent && state.primary.kind === "resume"
+                    ? scheduledCancelBadgeLabel
+                    : null
+                }
                 pendingLabel={
                   state.primary.kind === "cancel"
                     ? flow.pendingLabelFor("cancel")

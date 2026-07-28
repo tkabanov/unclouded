@@ -25,7 +25,7 @@ export function buildCurrentPlanDetails(
   if (renewal) details.push({ label: "Next renewal date", value: renewal });
 
   const accessEnds = formatSubscriptionDate(resolveAccessEndsAt(record));
-  if (accessEnds) {
+  if (accessEnds && record.status !== "scheduledToCancel") {
     details.push({
       label:
         record.status === "scheduledToDowngrade"

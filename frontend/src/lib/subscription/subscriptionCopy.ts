@@ -7,6 +7,11 @@
  */
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { FOUNDING_MEMBER_LABEL } from "@/lib/subscription/planCatalog";
+import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
+import {
+  resolveAccessEndsAt,
+  type SubscriptionRecord,
+} from "@/lib/subscription/subscriptionState";
 
 export type PlanDisplayName = "Pro" | "Premium" | typeof FOUNDING_MEMBER_LABEL;
 
@@ -89,6 +94,42 @@ export function cancelSuccessMessage(
     `Your Pro subscription has been canceled. You'll continue to have access to Pro features ` +
     `until ${activeUntilLabel}.`
   );
+}
+
+/** Current-plan badge while auto-renewal is off but access continues (client flow § Scheduled Cancellation). */
+export function scheduledCancelStatusLabel(activeUntilDateLabel: string): string {
+  return `Canceled — active until ${activeUntilDateLabel}`;
+}
+
+/** Summary paragraph under "Your subscription" on Settings → Subscription. */
+export function subscriptionSummaryForRecord(
+  planName: PlanDisplayName,
+  record: SubscriptionRecord,
+): string {
+  const accessEndsLabel = formatSubscriptionDate(resolveAccessEndsAt(record));
+  const accessEndsPhrase = accessEndsLabel ?? "the end of your billing period";
+
+  switch (record.status) {
+    case "scheduledToCancel":
+      return (
+        `Your ${planName} subscription is canceled. You keep access until ${accessEndsPhrase}.`
+      );
+    case "scheduledToDowngrade":
+      return (
+        `Your Premium downgrade to Pro is scheduled. Premium access continues until ${accessEndsPhrase}.`
+      );
+    case "pastDue":
+      return `Your ${planName} plan is past due.`;
+    case "active":
+      return `Your ${planName} plan is active.`;
+    case "free":
+    case "inactive":
+      return "Upgrade to unlock unlimited coaching, premium paths, and reassessment.";
+    default: {
+      const exhaustive: never = record.status;
+      return exhaustive;
+    }
+  }
 }
 
 // --- Resume -----------------------------------------------------------------

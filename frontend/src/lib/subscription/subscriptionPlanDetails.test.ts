@@ -44,4 +44,18 @@ describe("buildCurrentPlanDetails", () => {
     expect(labels).toContain("Discount ends");
     expect(labels).toContain("Next renewal date");
   });
+
+  it("omits access expiry row when cancellation is scheduled (date lives on the badge)", () => {
+    const periodEnd = new Date(NOW + 30 * 86400000).toISOString();
+    const details = buildCurrentPlanDetails(
+      record({
+        status: "scheduledToCancel",
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: periodEnd,
+      }),
+    );
+    const labels = details.map((row) => row.label);
+    expect(labels).not.toContain("Next renewal date");
+    expect(labels).not.toContain("Access expires");
+  });
 });
