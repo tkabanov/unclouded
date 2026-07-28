@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, ArrowDownRight, Minus, TrendingUp, FileText } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ArrowDownRight, Lock, Minus, TrendingUp, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
+import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { cn } from "@/lib/utils";
 import type { ResultsData } from "@/lib/classification";
 import {
@@ -213,6 +215,9 @@ const ResultsComparison = ({
   const pdfBusy = pdfState === "generating" || pdfState === "idle";
   const pdfReady = pdfState === "ready";
   const pdfFailed = pdfState === "error";
+  // Pro gets the 1-2 page summary; the full report with the behavioral
+  // fingerprint is Premium-only.
+  const pdfUpsell = useLockedFeatureUpsell(tier);
 
   return (
     <div className="space-y-6">
@@ -418,6 +423,18 @@ const ResultsComparison = ({
                     : "Preparing PDF…"}
               </Button>
             ) : null}
+
+            {isPro ? (
+              <Button
+                variant="ghost"
+                size="lg"
+                className="gap-2"
+                onClick={() => pdfUpsell.promptUpgrade("pupPdfReport")}
+              >
+                <Lock className="h-4 w-4" aria-hidden />
+                Get the full Premium report
+              </Button>
+            ) : null}
           </div>
           <div className="text-center">
             <Button variant="ghost" size="sm" asChild>
@@ -426,6 +443,13 @@ const ResultsComparison = ({
           </div>
         </div>
       ) : null}
+
+      <LockedFeatureUpgradeDialog
+        open={pdfUpsell.openFeature === "pupPdfReport"}
+        feature="pupPdfReport"
+        currentTier={tier}
+        onClose={pdfUpsell.closeUpsell}
+      />
     </div>
   );
 };

@@ -11,13 +11,14 @@ import {
   type SubscriptionEntitlement,
 } from "@/lib/settings/subscriptionEntitlementApi";
 
-const MIGRATION_PATH = resolve(
-  import.meta.dirname,
-  "../../../../supabase/migrations/20260710140000_protect_subscription_entitlement.sql",
-);
+const MIGRATIONS = resolve(import.meta.dirname, "../../../../supabase/migrations");
+
+function migration(name: string): string {
+  return readFileSync(resolve(MIGRATIONS, name), "utf8");
+}
 
 describe("subscription entitlement migration security contract", () => {
-  const sql = readFileSync(MIGRATION_PATH, "utf8");
+  const sql = migration("20260710140000_protect_subscription_entitlement.sql");
 
   it("blocks direct client updates to subscribed and tier via trigger", () => {
     expect(sql).toMatch(/profiles_protect_entitlement_columns/);
@@ -33,35 +34,59 @@ describe("subscription entitlement migration security contract", () => {
     expect(sql).toMatch(/NEW\.tier := 'free'/);
     expect(sql).toMatch(/subscribed IS NOT TRUE/);
   });
+});
 
-  it("routes plan changes through request_subscription_plan_change for authenticated users", () => {
-    expect(sql).toMatch(/request_subscription_plan_change\(p_plan_id text\)/);
-    expect(sql).toMatch(/auth\.uid\(\)/);
-    expect(sql).toMatch(/billing_required/);
-    expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.request_subscription_plan_change\(text\)/);
-    expect(sql).toMatch(/TO authenticated/);
+describe("pre-Stripe billing stubs are retired", () => {
+  const rpcs = migration("20260727110000_billing_subscription_rpcs.sql");
+  const enforcement = migration("20260727140000_paid_feature_server_enforcement.sql");
+
+  it("drops the demo plan-change, portal, and invoice RPCs", () => {
+    expect(rpcs).toMatch(/DROP FUNCTION IF EXISTS public\.request_subscription_plan_change\(text\);/);
+    expect(rpcs).toMatch(/DROP FUNCTION IF EXISTS public\.open_billing_portal\(\);/);
+    expect(rpcs).toMatch(/DROP FUNCTION IF EXISTS public\.list_billing_invoices\(\);/);
   });
 
-  it("exposes billing_webhook_set_entitlement to service_role only", () => {
-    expect(sql).toMatch(/billing_webhook_set_entitlement\(/);
-    expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.billing_webhook_set_entitlement\(uuid, boolean, text\)/);
-    expect(sql).toMatch(/TO service_role/);
+  it("drops the entitlement writer that bypassed the subscription state machine", () => {
+    expect(enforcement).toMatch(
+      /DROP FUNCTION IF EXISTS public\.billing_webhook_set_entitlement\(uuid, boolean, text\);/,
+    );
+  });
+
+  it("writes entitlement only from the Stripe sync path, as service_role", () => {
+    expect(rpcs).toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.billing_sync_stripe_subscription\([\s\S]*?\) TO service_role;/,
+    );
   });
 });
 
 describe("resolveCurrentTier", () => {
-  it("prefers explicit profile tier over subscribed flag", () => {
+  it("prefers a named paid tier over the subscribed flag", () => {
     expect(resolveCurrentTier(false, "pro")).toBe("pro");
-    expect(resolveCurrentTier(true, "free")).toBe("free");
+    expect(resolveCurrentTier(false, "premium")).toBe("premium");
   });
 
-  it("falls back to subscribed boolean when tier is missing", () => {
+  it("treats a legacy subscribed row without a paid tier as Pro", () => {
+    // Parity with the `effective_user_tier` SQL fallback for profiles that
+    // predate `userSubscription`.
+    expect(resolveCurrentTier(true, "free")).toBe("pro");
     expect(resolveCurrentTier(true, null)).toBe("pro");
     expect(resolveCurrentTier(false, null)).toBe("free");
   });
 
   it("uses enterprise tier when accountType is enterprise", () => {
     expect(resolveCurrentTier(false, "free", "enterprise", "premium")).toBe("premium");
+  });
+
+  it("prefers the subscription record over the cached columns", () => {
+    const expiredCancellation = {
+      planTier: "premium",
+      status: "scheduledToCancel",
+      currentPeriodEnd: new Date(Date.now() - 60_000).toISOString(),
+    };
+
+    expect(resolveCurrentTier(true, "premium", "individual", null, expiredCancellation)).toBe(
+      "free",
+    );
   });
 });
 
@@ -70,34 +95,5 @@ describe("subscriptionEntitlement helpers", () => {
     const entitlement: SubscriptionEntitlement = { subscribed: true, tier: "pro" };
     expect(resolveEntitlementTier(entitlement)).toBe("pro");
     expect(getEntitlementLabel(entitlement)).toBe(getCurrentTierLabel(true, "pro"));
-  });
-});
-
-function parsePlanChangeResult(data: unknown) {
-  if (!data || typeof data !== "object") return { status: "error" };
-  return data as Record<string, unknown>;
-}
-
-describe("request_subscription_plan_change contract", () => {
-  it("documents honest upgrade stub without self-elevation", () => {
-    const proAttempt = parsePlanChangeResult({
-      status: "billing_required",
-      subscribed: false,
-      tier: "free",
-      message: "Checkout is not connected yet. Connect Stripe billing to upgrade your plan.",
-    });
-    expect(proAttempt.status).toBe("billing_required");
-    expect(proAttempt.subscribed).toBe(false);
-  });
-
-  it("allows downgrade to free through server RPC", () => {
-    const downgrade = parsePlanChangeResult({
-      status: "ok",
-      subscribed: false,
-      tier: "free",
-      message: "Moved to the Free plan.",
-    });
-    expect(downgrade.status).toBe("ok");
-    expect(downgrade.tier).toBe("free");
   });
 });

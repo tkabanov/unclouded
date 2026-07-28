@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useUserProfile } from "@/lib/userProfile";
 import { resolveHealthModeFlags } from "@/lib/userProfile/healthModeFlags";
-import { TIER, type TierSlug } from "@/lib/enums/tier";
+import { resolvePathsUserTier } from "@/lib/paths/resolvePathsUserTier";
 import { fetchPathCatalog, type PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import { pathVisibleInLibrary } from "@/lib/paths/pathEnrollmentMatching";
 import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
@@ -23,21 +23,6 @@ export interface PathsLibraryCatalogPanelProps {
   onViewPath?: (path: PathCatalogEntry) => void;
 }
 
-function isTierSlug(value: string | undefined | null): value is TierSlug {
-  return value === TIER.FREE || value === TIER.PRO || value === TIER.PREMIUM;
-}
-
-function resolveUserTier(
-  subscribed: boolean,
-  profileTier: string | null | undefined,
-  onboardingData: Record<string, unknown> | null | undefined,
-): TierSlug {
-  if (typeof profileTier === "string" && isTierSlug(profileTier)) return profileTier;
-  const raw = onboardingData?.tier;
-  if (typeof raw === "string" && isTierSlug(raw)) return raw;
-  return subscribed ? TIER.PRO : TIER.FREE;
-}
-
 export default function PathsLibraryCatalogPanel({
   className,
   onViewPath,
@@ -48,11 +33,7 @@ export default function PathsLibraryCatalogPanel({
   const [paths, setPaths] = useState<PathCatalogEntry[]>([]);
   const [selectedTier, setSelectedTier] = useState<PathsTierFilter>(PATHS_TIER_FILTER_ALL);
 
-  const userTier = resolveUserTier(
-    profile?.subscribed ?? false,
-    profile?.tier ?? null,
-    profile?.onboardingData ?? null,
-  );
+  const userTier = resolvePathsUserTier(profile);
   const healthFlags = useMemo(
     () =>
       resolveHealthModeFlags({

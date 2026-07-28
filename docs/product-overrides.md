@@ -263,3 +263,44 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | On workplace **INSERT** or **contactEmail** / **isActive** update, and on **signup** when email matches `workplace.contactEmail`, the matching profile is enrolled via `enroll_profile_in_workplace` (enterprise tier, `workplaceId`, seats). Existing workplaces backfilled once in migration. |
 | **Code** | `supabase/migrations/20260724100000_sync_workplace_hr_contact_enrollment.sql` |
 
+### OVR-026 — Founding Member: 100 seats, $19 for 12 months, then standard Pro
+
+| | |
+|---|---|
+| **Date** | 2026-07-27 |
+| **Overrides** | Phase 2 §1 and US-203 — "first **200** users, $19/month **locked for life**" |
+| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session) |
+| **Current behavior** | The campaign has **100 seats**, enforced in SQL by `claim_founding_member_slot` under an advisory lock so it cannot be oversold. The $19 Pro rate runs for **12 months**; the daily lifecycle cron then moves the Stripe subscription onto the standard $29 Pro price and releases the seat. The member is told the conversion date on the subscription screen. Upgrading to Premium **permanently forfeits** the discount, and the confirmation dialog says so. |
+| **Code** | `supabase/migrations/20260727100000_individual_subscription_lifecycle.sql`, `supabase/migrations/20260727110000_billing_subscription_rpcs.sql`, `supabase/functions/subscription-lifecycle/index.ts`, `supabase/functions/_shared/foundingMember.ts`, `frontend/src/lib/subscription/subscriptionCopy.ts` |
+
+### OVR-027 — Premium 1:1 sessions run on monthly credits, not "included"
+
+| | |
+|---|---|
+| **Date** | 2026-07-27 |
+| **Overrides** | Phase 2 §7 — 1:1 coaching "included with Premium membership", **50 minutes**, priced $0 in Wix |
+| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session) |
+| **Current behavior** | Premium accrues **one credit per paid month**; **two credits** book one **30-minute** session. Requesting a session places a **hold** on the credits so the same credits cannot be booked twice, the hold becomes a redemption once the session is confirmed, and it is released — by cancellation or by the daily sweep after 14 days — if the session never happens. Unused credits expire when Premium access ends or a downgrade takes effect. |
+| **Open question** | Session length is 30 minutes per the new doc; Phase 2 §7 says 50. Confirm with the client before the coaching team publishes availability. |
+| **Code** | `supabase/migrations/20260727120000_premium_credits_and_bookings.sql`, `frontend/src/lib/coach/coachBookingApi.ts`, `frontend/src/lib/coach/coachBookingEntitlements.ts`, `frontend/src/components/coach/BookCoachCard.tsx` |
+
+### OVR-028 — One group session a month is included in Pro (no $97 add-on)
+
+| | |
+|---|---|
+| **Date** | 2026-07-27 |
+| **Overrides** | Phase 2 §1 — group coaching sold as a **$97/month add-on** |
+| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session) |
+| **Current behavior** | Pro and Premium include **one group session per calendar month**. The cap is enforced server-side by `request_group_session_booking` plus a partial unique index on `(userId, periodMonth)`, replacing the previous toast that recorded nothing. |
+| **Code** | `supabase/migrations/20260727120000_premium_credits_and_bookings.sql`, `frontend/src/components/coach/BookCoachCard.tsx` |
+
+### OVR-029 — Returning to Free happens only through cancellation
+
+| | |
+|---|---|
+| **Date** | 2026-07-27 |
+| **Overrides** | Previous "Switch to Free" button, which called `request_subscription_plan_change('free')` and reset entitlement instantly; Bubble plan-picker semantics where every card is selectable |
+| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` — the Free card carries no action while a paid plan is active |
+| **Current behavior** | The Free card shows **Current plan** or no button at all. A paid member cancels or schedules a downgrade instead, keeps full access until the date, and can resume before it. The instant-downgrade RPC and the demo billing stubs (`open_billing_portal`, `list_billing_invoices`) are dropped, and `billing_webhook_set_entitlement` is retired so `userSubscription` stays the only writer of entitlement. |
+| **Code** | `supabase/migrations/20260727110000_billing_subscription_rpcs.sql`, `supabase/migrations/20260727140000_paid_feature_server_enforcement.sql`, `frontend/src/lib/subscription/subscriptionActions.ts`, `frontend/src/components/settings/SettingsSubscriptionTab.tsx` |
+

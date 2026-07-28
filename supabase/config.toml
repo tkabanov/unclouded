@@ -70,3 +70,22 @@ verify_jwt = true
 # Prompt Library addendum — Kota's Read coach prep brief.
 [functions.generate-kota-read]
 verify_jwt = true
+
+# Individual Subscription Management — Stripe checkout / portal / plan changes.
+[functions.stripe-checkout]
+verify_jwt = true
+
+[functions.stripe-portal]
+verify_jwt = true
+
+[functions.stripe-subscription]
+verify_jwt = true
+
+# Stripe calls this without a Supabase JWT; authenticity is proven by the
+# `stripe-signature` header against STRIPE_WEBHOOK_SECRET.
+[functions.stripe-webhook]
+verify_jwt = false
+
+# Daily subscription lifecycle: expiry, downgrade, founding conversion, grace.
+[functions.subscription-lifecycle]
+verify_jwt = false

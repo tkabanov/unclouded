@@ -1,431 +1,400 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { CalendarDays, Mail, Users } from "lucide-react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+
+import BillingIntervalToggle from "@/components/subscription/BillingIntervalToggle";
+import CheckoutConfirmDialog from "@/components/subscription/CheckoutConfirmDialog";
+import PaymentIssueBanner from "@/components/subscription/PaymentIssueBanner";
+import PremiumCreditsCard from "@/components/subscription/PremiumCreditsCard";
+import PremiumUpgradeDialog from "@/components/subscription/PremiumUpgradeDialog";
+import ReassessmentAvailabilityCards from "@/components/settings/ReassessmentAvailabilityCards";
+import SubscriptionConfirmDialog from "@/components/subscription/SubscriptionConfirmDialog";
+import SubscriptionPlanCard from "@/components/subscription/SubscriptionPlanCard";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import SubscriptionPlanCard from "@/components/settings/SubscriptionPlanCard";
-import {
-  applyFoundingMemberPlanPricing,
-  getCurrentTierLabel,
-  loadSubscriptionPlans,
-  PREMIUM_CONTACT_EMAIL,
-  requestBillingPortal,
-  requestInvoices,
-  resolveCurrentTier,
-  selectSubscriptionPlan,
-  type BillingInvoice,
-  type SubscriptionPlanRow,
-} from "@/lib/settings/subscriptionApi";
-import type { PlanId } from "@/lib/plans";
-import { useAuth } from "@/hooks/useAuth";
-import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { useSubscriptionFlow } from "@/hooks/useSubscriptionFlow";
+import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
+import { TIER, type TierSlug } from "@/lib/enums/tier";
+import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
 import { useUserProfile } from "@/lib/userProfile";
 import {
-  canShowPremiumOnDemandLocked,
-  canShowReassessNow,
-  daysUntilPremiumOnDemand,
-  isReassessmentDue,
-} from "@/lib/reassessment/reassessmentEntitlements";
-import { FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
-import { isEnterpriseUser } from "@/lib/entitlements/userEntitlement";
+  cancelDialogCopy,
+  downgradeDialogCopy,
+  foundingPricingNotice,
+  checkoutSuccessMessage,
+  checkoutSuccessPendingMessage,
+  keepPremiumDialogCopy,
+  planDisplayName,
+  resumeDialogCopy,
+} from "@/lib/subscription/subscriptionCopy";
+import {
+  reconcileCheckoutReturn,
+  syncBillingFromStripe,
+} from "@/lib/subscription/subscriptionApi";
+import {
+  BILLING_INTERVAL_SUFFIX,
+  findPlanPrice,
+  formatPlanPrice,
+  formatSubscriptionDate,
+  isIntervalAvailable,
+} from "@/lib/subscription/subscriptionFormat";
+import { resolvePlanCardState } from "@/lib/subscription/subscriptionActions";
+import {
+  FREE_SUBSCRIPTION_RECORD,
+  resolveAccessEndsAt,
+  resolveCreditsExpireAt,
+  resolveEffectiveTier,
+  resolveNextCreditAt,
+  resolveNextRenewalAt,
+  type BillingInterval,
+  type SubscriptionRecord,
+} from "@/lib/subscription/subscriptionState";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
-export default function SettingsSubscriptionTab() {
-  const { user } = useAuth();
-  const { profile, refresh } = useUserProfile();
-  const [plans, setPlans] = useState<SubscriptionPlanRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [contactOpen, setContactOpen] = useState(false);
-  const [portalOpen, setPortalOpen] = useState(false);
-  const [portalMessage, setPortalMessage] = useState("");
-  const [invoicesOpen, setInvoicesOpen] = useState(false);
-  const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
+const PLAN_TIERS: readonly TierSlug[] = [TIER.FREE, TIER.PRO, TIER.PREMIUM];
 
-  const subscribed = !!profile?.subscribed;
-  const isEnterprise = isEnterpriseUser({
-    accountType: profile?.accountType,
-    enterpriseTier: profile?.enterpriseTier,
-    subscribed: profile?.subscribed,
-    tier: profile?.tier,
+/** Dates shown under the price of the user's current plan card. */
+function currentPlanDetails(record: SubscriptionRecord): { label: string; value: string }[] {
+  const details: { label: string; value: string }[] = [];
+
+  const renewal = formatSubscriptionDate(resolveNextRenewalAt(record));
+  if (renewal) details.push({ label: "Next renewal date", value: renewal });
+
+  const accessEnds = formatSubscriptionDate(resolveAccessEndsAt(record));
+  if (accessEnds) {
+    details.push({
+      label:
+        record.status === "scheduledToDowngrade"
+          ? "Downgrade effective"
+          : record.status === "pastDue"
+            ? "Access continues until"
+            : "Access expires",
+      value: accessEnds,
+    });
+  }
+
+  return details;
+}
+
+export default function SettingsSubscriptionTab() {
+  const { profile, refresh: refreshProfile } = useUserProfile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { overview, record, loading, error, applyOverview, refresh: refreshOverview } =
+    useSubscriptionOverview();
+  const [interval, setInterval] = useState<BillingInterval>("month");
+
+  const isEnterprise = overview?.accountType === "enterprise";
+  const activeRecord = record ?? FREE_SUBSCRIPTION_RECORD;
+  const effectiveTier = overview?.effectiveTier ?? resolveEffectiveTier(activeRecord);
+  const prices = overview?.prices ?? [];
+
+  const flow = useSubscriptionFlow({
+    record,
+    interval,
+    applyOverview,
+    onEntitlementChanged: refreshProfile,
   });
-  const currentTier = resolveCurrentTier(
-    subscribed,
-    profile?.tier,
-    profile?.accountType,
-    profile?.enterpriseTier,
-  );
-  const currentPlanId: PlanId =
-    currentTier === "premium" ? "premium" : currentTier === "pro" ? "pro" : "free";
-  const dateCtx = {
-    tier: currentTier,
-    lastAssessmentDate: profile?.lastAssessmentDate ?? null,
-    nextReassessmentDate: profile?.nextReassessmentDate ?? null,
-    onboardingCompletedAt: profile?.onboardingCompletedAt ?? null,
-    canReassessOnDemand: profile?.canReassessOnDemand,
-    reassessmentCompletedAt: profile?.reassessmentCompletedAt ?? null,
-  };
-  const reassessmentDue = isReassessmentDue(dateCtx);
-  const showReassessNow = !reassessmentDue && canShowReassessNow(dateCtx);
-  const showPremiumOnDemandLocked =
-    !reassessmentDue && !showReassessNow && canShowPremiumOnDemandLocked(dateCtx);
-  const daysUntilOnDemand = daysUntilPremiumOnDemand(dateCtx);
-  const isFoundingSignup = profile?.signupPlan === FOUNDING_SIGNUP_PLAN;
-  const displayPlans = useMemo(
-    () => applyFoundingMemberPlanPricing(plans, profile?.signupPlan),
-    [plans, profile?.signupPlan],
-  );
+
+  /** Auto Stripe sync runs at most once per mount (avoids loops when sync cannot clear stale flags). */
+  const billingAutoSyncAttemptedRef = useRef(false);
 
   useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    if (!checkout) return;
+
+    const planParam = searchParams.get("plan");
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("checkout");
+    nextParams.delete("plan");
+    setSearchParams(nextParams, { replace: true });
+
+    if (checkout === "success") {
+      const expectedTier =
+        planParam === TIER.PRO || planParam === TIER.PREMIUM ? planParam : null;
+
+      void reconcileCheckoutReturn(expectedTier)
+        .then((next) => {
+          applyOverview(next);
+          void refreshProfile();
+          const tierMatches =
+            expectedTier !== null && next.effectiveTier === expectedTier;
+          if (tierMatches) {
+            toast.success(checkoutSuccessMessage(expectedTier));
+          } else if (next.effectiveTier !== TIER.FREE) {
+            toast.success(checkoutSuccessMessage(next.effectiveTier));
+          } else {
+            toast.message(checkoutSuccessPendingMessage());
+          }
+        })
+        .catch((err: unknown) => {
+          console.warn("Checkout return reconcile failed", err);
+          void refreshOverview();
+          void refreshProfile();
+          toast.message(checkoutSuccessPendingMessage());
+        });
+      return;
+    }
+
+    if (checkout === "cancelled") {
+      toast.message("Checkout was cancelled.");
+    }
+  }, [searchParams, setSearchParams, applyOverview, refreshOverview, refreshProfile]);
+
+  useEffect(() => {
+    if (loading || !overview || isEnterprise || billingAutoSyncAttemptedRef.current) return;
+    const sub = overview.subscription;
+    // Saved payment method on Free is normal after cancel; only sync when Stripe still owns a sub.
+    const billingLooksStale =
+      overview.effectiveTier === TIER.FREE && sub?.hasStripeSubscription === true;
+    if (!billingLooksStale) return;
+
+    billingAutoSyncAttemptedRef.current = true;
     let cancelled = false;
-    setLoading(true);
-    loadSubscriptionPlans()
-      .then((rows) => {
-        if (!cancelled) setPlans(rows);
+    void syncBillingFromStripe()
+      .then((next) => {
+        if (cancelled) return;
+        applyOverview(next);
+        void refreshProfile({ silent: true });
       })
-      .catch(() => {
-        if (!cancelled) toast.error("Couldn't load subscription plans.");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        console.warn("Billing sync from Stripe skipped", err);
       });
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loading, overview, isEnterprise, applyOverview, refreshProfile]);
 
-  const handleSelectPlan = useCallback(
-    async (planId: PlanId) => {
-      if (!user || busy) return;
-      trackProductEvent("plan_upgrade_clicked", { plan_id: planId });
-      setBusy(true);
-      try {
-        const result = await selectSubscriptionPlan(planId);
-        if (result.status === "billing_required") {
-          toast.message(result.message ?? "Checkout is not connected yet.");
-          return;
-        }
-        if (result.status === "enterprise_covered") {
-          toast.message(result.message ?? "Your organization covers this subscription.");
-          return;
-        }
-        if (result.status !== "ok") {
-          toast.error(result.message ?? "Couldn't update your subscription.");
-          return;
-        }
-        if (planId === "pro" && result.subscribed === true) {
-          trackProductEvent("free_to_pro_conversion", {
-            plan_id: planId,
-            signup_plan: profile?.signupPlan ?? null,
-          });
-        }
-        await refresh();
-        toast.success(
-          planId === "pro"
-            ? "You're now on Pro."
-            : "Moved back to the Free plan.",
-        );
-      } catch (err) {
-        console.error(err);
-        toast.error("Couldn't update your subscription.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [busy, profile?.signupPlan, refresh, user],
+  const availableIntervals = useMemo<BillingInterval[]>(
+    () =>
+      (["month", "year"] as BillingInterval[]).filter(
+        (candidate) => candidate === "month" || isIntervalAvailable(prices, candidate),
+      ),
+    [prices],
   );
 
-  const handleBillingUpdate = useCallback(async () => {
-    try {
-      const result = await requestBillingPortal();
-      const portalUrl = result.url ?? result.portal_url;
-      if (portalUrl) {
-        window.open(portalUrl, "_blank", "noopener,noreferrer");
-        return;
-      }
-
-      setPortalMessage(
-        result.message ??
-          (result.status === "demo"
-            ? "Billing portal stub — connect Stripe in production."
-            : "Billing portal is ready."),
-      );
-      setPortalOpen(true);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Couldn't open billing portal.";
-      toast.error(message);
-    }
-  }, []);
-
-  const handleInvoices = useCallback(async () => {
-    try {
-      const rows = await requestInvoices();
-      setInvoices(rows);
-      setInvoicesOpen(true);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Couldn't load invoice history.";
-      toast.error(message);
-    }
-  }, []);
+  const checkoutTier = flow.dialog?.kind === "checkout" ? flow.dialog.tier : null;
+  const planName = planDisplayName(effectiveTier, activeRecord.isFoundingMember);
+  const accessEndsLabel =
+    formatSubscriptionDate(resolveAccessEndsAt(activeRecord)) ??
+    "the end of your billing period";
+  const renewalLabel =
+    formatSubscriptionDate(resolveNextRenewalAt(activeRecord)) ?? "your next billing date";
 
   if (loading) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        Loading subscription…
-      </div>
-    );
+    return <div className="text-sm text-muted-foreground">Loading subscription…</div>;
+  }
+
+  if (error) {
+    return <div className="text-sm text-destructive">{error}</div>;
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <div
-        className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}
-      >
-        <header
-          className="flex flex-wrap items-start justify-between gap-4"
-        >
+      <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}>
+        <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
-            <h2
-              className={bubbleStyle("Text_heading_3_")}
-            >
-              Your subscription
-            </h2>
-            <p
-              className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
-            >
+            <h2 className={bubbleStyle("Text_heading_3_")}>Your subscription</h2>
+            <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
               Manage your plan and billing preferences.
             </p>
           </div>
-          <div>
-            <span
-              className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary"
-            >
-              <span>
-                {getCurrentTierLabel(
-                  subscribed,
-                  profile?.tier,
-                  profile?.accountType,
-                  profile?.enterpriseTier,
-                )}
-              </span>
-            </span>
-          </div>
+          <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+            {activeRecord.isFoundingMember ? planName : getTierSubscriptionLabel(effectiveTier)}
+          </span>
         </header>
-        <p className="text-sm text-muted-foreground">
-          Current tier: <strong>{currentTier}</strong> —{" "}
-          {isEnterprise
-            ? "Covered by your organization. No individual billing or upgrade prompts apply."
-            : subscribed
-              ? "You have access to Pro coaching features."
-              : "Upgrade to unlock unlimited coaching and reassessment."}
-        </p>
-      </div>
 
-      {isEnterprise ? (
-        <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">Organization-covered access</p>
-          <p className="mt-1">
-            Your employer provides Uncloud360 through an enterprise contract. Session limits and
+        {isEnterprise ? (
+          <p className="text-sm text-muted-foreground">
+            Your employer provides Unclouded through an enterprise contract. Session limits and
             individual checkout are disabled for your account.
           </p>
-        </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {effectiveTier === TIER.FREE
+              ? "Upgrade to unlock unlimited coaching, premium paths, and reassessment."
+              : `Your ${planName} plan is ${activeRecord.status === "pastDue" ? "past due" : "active"}.`}
+          </p>
+        )}
+      </div>
+
+      {!isEnterprise && activeRecord.status === "pastDue" ? (
+        <PaymentIssueBanner
+          gracePeriodEndsAt={activeRecord.gracePeriodEndsAt}
+          pending={flow.pendingAction === "updatePaymentMethod"}
+          onUpdatePaymentMethod={flow.updatePaymentMethod}
+        />
       ) : null}
 
-      {!isEnterprise && (reassessmentDue || showReassessNow) ? (
-        <div className="flex flex-col gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center">
-          <div className="flex flex-1 items-start gap-3">
-            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
-              <CalendarDays className="h-5 w-5 text-primary" />
-            </div>
-            <div className="space-y-0.5">
-              <p className="font-semibold text-foreground">
-                {reassessmentDue
-                  ? "Your 90-day reassessment is ready"
-                  : "Reassess your PuP 360 anytime"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {reassessmentDue
-                  ? "Retake the assessment to see how your scores have changed since your last assessment."
-                  : "Premium on-demand reassessment is available after day 30."}
-              </p>
-            </div>
-          </div>
-          <Button variant="cta" className="shrink-0" asChild>
-            <Link to="/onboarding?reassessment=1">
-              {reassessmentDue ? "Start reassessment" : "Reassess now"}
-            </Link>
-          </Button>
-        </div>
-      ) : null}
+      <ReassessmentAvailabilityCards profile={profile} isEnterprise={isEnterprise} />
 
-      {!isEnterprise && showPremiumOnDemandLocked ? (
-        <div className="flex flex-col gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center">
-          <div className="flex flex-1 items-start gap-3">
-            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
-              <CalendarDays className="h-5 w-5 text-primary" />
-            </div>
-            <div className="space-y-0.5">
-              <p className="font-semibold text-foreground">Premium on-demand reassessment</p>
-              <p className="text-sm text-muted-foreground">
-                Unlocks in {daysUntilOnDemand} day{daysUntilOnDemand === 1 ? "" : "s"} — Premium
-                members can reassess on demand 30 days after their last assessment.
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" className="shrink-0" disabled>
-            Available in {daysUntilOnDemand} day{daysUntilOnDemand === 1 ? "" : "s"}
-          </Button>
-        </div>
-      ) : null}
-
-      {isFoundingSignup && !isEnterprise ? (
+      {!isEnterprise && activeRecord.isFoundingMember && activeRecord.foundingDiscountEndsAt ? (
         <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">Founding member pricing</p>
+          <p className="font-semibold text-foreground">Founding Member pricing</p>
           <p className="mt-1">
-            You signed up through a founding campaign. Pro is shown at $19/month — that rate locks
-            in for life once billing connects.
+            {foundingPricingNotice(
+              formatSubscriptionDate(activeRecord.foundingDiscountEndsAt) ?? "your renewal date",
+            )}
           </p>
         </div>
       ) : null}
 
+      {!isEnterprise && effectiveTier === TIER.PREMIUM ? (
+        <PremiumCreditsCard
+          balance={overview?.credits.balance ?? 0}
+          nextCreditAt={resolveNextCreditAt(activeRecord)}
+          creditsExpireAt={resolveCreditsExpireAt(activeRecord)}
+          redeemable
+        />
+      ) : null}
+
+      {!isEnterprise && effectiveTier !== TIER.PREMIUM && (overview?.credits.balance ?? 0) > 0 ? (
+        <PremiumCreditsCard
+          balance={overview?.credits.balance ?? 0}
+          nextCreditAt={null}
+          creditsExpireAt={null}
+          redeemable={false}
+        />
+      ) : null}
+
+      {!isEnterprise ? <BillingIntervalToggle
+        value={interval}
+        availableIntervals={availableIntervals}
+        onChange={setInterval}
+      /> : null}
+
       {!isEnterprise ? (
         <div
-          className={cn(bubbleStyle("RepeatingGroup_list_"), "grid items-start gap-4 md:grid-cols-3")}
+          className={cn(
+            bubbleStyle("RepeatingGroup_list_"),
+            "grid items-start gap-4 md:grid-cols-3",
+          )}
         >
-          {displayPlans.map((plan) => (
-            <SubscriptionPlanCard
-              key={plan.id}
-              plan={plan}
-              isCurrent={plan.id === currentPlanId}
-              busy={busy}
-              onSelect={(planId) => void handleSelectPlan(planId)}
-              onContactPremium={() => setContactOpen(true)}
-            />
-          ))}
+          {PLAN_TIERS.map((tier) => {
+            const state = resolvePlanCardState({
+              cardTier: tier,
+              record: activeRecord,
+              accountType: overview?.accountType,
+            });
+            const price =
+              tier === TIER.FREE
+                ? null
+                : findPlanPrice(prices, tier, interval, activeRecord.isFoundingMember);
+
+            const freePlanNotice =
+              tier === TIER.FREE && effectiveTier !== TIER.FREE
+                ? "You'll move to Free automatically when your paid access ends. To end renewal sooner, cancel your current plan above."
+                : undefined;
+
+            return (
+              <SubscriptionPlanCard
+                key={tier}
+                tier={tier}
+                price={tier === TIER.FREE ? "$0" : formatPlanPrice(price)}
+                priceSuffix={tier === TIER.FREE ? "" : BILLING_INTERVAL_SUFFIX[interval]}
+                state={state}
+                showFoundingLabel={tier === TIER.PRO && activeRecord.isFoundingMember}
+                details={state.isCurrent ? currentPlanDetails(activeRecord) : []}
+                notice={freePlanNotice}
+                pendingLabel={
+                  state.primary.kind === "cancel"
+                    ? flow.pendingLabelFor("cancel")
+                    : state.primary.kind === "resume"
+                      ? flow.pendingLabelFor("resume")
+                      : state.primary.kind === "downgradeToPro"
+                        ? flow.pendingLabelFor("scheduleDowngrade")
+                        : state.primary.kind === "keepPremium"
+                          ? flow.pendingLabelFor("cancelDowngrade")
+                          : state.primary.kind === "upgradeToPremium"
+                            ? flow.pendingLabelFor("upgradeToPremium")
+                            : flow.pendingLabelFor("startCheckout")
+                }
+                disabled={!!flow.pendingAction}
+                onAction={flow.handlePlanCardAction}
+              />
+            );
+          })}
         </div>
       ) : null}
 
-      {!isEnterprise ? (
-        <div
-          className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}
-        >
+      {!isEnterprise && activeRecord.hasPaymentMethodOnFile ? (
+        <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}>
           <header className="space-y-1">
-            <h2 className={bubbleStyle("Text_heading_3_")}>
-              Billing
-            </h2>
-            <p
-              className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}
-            >
-              Update payment method or download past invoices. Demo billing stubs return sample data
-              until Stripe is connected in production.
+            <h2 className={bubbleStyle("Text_heading_3_")}>Billing</h2>
+            <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+              Update your payment method, review invoices, and download receipts in the secure
+              billing portal.
             </p>
           </header>
-
-          <div
-            className="flex flex-wrap gap-3"
-          >
+          <div>
             <Button
               type="button"
               className={bubbleStyle("Button_primary_")}
-              onClick={() => void handleBillingUpdate()}
+              disabled={!!flow.pendingAction}
+              onClick={flow.updatePaymentMethod}
             >
-              Update payment method
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void handleInvoices()}
-            >
-              View invoices
+              {flow.pendingLabelFor("updatePaymentMethod") ?? "Manage billing"}
             </Button>
           </div>
-
         </div>
       ) : null}
 
-      <Dialog open={portalOpen} onOpenChange={setPortalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Billing portal</DialogTitle>
-            <DialogDescription className="pt-2 text-left">{portalMessage}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPortalOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SubscriptionConfirmDialog
+        open={flow.dialog?.kind === "cancel"}
+        copy={cancelDialogCopy(planName, accessEndsLabel)}
+        destructive
+        pendingLabel={flow.pendingLabelFor("cancel")}
+        onConfirm={flow.confirmDialog}
+        onDismiss={flow.closeDialog}
+      />
 
-      <Dialog open={invoicesOpen} onOpenChange={setInvoicesOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invoice history</DialogTitle>
-            <DialogDescription className="pt-2 text-left">
-              {invoices.length
-                ? "Sample invoice rows from the billing stub — not real payment history until Stripe is connected."
-                : "No invoices are available yet."}
-            </DialogDescription>
-          </DialogHeader>
-          {invoices.length > 0 ? (
-            <ul className="divide-y rounded-md border text-sm">
-              {invoices.map((invoice) => (
-                <li
-                  key={invoice.id}
-                  className="flex items-center justify-between gap-4 px-4 py-3"
-                >
-                  <span className="font-medium">{invoice.id}</span>
-                  <span className="text-muted-foreground">{invoice.date}</span>
-                  <span>{invoice.amount}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInvoicesOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SubscriptionConfirmDialog
+        open={flow.dialog?.kind === "resume"}
+        copy={resumeDialogCopy(planName)}
+        pendingLabel={flow.pendingLabelFor("resume")}
+        onConfirm={flow.confirmDialog}
+        onDismiss={flow.closeDialog}
+      />
 
-      <Dialog open={contactOpen} onOpenChange={setContactOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" /> Premium 1:1 coaching
-            </DialogTitle>
-            <DialogDescription className="space-y-3 pt-2 text-left">
-              <span className="block">
-                Premium members work directly with the Proven Under Pressure coaching team — led
-                and certified by Dr. Sam. We match you to a coach based on your PuP 360 data.
-              </span>
-              <span className="block">
-                Tell us a bit about your goals and we&apos;ll set up your coaching match.
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:justify-start">
-            <Button asChild variant="cta" className="gap-1.5">
-              <a href={`mailto:${PREMIUM_CONTACT_EMAIL}?subject=Premium%201:1%20coaching%20request`}>
-                <Mail className="h-4 w-4" /> Email the coaching team
-              </a>
-            </Button>
-            <Button variant="outline" onClick={() => setContactOpen(false)}>
-              Maybe later
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SubscriptionConfirmDialog
+        open={flow.dialog?.kind === "downgrade"}
+        copy={downgradeDialogCopy(renewalLabel)}
+        destructive
+        pendingLabel={flow.pendingLabelFor("scheduleDowngrade")}
+        onConfirm={flow.confirmDialog}
+        onDismiss={flow.closeDialog}
+      />
+
+      <SubscriptionConfirmDialog
+        open={flow.dialog?.kind === "keepPremium"}
+        copy={keepPremiumDialogCopy(renewalLabel)}
+        pendingLabel={flow.pendingLabelFor("cancelDowngrade")}
+        onConfirm={flow.confirmDialog}
+        onDismiss={flow.closeDialog}
+      />
+
+      <PremiumUpgradeDialog
+        open={flow.dialog?.kind === "premiumUpgrade"}
+        isFoundingMember={activeRecord.isFoundingMember}
+        pendingLabel={flow.pendingLabelFor("upgradeToPremium")}
+        onConfirm={flow.confirmDialog}
+        onDismiss={flow.closeDialog}
+      />
+
+      <CheckoutConfirmDialog
+        open={flow.dialog?.kind === "checkout"}
+        tier={checkoutTier}
+        interval={interval}
+        price={
+          checkoutTier
+            ? findPlanPrice(prices, checkoutTier, interval, activeRecord.isFoundingMember)
+            : null
+        }
+        pendingLabel={flow.pendingLabelFor("startCheckout")}
+        onConfirm={flow.confirmDialog}
+        onDismiss={flow.closeDialog}
+      />
     </div>
   );
 }

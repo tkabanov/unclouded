@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { Plus } from "lucide-react";
+import { Lock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CHAT_MODULE_ID } from "@/lib/chat/routes";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ export interface ChatPageContentProps {
   panel: ReactNode;
   onNewConversation?: () => void;
   newConversationDisabled?: boolean;
+  /** Free-tier monthly cap reached: still clickable, opens the upgrade dialog. */
+  newConversationLocked?: boolean;
   className?: string;
 }
 
@@ -17,6 +19,7 @@ export default function ChatPageContent({
   panel,
   onNewConversation,
   newConversationDisabled = false,
+  newConversationLocked = false,
   className,
 }: ChatPageContentProps) {
   return (
@@ -32,11 +35,15 @@ export default function ChatPageContent({
               type="button"
               onClick={onNewConversation}
               disabled={newConversationDisabled}
-              variant="cta"
+              variant={newConversationLocked ? "outline" : "cta"}
               size="sm"
               className="w-full"
             >
-              <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+              {newConversationLocked ? (
+                <Lock className="mr-1.5 h-4 w-4" aria-hidden />
+              ) : (
+                <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+              )}
               New conversation
             </Button>
           ) : null}

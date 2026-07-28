@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Info, Sparkles, X } from "lucide-react";
+import { Info, Lock, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,9 @@ import {
   updateJournalEntry,
 } from "@/lib/journal/journalEntriesApi";
 import { generateJournalReflection } from "@/lib/journal/journalReflectionApi";
+import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
+import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
+import type { TierSlug } from "@/lib/enums/tier";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
@@ -53,8 +56,9 @@ export interface EntryDetailPopupProps {
   entry: JournalEntryListItem | null;
   userId: string;
   onboardingData?: Record<string, unknown> | null;
-  /** Pro/Premium only — hides generate UI for free tier. */
+  /** Pro/Premium only — Free sees a locked control that explains the upgrade. */
   canGenerateAiReflection?: boolean;
+  currentTier: TierSlug;
   onSaved: () => void;
   onReflectionGenerated?: (entry: JournalEntryListItem) => void;
 }
@@ -66,9 +70,11 @@ export default function EntryDetailPopup({
   userId,
   onboardingData,
   canGenerateAiReflection = false,
+  currentTier,
   onSaved,
   onReflectionGenerated,
 }: EntryDetailPopupProps) {
+  const journalUpsell = useLockedFeatureUpsell(currentTier);
   const [title, setTitle] = useState("");
   const [moodTag, setMoodTag] = useState("");
   const [content, setContent] = useState("");
@@ -89,8 +95,9 @@ export default function EntryDetailPopup({
 
   const dismiss = () => onOpenChange(false);
   const busy = saving || deleting || generating;
-  const showAiReflectionSection =
-    canGenerateAiReflection || Boolean(aiReflection);
+  // Free tier sees the section too, with a locked button that explains the
+  // upgrade instead of the feature silently not existing.
+  const showAiReflectionSection = true;
 
   const handleSave = async () => {
     if (!entry) return;
@@ -383,7 +390,18 @@ export default function EntryDetailPopup({
                     >
                       {generating ? "Generating…" : "Generate Reflection"}
                     </Button>
-                  ) : null}
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => journalUpsell.promptUpgrade("journalAiReflection")}
+                    >
+                      <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      Unlock reflections
+                    </Button>
+                  )}
                 </div>
 
                 <div
@@ -399,7 +417,7 @@ export default function EntryDetailPopup({
                     >
                       {aiReflection}
                     </p>
-                  ) : canGenerateAiReflection ? (
+                  ) : (
                     <p
                       data-style-ref="Text_body_muted_"
                       className={cn(
@@ -407,9 +425,11 @@ export default function EntryDetailPopup({
                         "text-sm italic text-muted-foreground",
                       )}
                     >
-                      Generate a coaching reflection based on this entry.
+                      {canGenerateAiReflection
+                        ? "Generate a coaching reflection based on this entry."
+                        : "AI journal reflection is available on Pro and Premium."}
                     </p>
-                  ) : null}
+                  )}
 
                   <p
                     data-style-ref="Text_caption_"
@@ -420,6 +440,13 @@ export default function EntryDetailPopup({
                 </div>
               </section>
             ) : null}
+
+            <LockedFeatureUpgradeDialog
+              open={journalUpsell.openFeature === "journalAiReflection"}
+              feature="journalAiReflection"
+              currentTier={currentTier}
+              onClose={journalUpsell.closeUpsell}
+            />
 
             <DialogFooter
               className={cn(

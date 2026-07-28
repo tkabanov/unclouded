@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -37,6 +37,8 @@ import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/on
 import { captureReferralFromSearch } from "@/lib/share/referralAttribution";
 import { capturePlanFromSearch } from "@/lib/share/planAttribution";
 import { captureUtmFromSearch } from "@/lib/share/utmAttribution";
+import { settingsPath } from "@/lib/settings/navigation";
+import { SETTINGS_TAB } from "@/lib/settings/settingsTabStub";
 
 /* ── shared bits ─────────────────────────────────────── */
 
@@ -106,8 +108,23 @@ const Index = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [postAuthRedirect, setPostAuthRedirect] = useState<false | "login" | "signup">(false);
+  const pendingSubscriptionScreenRef = useRef(false);
 
   const destination = () => resolvePostAuthRoute(profile);
+
+  const goToSubscriptionManagement = () => {
+    navigate(settingsPath(SETTINGS_TAB.SUBSCRIPTION));
+  };
+
+  const openSubscriptionFromLanding = () => {
+    if (authenticated) {
+      goToSubscriptionManagement();
+      return;
+    }
+    pendingSubscriptionScreenRef.current = true;
+    setSignupOpen(false);
+    setLoginOpen(true);
+  };
 
   const appEntryLabel = isSettingsAdminUser(profile?.roleType)
     ? "Go to Admin Console"
@@ -157,6 +174,12 @@ const Index = () => {
     }
 
     if (profileLoading) return;
+    if (pendingSubscriptionScreenRef.current) {
+      pendingSubscriptionScreenRef.current = false;
+      navigate(settingsPath(SETTINGS_TAB.SUBSCRIPTION), { replace: true });
+      setPostAuthRedirect(false);
+      return;
+    }
     navigate(resolvePostAuthRoute(profile), { replace: true });
     setPostAuthRedirect(false);
   }, [postAuthRedirect, user, profileLoading, profile, navigate]);
@@ -484,6 +507,16 @@ const Index = () => {
                       Get Started Free
                     </Button>
                   )}
+                  {authenticated ? (
+                    <Button
+                      data-style-ref="Button_outline_"
+                      variant="outline"
+                      className={cn("w-full", bubbleStyle("Button_outline_"))}
+                      onClick={goToSubscriptionManagement}
+                    >
+                      View plans
+                    </Button>
+                  ) : null}
                 </CardContent>
               </Card>
 
@@ -511,14 +544,25 @@ const Index = () => {
                       )
                     )}
                   </ul>
-                  {!authenticated && (
+                  {authenticated ? (
                     <Button
                       data-style-ref="Button_primary_"
                       className={cn(
                         "w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90",
                         bubbleStyle("Button_primary_"),
                       )}
-                      onClick={() => start("signup")}
+                      onClick={goToSubscriptionManagement}
+                    >
+                      Upgrade to Pro
+                    </Button>
+                  ) : (
+                    <Button
+                      data-style-ref="Button_primary_"
+                      className={cn(
+                        "w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90",
+                        bubbleStyle("Button_primary_"),
+                      )}
+                      onClick={openSubscriptionFromLanding}
                     >
                       Start Pro
                     </Button>
@@ -547,12 +591,21 @@ const Index = () => {
                       )
                     )}
                   </ul>
-                  {!authenticated && (
+                  {authenticated ? (
                     <Button
                       data-style-ref="Button_outline_"
                       variant="outline"
                       className={cn("w-full", bubbleStyle("Button_outline_"))}
-                      onClick={() => start("signup")}
+                      onClick={goToSubscriptionManagement}
+                    >
+                      Upgrade to Premium
+                    </Button>
+                  ) : (
+                    <Button
+                      data-style-ref="Button_outline_"
+                      variant="outline"
+                      className={cn("w-full", bubbleStyle("Button_outline_"))}
+                      onClick={openSubscriptionFromLanding}
                     >
                       Start Premium
                     </Button>

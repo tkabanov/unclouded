@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Info, Star, X } from "lucide-react";
-import { settingsPath } from "@/lib/settings/navigation";
-import { SETTINGS_TAB } from "@/lib/settings/settingsTabStub";
+import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
+import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +15,7 @@ import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { useAuth } from "@/hooks/useAuth";
 import {
   enrollInPath,
+  PathEnrollmentUpgradeRequiredError,
   unenrollFromPath,
   type PathEnrollmentListItem,
 } from "@/lib/paths/pathsEnrollmentApi";
@@ -24,6 +25,7 @@ import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
 import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
 import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
+import { resolvePathsUserTier } from "@/lib/paths/resolvePathsUserTier";
 import { useUserProfile } from "@/lib/userProfile";
 import {
   PATHS_PATH_DETAIL_DISCLAIMER_TEXT,
@@ -48,21 +50,6 @@ function tierPriority(tier: TierSlug): number {
   return TIER_ORDER.indexOf(tier);
 }
 
-function isTierSlug(value: string): value is TierSlug {
-  return value === TIER.FREE || value === TIER.PRO || value === TIER.PREMIUM;
-}
-
-function resolveUserTier(
-  subscribed: boolean,
-  profileTier: string | null | undefined,
-  onboardingData: Record<string, unknown> | null | undefined,
-): TierSlug {
-  if (typeof profileTier === "string" && isTierSlug(profileTier)) return profileTier;
-  const raw = onboardingData?.tier;
-  if (typeof raw === "string" && isTierSlug(raw)) return raw;
-  return subscribed ? TIER.PRO : TIER.FREE;
-}
-
 function isActiveEnrollment(enrollment: PathEnrollmentListItem | null): boolean {
   if (!enrollment) return false;
   return (
@@ -78,7 +65,6 @@ export default function PathDetailPopup({
   catalogPath = null,
   onEnrollmentsChanged,
 }: PathDetailPopupProps) {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const enrollmentStore = useOptionalPathsEnrollmentStore();
@@ -119,11 +105,7 @@ export default function PathDetailPopup({
   const pillarLabel = matchedEnrollment?.pillarLabel ?? catalogPath?.pillar ?? "";
   const subMode = matchedEnrollment?.subMode ?? catalogPath?.subMode;
   const progressPercent = matchedEnrollment?.progressPercent ?? 0;
-  const userTier = resolveUserTier(
-    profile?.subscribed ?? false,
-    profile?.tier ?? null,
-    profile?.onboardingData ?? null,
-  );
+  const userTier = resolvePathsUserTier(profile);
   const moduleGate = useMemo(
     () =>
       resolvePathModuleGate(
@@ -133,6 +115,8 @@ export default function PathDetailPopup({
     [profile, catalogPath?.triggerSignals],
   );
   const needsUpgrade = tierPriority(pathTier) > tierPriority(userTier);
+  const lockedPathFeature = pathTier === TIER.PREMIUM ? "premiumPath" : "proPath";
+  const pathUpsell = useLockedFeatureUpsell(userTier);
   const enrolled = isActiveEnrollment(matchedEnrollment);
   const showEnroll = !enrolled && !needsUpgrade && !moduleGate?.blocked && Boolean(pathSlug);
   const showUnenroll = enrolled && Boolean(matchedEnrollment?.enrollmentId);
@@ -199,6 +183,10 @@ export default function PathDetailPopup({
 
   const handleEnroll = async () => {
     if (!user || !pathSlug) return;
+    if (needsUpgrade) {
+      pathUpsell.promptUpgrade(lockedPathFeature);
+      return;
+    }
     setBusy(true);
     try {
       await enrollInPath(
@@ -211,6 +199,10 @@ export default function PathDetailPopup({
       toast.success(`Enrolled in ${pathName}`);
     } catch (err) {
       console.error("Failed to enroll in path", err);
+      if (err instanceof PathEnrollmentUpgradeRequiredError) {
+        pathUpsell.promptUpgrade(lockedPathFeature);
+        return;
+      }
       toast.error(err instanceof Error ? err.message : "Could not enroll in this path.");
     } finally {
       setBusy(false);
@@ -395,7 +387,7 @@ export default function PathDetailPopup({
                 variant="cta"
                 data-style-ref="Button_primary_"
                 className={cn(bubbleStyle("Button_primary_"), "gap-1.5")}
-                onClick={() => navigate(settingsPath(SETTINGS_TAB.SUBSCRIPTION))}
+                onClick={() => pathUpsell.promptUpgrade(lockedPathFeature)}
               >
                 <Star className="h-4 w-4 shrink-0" aria-hidden />
                 Upgrade Plan
@@ -461,6 +453,13 @@ export default function PathDetailPopup({
           </DialogFooter>
         </DialogPrimitive.Content>
       </DialogPortal>
+
+      <LockedFeatureUpgradeDialog
+        open={pathUpsell.openFeature === lockedPathFeature}
+        feature={lockedPathFeature}
+        currentTier={userTier}
+        onClose={pathUpsell.closeUpsell}
+      />
     </Dialog>
   );
 }

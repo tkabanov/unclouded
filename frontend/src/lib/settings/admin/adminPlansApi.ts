@@ -1,12 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
-import { PLANS, type PlanId } from "@/lib/plans";
+import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
+import { PLAN_CATALOG } from "@/lib/subscription/planCatalog";
 import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
 
 export const ADMIN_PLANS_ONBOARDING_KEY = "admin_plans" as const;
 
-const SEEDED_PLAN_IDS = new Set<PlanId>(["free", "pro", "premium"]);
+const SEEDED_PLAN_IDS = new Set<TierSlug>([TIER.FREE, TIER.PRO, TIER.PREMIUM]);
+
+/**
+ * Offline fallback only. Live monthly amounts are in `subscriptionPlanPrice`;
+ * yearly amounts are deliberately absent while the client confirms them.
+ */
+const STATIC_MONTHLY_PRICES: Record<TierSlug, number> = {
+  [TIER.FREE]: 0,
+  [TIER.PRO]: 29,
+  [TIER.PREMIUM]: 79,
+};
 
 export interface AdminPlanRecord {
   planId: string;
@@ -65,17 +76,17 @@ function toAdminPlan(row: PlanRow, isStatic = false): AdminPlanRecord | null {
     price: Number.isFinite(price) ? price : 0,
     description: row.description?.trim() ?? "",
     features,
-    isStatic: isStatic || SEEDED_PLAN_IDS.has(planId as PlanId),
+    isStatic: isStatic || SEEDED_PLAN_IDS.has(planId as TierSlug),
   };
 }
 
 function staticPlans(): AdminPlanRecord[] {
-  return PLANS.map((plan) => ({
-    planId: plan.id,
+  return PLAN_CATALOG.map((plan) => ({
+    planId: plan.tier,
     name: plan.name,
-    price: plan.id === "pro" ? 29 : plan.id === "premium" ? 0 : 0,
+    price: STATIC_MONTHLY_PRICES[plan.tier],
     description: plan.tagline,
-    features: plan.features,
+    features: plan.features.filter((feature) => feature.included).map((feature) => feature.label),
     isStatic: true,
   }));
 }
@@ -157,7 +168,6 @@ export async function fetchAdminPlans(userId: string): Promise<AdminPlansLoadRes
 }
 
 export function formatPlanPrice(plan: AdminPlanRecord): string {
-  if (plan.price <= 0 && plan.planId === ("premium" as PlanId)) return "Custom";
   if (plan.price <= 0) return "$0";
   return `$${plan.price}`;
 }

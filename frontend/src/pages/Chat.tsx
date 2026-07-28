@@ -10,11 +10,14 @@ import ChatWelcomePanel from "@/components/chat/ChatWelcomePanel";
 import ConversationSidebar from "@/components/chat/ConversationSidebar";
 import DeleteConversationPopup from "@/components/chat/DeleteConversationPopup";
 import RenameConversationPopup from "@/components/chat/RenameConversationPopup";
+import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import type { ConversationListItem } from "@/lib/chat/chatConversationsApi";
 import { isAtFreeTierSessionLimit } from "@/lib/chat/chatSessionLimit";
 import { useChatConversationParam } from "@/hooks/useChatConversationParam";
 import { useChatSignOutClear } from "@/hooks/useChatSignOutClear";
+import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useNewConversation } from "@/hooks/useNewConversation";
+import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -28,9 +31,21 @@ export default function Chat() {
   const [renameTarget, setRenameTarget] = useState<ConversationListItem | null>(null);
   const [sidebarListVersion, setSidebarListVersion] = useState(0);
 
+  const tier = resolveCurrentTier(
+    !!profile?.subscribed,
+    profile?.tier,
+    profile?.accountType,
+    profile?.enterpriseTier,
+  );
+  const { openFeature, promptUpgrade, closeUpsell } = useLockedFeatureUpsell(tier);
+
   const bumpSidebar = useCallback(() => {
     setSidebarListVersion((version) => version + 1);
   }, []);
+
+  const handleSessionLimitReached = useCallback(() => {
+    promptUpgrade("chatSessionLimit");
+  }, [promptUpgrade]);
 
   const { createNew } = useNewConversation({
     userId: user?.id,
@@ -41,9 +56,12 @@ export default function Chat() {
     enterpriseTier: profile?.enterpriseTier ?? null,
     setConversationId,
     onCreated: bumpSidebar,
+    onSessionLimitReached: handleSessionLimitReached,
   });
 
-  const newConversationDisabled = useMemo(
+  // At the limit the button stays clickable so the contextual upgrade dialog can
+  // explain the cap, rather than leaving the user with a dead control.
+  const atSessionLimit = useMemo(
     () =>
       isAtFreeTierSessionLimit({
         tier: profile?.tier ?? null,
@@ -124,7 +142,8 @@ export default function Chat() {
     <DashboardLayout>
       <ChatPageContent
         onNewConversation={createNew}
-        newConversationDisabled={newConversationDisabled}
+        newConversationDisabled={false}
+        newConversationLocked={atSessionLimit}
         sidebar={
           <ConversationSidebar
             userId={user?.id}
@@ -174,6 +193,12 @@ export default function Chat() {
           />
         </>
       ) : null}
+      <LockedFeatureUpgradeDialog
+        open={openFeature === "chatSessionLimit"}
+        feature="chatSessionLimit"
+        currentTier={tier}
+        onClose={closeUpsell}
+      />
     </DashboardLayout>
   );
 }

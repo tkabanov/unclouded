@@ -131,6 +131,25 @@ SELECT public.invoke_scheduled_edge_function('onboarding-dropoff');
 -- then: SELECT id, status_code, content FROM net._http_response ORDER BY id DESC LIMIT 1;
 ```
 
+### Subscription lifecycle (Individual Subscription Management Flow)
+
+Edge function: `supabase/functions/subscription-lifecycle`.
+
+- Applies the time-driven transitions: scheduled cancellations and downgrades whose date has passed, exhausted grace periods, Founding Member conversion to standard Pro after 12 months, and release of credit holds for 1:1 sessions that were never confirmed.
+- Sends two emails, each stamped once per situation on `userSubscription`:
+  - **payment failure** — `paymentFailureEmailedAt`; subject *We couldn't process your Unclouded payment*; CTA links to `{APP_ORIGIN}/settings?tab=subscription`.
+  - **ending soon** (within 3 days of a scheduled cancellation or downgrade) — `endingSoonEmailedAt`; subject *Your Unclouded subscription ends soon* / *Your Premium plan changes soon*.
+- Both stamps are cleared automatically when the situation resolves (payment recovers, cancellation or downgrade is called off), so the next occurrence is announced again.
+- Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <SUBSCRIPTION_LIFECYCLE_CRON_SECRET>`.
+
+**Schedule:** `pg_cron` job `daily-subscription-lifecycle` at **17:00 UTC** → `invoke_scheduled_edge_function('subscription-lifecycle')` (vault: `project_url`, `edge_cron_service_role_key`, optional `subscription_lifecycle_cron_secret`). Migration: `20260727130000_subscription_lifecycle_cron.sql`.
+
+Manual smoke:
+```sql
+SELECT public.invoke_scheduled_edge_function('subscription-lifecycle');
+-- then: SELECT id, status_code, content FROM net._http_response ORDER BY id DESC LIMIT 1;
+```
+
 ## Verification checklist (developer / PM)
 
 1. Apply **recovery** template in Supabase Dashboard.

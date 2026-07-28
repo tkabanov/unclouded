@@ -6,6 +6,7 @@ import Chat from "@/pages/Chat";
 import Journal from "@/pages/Journal";
 import Paths from "@/pages/Paths";
 import Settings from "@/pages/Settings";
+import SettingsSubscriptionRedirect from "@/pages/SettingsSubscriptionRedirect";
 import EmployerPortal from "@/pages/EmployerPortal";
 import VoiceSession from "@/pages/VoiceSession";
 
@@ -26,6 +27,7 @@ export const authenticatedRouteDefs: AuthenticatedRouteDef[] = [
   { path: "/coaching/voice", element: <VoiceSession /> },
   { path: "/journal", element: <Journal /> },
   { path: "/settings", element: <Settings /> },
+  { path: "/settings/subscription", element: <SettingsSubscriptionRedirect /> },
   { path: "/settings/know-yourself/:moduleSlug", element: <ModuleWizard /> },
   { path: "/paths", element: <Paths /> },
   { path: "/employer", element: <EmployerPortal /> },

@@ -18,14 +18,13 @@ import { useAuth } from "@/hooks/useAuth";
 export default function Journal() {
   const { user } = useAuth();
   const { profile, refresh: refreshProfile } = useUserProfile();
-  const canGenerateAiReflection = canUseJournalAiReflection(
-    resolveCurrentTier(
-      profile?.subscribed ?? false,
-      profile?.tier,
-      profile?.accountType,
-      profile?.enterpriseTier,
-    ),
+  const tier = resolveCurrentTier(
+    profile?.subscribed ?? false,
+    profile?.tier,
+    profile?.accountType,
+    profile?.enterpriseTier,
   );
+  const canGenerateAiReflection = canUseJournalAiReflection(tier);
   const [entries, setEntries] = useState<JournalEntryListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -122,6 +121,7 @@ export default function Journal() {
         userId={user?.id ?? ""}
         onboardingData={profile?.onboardingData ?? null}
         canGenerateAiReflection={canGenerateAiReflection}
+        currentTier={tier}
         onSaved={handleEntriesChanged}
         onReflectionGenerated={handleEntryReflectionGenerated}
       />

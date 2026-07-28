@@ -17,8 +17,9 @@
  *   | pro          | bTIrT     | Pro                                    |
  *   | premium      | bTIrU     | Premium                                |
  *
- * User field `tier` stores the tier_os slug (free | pro | premium).
- * Prototype PlanId values in @/lib/plans.ts align 1:1 with TierSlug for demo billing.
+ * User field `tier` stores the tier_os slug (free | pro | premium) and mirrors
+ * the effective tier of `userSubscription`. Plan card copy lives in
+ * @/lib/subscription/planCatalog.ts; live prices in `subscriptionPlanPrice`.
  */
 
 import { TIER, TIER_LABELS, type TierSlug } from "./tier";

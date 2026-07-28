@@ -16,6 +16,8 @@ interface UseNewConversationOptions {
   enterpriseTier?: string | null;
   setConversationId: (id: string | null) => void;
   onCreated?: () => void;
+  /** Shows the contextual upgrade dialog instead of a bare toast when set. */
+  onSessionLimitReached?: () => void;
 }
 
 /**
@@ -30,6 +32,7 @@ export function useNewConversation({
   enterpriseTier,
   setConversationId,
   onCreated,
+  onSessionLimitReached,
 }: UseNewConversationOptions) {
   const [creating, setCreating] = useState(false);
 
@@ -45,8 +48,12 @@ export function useNewConversation({
         onboardingData,
       })
     ) {
-      trackProductEvent("paywall_shown", { surface: "new_conversation" });
-      toast.error(FREE_TIER_UPSELL_MESSAGE);
+      if (onSessionLimitReached) {
+        onSessionLimitReached();
+      } else {
+        trackProductEvent("paywall_shown", { surface: "new_conversation" });
+        toast.error(FREE_TIER_UPSELL_MESSAGE);
+      }
       return;
     }
 
@@ -61,7 +68,18 @@ export function useNewConversation({
     } finally {
       setCreating(false);
     }
-  }, [accountType, creating, enterpriseTier, onboardingData, onCreated, setConversationId, subscribed, tier, userId]);
+  }, [
+    accountType,
+    creating,
+    enterpriseTier,
+    onboardingData,
+    onCreated,
+    onSessionLimitReached,
+    setConversationId,
+    subscribed,
+    tier,
+    userId,
+  ]);
 
   return { createNew, creating };
 }

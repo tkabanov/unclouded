@@ -1,0 +1,190 @@
+-- Two-user proof for the individual subscription lifecycle, Premium credits, and
+-- session bookings (Individual Subscription Management Flow, AC-6/7/20/21/22/28).
+--
+-- Manual script, same convention as the other proofs in this folder: run the
+-- blocks in order in the SQL editor and compare against "Expected". Replace
+-- <user_a_id> / <user_b_id> with two real ids from `SELECT id FROM auth.users
+-- LIMIT 2;`. Wrap the whole run in BEGIN; ... ROLLBACK; to leave no residue.
+--
+-- Switching to a user:
+--   SET LOCAL ROLE authenticated;
+--   SET LOCAL "request.jwt.claim.sub" = '<user_a_id>';
+--   SET LOCAL "request.jwt.claims" = '{"sub":"<user_a_id>","role":"authenticated"}';
+-- Switching back to service role: RESET ROLE;
+
+-- ===========================================================================
+-- 0. Setup (service role) — A is Premium monthly, B is Free
+-- ===========================================================================
+--   SELECT public.billing_sync_stripe_subscription(
+--     '<user_a_id>'::uuid, 'premium', 'active', 'month',
+--     now() - interval '5 days', now() + interval '25 days',
+--     false, 'cus_proof_a', 'sub_proof_a', 'price_proof_premium'
+--   );
+--   SELECT public.effective_user_tier('<user_a_id>'::uuid);  -- Expected: premium
+--   SELECT public.effective_user_tier('<user_b_id>'::uuid);  -- Expected: free
+--   SELECT subscribed, tier FROM profiles WHERE id = '<user_a_id>';
+-- Expected: true / premium — the trigger keeps the denormalized cache in sync.
+
+-- ===========================================================================
+-- 1. Credit accrual is idempotent per invoice (AC-6, AC-7)
+-- ===========================================================================
+--   SELECT public.billing_grant_premium_credit('<user_a_id>'::uuid, 'in_proof_1');
+--   SELECT public.billing_grant_premium_credit('<user_a_id>'::uuid, 'in_proof_1');
+-- Expected: first {"status":"granted","balance":1}; second reports a duplicate
+-- and leaves the balance at 1 — a replayed Stripe webhook cannot mint credits.
+--
+--   SELECT public.billing_grant_premium_credit('<user_a_id>'::uuid, 'in_proof_2');
+-- Expected: balance 2 (one credit per paid invoice).
+--
+--   SELECT public.available_premium_credits('<user_a_id>'::uuid);  -- Expected: 2
+--   SELECT public.available_premium_credits('<user_b_id>'::uuid);  -- Expected: 0
+
+-- ===========================================================================
+-- 2. Credits are not granted to non-Premium users
+-- ===========================================================================
+--   SELECT public.billing_grant_premium_credit('<user_b_id>'::uuid, 'in_proof_b1');
+-- Expected: {"status":"skipped","reason":"not_premium"}; B's balance stays 0.
+
+-- ===========================================================================
+-- 3. Credit isolation between users
+-- ===========================================================================
+-- As User B:
+--   SELECT * FROM public."premiumCreditLedger" WHERE "userId" = '<user_a_id>';
+-- Expected: 0 rows (RLS: owner-only SELECT).
+--   SELECT public.my_premium_credit_balance();
+-- Expected: 0 — B sees only their own balance.
+--   SELECT public.available_premium_credits('<user_a_id>'::uuid);
+-- Expected: ERROR permission denied — the parameterized resolver is service-role
+-- only, so one member cannot read another member's balance.
+
+-- ===========================================================================
+-- 4. 1:1 booking requires Premium (AC-20)
+-- ===========================================================================
+-- As User B (Free):
+--   SELECT public.request_one_on_one_booking();
+-- Expected: {"ok":false,"code":"premium_required"} and no `coachBooking` row.
+--
+--   INSERT INTO public."coachBooking" ("userId", status)
+--   VALUES ('<user_b_id>'::uuid, 'pending');
+-- Expected: ERROR new row violates row-level security policy — the direct
+-- insert path is closed as well, not just the RPC.
+
+-- ===========================================================================
+-- 5. Credits cannot be spent twice (AC-21)
+-- ===========================================================================
+-- As User A (Premium, balance 2):
+--   SELECT public.request_one_on_one_booking();
+-- Expected: {"ok":true,"balance":0} — the two credits are held immediately.
+--
+--   SELECT public.request_one_on_one_booking();
+-- Expected: {"ok":false,"code":"insufficient_credits","balance":0} — the hold
+-- from the first booking makes a second booking impossible.
+--
+--   SELECT reason, delta FROM public."premiumCreditLedger"
+--   WHERE "userId" = '<user_a_id>' ORDER BY "createdAt";
+-- Expected: accrual +1, accrual +1, hold -2.
+
+-- ===========================================================================
+-- 6. Redemption happens once, and only after confirmation
+-- ===========================================================================
+-- As service role, with <booking_id> from step 5:
+--   SELECT public.redeem_premium_credits_for_booking('<booking_id>'::uuid);
+-- Expected: {"ok":false,"code":"not_confirmed"} while the booking is pending.
+--
+--   UPDATE public."coachBooking"
+--   SET status = 'confirmed', "confirmedAt" = now() WHERE id = '<booking_id>';
+--   SELECT public.redeem_premium_credits_for_booking('<booking_id>'::uuid);
+--   SELECT public.redeem_premium_credits_for_booking('<booking_id>'::uuid);
+-- Expected: first {"ok":true,"redeemed":2,"balance":0}; second
+-- {"ok":true,"code":"already_redeemed"} with the balance still 0 — the unique
+-- index on (coachBookingId, reason) blocks a double deduction.
+
+-- ===========================================================================
+-- 7. An unconfirmed booking returns its credits
+-- ===========================================================================
+--   SELECT public.billing_grant_premium_credit('<user_a_id>'::uuid, 'in_proof_3');
+--   SELECT public.billing_grant_premium_credit('<user_a_id>'::uuid, 'in_proof_4');
+-- As User A: SELECT public.request_one_on_one_booking();   -- note <booking_2>
+-- As service role:
+--   SELECT public.release_one_on_one_booking_hold('<booking_2>'::uuid);
+--   SELECT public.release_one_on_one_booking_hold('<booking_2>'::uuid);
+-- Expected: first releases 2 and sets the booking to 'cancelled'; second
+-- {"ok":true,"code":"nothing_to_release"} — credits are returned exactly once.
+--
+--   SELECT public.billing_release_stale_booking_holds(interval '0 seconds');
+-- Expected: releases any still-pending holds; safe to run repeatedly.
+
+-- ===========================================================================
+-- 8. Group session — one per calendar month (Pro entitlement)
+-- ===========================================================================
+-- As User A:
+--   SELECT public.request_group_session_booking();
+--   SELECT public.request_group_session_booking();
+-- Expected: first {"ok":true}; second
+-- {"ok":false,"code":"monthly_limit_reached"}.
+--
+-- As User B (Free):
+--   SELECT public.request_group_session_booking();
+-- Expected: {"ok":false,"code":"upgrade_required"}.
+--
+-- As User B: SELECT * FROM public."groupSessionBooking" WHERE "userId" = '<user_a_id>';
+-- Expected: 0 rows.
+
+-- ===========================================================================
+-- 9. Chat session limit follows effective access
+-- ===========================================================================
+-- As User A (Premium):
+--   SELECT public.consume_chat_session('<user_a_id>'::uuid, 'conv-proof-1', true);
+-- Expected: {"allowed":true,"recorded":false} — paid access is unlimited and
+-- nothing is counted.
+--
+-- As service role, cancel A's subscription at period end:
+--   SELECT public.billing_set_cancel_at_period_end('<user_a_id>'::uuid, true);
+--   SELECT public.effective_user_tier('<user_a_id>'::uuid);
+-- Expected: premium — a scheduled cancellation keeps access until the date.
+--
+--   SELECT public.billing_expire_subscription('<user_a_id>'::uuid);
+--   SELECT public.effective_user_tier('<user_a_id>'::uuid);
+--   SELECT public.available_premium_credits('<user_a_id>'::uuid);
+-- Expected: free, and 0 credits — unused credits expire with access (AC-11).
+-- As User A: SELECT public.consume_chat_session('<user_a_id>'::uuid, 'conv-proof-2', true);
+-- Expected: {"allowed":true,"recorded":true} — now counted against the 7/month.
+
+-- ===========================================================================
+-- 10. Paid paths and reassessment are gated server-side (AC-28)
+-- ===========================================================================
+-- As User B (Free), with <premium_path_id> from
+--   SELECT id FROM public.path WHERE lower(tier) = 'premium' LIMIT 1;
+--   INSERT INTO public."pathEnrollment" ("userId", "pathId")
+--   VALUES ('<user_b_id>'::uuid, '<premium_path_id>'::uuid);
+-- Expected: ERROR new row violates row-level security policy.
+--
+--   INSERT INTO public."assessmentResult" ("userId", "isInitial")
+--   VALUES ('<user_b_id>'::uuid, false);
+-- Expected: ERROR new row violates row-level security policy — Free cannot
+-- record a reassessment.
+--
+--   INSERT INTO public."assessmentResult" ("userId", "isInitial")
+--   VALUES ('<user_b_id>'::uuid, true);
+-- Expected: succeeds — the onboarding assessment stays open to Free.
+
+-- ===========================================================================
+-- 11. Entitlement columns remain client-proof
+-- ===========================================================================
+-- As User A:
+--   UPDATE profiles SET subscribed = true, tier = 'premium' WHERE id = '<user_a_id>';
+-- Expected: permission denied / values unchanged (column REVOKE + trigger).
+--   UPDATE public."userSubscription" SET "planTier" = 'premium'
+--   WHERE "userId" = '<user_a_id>';
+-- Expected: 0 rows updated — the state machine is read-only to clients.
+
+-- ===========================================================================
+-- 12. Founding Member cap (AC-22)
+-- ===========================================================================
+-- As service role:
+--   SELECT public.founding_member_slots_remaining();
+--   SELECT public.claim_founding_member_slot('<user_b_id>'::uuid);
+--   SELECT public.claim_founding_member_slot('<user_b_id>'::uuid);
+-- Expected: the same slot number twice (idempotent), remaining count drops by
+-- exactly one. When 100 slots are taken, the function returns NULL instead of
+-- overselling the campaign.

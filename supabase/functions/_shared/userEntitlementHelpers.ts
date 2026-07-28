@@ -1,3 +1,17 @@
+/**
+ * Effective entitlement resolution for edge functions.
+ *
+ * Mirrors `frontend/src/lib/entitlements/userEntitlementHelpers.ts`.
+ * `profiles.subscribed` / `profiles.tier` are a denormalized cache of the
+ * `userSubscription` state machine; when the caller has the subscription record
+ * itself, that wins because it stays correct even if the lifecycle cron has not
+ * yet transitioned a row whose scheduled date just elapsed.
+ */
+import {
+  resolveEffectiveTier,
+  type SubscriptionStateRow,
+} from "./subscriptionLifecycle.ts";
+
 export type AccountType = "individual" | "enterprise";
 export type EntitlementTier = "free" | "pro" | "premium";
 
@@ -6,6 +20,8 @@ export type UserEntitlementInput = {
   enterpriseTier?: string | null;
   subscribed?: boolean | null;
   tier?: string | null;
+  /** Authoritative subscription state when available. */
+  subscription?: SubscriptionStateRow | null;
 };
 
 export type ResolvedUserEntitlement = {
@@ -24,7 +40,21 @@ function normalizeTier(value: string | null | undefined): EntitlementTier | null
   return null;
 }
 
-export function resolveUserEntitlement(input: UserEntitlementInput): ResolvedUserEntitlement {
+/**
+ * Fallback for callers without the subscription record, in parity with the
+ * `effective_user_tier` SQL fallback: a named paid tier wins, otherwise a legacy
+ * `subscribed` row counts as Pro.
+ */
+function cachedTier(input: UserEntitlementInput): EntitlementTier {
+  const tier = normalizeTier(input.tier);
+  if (tier === "pro" || tier === "premium") return tier;
+  return input.subscribed === true ? "pro" : "free";
+}
+
+export function resolveUserEntitlement(
+  input: UserEntitlementInput,
+  nowMs = Date.now(),
+): ResolvedUserEntitlement {
   const accountType: AccountType =
     input.accountType?.trim().toLowerCase() === "enterprise" ? "enterprise" : "individual";
 
@@ -39,16 +69,18 @@ export function resolveUserEntitlement(input: UserEntitlementInput): ResolvedUse
     };
   }
 
-  const subscribed = input.subscribed === true;
-  const tier =
-    normalizeTier(input.tier) ?? (subscribed ? "pro" : "free");
+  const tier = input.subscription
+    ? resolveEffectiveTier(input.subscription, nowMs)
+    : cachedTier(input);
+
+  const subscribed = tier !== "free";
 
   return {
     accountType,
     tier,
     subscribed,
     bypassBilling: false,
-    bypassSessionLimit: subscribed || tier !== "free",
+    bypassSessionLimit: subscribed,
   };
 }
 
