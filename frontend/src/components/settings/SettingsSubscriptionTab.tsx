@@ -17,6 +17,7 @@ import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
 import { useUserProfile } from "@/lib/userProfile";
+import { isFoundingEligible } from "@/lib/share/planAttribution";
 import {
   cancelDialogCopy,
   downgradeDialogCopy,
@@ -39,15 +40,14 @@ import {
   isIntervalAvailable,
 } from "@/lib/subscription/subscriptionFormat";
 import { resolvePlanCardState } from "@/lib/subscription/subscriptionActions";
+import { buildCurrentPlanDetails } from "@/lib/subscription/subscriptionPlanDetails";
 import {
   FREE_SUBSCRIPTION_RECORD,
-  resolveAccessEndsAt,
   resolveCreditsExpireAt,
   resolveEffectiveTier,
   resolveNextCreditAt,
   resolveNextRenewalAt,
   type BillingInterval,
-  type SubscriptionRecord,
 } from "@/lib/subscription/subscriptionState";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -82,29 +82,6 @@ function notifyCheckoutOutcome(message: string, kind: "success" | "pending"): vo
   }
 }
 
-/** Dates shown under the price of the user's current plan card. */
-function currentPlanDetails(record: SubscriptionRecord): { label: string; value: string }[] {
-  const details: { label: string; value: string }[] = [];
-
-  const renewal = formatSubscriptionDate(resolveNextRenewalAt(record));
-  if (renewal) details.push({ label: "Next renewal date", value: renewal });
-
-  const accessEnds = formatSubscriptionDate(resolveAccessEndsAt(record));
-  if (accessEnds) {
-    details.push({
-      label:
-        record.status === "scheduledToDowngrade"
-          ? "Downgrade effective"
-          : record.status === "pastDue"
-            ? "Access continues until"
-            : "Access expires",
-      value: accessEnds,
-    });
-  }
-
-  return details;
-}
-
 export default function SettingsSubscriptionTab() {
   const { profile, refresh: refreshProfile } = useUserProfile();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -132,6 +109,10 @@ export default function SettingsSubscriptionTab() {
   const activeRecord = record ?? FREE_SUBSCRIPTION_RECORD;
   const effectiveTier = overview?.effectiveTier ?? resolveEffectiveTier(activeRecord);
   const prices = overview?.prices ?? [];
+  const preferFoundingRate = isFoundingEligible({
+    isFoundingMember: activeRecord.isFoundingMember,
+    signupPlan: profile?.signupPlan,
+  });
 
   const flow = useSubscriptionFlow({
     record,
@@ -161,12 +142,20 @@ export default function SettingsSubscriptionTab() {
         .then((next) => {
           applyOverview(next);
           void refreshProfile();
+          const isFoundingMember = next.subscription?.isFoundingMember ?? false;
+          const successOptions = { isFoundingMember };
           const tierMatches =
             expectedTier !== null && next.effectiveTier === expectedTier;
           if (tierMatches) {
-            showCheckoutNotice(checkoutSuccessMessage(expectedTier), "success");
+            showCheckoutNotice(
+              checkoutSuccessMessage(expectedTier, successOptions),
+              "success",
+            );
           } else if (next.effectiveTier !== TIER.FREE) {
-            showCheckoutNotice(checkoutSuccessMessage(next.effectiveTier), "success");
+            showCheckoutNotice(
+              checkoutSuccessMessage(next.effectiveTier, successOptions),
+              "success",
+            );
           } else {
             showCheckoutNotice(checkoutSuccessPendingMessage(), "pending");
           }
@@ -221,9 +210,7 @@ export default function SettingsSubscriptionTab() {
 
   const checkoutTier = flow.dialog?.kind === "checkout" ? flow.dialog.tier : null;
   const planName = planDisplayName(effectiveTier, activeRecord.isFoundingMember);
-  const accessEndsLabel =
-    formatSubscriptionDate(resolveAccessEndsAt(activeRecord)) ??
-    "the end of your billing period";
+  const cancelActiveUntilDate = formatSubscriptionDate(activeRecord.currentPeriodEnd);
   const renewalLabel =
     formatSubscriptionDate(resolveNextRenewalAt(activeRecord)) ?? "your next billing date";
 
@@ -336,7 +323,12 @@ export default function SettingsSubscriptionTab() {
             const price =
               tier === TIER.FREE
                 ? null
-                : findPlanPrice(prices, tier, interval, activeRecord.isFoundingMember);
+                : findPlanPrice(
+                    prices,
+                    tier,
+                    interval,
+                    tier === TIER.PRO ? preferFoundingRate : activeRecord.isFoundingMember,
+                  );
 
             const freePlanNotice =
               tier === TIER.FREE && effectiveTier !== TIER.FREE
@@ -350,8 +342,10 @@ export default function SettingsSubscriptionTab() {
                 price={tier === TIER.FREE ? "$0" : formatPlanPrice(price)}
                 priceSuffix={tier === TIER.FREE ? "" : BILLING_INTERVAL_SUFFIX[interval]}
                 state={state}
-                showFoundingLabel={tier === TIER.PRO && activeRecord.isFoundingMember}
-                details={state.isCurrent ? currentPlanDetails(activeRecord) : []}
+                showFoundingLabel={
+                  tier === TIER.PRO && (activeRecord.isFoundingMember || preferFoundingRate)
+                }
+                details={state.isCurrent ? buildCurrentPlanDetails(activeRecord) : []}
                 notice={freePlanNotice}
                 pendingLabel={
                   state.primary.kind === "cancel"
@@ -398,7 +392,7 @@ export default function SettingsSubscriptionTab() {
 
       <SubscriptionConfirmDialog
         open={flow.dialog?.kind === "cancel"}
-        copy={cancelDialogCopy(planName, accessEndsLabel)}
+        copy={cancelDialogCopy(planName, cancelActiveUntilDate)}
         destructive
         pendingLabel={flow.pendingLabelFor("cancel")}
         onConfirm={flow.confirmDialog}
@@ -444,9 +438,17 @@ export default function SettingsSubscriptionTab() {
         interval={interval}
         price={
           checkoutTier
-            ? findPlanPrice(prices, checkoutTier, interval, activeRecord.isFoundingMember)
+            ? findPlanPrice(
+                prices,
+                checkoutTier,
+                interval,
+                checkoutTier === TIER.PRO
+                  ? preferFoundingRate
+                  : activeRecord.isFoundingMember,
+              )
             : null
         }
+        foundingEligible={checkoutTier === TIER.PRO && preferFoundingRate}
         pendingLabel={flow.pendingLabelFor("startCheckout")}
         onConfirm={flow.confirmDialog}
         onDismiss={flow.closeDialog}

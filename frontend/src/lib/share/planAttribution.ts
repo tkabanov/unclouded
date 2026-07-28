@@ -56,3 +56,14 @@ export function buildSignupPlanMetadata(
   if (!signupPlan) return undefined;
   return { [SIGNUP_PLAN_AUTH_METADATA_KEY]: signupPlan };
 }
+
+export type FoundingEligibilityInput = {
+  signupPlan?: string | null;
+  isFoundingMember?: boolean | null;
+};
+
+/** Mirrors `supabase/functions/_shared/foundingMember.ts` — UI price preview only; charge uses the edge function. */
+export function isFoundingEligible(input: FoundingEligibilityInput): boolean {
+  if (input.isFoundingMember === true) return true;
+  return normalizeSignupPlan(input.signupPlan ?? null) === FOUNDING_SIGNUP_PLAN;
+}

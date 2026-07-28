@@ -25,12 +25,15 @@ import {
 } from "@/lib/subscription/subscriptionActions";
 import {
   cancelDialogCopy,
+  checkoutDialogCopy,
+  checkoutSuccessMessage,
   downgradeDialogCopy,
   foundingPricingNotice,
   FOUNDING_TO_PREMIUM_DIALOG_COPY,
   PRO_TO_PREMIUM_DIALOG_COPY,
   UPGRADE_PAYMENT_FAILED_MESSAGE,
 } from "@/lib/subscription/subscriptionCopy";
+import { findPlanPrice } from "@/lib/subscription/subscriptionFormat";
 import {
   lockedFeature,
   shouldShowUpsell,
@@ -491,5 +494,49 @@ describe("AC-28 paid-feature access is validated by the backend", () => {
   it("shows human coaching entry points for Free (upsell on click)", () => {
     expect(shouldShowHumanCoachingCard(TIER.FREE)).toBe(true);
     expect(canBookGroupCoachSession(TIER.FREE)).toBe(false);
+  });
+});
+
+describe("Founding Member UI (E2E SUB-FM fixes)", () => {
+  it("cancel dialog does not duplicate billing period when date is missing", () => {
+    const copy = cancelDialogCopy("Founding Member", null);
+    expect(copy.message).not.toContain("period on the end of your billing period");
+    expect(copy.message).toContain("at the end of your current billing period");
+  });
+
+  it("checkout success welcomes Founding Members", () => {
+    expect(checkoutSuccessMessage(TIER.PRO, { isFoundingMember: true })).toContain(
+      "Founding Member",
+    );
+    expect(checkoutSuccessMessage(TIER.PRO)).toContain("Welcome to Pro!");
+  });
+
+  it("checkout dialog uses founding copy when eligible", () => {
+    expect(checkoutDialogCopy(TIER.PRO, { foundingEligible: true }).title).toBe(
+      "Join as Founding Member",
+    );
+  });
+
+  it("findPlanPrice prefers founding rate when requested", () => {
+    const prices = [
+      {
+        tierSlug: "pro" as const,
+        billingInterval: "month" as const,
+        amountCents: 2900,
+        currency: "usd",
+        isFoundingRate: false,
+        isActive: true,
+      },
+      {
+        tierSlug: "pro" as const,
+        billingInterval: "month" as const,
+        amountCents: 1900,
+        currency: "usd",
+        isFoundingRate: true,
+        isActive: true,
+      },
+    ];
+    expect(findPlanPrice(prices, "pro", "month", true)?.amountCents).toBe(1900);
+    expect(findPlanPrice(prices, "pro", "month", false)?.amountCents).toBe(2900);
   });
 });

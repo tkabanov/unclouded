@@ -24,17 +24,25 @@ export type ConfirmCopy = {
   dismissLabel: string;
 };
 
+function cancelAccessEndsPhrase(activeUntilDateLabel: string | null): string {
+  if (activeUntilDateLabel) {
+    return `at the end of your current billing period on ${activeUntilDateLabel}`;
+  }
+  return "at the end of your current billing period";
+}
+
 export function cancelDialogCopy(
   plan: PlanDisplayName,
-  activeUntilLabel: string,
+  activeUntilDateLabel: string | null,
 ): ConfirmCopy {
+  const accessEnds = cancelAccessEndsPhrase(activeUntilDateLabel);
+
   if (plan === "Premium") {
     return {
       title: "Cancel Premium Subscription?",
       message:
         `Are you sure? You will lose access to Premium features and your unused 1:1 session ` +
-        `credits at the end of your current billing period on ${activeUntilLabel}. You can ` +
-        `continue using your Premium benefits and credits until then.`,
+        `credits ${accessEnds}. You can continue using your Premium benefits and credits until then.`,
       confirmLabel: "Cancel Subscription",
       dismissLabel: "Keep Premium",
     };
@@ -44,9 +52,8 @@ export function cancelDialogCopy(
     return {
       title: "Cancel Founding Member Subscription?",
       message:
-        `Are you sure? You will lose access to Pro features at the end of your current billing ` +
-        `period on ${activeUntilLabel}. If your subscription expires, your Founding Member ` +
-        `price cannot be restored.`,
+        `Are you sure? You will lose access to Pro features ${accessEnds}. If your subscription ` +
+        `expires, your Founding Member price cannot be restored.`,
       confirmLabel: "Cancel Subscription",
       dismissLabel: "Keep Membership",
     };
@@ -55,8 +62,8 @@ export function cancelDialogCopy(
   return {
     title: "Cancel Pro Subscription?",
     message:
-      `Are you sure? You will lose access to Pro features at the end of your current billing ` +
-      `period on ${activeUntilLabel}. You can continue using your Pro benefits until then.`,
+      `Are you sure? You will lose access to Pro features ${accessEnds}. You can continue using ` +
+      `your Pro benefits until then.`,
     confirmLabel: "Cancel Subscription",
     dismissLabel: "Keep Pro",
   };
@@ -156,12 +163,22 @@ export const KEEP_PREMIUM_SUCCESS_MESSAGE =
 
 // --- Upgrades ---------------------------------------------------------------
 
-export function checkoutSuccessMessage(tier: TierSlug | null): string {
+export type CheckoutSuccessOptions = {
+  isFoundingMember?: boolean;
+};
+
+export function checkoutSuccessMessage(
+  tier: TierSlug | null,
+  options: CheckoutSuccessOptions = {},
+): string {
   if (tier === TIER.PREMIUM) {
     return (
       "Welcome to Premium! Your Premium features are now available, and one credit has been " +
       "added to your account."
     );
+  }
+  if (options.isFoundingMember) {
+    return "Welcome, Founding Member! Your Pro features are now available.";
   }
   return "Welcome to Pro! Your Pro features are now available.";
 }
@@ -174,7 +191,10 @@ export function checkoutSuccessPendingMessage(): string {
   );
 }
 
-export function checkoutDialogCopy(tier: TierSlug): ConfirmCopy {
+export function checkoutDialogCopy(
+  tier: TierSlug,
+  options: { foundingEligible?: boolean } = {},
+): ConfirmCopy {
   if (tier === TIER.PREMIUM) {
     return {
       title: "Upgrade to Premium",
@@ -182,6 +202,18 @@ export function checkoutDialogCopy(tier: TierSlug): ConfirmCopy {
         "Get full access to Pro features and earn one credit every month. Two credits can be " +
         "redeemed for one 30-minute 1:1 session. Your Premium benefits will begin immediately " +
         "after your payment is confirmed.",
+      confirmLabel: "Continue to Payment",
+      dismissLabel: "Back",
+    };
+  }
+
+  if (options.foundingEligible) {
+    return {
+      title: "Join as Founding Member",
+      message:
+        "Get Pro access at the Founding Member rate for your first 12 months — unlimited coaching, " +
+        "premium paths, group sessions, and reassessment. Your benefits begin immediately after " +
+        "your payment is confirmed.",
       confirmLabel: "Continue to Payment",
       dismissLabel: "Back",
     };

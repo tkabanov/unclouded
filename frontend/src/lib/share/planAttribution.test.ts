@@ -6,6 +6,7 @@ import {
   buildSignupPlanMetadata,
   capturePlanFromSearch,
   clearPendingSignupPlan,
+  isFoundingEligible,
   normalizeSignupPlan,
   peekPendingSignupPlan,
   readPlanFromSearch,
@@ -39,5 +40,11 @@ describe("planAttribution", () => {
       [SIGNUP_PLAN_AUTH_METADATA_KEY]: FOUNDING_SIGNUP_PLAN,
     });
     expect(buildSignupPlanMetadata(null)).toBeUndefined();
+  });
+
+  it("isFoundingEligible when enrolled or signupPlan is founding", () => {
+    expect(isFoundingEligible({ isFoundingMember: true })).toBe(true);
+    expect(isFoundingEligible({ signupPlan: "founding" })).toBe(true);
+    expect(isFoundingEligible({ signupPlan: "pro", isFoundingMember: false })).toBe(false);
   });
 });
