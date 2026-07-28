@@ -6,6 +6,7 @@
  * the group RPC is the only thing that enforces one session per calendar month.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { BOOKING_REDIRECT_ERROR } from "@/lib/subscription/subscriptionCopy";
 import { callRpc } from "@/lib/supabase/rpc";
 
 const KOTA_READ_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-kota-read`;
@@ -33,6 +34,17 @@ function readNumber(row: Record<string, unknown>, key: string): number | undefin
   return typeof value === "number" ? value : undefined;
 }
 
+/** Opens the external calendar; false when blocked or when open throws. */
+export function openExternalBookingUrl(url: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    return opened !== null;
+  } catch {
+    return false;
+  }
+}
+
 /** Kota's Read is a nice-to-have: a booking stands even if generation fails. */
 async function generateKotaRead(bookingId: string): Promise<string | null> {
   const { data: sessionData } = await supabase.auth.getSession();
@@ -57,6 +69,28 @@ async function generateKotaRead(bookingId: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+async function abortOneOnOneBookingRedirect(
+  bookingId: string,
+): Promise<{ released: boolean; balance?: number }> {
+  const { data, error } = await callRpc("abort_my_one_on_one_booking_redirect", {
+    p_booking_id: bookingId,
+  });
+
+  if (error || !data || typeof data !== "object") {
+    return { released: false };
+  }
+
+  const row = data as Record<string, unknown>;
+  if (row.ok !== true) {
+    return { released: false, balance: readNumber(row, "balance") };
+  }
+
+  return {
+    released: true,
+    balance: readNumber(row, "balance"),
+  };
 }
 
 /**
@@ -91,11 +125,30 @@ export async function requestOneOnOneBooking(params?: {
     };
   }
 
-  const kotaRead = await generateKotaRead(bookingId);
-
-  if (params?.externalCalendarUrl && typeof window !== "undefined") {
-    window.open(params.externalCalendarUrl, "_blank", "noopener,noreferrer");
+  const calendarUrl = params?.externalCalendarUrl?.trim();
+  if (calendarUrl && typeof window !== "undefined") {
+    const opened = openExternalBookingUrl(calendarUrl);
+    if (!opened) {
+      const abort = await abortOneOnOneBookingRedirect(bookingId);
+      if (!abort.released) {
+        return {
+          status: "blocked",
+          code: "abort_failed",
+          message:
+            "We couldn't open session booking and couldn't release your credits automatically. Please contact support or try again later.",
+          balance: abort.balance,
+        };
+      }
+      return {
+        status: "blocked",
+        code: "redirect_failed",
+        message: BOOKING_REDIRECT_ERROR,
+        balance: abort.balance,
+      };
+    }
   }
+
+  const kotaRead = await generateKotaRead(bookingId);
 
   return {
     status: "ok",

@@ -64,6 +64,7 @@ function functionBody(sql: string, name: string): string {
 const LIFECYCLE_SQL = migration("20260727100000_individual_subscription_lifecycle.sql");
 const RPCS_SQL = migration("20260727110000_billing_subscription_rpcs.sql");
 const BOOKINGS_SQL = migration("20260727120000_premium_credits_and_bookings.sql");
+const ABORT_REDIRECT_SQL = migration("20260728120000_one_on_one_abort_redirect.sql");
 const CRON_SQL = migration("20260727130000_subscription_lifecycle_cron.sql");
 const ENFORCEMENT_SQL = migration("20260727140000_paid_feature_server_enforcement.sql");
 
@@ -381,6 +382,16 @@ describe("AC-21 credits are not deducted when the booking is not completed", () 
     expect(BOOKINGS_SQL).toMatch(/release_one_on_one_booking_hold/);
     expect(BOOKINGS_SQL).toMatch(/reason IN \('redemption', 'holdRelease'\)[\s\S]*?'nothing_to_release'/);
     expect(CRON_SQL).toMatch(/billing_release_stale_booking_holds/);
+  });
+
+  it("lets the member abort when the calendar redirect fails (SUB-BOOK-008)", () => {
+    expect(ABORT_REDIRECT_SQL).toMatch(/abort_my_one_on_one_booking_redirect/);
+    expect(ABORT_REDIRECT_SQL).toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.abort_my_one_on_one_booking_redirect\(UUID\) TO authenticated/,
+    );
+    expect(functionBody(ABORT_REDIRECT_SQL, "abort_my_one_on_one_booking_redirect")).toMatch(
+      /release_one_on_one_booking_hold/,
+    );
   });
 });
 

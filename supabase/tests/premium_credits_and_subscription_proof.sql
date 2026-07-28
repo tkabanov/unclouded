@@ -115,6 +115,17 @@
 -- Expected: releases any still-pending holds; safe to run repeatedly.
 
 -- ===========================================================================
+-- 7b. Calendar redirect failed — member abort (SUB-BOOK-008)
+-- ===========================================================================
+-- As User A (Premium, balance 2):
+--   SELECT public.request_one_on_one_booking();   -- note <booking_redirect>
+-- As User A:
+--   SELECT public.abort_my_one_on_one_booking_redirect('<booking_redirect>'::uuid);
+--   SELECT public.abort_my_one_on_one_booking_redirect('<booking_redirect>'::uuid);
+-- Expected: first {"ok":true,"released":2,...,"balance":2}; second
+-- {"ok":true,"code":"nothing_to_release"} or not_pending — credits returned once.
+
+-- ===========================================================================
 -- 8. Group session — one per calendar month (Pro entitlement)
 -- ===========================================================================
 -- As User A:
