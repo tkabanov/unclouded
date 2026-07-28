@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import BillingIntervalToggle from "@/components/subscription/BillingIntervalToggle";
 import CheckoutConfirmDialog from "@/components/subscription/CheckoutConfirmDialog";
+import CheckoutSuccessBanner from "@/components/subscription/CheckoutSuccessBanner";
 import PaymentIssueBanner from "@/components/subscription/PaymentIssueBanner";
 import PremiumCreditsCard from "@/components/subscription/PremiumCreditsCard";
 import PremiumUpgradeDialog from "@/components/subscription/PremiumUpgradeDialog";
@@ -53,6 +54,34 @@ import { cn } from "@/lib/utils";
 
 const PLAN_TIERS: readonly TierSlug[] = [TIER.FREE, TIER.PRO, TIER.PREMIUM];
 
+const CHECKOUT_SUCCESS_TOAST_MS = 12_000;
+const CHECKOUT_NOTICE_STORAGE_KEY = "unclouded.checkoutSuccessNotice";
+
+function readStoredCheckoutNotice(): string | null {
+  try {
+    return sessionStorage.getItem(CHECKOUT_NOTICE_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function persistCheckoutNotice(message: string | null): void {
+  try {
+    if (message) sessionStorage.setItem(CHECKOUT_NOTICE_STORAGE_KEY, message);
+    else sessionStorage.removeItem(CHECKOUT_NOTICE_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function notifyCheckoutOutcome(message: string, kind: "success" | "pending"): void {
+  if (kind === "success") {
+    toast.success(message, { duration: CHECKOUT_SUCCESS_TOAST_MS });
+  } else {
+    toast.message(message, { duration: CHECKOUT_SUCCESS_TOAST_MS });
+  }
+}
+
 /** Dates shown under the price of the user's current plan card. */
 function currentPlanDetails(record: SubscriptionRecord): { label: string; value: string }[] {
   const details: { label: string; value: string }[] = [];
@@ -82,6 +111,22 @@ export default function SettingsSubscriptionTab() {
   const { overview, record, loading, error, applyOverview, refresh: refreshOverview } =
     useSubscriptionOverview();
   const [interval, setInterval] = useState<BillingInterval>("month");
+  const [checkoutSuccessNotice, setCheckoutSuccessNotice] = useState<string | null>(
+    readStoredCheckoutNotice,
+  );
+
+  const showCheckoutNotice = (message: string, kind: "success" | "pending") => {
+    persistCheckoutNotice(message);
+    setCheckoutSuccessNotice(message);
+    notifyCheckoutOutcome(message, kind);
+  };
+
+  const dismissCheckoutNotice = () => {
+    persistCheckoutNotice(null);
+    setCheckoutSuccessNotice(null);
+  };
+
+  const checkoutNotice = checkoutSuccessNotice ?? readStoredCheckoutNotice();
 
   const isEnterprise = overview?.accountType === "enterprise";
   const activeRecord = record ?? FREE_SUBSCRIPTION_RECORD;
@@ -119,18 +164,18 @@ export default function SettingsSubscriptionTab() {
           const tierMatches =
             expectedTier !== null && next.effectiveTier === expectedTier;
           if (tierMatches) {
-            toast.success(checkoutSuccessMessage(expectedTier));
+            showCheckoutNotice(checkoutSuccessMessage(expectedTier), "success");
           } else if (next.effectiveTier !== TIER.FREE) {
-            toast.success(checkoutSuccessMessage(next.effectiveTier));
+            showCheckoutNotice(checkoutSuccessMessage(next.effectiveTier), "success");
           } else {
-            toast.message(checkoutSuccessPendingMessage());
+            showCheckoutNotice(checkoutSuccessPendingMessage(), "pending");
           }
         })
         .catch((err: unknown) => {
           console.warn("Checkout return reconcile failed", err);
           void refreshOverview();
           void refreshProfile();
-          toast.message(checkoutSuccessPendingMessage());
+          showCheckoutNotice(checkoutSuccessPendingMessage(), "pending");
         });
       return;
     }
@@ -183,7 +228,14 @@ export default function SettingsSubscriptionTab() {
     formatSubscriptionDate(resolveNextRenewalAt(activeRecord)) ?? "your next billing date";
 
   if (loading) {
-    return <div className="text-sm text-muted-foreground">Loading subscription…</div>;
+    return (
+      <div className="flex flex-col gap-6">
+        {checkoutNotice ? (
+          <CheckoutSuccessBanner message={checkoutNotice} onDismiss={dismissCheckoutNotice} />
+        ) : null}
+        <div className="text-sm text-muted-foreground">Loading subscription…</div>
+      </div>
+    );
   }
 
   if (error) {
@@ -192,6 +244,10 @@ export default function SettingsSubscriptionTab() {
 
   return (
     <div className="flex flex-col gap-6">
+      {checkoutNotice ? (
+        <CheckoutSuccessBanner message={checkoutNotice} onDismiss={dismissCheckoutNotice} />
+      ) : null}
+
       <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}>
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
