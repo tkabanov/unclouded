@@ -304,3 +304,53 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | The Free card shows **Current plan** or no button at all. A paid member cancels or schedules a downgrade instead, keeps full access until the date, and can resume before it. The instant-downgrade RPC and the demo billing stubs (`open_billing_portal`, `list_billing_invoices`) are dropped, and `billing_webhook_set_entitlement` is retired so `userSubscription` stays the only writer of entitlement. |
 | **Code** | `supabase/migrations/20260727110000_billing_subscription_rpcs.sql`, `supabase/migrations/20260727140000_paid_feature_server_enforcement.sql`, `frontend/src/lib/subscription/subscriptionActions.ts`, `frontend/src/components/settings/SettingsSubscriptionTab.tsx` |
 
+### OVR-030 — Dashboard: Daily Check-In only (no Quick Check-In)
+
+| | |
+|---|---|
+| **Date** | 2026-07-31 |
+| **Overrides** | Prompt Library Addendum — lightweight "Quick Check-in" dashboard mode (`session_type = quick_checkin`, pulse + one-sentence acknowledgment) |
+| **Authoritative spec** | Owner requirement |
+| **Current behavior** | Dashboard exposes **Daily Check-In** only. Quick Check-In card, client submit API, and chat `quick_checkin` session mode are removed. Existing DB rows may still store historical `quick_checkin` session types. |
+| **Code** | `frontend/src/pages/Dashboard.tsx`, `frontend/src/components/dashboard/DashboardCheckinCard.tsx`, `supabase/functions/chat/index.ts` |
+
+### OVR-031 — No Services floating panel (Your paths)
+
+| | |
+|---|---|
+| **Date** | 2026-07-31 |
+| **Overrides** | Bubble FG - services (`bTJEO`) / DASH-07 `ServicesFloatingPanel` fixed bottom-right enrollment list |
+| **Authoritative spec** | Owner requirement |
+| **Current behavior** | The fixed bottom-right **Your paths** floating panel is removed. Path enrollments remain available via Dashboard current-path card and Paths page. |
+| **Code** | `frontend/src/pages/Dashboard.tsx` (component deleted) |
+
+### OVR-032 — No Dashboard Coaching Insights card
+
+| | |
+|---|---|
+| **Date** | 2026-07-31 |
+| **Overrides** | Dashboard insights feed card (`DashboardInsightsCard` / personalized articles) |
+| **Authoritative spec** | Owner requirement |
+| **Current behavior** | Dashboard does not show the **Coaching Insights** article card. Admin Insights feed tooling may remain for content ops. |
+| **Code** | `frontend/src/pages/Dashboard.tsx` (component deleted) |
+
+### OVR-033 — Settings modules section titled Coaching Insights
+
+| | |
+|---|---|
+| **Date** | 2026-07-31 |
+| **Overrides** | Settings Profile “Know Yourself Deeper” section heading |
+| **Authoritative spec** | Owner requirement |
+| **Current behavior** | Settings → Profile deep-dive modules section is labeled **Coaching Insights** (same module list; title only). |
+| **Code** | `frontend/src/components/settings/SettingsKnowYourselfSection.tsx` |
+
+### OVR-034 — No Paths enrollment floating bar
+
+| | |
+|---|---|
+| **Date** | 2026-07-31 |
+| **Overrides** | Bubble FG - services (`bTItS`) / PATHS-06 `EnrollmentFloatingBar` enrolled-path switcher strip |
+| **Authoritative spec** | Owner requirement |
+| **Current behavior** | Paths → My Paths does not show the horizontal enrolled-path chip strip. Enrollments remain in the Paths grid. |
+| **Code** | `frontend/src/pages/Paths.tsx` (component deleted) |
+

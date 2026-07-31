@@ -112,18 +112,6 @@ describe("buildChatContextBlock — Layer 10 session type flag (REQ-02)", () => 
     expect(block).toContain("Block 3.36");
   });
 
-  it("uses quick_checkin mode line without Block 3.36", () => {
-    const block = buildChatContextBlock(
-      baseProfile({
-        liveContext: { sessionType: "quick_checkin" },
-      }),
-    );
-
-    expect(block).toContain("session_type: quick_checkin");
-    expect(block).toContain("Quick check-in mode");
-    expect(block).not.toContain("Voice Session Adaptation Protocol");
-  });
-
   it("defaults session type to text", () => {
     const block = buildChatContextBlock(baseProfile());
 

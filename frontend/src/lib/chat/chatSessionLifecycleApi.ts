@@ -58,7 +58,7 @@ export async function requestSessionOpening(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
-  sessionType?: "text" | "voice" | "quick_checkin",
+  sessionType?: "text" | "voice",
 ): Promise<string> {
   return callChatEdge({
     lifecycle: "session_open",
@@ -75,7 +75,7 @@ export async function requestSessionClose(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
-  sessionType?: "text" | "voice" | "quick_checkin",
+  sessionType?: "text" | "voice",
 ): Promise<string> {
   const response = await callChatEdge({
     lifecycle: "session_close",
@@ -96,7 +96,7 @@ export async function requestSessionCloseAck(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
-  sessionType?: "text" | "voice" | "quick_checkin",
+  sessionType?: "text" | "voice",
 ): Promise<string> {
   const response = await callChatEdge({
     lifecycle: "session_close_ack",
@@ -140,7 +140,7 @@ export async function finalizeSessionFromThread(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
-  sessionType?: "text" | "voice" | "quick_checkin",
+  sessionType?: "text" | "voice",
 ): Promise<SessionFinalizePayload> {
   if (!conversationId?.trim()) {
     throw new Error("conversationId is required to finalize a session");

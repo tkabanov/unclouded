@@ -66,7 +66,7 @@ describe("SettingsKnowYourselfSection", () => {
       moduleBodyComplete: true,
     });
 
-    expect(screen.getByRole("heading", { name: "Know Yourself Deeper" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Coaching Insights" })).toBeInTheDocument();
     expect(screen.getByText(/2\/6 completed\./)).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(6);
 

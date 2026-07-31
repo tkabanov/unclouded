@@ -4,9 +4,7 @@ import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardMicroCommitments from "@/components/dashboard/DashboardMicroCommitments";
 import DashboardCheckinCard from "@/components/dashboard/DashboardCheckinCard";
 import DashboardProgressWidget from "@/components/dashboard/DashboardProgressWidget";
-import QuickCheckinCard from "@/components/dashboard/QuickCheckinCard";
 import BookCoachCard from "@/components/coach/BookCoachCard";
-import DashboardInsightsCard from "@/components/dashboard/DashboardInsightsCard";
 import DashboardCurrentPathCard from "@/components/dashboard/DashboardCurrentPathCard";
 import DashboardModulePreviewCard from "@/components/dashboard/DashboardModulePreviewCard";
 import DashboardChatPreviewCard from "@/components/dashboard/DashboardChatPreviewCard";
@@ -16,7 +14,6 @@ import DashboardReassessmentProgressCard from "@/components/dashboard/DashboardR
 import DashboardReassessmentButton from "@/components/dashboard/DashboardReassessmentButton";
 import ContinueOnboardingBanner from "@/components/dashboard/ContinueOnboardingBanner";
 import ReassessmentPdfDownloadCard from "@/components/dashboard/ReassessmentPdfDownloadCard";
-import ServicesFloatingPanel from "@/components/dashboard/ServicesFloatingPanel";
 import WebPushRegistrationEffect from "@/components/notifications/WebPushRegistrationEffect";
 import WebPushEnableBannerGate from "@/components/notifications/WebPushEnableBannerGate";
 import { useUserProfile } from "@/lib/userProfile";
@@ -60,10 +57,8 @@ const Dashboard = () => {
             dailyCheckIn: (
               <>
                 <DashboardProgressWidget />
-                <QuickCheckinCard />
                 <BookCoachCard />
                 <DashboardCheckinCard />
-                <DashboardInsightsCard />
               </>
             ),
             modulePreview: !showContinueBanner ? <DashboardModulePreviewCard /> : undefined,
@@ -74,7 +69,6 @@ const Dashboard = () => {
         />
       </DashboardLayout>
       <WebPushRegistrationEffect />
-      <ServicesFloatingPanel />
     </>
   );
 };

@@ -39,24 +39,35 @@ export default function PathsGridPanel({
 
   return (
     <div className={cn("flex w-full flex-col gap-6", className)}>
-      <PathsFilterRow selectedTier={selectedTier} onTierChange={setSelectedTier} />
-
       <div
-        className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-2")}
+        className={cn(
+          bubbleStyle("Group_transparent_"),
+          "flex w-full flex-wrap items-center justify-between gap-3",
+        )}
       >
         <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex items-center")}
+          className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-2")}
         >
-          <span
-            className="h-2 w-2 rounded-full bg-primary"
-            aria-hidden
-          />
+          <div
+            className={cn(bubbleStyle("Group_transparent_"), "flex items-center")}
+          >
+            <span
+              className="h-2 w-2 rounded-full bg-primary"
+              aria-hidden
+            />
+          </div>
+          <h2
+            className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold text-foreground")}
+          >
+            {PATH_PAGE_TAB_LABELS[PATH_PAGE_TAB.MY_PATHS]}
+          </h2>
         </div>
-        <h2
-          className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold text-foreground")}
-        >
-          {PATH_PAGE_TAB_LABELS[PATH_PAGE_TAB.MY_PATHS]}
-        </h2>
+
+        <PathsFilterRow
+          selectedTier={selectedTier}
+          onTierChange={setSelectedTier}
+          className="w-auto"
+        />
       </div>
 
       <div

@@ -79,7 +79,7 @@ type CallChatEdgeParams = {
   context?: string;
   profileData?: ChatAiProfileData;
   conversationId?: string;
-  sessionType?: "text" | "voice" | "quick_checkin";
+  sessionType?: "text" | "voice";
   exchangeCount?: number;
   expectJson?: boolean;
   voiceEmotionDetected?: boolean;
@@ -87,12 +87,6 @@ type CallChatEdgeParams = {
 
 function isCrisisPayload(payload: Record<string, unknown>): payload is { crisis: true; text: string } {
   return payload.crisis === true && typeof payload.text === "string";
-}
-
-function isQuickCheckinPayload(
-  payload: Record<string, unknown>,
-): payload is { quickCheckin: true; text: string } {
-  return payload.quickCheckin === true && typeof payload.text === "string";
 }
 
 function isConversationTitlePayload(
@@ -113,7 +107,7 @@ function isLifecycleTextPayload(
   payload: Record<string, unknown>,
 ): payload is { text: string } {
   if (typeof payload.text !== "string" || !payload.text.trim()) return false;
-  if (payload.crisis === true || payload.quickCheckin === true) return false;
+  if (payload.crisis === true) return false;
   if (isFinalizePayload(payload) || isConversationTitlePayload(payload)) return false;
   return true;
 }
@@ -158,9 +152,6 @@ export async function callChatEdge(
     if (isCrisisPayload(payload)) {
       return payload.text;
     }
-    if (isQuickCheckinPayload(payload)) {
-      return payload.text;
-    }
     if (isLifecycleTextPayload(payload)) {
       return payload.text.trim();
     }
@@ -182,7 +173,7 @@ export async function generateAiReplyStub(
   context?: string,
   profileData?: ChatAiProfileData,
   conversationId?: string,
-  sessionType?: "text" | "voice" | "quick_checkin",
+  sessionType?: "text" | "voice",
   voiceEmotionDetected?: boolean,
 ): Promise<string> {
   const exchangeCount = messages.filter((m) => m.role === "user").length;

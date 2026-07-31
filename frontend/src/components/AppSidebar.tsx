@@ -95,36 +95,45 @@ export function AppSidebar() {
             className={cn("flex w-full flex-col gap-1", collapsed && "items-center")}
             aria-label="Primary"
           >
-            {navItems.map((item) => (
-              <NavLink
-                key={item.slug}
-                to={item.url}
-                end
-                data-style-ref="Link_nav_"
-                title={item.title}
-                className={cn(
-                  bubbleStyle("Link_nav_"),
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-                  collapsed && "w-9 justify-center px-0",
-                )}
-              >
-                <item.icon className="h-4 w-4 shrink-0" aria-hidden />
-                {!collapsed && <span>{item.title}</span>}
-              </NavLink>
-            ))}
-            <NavLink
-              to={VOICE_SESSION_ROUTE}
-              data-style-ref="Link_nav_"
-              title="Voice session"
-              className={cn(
-                bubbleStyle("Link_nav_"),
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-                collapsed && "w-9 justify-center px-0",
-              )}
-            >
-              <Mic className="h-4 w-4 shrink-0" aria-hidden />
-              {!collapsed && <span>Voice session</span>}
-            </NavLink>
+            {navItems.flatMap((item) => {
+              const link = (
+                <NavLink
+                  key={item.slug}
+                  to={item.url}
+                  end
+                  data-style-ref="Link_nav_"
+                  title={item.title}
+                  className={cn(
+                    bubbleStyle("Link_nav_"),
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+                    collapsed && "w-9 justify-center px-0",
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" aria-hidden />
+                  {!collapsed && <span>{item.title}</span>}
+                </NavLink>
+              );
+
+              if (item.slug !== "chat") return [link];
+
+              return [
+                link,
+                <NavLink
+                  key="voice-session"
+                  to={VOICE_SESSION_ROUTE}
+                  data-style-ref="Link_nav_"
+                  title="Voice session"
+                  className={cn(
+                    bubbleStyle("Link_nav_"),
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+                    collapsed && "w-9 justify-center px-0",
+                  )}
+                >
+                  <Mic className="h-4 w-4 shrink-0" aria-hidden />
+                  {!collapsed && <span>Voice session</span>}
+                </NavLink>,
+              ];
+            })}
             {isHrContact ? (
               <NavLink
                 to={EMPLOYER_PORTAL_ROUTE}

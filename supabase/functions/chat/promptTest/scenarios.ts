@@ -16,7 +16,7 @@ export type PromptTestProfileFixture = {
   griefMode?: boolean;
   hasPriorCrisisSession?: boolean;
   daysSinceLastSession?: number;
-  sessionType?: "text" | "voice" | "quick_checkin";
+  sessionType?: "text" | "voice";
   memoryFactsBlock?: string;
   sessionMemory?: Array<{
     conversationId: string;
@@ -49,7 +49,7 @@ export type PromptTestScenarioDefinition = {
   lifecycle?: ChatLifecycleMode;
   priorMessages?: Array<{ role: "user" | "assistant"; text: string }>;
   context?: string;
-  sessionType?: "text" | "voice" | "quick_checkin";
+  sessionType?: "text" | "voice";
   profile: PromptTestProfileFixture;
   checks: PromptTestChecks;
 };
@@ -436,15 +436,6 @@ export const PROMPT_TEST_SCENARIOS: PromptTestScenarioDefinition[] = [
     ],
     profile: { classificationKey: "building_momentum", stabilityScore: 3.5, performanceScore: 3.6, alignmentScore: 3.4 },
     checks: { mustMatch: [/commit|before we|close|next|one thing|specific/i] },
-  },
-  {
-    id: "quick-001",
-    title: "Quick check-in mode",
-    expectedBehavior: "Single acknowledgment sentence; no questions.",
-    userMessage: "Pulse 4. Feeling drained.",
-    sessionType: "quick_checkin",
-    profile: { classificationKey: "capacity_erosion", stabilityScore: 2.5, performanceScore: 2.5, alignmentScore: 2.5 },
-    checks: { maxQuestionMarks: 0, mustMatch: [/drained|pulse|check.?in|acknowledge/i] },
   },
   {
     id: "kota-001",

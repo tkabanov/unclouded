@@ -9,7 +9,7 @@ import {
 
 export { DEFAULT_CONVERSATION_TITLE, isDefaultConversationTitle };
 
-export const CHAT_SESSION_TYPES = ["text", "voice", "quick_checkin"] as const;
+export const CHAT_SESSION_TYPES = ["text", "voice"] as const;
 export type ChatSessionType = (typeof CHAT_SESSION_TYPES)[number];
 
 /** Stored in profiles.onboardingData when chatconversation table is absent. */

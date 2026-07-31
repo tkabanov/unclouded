@@ -8,7 +8,7 @@ import {
 export type CoachingSessionArchiveInsert = {
   userId: string;
   conversationId: string | null;
-  sessionType: "text" | "voice" | "quick_checkin";
+  sessionType: "text" | "voice";
   finalizedAt?: string;
   exchangeCount?: number | null;
   coachingModeUsed?: string | null;
@@ -16,12 +16,6 @@ export type CoachingSessionArchiveInsert = {
   classificationAtSession?: string | null;
   loadSignalsSnapshot?: Record<string, unknown> | null;
   summaryJson: Record<string, unknown>;
-};
-
-export type QuickCheckinArchiveSummary = {
-  pulse: number;
-  userText: string;
-  kotaReply: string;
 };
 
 export function readClassificationKey(profileResults: Record<string, unknown> | null | undefined): string | null {
@@ -65,17 +59,6 @@ export function buildArchiveSummaryFromFinalize(
     effectivenessSignal: finalize.effectivenessSignal,
     unresolvedThread: finalize.unresolvedThread,
     commitmentStatus: memoryRecord.commitmentStatus,
-  };
-}
-
-export function buildQuickCheckinArchiveSummary(
-  summary: QuickCheckinArchiveSummary,
-): Record<string, unknown> {
-  return {
-    kind: "quick_checkin",
-    pulse: summary.pulse,
-    userText: summary.userText,
-    kotaReply: summary.kotaReply,
   };
 }
 
@@ -139,7 +122,7 @@ function isMissingSchemaError(error: { code?: string; message?: string }): boole
 export function buildArchiveInsertFromFinalize(params: {
   userId: string;
   conversationId: string;
-  sessionType: "text" | "voice" | "quick_checkin";
+  sessionType: "text" | "voice";
   finalize: SessionFinalizePayload;
   coachingModeUsed: string;
   exchangeCount?: number | null;

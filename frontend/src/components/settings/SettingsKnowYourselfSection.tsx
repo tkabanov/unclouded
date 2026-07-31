@@ -54,7 +54,7 @@ export default function SettingsKnowYourselfSection({ profile }: SettingsKnowYou
     <section className={cn(bubbleStyle("Group_card_"), "space-y-4 p-6")}>
       <div className="space-y-3">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-foreground">Know Yourself Deeper</h2>
+          <h2 className="text-lg font-semibold text-foreground">Coaching Insights</h2>
           <p className="text-sm text-muted-foreground">
             Optional deep-dives that help Gidget understand the layers beneath your scores.{" "}
             {completedCount}/6 completed.

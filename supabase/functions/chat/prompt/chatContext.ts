@@ -310,10 +310,6 @@ function buildSessionTypeFlag(liveContext: ChatLiveContext): string[] {
         'Voice emotion signal detected in the user\'s latest utterance. Acknowledge it explicitly per Block 3.36: "I can hear something in how you said that."',
       );
     }
-  } else if (sessionType === "quick_checkin") {
-    lines.push(
-      "Quick check-in mode: single-sentence acknowledgment only — no questions, no agenda, no coaching.",
-    );
   }
   return lines;
 }

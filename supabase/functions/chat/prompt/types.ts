@@ -116,7 +116,7 @@ export interface ChatLiveContext {
   activePathProgress?: ChatActivePathProgress | null;
   latestReassessment?: ChatReassessmentContext | null;
   /** Layer 10 addendum — session delivery medium. */
-  sessionType?: "text" | "voice" | "quick_checkin" | null;
+  sessionType?: "text" | "voice" | null;
   /** Block 3.36 — latest voice utterance carried elevated vocal emotion signal. */
   voiceEmotionDetected?: boolean | null;
   /** Layer 10 addendum — days since last completed session. */

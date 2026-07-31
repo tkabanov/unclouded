@@ -32,10 +32,7 @@ import { parseChatRequestBody } from "./parseChatRequestBody.ts";
 import { persistSessionMemory } from "./persistSessionMemory.ts";
 import {
   buildArchiveInsertFromFinalize,
-  buildQuickCheckinArchiveSummary,
   persistCoachingSessionArchive,
-  readClassificationKey,
-  readLoadSignalsSnapshot,
 } from "./sessionMemory/coachingSessionArchive.ts";
 import { extractMemoryFacts } from "./extractMemoryFacts.ts";
 import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
@@ -61,10 +58,6 @@ import { persistSignificantLifeEventFlag } from "./persistSignificantLifeEventFl
 import { scheduleEdgeBackgroundWork } from "../_shared/edgeBackground.ts";
 import { resolvePromptLibraryLayers } from "./prompt/loadPromptLibraryVersion.ts";
 import type { PromptLibraryLayerMap } from "./prompt/promptLibraryStaticLayers.ts";
-import {
-  enforceQuickCheckinResponse,
-  quickCheckinResponseViolatesRules,
-} from "./quickCheckinResponse.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -480,47 +473,6 @@ Deno.serve(async (req: Request) => {
         .eq("id", user.id);
 
       return jsonResponse(200, parsed);
-    }
-
-    if (requestSessionType === "quick_checkin") {
-      const generated = await generateText({
-        model,
-        system,
-        messages: await convertToModelMessages(uiMessages),
-      });
-      const reply = enforceQuickCheckinResponse(generated.text);
-      if (quickCheckinResponseViolatesRules(generated.text)) {
-        console.info("quick_checkin response normalized", {
-          originalLength: generated.text.length,
-          normalizedLength: reply.length,
-        });
-      }
-
-      const latestUserText = extractAllUserTexts(uiMessages).at(-1) ?? "";
-      const pulseMatch = latestUserText.match(/Pulse:\s*(\d+)\/10/i);
-      const pulse = pulseMatch ? Number(pulseMatch[1]) : null;
-      const userText = latestUserText.replace(/^Pulse:\s*\d+\/10\.?\s*/i, "").trim();
-
-      if (conversationId) {
-        const coachingModeUsed = resolveCoachingModes(profileData).primary;
-        await persistCoachingSessionArchive(supabase, {
-          userId: user.id,
-          conversationId,
-          sessionType: "quick_checkin",
-          exchangeCount: 1,
-          coachingModeUsed,
-          hadCrisisEscalation: false,
-          classificationAtSession: readClassificationKey(profileData.results ?? null),
-          loadSignalsSnapshot: readLoadSignalsSnapshot(profileData.onboardingData ?? null),
-          summaryJson: buildQuickCheckinArchiveSummary({
-            pulse: pulse ?? 0,
-            userText,
-            kotaReply: reply,
-          }),
-        });
-      }
-
-      return jsonResponse(200, { quickCheckin: true, text: reply });
     }
 
     const result = streamText({

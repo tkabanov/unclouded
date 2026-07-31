@@ -7,7 +7,6 @@ import PathsResourcesPanel from "@/components/paths/PathsResourcesPanel";
 import PathsLibraryCatalogPanel from "@/components/paths/PathsLibraryCatalogPanel";
 import ResourceDetailPopup from "@/components/paths/ResourceDetailPopup";
 import PathDetailPopup from "@/components/paths/PathDetailPopup";
-import EnrollmentFloatingBar from "@/components/paths/EnrollmentFloatingBar";
 import SessionCompletionRoute from "@/components/paths/SessionCompletionRoute";
 import { useSessionCompletionVisible } from "@/hooks/useSessionCompletionVisible";
 import type { ResourceListItem } from "@/lib/paths/pathsResourcesApi";
@@ -72,8 +71,6 @@ function PathsPageBody() {
 
             <div className="flex w-full flex-col gap-4">
               <PathsTabBar activeTab={activeTab} onSelectTab={setActiveTab} />
-
-              {isMyPathsActive && <EnrollmentFloatingBar />}
 
               <div
                 id="paths-guided-panel"
