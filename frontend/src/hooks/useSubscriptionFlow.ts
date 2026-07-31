@@ -24,6 +24,10 @@ import {
 } from "@/lib/subscription/subscriptionCopy";
 import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
 import {
+  clearPaymentRecoveryPending,
+  markPaymentRecoveryPending,
+} from "@/lib/subscription/paymentRecoveryNotice";
+import {
   resolveAccessEndsAt,
   resolveEffectiveTier,
   type BillingInterval,
@@ -271,13 +275,21 @@ export function useSubscriptionFlow({
     () =>
       void withPending("updatePaymentMethod", async () => {
         try {
+          if (record?.status === "pastDue") {
+            markPaymentRecoveryPending();
+          } else {
+            clearPaymentRecoveryPending();
+          }
           const url = await openBillingPortal();
-          window.open(url, "_blank", "noopener,noreferrer");
+          // Same-tab redirect so Stripe return_url lands back on Subscription
+          // (billing=portal) and recovery confirmation can run.
+          window.location.assign(url);
         } catch (err) {
+          clearPaymentRecoveryPending();
           toast.error(err instanceof Error ? err.message : SUBSCRIPTION_ERROR_MESSAGES.portal);
         }
       }),
-    [withPending],
+    [withPending, record?.status],
   );
 
   const confirmDialog = useCallback(() => {

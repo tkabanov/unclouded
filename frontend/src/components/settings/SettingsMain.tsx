@@ -35,12 +35,13 @@ export default function SettingsMain() {
         : undefined;
   const { activeTab, setActiveTab, isTabActive } = useSettingsTabStore(resolvedInitialTab);
 
-  // Stripe return URLs must land on Subscription so checkout toasts/reconcile run
+  // Stripe return URLs must land on Subscription so checkout/portal toasts/reconcile run
   // (that tab is unmounted while Profile is active).
   useEffect(() => {
     if (isAdmin) return;
     const checkout = searchParams.get("checkout");
-    if (!checkout) return;
+    const billingPortal = searchParams.get("billing") === "portal";
+    if (!checkout && !billingPortal) return;
     if (!tabs.includes(SETTINGS_TAB.SUBSCRIPTION)) return;
     if (tabParam === SETTINGS_TAB.SUBSCRIPTION) {
       if (activeTab !== SETTINGS_TAB.SUBSCRIPTION) {
@@ -73,7 +74,7 @@ export default function SettingsMain() {
     }
     if (!tabParam && !isAdmin) {
       if (
-        searchParams.get("checkout") &&
+        (searchParams.get("checkout") || searchParams.get("billing") === "portal") &&
         tabs.includes(SETTINGS_TAB.SUBSCRIPTION)
       ) {
         return;
@@ -85,7 +86,7 @@ export default function SettingsMain() {
   useEffect(() => {
     if (tabParam && (!isSettingsTabSlug(tabParam) || !tabs.includes(tabParam))) {
       if (
-        searchParams.get("checkout") &&
+        (searchParams.get("checkout") || searchParams.get("billing") === "portal") &&
         tabs.includes(SETTINGS_TAB.SUBSCRIPTION)
       ) {
         return;

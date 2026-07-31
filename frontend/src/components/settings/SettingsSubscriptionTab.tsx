@@ -26,6 +26,7 @@ import {
   checkoutSuccessPendingMessage,
   keepPremiumDialogCopy,
   planDisplayName,
+  PAYMENT_RECOVERED_MESSAGE,
   resumeDialogCopy,
   scheduledCancelStatusLabel,
   subscriptionSummaryForRecord,
@@ -34,6 +35,11 @@ import {
   reconcileCheckoutReturn,
   syncBillingFromStripe,
 } from "@/lib/subscription/subscriptionApi";
+import {
+  clearPaymentRecoveryPending,
+  isPaymentRecoveryPending,
+  isRecoveredSubscriptionStatus,
+} from "@/lib/subscription/paymentRecoveryNotice";
 import {
   BILLING_INTERVAL_SUFFIX,
   findPlanPrice,
@@ -127,6 +133,17 @@ export default function SettingsSubscriptionTab() {
 
   /** Auto Stripe sync runs at most once per mount (avoids loops when sync cannot clear stale flags). */
   const billingAutoSyncAttemptedRef = useRef(false);
+  /** Tracks pastDue within this mount so in-session recovery can show confirmation copy. */
+  const wasPastDueRef = useRef(false);
+  const paymentRecoveryNoticeShownRef = useRef(false);
+  const paymentRecoverySyncAttemptedRef = useRef(false);
+
+  const notifyPaymentRecovered = () => {
+    if (paymentRecoveryNoticeShownRef.current) return;
+    paymentRecoveryNoticeShownRef.current = true;
+    clearPaymentRecoveryPending();
+    showCheckoutNotice(PAYMENT_RECOVERED_MESSAGE, "success");
+  };
 
   useEffect(() => {
     if (
@@ -134,6 +151,17 @@ export default function SettingsSubscriptionTab() {
       activeRecord.status === "scheduledToDowngrade"
     ) {
       dismissCheckoutNotice();
+    }
+  }, [activeRecord.status]);
+
+  useEffect(() => {
+    if (activeRecord.status === "pastDue") {
+      wasPastDueRef.current = true;
+      return;
+    }
+    if (wasPastDueRef.current && isRecoveredSubscriptionStatus(activeRecord.status)) {
+      wasPastDueRef.current = false;
+      notifyPaymentRecovered();
     }
   }, [activeRecord.status]);
 
@@ -193,6 +221,69 @@ export default function SettingsSubscriptionTab() {
       toast.message("Checkout was cancelled.");
     }
   }, [searchParams, setSearchParams, applyOverview, refreshOverview, refreshProfile]);
+
+  useEffect(() => {
+    if (searchParams.get("billing") !== "portal") return;
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("billing");
+    setSearchParams(nextParams, { replace: true });
+
+    paymentRecoverySyncAttemptedRef.current = true;
+    const expectRecovery = isPaymentRecoveryPending();
+    let cancelled = false;
+    void syncBillingFromStripe()
+      .then((next) => {
+        if (cancelled) return;
+        applyOverview(next);
+        void refreshProfile({ silent: true });
+        if (expectRecovery && isRecoveredSubscriptionStatus(next.subscription?.status)) {
+          notifyPaymentRecovered();
+        } else if (expectRecovery) {
+          clearPaymentRecoveryPending();
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        console.warn("Billing portal return sync failed", err);
+        void refreshOverview();
+        void refreshProfile({ silent: true });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, setSearchParams, applyOverview, refreshOverview, refreshProfile]);
+
+  /** Fallback when portal return_url lacks billing=portal (or overview refreshed in-session). */
+  useEffect(() => {
+    if (loading || !overview || isEnterprise) return;
+    if (searchParams.get("billing") === "portal") return;
+    if (!isPaymentRecoveryPending() || paymentRecoverySyncAttemptedRef.current) return;
+
+    paymentRecoverySyncAttemptedRef.current = true;
+    let cancelled = false;
+    void syncBillingFromStripe()
+      .then((next) => {
+        if (cancelled) return;
+        applyOverview(next);
+        void refreshProfile({ silent: true });
+        if (isRecoveredSubscriptionStatus(next.subscription?.status)) {
+          notifyPaymentRecovered();
+        } else {
+          clearPaymentRecoveryPending();
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        console.warn("Payment recovery sync failed", err);
+        paymentRecoverySyncAttemptedRef.current = false;
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, overview, isEnterprise, searchParams, applyOverview, refreshProfile]);
 
   useEffect(() => {
     if (loading || !overview || isEnterprise || billingAutoSyncAttemptedRef.current) return;
