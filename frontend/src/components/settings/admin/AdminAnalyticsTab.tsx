@@ -3,11 +3,17 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   ADMIN_ANALYTICS_NOTICE_COPY,
+  ADMIN_STAT_ACTIVE_USERS_LABEL,
   ADMIN_STAT_AVG_MODULES_LABEL,
   ADMIN_STAT_CHECKINS_LABEL,
+  ADMIN_STAT_CLASSIFICATION_HEADING,
   ADMIN_STAT_ENROLLED_LABEL,
   ADMIN_STAT_MODE_DIST_LABEL,
   ADMIN_STAT_MODULE_COMPLETIONS_HEADING,
+  ADMIN_STAT_PATH_COMPLETED_LABEL,
+  ADMIN_STAT_PREMIUM_USERS_LABEL,
+  ADMIN_STAT_PRO_USERS_LABEL,
+  ADMIN_STAT_SESSION_FREQ_LABEL,
   ADMIN_STAT_TOTAL_USERS_LABEL,
   ADMIN_STAT_USERS_WITH_MODULES_LABEL,
   fetchAdminAnalytics,
@@ -37,9 +43,16 @@ import { cn } from "@/lib/utils";
 
 const EMPTY_STATS: AdminAnalyticsSnapshot = {
   totalUsers: 0,
+  activeUsers: 0,
   checkinsLast7Days: 0,
   mostActiveMode: "N/A",
   pathEnrollments: 0,
+  pathEnrollmentsCompleted: 0,
+  pathEnrollmentsActive: 0,
+  proUsers: 0,
+  premiumUsers: 0,
+  sessionFrequencyLast7Days: 0,
+  classificationDistribution: [],
   usersWithOneOrMoreModules: 0,
   averageModulesCompleted: 0,
   moduleCompletionCounts: {
@@ -122,6 +135,22 @@ export default function AdminAnalyticsTab() {
           value={String(stats.totalUsers)}
         />
         <StatCard
+          label={ADMIN_STAT_ACTIVE_USERS_LABEL}
+          value={String(stats.activeUsers)}
+        />
+        <StatCard
+          label={ADMIN_STAT_SESSION_FREQ_LABEL}
+          value={String(stats.sessionFrequencyLast7Days)}
+        />
+        <StatCard
+          label={ADMIN_STAT_PRO_USERS_LABEL}
+          value={String(stats.proUsers)}
+        />
+        <StatCard
+          label={ADMIN_STAT_PREMIUM_USERS_LABEL}
+          value={String(stats.premiumUsers)}
+        />
+        <StatCard
           label={ADMIN_STAT_CHECKINS_LABEL}
           value={String(stats.checkinsLast7Days)}
         />
@@ -134,6 +163,10 @@ export default function AdminAnalyticsTab() {
           value={String(stats.pathEnrollments)}
         />
         <StatCard
+          label={ADMIN_STAT_PATH_COMPLETED_LABEL}
+          value={`${stats.pathEnrollmentsCompleted} / ${stats.pathEnrollmentsActive} active`}
+        />
+        <StatCard
           label={ADMIN_STAT_USERS_WITH_MODULES_LABEL}
           value={String(stats.usersWithOneOrMoreModules)}
         />
@@ -141,6 +174,25 @@ export default function AdminAnalyticsTab() {
           label={ADMIN_STAT_AVG_MODULES_LABEL}
           value={String(stats.averageModulesCompleted)}
         />
+      </div>
+
+      <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
+        <h3 className={bubbleStyle("Text_heading_3_")}>{ADMIN_STAT_CLASSIFICATION_HEADING}</h3>
+        <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+          Aggregated classification counts across all users (no individual PII).
+        </p>
+        {stats.classificationDistribution.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No classification data yet.</p>
+        ) : (
+          <ul className="divide-y divide-border text-sm">
+            {stats.classificationDistribution.map((row) => (
+              <li key={row.label} className="flex items-center justify-between py-2">
+                <span>{row.label}</span>
+                <span className="font-semibold tabular-nums">{row.count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>

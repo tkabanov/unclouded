@@ -59,13 +59,28 @@ export async function syncStripeSubscriptionForUser(
   if (described?.isFoundingRate) {
     const startedAt =
       isoFromUnixSeconds(subscription.start_date) ?? new Date().toISOString();
-    const { error: foundingError } = await service.rpc("billing_start_founding_member", {
-      p_user_id: userId,
-      p_started_at: startedAt,
-    });
-    if (foundingError) throw new Error(`billing_start_founding_member: ${foundingError.message}`);
-    console.log(
-      `stripe-sync: founding member ${userId} discount ends ${foundingDiscountEndsAt(startedAt)}`,
+    const { data: foundingResult, error: foundingError } = await service.rpc(
+      "billing_start_founding_member",
+      {
+        p_user_id: userId,
+        p_started_at: startedAt,
+      },
     );
+    if (foundingError) throw new Error(`billing_start_founding_member: ${foundingError.message}`);
+    const foundingStatus =
+      foundingResult && typeof foundingResult === "object" && "status" in foundingResult
+        ? String((foundingResult as { status?: unknown }).status ?? "")
+        : "";
+    if (foundingStatus === "forfeited") {
+      console.warn(
+        `stripe-sync: founding rate on Stripe for ${userId} but discount was forfeited — not re-enrolling`,
+      );
+    } else if (foundingStatus === "campaign_full") {
+      console.warn(`stripe-sync: founding campaign full while syncing ${userId}`);
+    } else {
+      console.log(
+        `stripe-sync: founding member ${userId} discount ends ${foundingDiscountEndsAt(startedAt)}`,
+      );
+    }
   }
 }

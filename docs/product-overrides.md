@@ -270,8 +270,8 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Date** | 2026-07-27 |
 | **Overrides** | Phase 2 §1 and US-203 — "first **200** users, $19/month **locked for life**" |
 | **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session) |
-| **Current behavior** | The campaign has **100 seats**, enforced in SQL by `claim_founding_member_slot` under an advisory lock so it cannot be oversold. The $19 Pro rate runs for **12 months**; the daily lifecycle cron then moves the Stripe subscription onto the standard $29 Pro price and releases the seat. The member is told the conversion date on the subscription screen. Upgrading to Premium **permanently forfeits** the discount, and the confirmation dialog says so. |
-| **Code** | `supabase/migrations/20260727100000_individual_subscription_lifecycle.sql`, `supabase/migrations/20260727110000_billing_subscription_rpcs.sql`, `supabase/functions/subscription-lifecycle/index.ts`, `supabase/functions/_shared/foundingMember.ts`, `frontend/src/lib/subscription/subscriptionCopy.ts` |
+| **Current behavior** | The campaign has **100 seats**, enforced in SQL by `claim_founding_member_slot` under an advisory lock so it cannot be oversold. The $19 Pro rate runs for **12 months**; the daily lifecycle cron then moves the Stripe subscription onto the standard $29 Pro price and releases the seat. The member is told the conversion date on the subscription screen. Upgrading to Premium **permanently forfeits** the discount, and the confirmation dialog says so. Canceling and letting the period expire also **permanently forfeits** the discount (`billing_expire_subscription` → `billing_forfeit_founding_discount`); resume before expiry keeps $19. After forfeit, Free→Pro checkout is standard $29 even if `signupPlan` was founding. |
+| **Code** | `supabase/migrations/20260727100000_individual_subscription_lifecycle.sql`, `supabase/migrations/20260727110000_billing_subscription_rpcs.sql`, `supabase/migrations/20260804130000_billing_expire_forfeit_founding.sql`, `supabase/functions/subscription-lifecycle/index.ts`, `supabase/functions/_shared/foundingMember.ts`, `frontend/src/lib/subscription/subscriptionCopy.ts` |
 
 ### OVR-027 — Premium 1:1 sessions run on monthly credits, not "included"
 
@@ -373,4 +373,14 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Authoritative spec** | OVR-032 — Dashboard Coaching Insights card removed; owner confirmed follow OVR-032 for subscription marketing copy |
 | **Current behavior** | Pro plan cards (Settings subscription screen, landing pricing, locked-feature upsells) do **not** promise a user-facing daily insights feed. Admin Insights feed tooling remains for content ops only. |
 | **Code** | `frontend/src/lib/subscription/planCatalog.ts`, `frontend/src/pages/Index.tsx`, `frontend/src/lib/subscription/lockedFeatureUpsell.ts` |
+
+### OVR-037 — Path library authority: `docs/new_paths_content/` batch files
+
+| | |
+|---|---|
+| **Date** | 2026-08-04 |
+| **Overrides** | `docs/new_paths_content/Uncloud360_Canonical_Path_Library.md` status table (Phase 2 marked «TO WRITE») and its Phase 2 numbering when it conflicts with authored batch files |
+| **Authoritative spec** | Batch markdown under `docs/new_paths_content/` (Batches 1–10 + Success Plan Paths) |
+| **Current behavior** | Runtime catalog is seeded from those batches via `scripts/seed_paths_from_docs.py` → `supabase/migrations/20260804160000_seed_paths_library_from_new_docs.sql`. Authored library paths are **4–54** (plus existing Paths **1–3** and **The Unsent Letter**). Path **55** / «Clarity & Priority Reset» has no authored content and is not seeded. Success Plans are free-tier catalog paths (`path_type:success_plan`); employer assign UI is out of scope. Classification UI recommendations use written path names only. |
+| **Code** | `scripts/seed_paths_from_docs.py`, `supabase/migrations/20260804160000_seed_paths_library_from_new_docs.sql`, `frontend/src/lib/classification.ts` |
 

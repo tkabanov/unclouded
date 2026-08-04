@@ -75,7 +75,7 @@ describe("renderPupPdf", () => {
           },
         ],
         pathHistory: [
-          { pathName: "Stress Regulation", status: "completed", completedSessionsCount: 8 },
+          { pathName: "Stress Regulation Foundations", status: "completed", completedSessionsCount: 8 },
         ],
       }),
     );

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useUserProfile } from "@/lib/userProfile";
 import { resolveHealthModeFlags } from "@/lib/userProfile/healthModeFlags";
-import { resolvePathsUserTier } from "@/lib/paths/resolvePathsUserTier";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { fetchPathCatalog, type PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import { pathVisibleInLibrary } from "@/lib/paths/pathEnrollmentMatching";
 import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
@@ -33,7 +33,7 @@ export default function PathsLibraryCatalogPanel({
   const [paths, setPaths] = useState<PathCatalogEntry[]>([]);
   const [selectedTier, setSelectedTier] = useState<PathsTierFilter>(PATHS_TIER_FILTER_ALL);
 
-  const userTier = resolvePathsUserTier(profile);
+  const userTier = useEffectiveTier().tier;
   const healthFlags = useMemo(
     () =>
       resolveHealthModeFlags({

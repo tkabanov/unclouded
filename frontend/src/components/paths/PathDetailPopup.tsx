@@ -25,7 +25,7 @@ import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
 import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
 import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
-import { resolvePathsUserTier } from "@/lib/paths/resolvePathsUserTier";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { useUserProfile } from "@/lib/userProfile";
 import {
   PATHS_PATH_DETAIL_DISCLAIMER_TEXT,
@@ -105,7 +105,7 @@ export default function PathDetailPopup({
   const pillarLabel = matchedEnrollment?.pillarLabel ?? catalogPath?.pillar ?? "";
   const subMode = matchedEnrollment?.subMode ?? catalogPath?.subMode;
   const progressPercent = matchedEnrollment?.progressPercent ?? 0;
-  const userTier = resolvePathsUserTier(profile);
+  const userTier = useEffectiveTier().tier;
   const moduleGate = useMemo(
     () =>
       resolvePathModuleGate(

@@ -114,6 +114,7 @@ Deno.serve(async (req) => {
       isFoundingEligible({
         signupPlan: profile.signupPlan,
         isFoundingMember: subscription?.isFoundingMember ?? false,
+        foundingDiscountForfeitedAt: subscription?.foundingDiscountForfeitedAt ?? null,
       });
 
     const price = selectPlanPrice(prices, tier, interval, wantsFoundingRate);

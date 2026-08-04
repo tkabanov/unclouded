@@ -5,7 +5,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
-import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
+import { loadEffectiveTierForUser } from "@/lib/subscription/subscriptionApi";
 import { fetchPathCatalogEntry, fetchPathSessionsByKey } from "@/lib/paths/pathsCatalogApi";
 import { createPathEnrollmentRow } from "@/lib/paths/pathsOnboardingEnrollmentApi";
 import type { ModuleProfileInput } from "@/lib/modules/readModuleProfile";
@@ -73,20 +73,7 @@ function userTierAllowsPath(userTier: TierSlug, pathTier: TierSlug): boolean {
 }
 
 async function loadProfileTier(userId: string): Promise<TierSlug> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("subscribed, tier, accountType, enterpriseTier")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (error) throw error;
-
-  return resolveCurrentTier(
-    data?.subscribed ?? false,
-    data?.tier ?? null,
-    data?.accountType ?? null,
-    data?.enterpriseTier ?? null,
-  );
+  return loadEffectiveTierForUser(userId);
 }
 
 function resolvePathSlug(pathSlug?: string): string | undefined {

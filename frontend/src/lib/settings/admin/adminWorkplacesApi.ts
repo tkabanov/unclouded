@@ -145,8 +145,19 @@ async function tryFetchWorkplacesFromTable(): Promise<AdminWorkplaceRecord[] | n
 export async function fetchAdminWorkplaces(userId: string): Promise<AdminWorkplacesLoadResult> {
   const fromTable = await tryFetchWorkplacesFromTable();
   if (fromTable !== null) {
+    const withSeats = await Promise.all(
+      fromTable.map(async (workplace) => {
+        if (!workplace.metricsReady) return workplace;
+        try {
+          const activeSeats = await fetchAdminWorkplaceActiveSeats(workplace.workplaceId);
+          return { ...workplace, activeSeats };
+        } catch {
+          return workplace;
+        }
+      }),
+    );
     return {
-      workplaces: fromTable,
+      workplaces: withSeats,
       dataSource: "table",
     };
   }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { Button } from "@/components/ui/button";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
-import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import {
   reassessmentCtaButtonLabel,
   resolveReassessmentCtaState,
@@ -14,12 +14,7 @@ import { cn } from "@/lib/utils";
 export default function DashboardReassessmentButton() {
   const navigate = useNavigate();
   const { profile } = useUserProfile();
-  const tier = resolveCurrentTier(
-    !!profile?.subscribed,
-    profile?.tier,
-    profile?.accountType,
-    profile?.enterpriseTier,
-  );
+  const { tier } = useEffectiveTier();
   const dateCtx = {
     tier,
     lastAssessmentDate: profile?.lastAssessmentDate ?? null,

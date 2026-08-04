@@ -119,6 +119,7 @@ export type SubscriptionRow = {
   stripePriceId: string | null;
   isFoundingMember: boolean;
   foundingDiscountEndsAt: string | null;
+  foundingDiscountForfeitedAt: string | null;
   gracePeriodEndsAt: string | null;
 };
 
@@ -126,7 +127,7 @@ const SUBSCRIPTION_COLUMNS =
   'userId, planTier, status, billingInterval, currentPeriodStart, currentPeriodEnd, ' +
   'cancelAtPeriodEnd, scheduledDowngradeTier, scheduledDowngradeEffectiveAt, ' +
   'stripeCustomerId, stripeSubscriptionId, stripePriceId, isFoundingMember, ' +
-  'foundingDiscountEndsAt, gracePeriodEndsAt';
+  'foundingDiscountEndsAt, foundingDiscountForfeitedAt, gracePeriodEndsAt';
 
 export async function loadSubscriptionRow(
   client: SupabaseClient,

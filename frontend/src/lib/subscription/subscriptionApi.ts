@@ -10,9 +10,8 @@ import { getEdgeFunctionErrorMessage } from "@/lib/supabase/edgeFunctionErrors";
 import { callRpc } from "@/lib/supabase/rpc";
 import {
   loadSubscriptionEntitlement,
-  resolveCurrentTier,
 } from "@/lib/settings/subscriptionEntitlementApi";
-import { TIER } from "@/lib/enums/tier";
+import { TIER, type TierSlug } from "@/lib/enums/tier";
 import {
   CREDITS_PER_ONE_ON_ONE_SESSION,
   FREE_SUBSCRIPTION_RECORD,
@@ -171,12 +170,11 @@ async function loadSubscriptionOverviewFromProfile(): Promise<SubscriptionOvervi
   if (!user) throw new Error("Couldn't load your subscription details.");
 
   const entitlement = await loadSubscriptionEntitlement(user.id);
-  const effectiveTier = resolveCurrentTier(entitlement);
 
   return {
     accountType: entitlement.accountType ?? "individual",
     enterpriseTier: normalizeTier(entitlement.enterpriseTier),
-    effectiveTier,
+    effectiveTier: entitlement.tier,
     subscription: null,
     credits: {
       balance: 0,
@@ -185,6 +183,17 @@ async function loadSubscriptionOverviewFromProfile(): Promise<SubscriptionOvervi
     prices: [],
     foundingSlotsRemaining: 0,
   };
+}
+
+/** Server-aligned tier for mutations — prefers `my_effective_tier` RPC. */
+export async function loadEffectiveTierForUser(userId: string): Promise<TierSlug> {
+  const { data, error } = await callRpc("my_effective_tier");
+  if (!error && typeof data === "string") {
+    return normalizeTier(data) ?? TIER.FREE;
+  }
+
+  const entitlement = await loadSubscriptionEntitlement(userId);
+  return entitlement.tier;
 }
 
 export async function loadSubscriptionOverview(): Promise<SubscriptionOverview> {

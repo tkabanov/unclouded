@@ -39,6 +39,7 @@ type PathRow = {
   subMode?: string;
   sessionsCount?: number | string | null;
   triggerSignals?: string | null;
+  isActive?: boolean | null;
 };
 
 type PathsessionRow = {
@@ -102,11 +103,15 @@ function isUuid(value: string): boolean {
   return UUID_RE.test(value);
 }
 
+function isPathActiveRow(row: PathRow): boolean {
+  return row.isActive !== false;
+}
+
 async function fetchPathRowById(pathId: string): Promise<PathCatalogEntry | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("path")
-    .select("id, name, description, tier, pillar, subMode, sessionsCount, triggerSignals")
+    .select("id, name, description, tier, pillar, subMode, sessionsCount, triggerSignals, isActive")
     .eq("id", pathId)
     .maybeSingle();
 
@@ -116,6 +121,7 @@ async function fetchPathRowById(pathId: string): Promise<PathCatalogEntry | null
   }
 
   if (!data || typeof data !== "object") return null;
+  // By-id lookup keeps working for existing enrollments even when disabled.
   return mapPathRow(data as PathRow);
 }
 
@@ -123,7 +129,7 @@ async function fetchPathRowBySlug(slug: string): Promise<PathCatalogEntry | null
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("path")
-    .select("id, name, description, tier, pillar, subMode, sessionsCount, triggerSignals");
+    .select("id, name, description, tier, pillar, subMode, sessionsCount, triggerSignals, isActive");
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -135,7 +141,9 @@ async function fetchPathRowBySlug(slug: string): Promise<PathCatalogEntry | null
   const normalizedSlug = slugifyPathName(slug);
   const normalizedName = slug.trim().toLowerCase();
   for (const row of data) {
-    const mapped = mapPathRow(row as PathRow);
+    const typed = row as PathRow;
+    if (!isPathActiveRow(typed)) continue;
+    const mapped = mapPathRow(typed);
     if (!mapped) continue;
     if (mapped.slug === normalizedSlug) return mapped;
     if (mapped.name.toLowerCase() === normalizedName) return mapped;
@@ -144,12 +152,12 @@ async function fetchPathRowBySlug(slug: string): Promise<PathCatalogEntry | null
   return null;
 }
 
-/** All guided paths for library browse (sorted by name). */
+/** All guided paths for library browse (sorted by name). Inactive paths are hidden. */
 export async function fetchPathCatalog(): Promise<PathCatalogEntry[]> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("path")
-    .select("id, name, description, tier, pillar, subMode, sessionsCount, triggerSignals")
+    .select("id, name, description, tier, pillar, subMode, sessionsCount, triggerSignals, isActive")
     .order("name", { ascending: true });
 
   if (error) {
@@ -160,8 +168,17 @@ export async function fetchPathCatalog(): Promise<PathCatalogEntry[]> {
   if (!Array.isArray(data)) return [];
 
   return data
-    .map((row) => mapPathRow(row as PathRow))
+    .map((row) => {
+      const typed = row as PathRow;
+      if (!isPathActiveRow(typed)) return null;
+      return mapPathRow(typed);
+    })
     .filter((item): item is PathCatalogEntry => item !== null);
+}
+
+/** Whether a path row should appear in consumer catalog/enrollment (defaults active). */
+export function isConsumerPathActive(isActive: boolean | null | undefined): boolean {
+  return isActive !== false;
 }
 
 export async function fetchPathCatalogEntry(

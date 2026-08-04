@@ -15,9 +15,16 @@ import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
 
 export interface AdminAnalyticsSnapshot {
   totalUsers: number;
+  activeUsers: number;
   checkinsLast7Days: number;
   mostActiveMode: string;
   pathEnrollments: number;
+  pathEnrollmentsCompleted: number;
+  pathEnrollmentsActive: number;
+  proUsers: number;
+  premiumUsers: number;
+  sessionFrequencyLast7Days: number;
+  classificationDistribution: Array<{ label: string; count: number }>;
   usersWithOneOrMoreModules: number;
   averageModulesCompleted: number;
   moduleCompletionCounts: Record<ModuleSlug, number>;
@@ -25,7 +32,7 @@ export interface AdminAnalyticsSnapshot {
 
 /** Whitelisted profile columns for admin module analytics (no History answer fields). */
 export const ADMIN_MODULE_ANALYTICS_SELECT_COLUMNS =
-  "onboardingData, modulesCompletedCount, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete" as const;
+  "onboardingData, modulesCompletedCount, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete, isActive, tier, subscribed, accountType, enterpriseTier, results" as const;
 
 /** History answer fields that must never appear in admin analytics SELECT. */
 export const ADMIN_SENSITIVE_HISTORY_FIELDS = [
@@ -40,16 +47,25 @@ export const ADMIN_ANALYTICS_NOTICE_COPY =
   "All analytics shown here are strictly anonymized and aggregated. No individual user data is ever exposed." as const;
 
 /** IR static copy — ai_RNbBHYbE */
-export const ADMIN_STAT_TOTAL_USERS_LABEL = "Total Active Users" as const;
+export const ADMIN_STAT_TOTAL_USERS_LABEL = "All users" as const;
 
-/** IR static copy — ai_RNbBHYbH */
+export const ADMIN_STAT_ACTIVE_USERS_LABEL = "Active users" as const;
+
 export const ADMIN_STAT_CHECKINS_LABEL = "Check-ins (Last 7 Days)" as const;
 
-/** IR static copy — ai_RNbBHYbK */
 export const ADMIN_STAT_MODE_DIST_LABEL = "Most Active Mode" as const;
 
-/** IR static copy — ai_RNbBHYbN */
 export const ADMIN_STAT_ENROLLED_LABEL = "Path Enrollments" as const;
+
+export const ADMIN_STAT_PATH_COMPLETED_LABEL = "Paths completed" as const;
+
+export const ADMIN_STAT_PRO_USERS_LABEL = "Pro users" as const;
+
+export const ADMIN_STAT_PREMIUM_USERS_LABEL = "Premium users" as const;
+
+export const ADMIN_STAT_SESSION_FREQ_LABEL = "Sessions / user (7d)" as const;
+
+export const ADMIN_STAT_CLASSIFICATION_HEADING = "Classification distribution" as const;
 
 export const ADMIN_STAT_USERS_WITH_MODULES_LABEL = "Users with 1+ Modules" as const;
 
@@ -70,6 +86,12 @@ export type AdminAnalyticsProfileRow = {
   moduleFinancialComplete?: boolean | null;
   moduleBodyComplete?: boolean | null;
   moduleMeaningComplete?: boolean | null;
+  isActive?: boolean | null;
+  tier?: string | null;
+  subscribed?: boolean | null;
+  accountType?: string | null;
+  enterpriseTier?: string | null;
+  results?: Record<string, unknown> | null;
 };
 
 const CHECKIN_LOOKBACK_DAYS = 7;
@@ -244,6 +266,87 @@ async function tryCountCheckinsLast7Days(cutoffIso: string): Promise<number | nu
   return count ?? 0;
 }
 
+async function tryCountPathEnrollmentsByStatus(
+  status: string,
+): Promise<number | null> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { count, error } = await client
+    .from("pathEnrollment")
+    .select("id", { count: "exact", head: true })
+    .eq("status", status);
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return null;
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+async function tryCountSessionsLast7Days(cutoffIso: string): Promise<number | null> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { count, error } = await client
+    .from("coachingSessionArchive")
+    .select("id", { count: "exact", head: true })
+    .gte("finalizedAt", cutoffIso);
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return null;
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+function readClassificationLabel(row: AdminAnalyticsProfileRow): string | null {
+  const results = row.results;
+  if (!results || typeof results !== "object") return null;
+  const classification = results.classification;
+  if (typeof classification === "string" && classification.trim()) {
+    return classification.trim();
+  }
+  if (classification && typeof classification === "object" && !Array.isArray(classification)) {
+    const obj = classification as Record<string, unknown>;
+    if (typeof obj.name === "string" && obj.name.trim()) return obj.name.trim();
+    if (typeof obj.key === "string" && obj.key.trim()) return obj.key.trim();
+  }
+  return null;
+}
+
+export function aggregateClassificationDistribution(
+  profiles: AdminAnalyticsProfileRow[],
+): Array<{ label: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const profile of profiles) {
+    const label = readClassificationLabel(profile);
+    if (!label) continue;
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
+export function countActiveUsers(profiles: AdminAnalyticsProfileRow[]): number {
+  return profiles.filter((p) => p.isActive !== false).length;
+}
+
+export function countTierUsers(
+  profiles: AdminAnalyticsProfileRow[],
+  tier: "pro" | "premium",
+): number {
+  return profiles.filter((p) => {
+    if ((p.accountType ?? "").toLowerCase() === "enterprise") {
+      return (p.enterpriseTier ?? "").toLowerCase() === tier;
+    }
+    if ((p.tier ?? "").toLowerCase() === tier) return true;
+    if (tier === "pro" && p.subscribed === true && (p.tier ?? "").toLowerCase() !== "premium") {
+      return true;
+    }
+    return false;
+  }).length;
+}
+
 async function tryCountPathEnrollments(): Promise<number | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { count, error } = await client
@@ -269,10 +372,22 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalyticsSnapshot> {
 
   const profiles = (profilesResult.data ?? []) as AdminAnalyticsProfileRow[];
   const totalUsers = profiles.length;
+  const activeUsers = countActiveUsers(profiles);
+  const proUsers = countTierUsers(profiles, "pro");
+  const premiumUsers = countTierUsers(profiles, "premium");
 
-  const [checkinsFromTable, enrollmentsFromTable] = await Promise.all([
+  const [
+    checkinsFromTable,
+    enrollmentsFromTable,
+    completedEnrollments,
+    activeEnrollments,
+    sessionsLast7Days,
+  ] = await Promise.all([
     tryCountCheckinsLast7Days(cutoffIso),
     tryCountPathEnrollments(),
+    tryCountPathEnrollmentsByStatus("completed"),
+    tryCountPathEnrollmentsByStatus("active"),
+    tryCountSessionsLast7Days(cutoffIso),
   ]);
 
   const checkinsLast7Days =
@@ -285,13 +400,26 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalyticsSnapshot> {
       ? enrollmentsFromTable
       : countPathEnrollmentsFromOnboarding(profiles);
 
+  const pathEnrollmentsCompleted = completedEnrollments ?? 0;
+  const pathEnrollmentsActive = activeEnrollments ?? 0;
+  const sessionCount = sessionsLast7Days ?? 0;
+  const sessionFrequencyLast7Days =
+    activeUsers > 0 ? Math.round((sessionCount / activeUsers) * 10) / 10 : 0;
+
   const moduleStats = aggregateModuleCompletionStats(profiles);
 
   return {
     totalUsers,
+    activeUsers,
     checkinsLast7Days,
     mostActiveMode: resolveMostActiveMode(profiles),
     pathEnrollments,
+    pathEnrollmentsCompleted,
+    pathEnrollmentsActive,
+    proUsers,
+    premiumUsers,
+    sessionFrequencyLast7Days,
+    classificationDistribution: aggregateClassificationDistribution(profiles),
     usersWithOneOrMoreModules: moduleStats.usersWithOneOrMoreModules,
     averageModulesCompleted: moduleStats.averageModulesCompleted,
     moduleCompletionCounts: moduleStats.moduleCompletionCounts,

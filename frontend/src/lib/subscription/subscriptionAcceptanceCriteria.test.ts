@@ -72,6 +72,7 @@ function functionBody(sql: string, name: string): string {
 
 const LIFECYCLE_SQL = migration("20260727100000_individual_subscription_lifecycle.sql");
 const RPCS_SQL = migration("20260727110000_billing_subscription_rpcs.sql");
+const EXPIRE_FORFEIT_SQL = migration("20260804130000_billing_expire_forfeit_founding.sql");
 const BOOKINGS_SQL = migration("20260727120000_premium_credits_and_bookings.sql");
 const ABORT_REDIRECT_SQL = migration("20260728120000_one_on_one_abort_redirect.sql");
 const CRON_SQL = migration("20260727130000_subscription_lifecycle_cron.sql");
@@ -431,6 +432,16 @@ describe("AC-18 an expired paid subscription transitions to Free", () => {
     expect(resolveEffectiveTier(lapsed, NOW)).toBe(TIER.FREE);
     expect(CRON_SQL).toMatch(/'expireCancellation'/);
     expect(RPCS_SQL).toMatch(/billing_expire_subscription/);
+  });
+
+  it("forfeits Founding Member on expire so the offer cannot return (SUB-FM-009)", () => {
+    const expireBody = functionBody(EXPIRE_FORFEIT_SQL, "billing_expire_subscription");
+    expect(expireBody).toMatch(/billing_forfeit_founding_discount/);
+    expect(expireBody).toMatch(/v_was_founding/);
+
+    const startBody = functionBody(EXPIRE_FORFEIT_SQL, "billing_start_founding_member");
+    expect(startBody).toMatch(/foundingDiscountForfeitedAt/);
+    expect(startBody).toMatch(/'forfeited'/);
   });
 });
 

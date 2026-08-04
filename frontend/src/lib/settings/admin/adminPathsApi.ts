@@ -29,9 +29,10 @@ export interface AdminPathRecord {
   subMode: string;
   sensitivity: SensitivitySlug;
   sessionsCount: number;
+  isActive: boolean;
 }
 
-export type AdminPathFormState = Omit<AdminPathRecord, "pathId" | "sessionsCount">;
+export type AdminPathFormState = Omit<AdminPathRecord, "pathId" | "sessionsCount" | "isActive">;
 
 type PathDbRow = {
   id?: string;
@@ -42,6 +43,7 @@ type PathDbRow = {
   subMode?: string;
   triggerSignals?: string | null;
   sessionsCount?: number | string | null;
+  isActive?: boolean | null;
 };
 
 /** Onboarding JSON fallback keeps slug/sensitivity outside the DB schema. */
@@ -118,6 +120,7 @@ function toAdminPath(row: PathOnboardingRow): AdminPathRecord | null {
     subMode: row.subMode?.trim() ?? "",
     sensitivity,
     sessionsCount: toNumber(row.sessionsCount),
+    isActive: row.isActive !== false,
   };
 }
 
@@ -200,7 +203,9 @@ async function tryFetchPathsFromTable(): Promise<AdminPathRecord[] | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("path")
-    .select("id, name, description, tier, aiCoachingMode, subMode, triggerSignals, sessionsCount");
+    .select(
+      "id, name, description, tier, aiCoachingMode, subMode, triggerSignals, sessionsCount, isActive",
+    );
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -290,6 +295,18 @@ function pathOnboardingRowFromRecord(path: AdminPathRecord): PathOnboardingRow {
     path.pathId,
     path.slug,
   );
+}
+
+export async function setAdminPathActive(
+  pathId: string,
+  isActive: boolean,
+): Promise<void> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { error } = await client
+    .from("path")
+    .update({ isActive } as never)
+    .eq("id", pathId);
+  if (error) throw error;
 }
 
 export async function updateAdminPath(

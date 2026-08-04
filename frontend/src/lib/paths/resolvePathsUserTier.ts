@@ -8,7 +8,7 @@ type ProfileTierInput = {
   enterpriseTier?: string | null;
 };
 
-/** Effective tier for path catalog gates — uses profile cache, not onboarding JSON. */
+/** Effective tier for path catalog gates — prefer {@link useEffectiveTier} in UI. */
 export function resolvePathsUserTier(profile: ProfileTierInput | null | undefined): TierSlug {
   if (!profile) return TIER.FREE;
   return resolveCurrentTier(

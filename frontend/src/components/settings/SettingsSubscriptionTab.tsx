@@ -124,10 +124,20 @@ export default function SettingsSubscriptionTab() {
   const foundingCampaignEligible = isFoundingEligible({
     isFoundingMember: activeRecord.isFoundingMember,
     signupPlan: profile?.signupPlan ?? peekPendingSignupPlan(),
+    foundingDiscountForfeitedAt: activeRecord.foundingDiscountForfeitedAt,
   });
-  const preferFoundingRate =
+  /** Checkout / Free→Pro offer only — not for already-paid standard Pro. */
+  const preferFoundingCheckoutRate =
     foundingCampaignEligible &&
-    (activeRecord.isFoundingMember || foundingSlotsRemaining > 0);
+    foundingSlotsRemaining > 0 &&
+    effectiveTier === TIER.FREE;
+  /**
+   * Pro card label/price: enrolled FM keeps $19 branding; Free users see the
+   * campaign offer; post-conversion (and any standard Pro) always shows $29.
+   * Do not key off `signupPlan` alone — it survives after FM ends (SUB-FM-004).
+   */
+  const presentProAsFounding =
+    activeRecord.isFoundingMember || preferFoundingCheckoutRate;
 
   const flow = useSubscriptionFlow({
     record,
@@ -476,7 +486,7 @@ export default function SettingsSubscriptionTab() {
                     prices,
                     tier,
                     interval,
-                    tier === TIER.PRO ? preferFoundingRate : activeRecord.isFoundingMember,
+                    tier === TIER.PRO ? presentProAsFounding : activeRecord.isFoundingMember,
                   );
 
             const freePlanNotice =
@@ -491,9 +501,7 @@ export default function SettingsSubscriptionTab() {
                 price={tier === TIER.FREE ? "$0" : formatPlanPrice(price)}
                 priceSuffix={tier === TIER.FREE ? "" : BILLING_INTERVAL_SUFFIX[interval]}
                 state={state}
-                showFoundingLabel={
-                  tier === TIER.PRO && (activeRecord.isFoundingMember || preferFoundingRate)
-                }
+                showFoundingLabel={tier === TIER.PRO && presentProAsFounding}
                 details={state.isCurrent ? buildCurrentPlanDetails(activeRecord) : []}
                 notice={freePlanNotice}
                 scheduledCancelStatus={
@@ -597,12 +605,12 @@ export default function SettingsSubscriptionTab() {
                 checkoutTier,
                 interval,
                 checkoutTier === TIER.PRO
-                  ? preferFoundingRate
+                  ? presentProAsFounding
                   : activeRecord.isFoundingMember,
               )
             : null
         }
-        foundingEligible={checkoutTier === TIER.PRO && preferFoundingRate}
+        foundingEligible={checkoutTier === TIER.PRO && presentProAsFounding}
         pendingLabel={flow.pendingLabelFor("startCheckout")}
         onConfirm={flow.confirmDialog}
         onDismiss={flow.closeDialog}

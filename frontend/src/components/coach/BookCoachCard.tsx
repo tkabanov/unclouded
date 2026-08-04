@@ -9,6 +9,7 @@ import {
 } from "@/lib/coach/coachBookingConstants";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import {
   loadGroupSessionStatus,
@@ -20,7 +21,6 @@ import {
   resolveOneOnOneButtonState,
   shouldShowHumanCoachingCard,
 } from "@/lib/coach/coachBookingEntitlements";
-import { TIER } from "@/lib/enums/tier";
 import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
 import { resolveCreditsExpireAt } from "@/lib/subscription/subscriptionState";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ const EXTERNAL_COACH_URL =
 
 export default function BookCoachCard() {
   const { overview, record, loading, refresh } = useSubscriptionOverview();
-  const tier = overview?.effectiveTier ?? TIER.FREE;
+  const { tier } = useEffectiveTier();
   const { openFeature, promptUpgrade, closeUpsell } = useLockedFeatureUpsell(tier);
 
   const [groupUsed, setGroupUsed] = useState(false);

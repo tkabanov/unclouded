@@ -222,8 +222,11 @@ export default function AdminWorkplacesTab() {
                   {workplace.contactEmail}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {workplace.contractTier.toUpperCase()} · {workplace.seatCount} seats ·{" "}
-                  {workplace.isActive ? "Active contract" : "Inactive"}
+                  {workplace.contractTier.toUpperCase()} · {workplace.seatCount} seats
+                  {typeof workplace.activeSeats === "number"
+                    ? ` (${workplace.activeSeats} active)`
+                    : ""}{" "}
+                  · {workplace.isActive ? "Active contract" : "Inactive"}
                 </p>
               </div>
               {workplace.metricsReady ? (

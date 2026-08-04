@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { enrollInPath } from "./pathsEnrollmentApi";
+import { PathEnrollmentUpgradeRequiredError, enrollInPath } from "./pathsEnrollmentApi";
 
 const fetchPathCatalogEntry = vi.fn();
 const fetchPathSessionsByKey = vi.fn();
 const createPathEnrollmentRow = vi.fn();
+const loadEffectiveTierForUser = vi.fn();
 
 const pathEnrollmentChain = {
   select: vi.fn().mockReturnThis(),
@@ -35,17 +36,39 @@ vi.mock("@/lib/paths/pathsOnboardingEnrollmentApi", () => ({
   createPathEnrollmentRow: (...args: unknown[]) => createPathEnrollmentRow(...args),
 }));
 
+vi.mock("@/lib/subscription/subscriptionApi", () => ({
+  loadEffectiveTierForUser: (...args: unknown[]) => loadEffectiveTierForUser(...args),
+}));
+
 describe("enrollInPath", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    loadEffectiveTierForUser.mockResolvedValue("pro");
     createPathEnrollmentRow.mockResolvedValue("enrollment-id");
     fetchPathSessionsByKey.mockResolvedValue([]);
+  });
+
+  it("rejects enrollment when the user tier is below the path tier", async () => {
+    loadEffectiveTierForUser.mockResolvedValue("free");
+    fetchPathCatalogEntry.mockResolvedValue({
+      id: "path-id",
+      slug: "breaking-out-of-the-comfortable-plateau",
+      tier: "pro",
+      triggerSignals: "enrollment:onboarding",
+    });
+
+    await expect(
+      enrollInPath("user-id", "breaking-out-of-the-comfortable-plateau", {}),
+    ).rejects.toBeInstanceOf(PathEnrollmentUpgradeRequiredError);
+
+    expect(createPathEnrollmentRow).not.toHaveBeenCalled();
   });
 
   it("rejects enrollment when module prerequisites are not met", async () => {
     fetchPathCatalogEntry.mockResolvedValue({
       id: "path-id",
       slug: "understanding-your-emotional-patterns",
+      tier: "pro",
       triggerSignals: "enrollment:onboarding; prerequisite:module:identity",
     });
 
@@ -62,6 +85,7 @@ describe("enrollInPath", () => {
     fetchPathCatalogEntry.mockResolvedValue({
       id: "path-id",
       slug: "understanding-your-emotional-patterns",
+      tier: "pro",
       triggerSignals: "enrollment:onboarding; prerequisite:module:identity",
     });
 

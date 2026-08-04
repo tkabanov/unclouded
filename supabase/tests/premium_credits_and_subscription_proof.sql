@@ -195,6 +195,11 @@
 -- Expected: free, and 0 credits — unused credits expire with access (AC-11).
 -- As User A: SELECT public.consume_chat_session('<user_a_id>'::uuid, 'conv-proof-2', true);
 -- Expected: {"allowed":true,"recorded":true} — now counted against the 7/month.
+--
+-- Founding Member cancel→expiry (SUB-FM-009):
+--   After billing_expire_subscription on an FM row:
+--   isFoundingMember = false, foundingDiscountForfeitedAt IS NOT NULL,
+--   foundingMemberSlot.releasedAt IS NOT NULL — Free upgrade shows $29, not $19.
 
 -- ===========================================================================
 -- 10. Paid paths and reassessment are gated server-side (AC-28)

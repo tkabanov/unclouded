@@ -26,6 +26,7 @@ type PathRow = {
   pillar?: string;
   classifications?: string | null;
   triggerSignals?: string | null;
+  isActive?: boolean | null;
 };
 
 type UntypedSupabase = {
@@ -66,7 +67,7 @@ async function fetchPathCandidates(): Promise<PathEnrollmentCandidate[]> {
   const client = supabase as unknown as UntypedSupabase;
   const { data, error } = await client
     .from("path")
-    .select("id, name, tier, pillar, classifications, triggerSignals");
+    .select("id, name, tier, pillar, classifications, triggerSignals, isActive");
 
   if (error) {
     if (isSchemaUnavailable(error)) return [];
@@ -76,6 +77,7 @@ async function fetchPathCandidates(): Promise<PathEnrollmentCandidate[]> {
   if (!Array.isArray(data)) return [];
 
   return data
+    .filter((row) => (row as PathRow).isActive !== false)
     .map((row) => mapPathRow(row as PathRow))
     .filter((path): path is PathEnrollmentCandidate => path !== null);
 }

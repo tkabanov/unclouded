@@ -47,4 +47,19 @@ describe("planAttribution", () => {
     expect(isFoundingEligible({ signupPlan: "founding" })).toBe(true);
     expect(isFoundingEligible({ signupPlan: "pro", isFoundingMember: false })).toBe(false);
   });
+
+  it("isFoundingEligible is false after the discount was forfeited", () => {
+    expect(
+      isFoundingEligible({
+        signupPlan: "founding",
+        foundingDiscountForfeitedAt: "2026-08-01T00:00:00.000Z",
+      }),
+    ).toBe(false);
+    expect(
+      isFoundingEligible({
+        isFoundingMember: true,
+        foundingDiscountForfeitedAt: "2026-08-01T00:00:00.000Z",
+      }),
+    ).toBe(true);
+  });
 });

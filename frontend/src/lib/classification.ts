@@ -183,7 +183,7 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         gidgetCta: "Let's get unstuck — your coach is ready",
         checkinExtraQuestion: "Did you do the thing?",
         paths: [
-          { name: "Clarity & Priority Reset", description: "Cut through the noise" },
+          { name: "Clarity and Direction", description: "Cut through the noise" },
           { name: "Follow-Through Systems", description: "Close the gap between intention and action" },
         ],
       };
@@ -204,8 +204,8 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         tradeoffAlwaysProminent: true,
         stabilityWarning: true,
         paths: [
-          { name: "Burnout Prevention & Recovery", description: "Protect your engine" },
-          { name: "Stress Regulation", description: "Build sustainable capacity" },
+          { name: "Burnout Awareness", description: "Protect your engine" },
+          { name: "Stress Regulation Foundations", description: "Build sustainable capacity" },
         ],
         gidgetCta: "Your output is real. Let's make it sustainable.",
       };
@@ -239,7 +239,7 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         gidgetCta: "You're ready to move. Let's find your highest leverage.",
         paths: [
           { name: "Follow-Through Systems", description: "Lock in your progress" },
-          { name: classification.name + " Path", description: "Sustain and grow" },
+          { name: "Building Professional Momentum", description: "Sustain and grow" },
         ],
       };
     default:

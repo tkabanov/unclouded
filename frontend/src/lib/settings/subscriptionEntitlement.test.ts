@@ -88,6 +88,15 @@ describe("resolveCurrentTier", () => {
       "free",
     );
   });
+
+  it("treats an inactive subscription row as Free even when subscribed is true", () => {
+    expect(
+      resolveCurrentTier(true, "free", "individual", null, {
+        planTier: "free",
+        status: "inactive",
+      }),
+    ).toBe("free");
+  });
 });
 
 describe("subscriptionEntitlement helpers", () => {

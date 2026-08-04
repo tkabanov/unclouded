@@ -60,10 +60,13 @@ export function buildSignupPlanMetadata(
 export type FoundingEligibilityInput = {
   signupPlan?: string | null;
   isFoundingMember?: boolean | null;
+  /** Set when FM was forfeited (Premium upgrade or cancel→expiry). Blocks re-offer. */
+  foundingDiscountForfeitedAt?: string | null;
 };
 
 /** Mirrors `supabase/functions/_shared/foundingMember.ts` — UI price preview only; charge uses the edge function. */
 export function isFoundingEligible(input: FoundingEligibilityInput): boolean {
   if (input.isFoundingMember === true) return true;
+  if (input.foundingDiscountForfeitedAt) return false;
   return normalizeSignupPlan(input.signupPlan ?? null) === FOUNDING_SIGNUP_PLAN;
 }
