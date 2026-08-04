@@ -4,6 +4,9 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DEFAULT_COACH_BOOKING_URL,
+} from "@/lib/coach/coachBookingConstants";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
@@ -23,7 +26,7 @@ import { resolveCreditsExpireAt } from "@/lib/subscription/subscriptionState";
 import { cn } from "@/lib/utils";
 
 const EXTERNAL_COACH_URL =
-  import.meta.env.VITE_COACH_BOOKING_URL ?? "https://uncloud360.ai/coaching";
+  import.meta.env.VITE_COACH_BOOKING_URL ?? DEFAULT_COACH_BOOKING_URL;
 
 export default function BookCoachCard() {
   const { overview, record, loading, refresh } = useSubscriptionOverview();

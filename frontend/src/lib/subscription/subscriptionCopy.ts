@@ -324,6 +324,14 @@ export function foundingPricingNotice(conversionDateLabel: string): string {
   );
 }
 
+export const FOUNDING_SLOTS_FULL_MESSAGE =
+  "The Founding Member offer is full. You can still upgrade to Pro at the standard $29/month rate.";
+
+export function foundingSlotsRemainingMessage(slotsRemaining: number): string {
+  if (slotsRemaining <= 0) return FOUNDING_SLOTS_FULL_MESSAGE;
+  return `${slotsRemaining} Founding Member ${slotsRemaining === 1 ? "spot" : "spots"} remaining at $19/month for your first 12 months.`;
+}
+
 // --- Payment failure --------------------------------------------------------
 
 export const PAYMENT_ISSUE_MESSAGE =

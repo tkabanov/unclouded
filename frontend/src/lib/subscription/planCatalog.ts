@@ -68,7 +68,7 @@ export const PLAN_CATALOG: readonly PlanCatalogEntry[] = [
   {
     tier: TIER.PRO,
     name: "Pro",
-    tagline: "Unlimited coaching, premium paths, group sessions, and reassessment.",
+    tagline: "Unlimited coaching, 40+ guided paths, group sessions, and reassessment.",
     badge: "Most popular",
     features: [
       ...included(
@@ -82,7 +82,6 @@ export const PLAN_CATALOG: readonly PlanCatalogEntry[] = [
         "Basic PuP 360 PDF summary at reassessment — 1-2 pages",
         "AI journal reflection — share an entry, receive a coaching response",
         "Daily check-in with streak tracking and dashboard widget",
-        "Coaching insights feed — 3 personalized articles daily",
         "Path and recovery milestone recognition with AI acknowledgment",
         "One group coaching session per month",
       ),
@@ -127,3 +126,35 @@ export function planCatalogEntry(tier: TierSlug): PlanCatalogEntry {
   if (!entry) throw new Error(`Unknown plan tier: ${tier}`);
   return entry;
 }
+
+/** Static monthly prices for marketing pages; Settings uses DB prices via overview RPC. */
+export const LANDING_MONTHLY_PRICES = {
+  free: 0,
+  pro: 29,
+  premium: 79,
+  foundingPro: 19,
+} as const;
+
+/** Short feature bullets for the landing pricing section (aligned with card descriptions). */
+export const LANDING_PLAN_BULLETS: Record<TierSlug, readonly string[]> = {
+  [TIER.FREE]: [
+    "7 AI coaching sessions per month",
+    "3 Free-tier guided coaching paths",
+    "Daily check-in & journal",
+    "Crisis resources always available",
+  ],
+  [TIER.PRO]: [
+    "Unlimited AI coaching sessions",
+    "40+ Free and Pro guided coaching paths",
+    "90-day reassessment with PDF summary",
+    "One group coaching session per month",
+    "AI journal reflection",
+  ],
+  [TIER.PREMIUM]: [
+    "Everything in Pro",
+    "Monthly credits for 30-minute 1:1 sessions",
+    "All 55 paths including Premium-only content",
+    "On-demand reassessment after day 30",
+    "Full PuP 360 PDF diagnostic report",
+  ],
+};

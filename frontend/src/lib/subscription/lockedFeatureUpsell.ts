@@ -107,7 +107,7 @@ export const LOCKED_FEATURES: Record<LockedFeatureKey, LockedFeature> = {
     benefits: [
       "AI reflection on any journal entry",
       "Unlimited AI coaching sessions",
-      "Coaching insights feed tailored to your classification",
+      "90-day reassessment with score comparison",
     ],
   },
   pupPdfReport: {

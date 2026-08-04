@@ -258,6 +258,10 @@ export function useSubscriptionFlow({
             toast.info(result.message);
             return;
           }
+          if (result.status === "founding_full") {
+            toast.message(result.message);
+            return;
+          }
           if (result.status === "blocked") {
             toast.error(result.message);
             return;

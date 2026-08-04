@@ -208,6 +208,7 @@ export type CheckoutResult =
       message: string;
       overview: SubscriptionOverview | null;
     }
+  | { status: "founding_full"; message: string }
   | { status: "blocked"; message: string };
 
 export async function syncBillingFromStripe(): Promise<SubscriptionOverview> {
@@ -282,6 +283,15 @@ export async function startCheckout(
       status: "already_subscribed",
       message: getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.checkout),
       overview: payload.overview ? parseSubscriptionOverview(payload.overview) : null,
+    };
+  }
+
+  if (payload?.status === "founding_full") {
+    return {
+      status: "founding_full",
+      message:
+        payload.message ??
+        "The Founding Member offer is full. You can still upgrade to Pro at the standard $29/month rate.",
     };
   }
 

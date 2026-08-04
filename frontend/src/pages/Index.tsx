@@ -35,10 +35,16 @@ import { useUserProfile } from "@/lib/userProfile";
 import { isSettingsAdminUser } from "@/lib/settings/isSettingsAdminUser";
 import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/onboardingStatus";
 import { captureReferralFromSearch } from "@/lib/share/referralAttribution";
-import { capturePlanFromSearch } from "@/lib/share/planAttribution";
+import { capturePlanFromSearch, FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
 import { captureUtmFromSearch } from "@/lib/share/utmAttribution";
 import { settingsPath } from "@/lib/settings/navigation";
 import { SETTINGS_TAB } from "@/lib/settings/settingsTabStub";
+import { TIER } from "@/lib/enums/tier";
+import {
+  LANDING_MONTHLY_PRICES,
+  LANDING_PLAN_BULLETS,
+  planCatalogEntry,
+} from "@/lib/subscription/planCatalog";
 
 /* ── shared bits ─────────────────────────────────────── */
 
@@ -119,6 +125,17 @@ const Index = () => {
   const openSubscriptionFromLanding = () => {
     if (authenticated) {
       goToSubscriptionManagement();
+      return;
+    }
+    pendingSubscriptionScreenRef.current = true;
+    setSignupOpen(false);
+    setLoginOpen(true);
+  };
+
+  const openFoundingFromLanding = () => {
+    capturePlanFromSearch(`?plan=${FOUNDING_SIGNUP_PLAN}`);
+    if (authenticated) {
+      navigate(`${settingsPath(SETTINGS_TAB.SUBSCRIPTION)}&plan=${FOUNDING_SIGNUP_PLAN}`);
       return;
     }
     pendingSubscriptionScreenRef.current = true;
@@ -486,16 +503,14 @@ const Index = () => {
                     <span className="text-4xl font-extrabold text-foreground">$0</span>
                     <span className="text-muted-foreground"> /month</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">Everything you need to get started with AI coaching.</p>
+                  <p className="text-sm text-muted-foreground">{planCatalogEntry(TIER.FREE).tagline}</p>
                   <ul className="space-y-3 pt-1">
-                    {["AI coaching chat (limited)", "Daily check-ins & journal", "Free guided paths", "Crisis resources always available"].map(
-                      (f) => (
-                        <li key={f} className="flex items-center gap-3 text-sm text-foreground">
-                          <Check className="h-4 w-4 shrink-0 text-primary" />
-                          {f}
-                        </li>
-                      )
-                    )}
+                    {LANDING_PLAN_BULLETS[TIER.FREE].map((f) => (
+                      <li key={f} className="flex items-center gap-3 text-sm text-foreground">
+                        <Check className="h-4 w-4 shrink-0 text-primary" />
+                        {f}
+                      </li>
+                    ))}
                   </ul>
                   {!authenticated && (
                     <Button
@@ -530,20 +545,35 @@ const Index = () => {
                     <span className="text-sm font-semibold">Most Popular</span>
                   </div>
                   <div>
-                    <span className="text-4xl font-extrabold">$29</span>
+                    <span className="text-4xl font-extrabold">${LANDING_MONTHLY_PRICES.pro}</span>
                     <span className="opacity-80"> /month</span>
                   </div>
-                  <p className="text-sm opacity-90">Deeper coaching, more paths, and richer insights.</p>
+                  <p className="text-sm opacity-90">
+                    Founding Member: ${LANDING_MONTHLY_PRICES.foundingPro}/mo for your first 12 months
+                    (first 100 members).
+                  </p>
+                  <p className="text-sm opacity-90">{planCatalogEntry(TIER.PRO).tagline}</p>
                   <ul className="space-y-3 pt-1">
-                    {["Unlimited AI coaching chat", "All guided paths & resources", "AI journal reflections", "Advanced insights & milestones", "Priority support"].map(
-                      (f) => (
-                        <li key={f} className="flex items-center gap-3 text-sm">
-                          <Check className="h-4 w-4 shrink-0" />
-                          {f}
-                        </li>
-                      )
-                    )}
+                    {LANDING_PLAN_BULLETS[TIER.PRO].map((f) => (
+                      <li key={f} className="flex items-center gap-3 text-sm">
+                        <Check className="h-4 w-4 shrink-0" />
+                        {f}
+                      </li>
+                    ))}
                   </ul>
+                  {!authenticated ? (
+                    <Button
+                      data-style-ref="Button_outline_"
+                      variant="outline"
+                      className={cn(
+                        "w-full border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10",
+                        bubbleStyle("Button_outline_"),
+                      )}
+                      onClick={openFoundingFromLanding}
+                    >
+                      Join as Founding Member
+                    </Button>
+                  ) : null}
                   {authenticated ? (
                     <Button
                       data-style-ref="Button_primary_"
@@ -577,19 +607,19 @@ const Index = () => {
                     Premium
                   </span>
                   <div>
-                    <span className="text-4xl font-extrabold text-foreground">$49</span>
+                    <span className="text-4xl font-extrabold text-foreground">
+                      ${LANDING_MONTHLY_PRICES.premium}
+                    </span>
                     <span className="text-muted-foreground"> /month</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">The most comprehensive coaching experience available.</p>
+                  <p className="text-sm text-muted-foreground">{planCatalogEntry(TIER.PREMIUM).tagline}</p>
                   <ul className="space-y-3 pt-1">
-                    {["Everything in Pro", "Premium-exclusive paths & content", "Deep personalization engine", "Early access to new features"].map(
-                      (f) => (
-                        <li key={f} className="flex items-center gap-3 text-sm text-foreground">
-                          <Check className="h-4 w-4 shrink-0 text-primary" />
-                          {f}
-                        </li>
-                      )
-                    )}
+                    {LANDING_PLAN_BULLETS[TIER.PREMIUM].map((f) => (
+                      <li key={f} className="flex items-center gap-3 text-sm text-foreground">
+                        <Check className="h-4 w-4 shrink-0 text-primary" />
+                        {f}
+                      </li>
+                    ))}
                   </ul>
                   {authenticated ? (
                     <Button

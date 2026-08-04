@@ -354,3 +354,23 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | Paths → My Paths does not show the horizontal enrolled-path chip strip. Enrollments remain in the Paths grid. |
 | **Code** | `frontend/src/pages/Paths.tsx` (component deleted) |
 
+### OVR-035 — Admin user deactivate (Active / Deactivated)
+
+| | |
+|---|---|
+| **Date** | 2026-07-31 |
+| **Overrides** | US-503 “User data is read-only to prevent accidental changes” for all fields |
+| **Authoritative spec** | `docs/Admin Account Set-Up.md` — User management Status Active / Deactivated |
+| **Current behavior** | Admin Users tab is read-only for profile/subscription/path data. **Exception:** platform admin may Activate / Deactivate a non-admin user (`profiles.isActive` + `deactivatedAt` via `admin_set_profile_active`, plus auth ban through `admin-users` edge). Admins cannot deactivate themselves or other admins. |
+| **Code** | `frontend/src/components/settings/admin/AdminUsersTab.tsx`, `supabase/functions/admin-users/index.ts`, `supabase/migrations/20260731120000_admin_account_setup.sql` |
+
+### OVR-036 — Pro plan copy: no Coaching Insights feed promise
+
+| | |
+|---|---|
+| **Date** | 2026-08-04 |
+| **Overrides** | `docs/Unclouded _ Individual Subscription Management Flow (1).md` — Pro tier «Coaching insights feed — 3 personalized articles daily» |
+| **Authoritative spec** | OVR-032 — Dashboard Coaching Insights card removed; owner confirmed follow OVR-032 for subscription marketing copy |
+| **Current behavior** | Pro plan cards (Settings subscription screen, landing pricing, locked-feature upsells) do **not** promise a user-facing daily insights feed. Admin Insights feed tooling remains for content ops only. |
+| **Code** | `frontend/src/lib/subscription/planCatalog.ts`, `frontend/src/pages/Index.tsx`, `frontend/src/lib/subscription/lockedFeatureUpsell.ts` |
+

@@ -17,11 +17,13 @@ import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
 import { useUserProfile } from "@/lib/userProfile";
-import { isFoundingEligible } from "@/lib/share/planAttribution";
+import { isFoundingEligible, capturePlanFromSearch, peekPendingSignupPlan } from "@/lib/share/planAttribution";
 import {
   cancelDialogCopy,
   downgradeDialogCopy,
   foundingPricingNotice,
+  foundingSlotsRemainingMessage,
+  FOUNDING_SLOTS_FULL_MESSAGE,
   checkoutSuccessMessage,
   checkoutSuccessPendingMessage,
   keepPremiumDialogCopy,
@@ -118,10 +120,14 @@ export default function SettingsSubscriptionTab() {
   const activeRecord = record ?? FREE_SUBSCRIPTION_RECORD;
   const effectiveTier = overview?.effectiveTier ?? resolveEffectiveTier(activeRecord);
   const prices = overview?.prices ?? [];
-  const preferFoundingRate = isFoundingEligible({
+  const foundingSlotsRemaining = overview?.foundingSlotsRemaining ?? 0;
+  const foundingCampaignEligible = isFoundingEligible({
     isFoundingMember: activeRecord.isFoundingMember,
-    signupPlan: profile?.signupPlan,
+    signupPlan: profile?.signupPlan ?? peekPendingSignupPlan(),
   });
+  const preferFoundingRate =
+    foundingCampaignEligible &&
+    (activeRecord.isFoundingMember || foundingSlotsRemaining > 0);
 
   const flow = useSubscriptionFlow({
     record,
@@ -144,6 +150,11 @@ export default function SettingsSubscriptionTab() {
     clearPaymentRecoveryPending();
     showCheckoutNotice(PAYMENT_RECOVERED_MESSAGE, "success");
   };
+
+  useEffect(() => {
+    const qs = searchParams.toString();
+    if (qs) capturePlanFromSearch(`?${qs}`);
+  }, [searchParams]);
 
   useEffect(() => {
     if (
@@ -400,6 +411,20 @@ export default function SettingsSubscriptionTab() {
             {foundingPricingNotice(
               formatSubscriptionDate(activeRecord.foundingDiscountEndsAt) ?? "your renewal date",
             )}
+          </p>
+        </div>
+      ) : null}
+
+      {!isEnterprise &&
+      foundingCampaignEligible &&
+      !activeRecord.isFoundingMember &&
+      effectiveTier === TIER.FREE ? (
+        <div className="rounded-xl border border-border bg-muted/40 p-5 text-sm text-muted-foreground">
+          <p className="font-semibold text-foreground">Founding Member offer</p>
+          <p className="mt-1">
+            {foundingSlotsRemaining > 0
+              ? foundingSlotsRemainingMessage(foundingSlotsRemaining)
+              : FOUNDING_SLOTS_FULL_MESSAGE}
           </p>
         </div>
       ) : null}

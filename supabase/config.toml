@@ -67,6 +67,10 @@ verify_jwt = true
 [functions.workplace-members]
 verify_jwt = true
 
+# Admin Account Set-Up — platform admin user list/detail + deactivate.
+[functions.admin-users]
+verify_jwt = true
+
 # Prompt Library addendum — Kota's Read coach prep brief.
 [functions.generate-kota-read]
 verify_jwt = true
@@ -88,4 +92,8 @@ verify_jwt = false
 
 # Daily subscription lifecycle: expiry, downgrade, founding conversion, grace.
 [functions.subscription-lifecycle]
+verify_jwt = false
+
+# Wix Bookings confirm/cancel → Premium credit redeem or hold release.
+[functions.wix-bookings-webhook]
 verify_jwt = false

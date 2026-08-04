@@ -35,6 +35,21 @@ function readNumber(row: Record<string, unknown>, key: string): number | undefin
 }
 
 /** Opens the external calendar; false when blocked or when open throws. */
+export function buildCoachBookingUrl(baseUrl: string, bookingId: string): string {
+  const trimmed = baseUrl.trim();
+  if (!trimmed) return trimmed;
+  try {
+    const url = new URL(trimmed);
+    url.searchParams.set("bookingId", bookingId);
+    url.searchParams.set("unclouded_booking_id", bookingId);
+    return url.toString();
+  } catch {
+    const separator = trimmed.includes("?") ? "&" : "?";
+    return `${trimmed}${separator}bookingId=${encodeURIComponent(bookingId)}&unclouded_booking_id=${encodeURIComponent(bookingId)}`;
+  }
+}
+
+/** Opens the external calendar; false when blocked or when open throws. */
 export function openExternalBookingUrl(url: string): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -127,7 +142,8 @@ export async function requestOneOnOneBooking(params?: {
 
   const calendarUrl = params?.externalCalendarUrl?.trim();
   if (calendarUrl && typeof window !== "undefined") {
-    const opened = openExternalBookingUrl(calendarUrl);
+    const redirectUrl = buildCoachBookingUrl(calendarUrl, bookingId);
+    const opened = openExternalBookingUrl(redirectUrl);
     if (!opened) {
       const abort = await abortOneOnOneBookingRedirect(bookingId);
       if (!abort.released) {

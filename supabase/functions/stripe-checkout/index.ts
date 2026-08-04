@@ -130,6 +130,24 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (wantsFoundingRate) {
+      const { data: slotsRemaining, error: slotsError } = await service.rpc(
+        "founding_member_slots_remaining",
+      );
+      if (slotsError) {
+        console.error("founding_member_slots_remaining failed", slotsError);
+      } else if (typeof slotsRemaining === "number" && slotsRemaining <= 0) {
+        return json(
+          {
+            status: "founding_full",
+            message:
+              "The Founding Member offer is full. Choose standard Pro at $29/month to continue.",
+          },
+          409,
+        );
+      }
+    }
+
     const customerId = await ensureStripeCustomer(
       service,
       profile,

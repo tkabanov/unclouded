@@ -100,6 +100,41 @@
 -- index on (coachBookingId, reason) blocks a double deduction.
 
 -- ===========================================================================
+-- 6b. Wix webhook confirm / cancel (wix_process_coach_booking_event)
+-- ===========================================================================
+-- As User A: SELECT public.request_one_on_one_booking();   -- note <booking_wix>
+-- As service role:
+--   SELECT public.wix_process_coach_booking_event(
+--     'evt-wix-confirm-1',
+--     'confirmed',
+--     'wix-booking-123',
+--     '<user_a_email>',
+--     '<booking_wix>'::uuid
+--   );
+-- Expected: {"ok":true,"code":"confirmed",...,"redeem":{"ok":true,"redeemed":2,...}}
+--
+--   SELECT public.wix_process_coach_booking_event(
+--     'evt-wix-confirm-1',
+--     'confirmed',
+--     'wix-booking-123',
+--     '<user_a_email>',
+--     '<booking_wix>'::uuid
+--   );
+-- Expected: {"ok":true,"code":"duplicate_event"} — idempotent by event id.
+--
+-- As User A (after granting 2 credits again):
+--   SELECT public.request_one_on_one_booking();   -- note <booking_wix_cancel>
+-- As service role:
+--   SELECT public.wix_process_coach_booking_event(
+--     'evt-wix-cancel-1',
+--     'canceled',
+--     'wix-booking-456',
+--     '<user_a_email>',
+--     '<booking_wix_cancel>'::uuid
+--   );
+-- Expected: {"ok":true,"code":"canceled",...,"release":{"ok":true,"released":2,...}}
+
+-- ===========================================================================
 -- 7. An unconfirmed booking returns its credits
 -- ===========================================================================
 --   SELECT public.billing_grant_premium_credit('<user_a_id>'::uuid, 'in_proof_3');

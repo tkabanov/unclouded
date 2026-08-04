@@ -9,8 +9,6 @@
  *   sub-premium-downgrade@test.com — Premium → Pro downgrade scheduled
  *   sub-fm@test.com — Founding Member (Pro $19 campaign)
  *
- * Also ensures QA premium path `[QA] Premium subscription upsell path` for SUB-ENTRY / SUB-FREE-LOCK-001.
- *
  * Usage:
  *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_individual_subscription_test_users.mjs
  */
@@ -22,10 +20,6 @@ const { createClient } = require("@supabase/supabase-js");
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "https://szkextipgpupqoppccoy.supabase.co";
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = "qwerty123";
-
-/** Subscription QA only — not a product path; tier premium for SUB-ENTRY / SUB-FREE-LOCK-001. */
-const QA_PREMIUM_PATH_ID = "b0000000-0000-4000-8000-000000000001";
-const QA_PREMIUM_SESSION_ID = "b0000000-0000-4000-8000-000000000002";
 
 if (!SERVICE_ROLE_KEY) {
   console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
@@ -218,48 +212,6 @@ async function ensurePremiumCreditsForQa(admin, userId, targetBalance = 2) {
   }
 }
 
-async function ensureQaPremiumPath(admin) {
-  const { data: existing, error: readError } = await admin
-    .from("path")
-    .select("id, tier")
-    .eq("id", QA_PREMIUM_PATH_ID)
-    .maybeSingle();
-
-  if (readError) throw readError;
-
-  if (!existing) {
-    const { error: pathError } = await admin.from("path").insert({
-      id: QA_PREMIUM_PATH_ID,
-      name: "[QA] Premium subscription upsell path",
-      description: "Internal QA catalog entry for Premium-tier upsell tests only.",
-      tier: "premium",
-      pillar: "professional",
-      subMode: "general_professional",
-      sessionsCount: 1,
-      classifications: "Any classification",
-      triggerSignals: "qa:subscription_upsell",
-    });
-    if (pathError) throw pathError;
-
-    const { error: sessionError } = await admin.from("pathSession").insert({
-      id: QA_PREMIUM_SESSION_ID,
-      pathId: QA_PREMIUM_PATH_ID,
-      index: 1,
-      title: "QA session",
-      coachingText: "Placeholder session for subscription QA.",
-      microCommitment: "N/A — QA path.",
-    });
-    if (sessionError) throw sessionError;
-    console.log("Inserted QA premium path for subscription upsell tests.");
-  } else if (existing.tier !== "premium") {
-    const { error: tierError } = await admin
-      .from("path")
-      .update({ tier: "premium" })
-      .eq("id", QA_PREMIUM_PATH_ID);
-    if (tierError) throw tierError;
-  }
-}
-
 async function clearEnterpriseEntitlement(admin, userId) {
   const { error } = await admin
     .from("profiles")
@@ -324,8 +276,6 @@ async function main() {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-
-  await ensureQaPremiumPath(admin);
 
   for (const spec of USERS) {
     console.log(`\nSeeding ${spec.email} (${spec.tier})...`);
