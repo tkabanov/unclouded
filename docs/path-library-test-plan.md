@@ -456,14 +456,14 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Expected** | Auto-enrolled paths только `tier ≤ free` (и flag rules). Нет silent Pro enrollment. |
 | **Observed (2026-08-05, vercel)** | New Free signup → full onboarding (Professional role, health pillar path via answers, Capacity Erosion, health «None of the above»). Subscription **Free**. Auto-enroll: only **Building Daily Structure** (`tier: free`, Active). No Pro/Premium enrollments. |
 
-### PL-REC-002 — Pro onboarding может рекомендовать Pro paths
+### PL-REC-002 — Pro onboarding может рекомендовать Pro paths — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | New Pro user. |
 | **Steps** | Onboarding → recommended / enrolled. |
 | **Expected** | Могут появиться Pro paths; Premium — нет, пока не Premium. |
-| **Observed (2026-08-05, vercel)** | **FAIL.** New user: onboarding → Results → Upgrade to Pro (Stripe) → webhook → Pro active → «Go to my dashboard». Auto-enroll only Free paths (Boundary Setting Foundations, Getting Through Hard Seasons, Nervous System Basics). **Root cause:** `completeOnboarding` вызывает `autoEnrollPathsAfterOnboarding` **без** `userTier`; API defaults `userTier ?? TIER.FREE` (`pathsOnboardingEnrollmentApi.ts`). Pro enrollment при onboarding невозможен при текущем коде. |
+| **Observed (2026-08-05, vercel retest)** | **PASS.** New signup → Results → Stripe Pro (wait/`checkout=success`) → «Go to my dashboard». Enrollments: Free (Boundary Setting Foundations, Getting Through Hard Seasons, Nervous System Basics) + **Pro** (Living Through Disruption, Recovery Deepening, Stress Regulation Foundations). **Premium нет.** Fix: `completeOnboarding` передаёт `loadEffectiveTierForUser` → `userTier` в auto-enroll. |
 
 ### PL-REC-003 — Flag-gated paths (grief / recovery) — TESTED
 
@@ -484,6 +484,8 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Preconditions** | User completed path #N; 90-day reassessment due. |
 | **Steps** | Пройти reassessment до path-specific Q4. |
 | **Expected** | Текст совпадает с Canonical «Path-Specific Reassessment Questions» для этого #N (имя path в вопросе каноническое). |
+| **Observed (2026-08-05, vercel)** | **FAIL.** `sub-pro@test.com`: forced `nextReassessmentDate` past; completed Free #1 Getting Through Hard Seasons; reassessment → Progress Reflection. Slot 1 (adaptive, UI «1.»): **«You completed Getting Through Hard Seasons. Looking back, what feels more solid now that was shaky when you started?»** Canonical #1: **«You completed the Getting Through Hard Seasons path. Where are you now compared to when you started - not the ideal version, the real one?»** Имя path каноническое, **полный текст ≠ Canonical** (stale `pathSession.reassessmentReflectionQuestion`). Note: #14/#18 final session Q = null в DB. |
+| **Fix** | Migration `20260805120000_seed_canonical_reassessment_q4.sql` — overwrite final-session Q4 for all 55 library paths from Canonical. Seed script `apply_canonical_q4` so future reseeds don't leave NULL/stale. **Retest after `/deploy` (migrations).** |
 
 ### PL-REA-002 — Sample matrix (минимум)
 

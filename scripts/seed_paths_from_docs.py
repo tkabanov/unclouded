@@ -418,6 +418,42 @@ def session_has_content(session: PathSessionRecord) -> bool:
     return bool(session.coaching_text or session.questions or session.micro_commitment)
 
 
+def load_canonical_q4_by_number() -> dict[int, str]:
+    """Path-Specific Reassessment Questions from Canonical Path Library (PL-REA authority)."""
+    canonical = NEW_PATHS_DIR / "Uncloud360_Canonical_Path_Library.md"
+    if not canonical.exists():
+        return {}
+    row_re = re.compile(
+        r"\|\s*\*\*(\d+)\*\*\s*\|\s*\*\*(.+?)\*\*\s*\|\s*(.+?)\s*\|$"
+    )
+    out: dict[int, str] = {}
+    for line in canonical.read_text(encoding="utf-8").splitlines():
+        m = row_re.match(line.strip())
+        if not m:
+            continue
+        n = int(m.group(1))
+        q = m.group(3).strip()
+        if 1 <= n <= 55 and q.startswith("You completed"):
+            out[n] = q
+    return out
+
+
+def apply_canonical_q4(records: list[PathRecord]) -> None:
+    """Prefer Canonical Q4 over batch-doc / missing meta (avoids stale or NULL seeds)."""
+    canonical = load_canonical_q4_by_number()
+    if not canonical:
+        return
+    for record in records:
+        if record.path_type == "success_plan":
+            continue
+        q4 = canonical.get(record.number)
+        if not q4:
+            continue
+        record.reassessment_reflection_question = q4
+        if record.sessions:
+            record.sessions[-1].reassessment_reflection_question = q4
+
+
 def finalize_sessions(path: PathRecord) -> None:
     """Drop trailing empty sessions when docs over-declare session_count; attach Q4 to last."""
     while path.sessions and not session_has_content(path.sessions[-1]):
@@ -651,7 +687,7 @@ def validate_records(records: list[PathRecord]) -> list[str]:
         empty_q = sum(1 for s in record.sessions if not s.questions)
         if empty_q:
             warnings.append(f"{record.name}: {empty_q} session(s) missing questions")
-        if record.path_type != "success_plan" and record.number >= 19:
+        if record.path_type != "success_plan":
             if record.sessions and not record.sessions[-1].reassessment_reflection_question:
                 warnings.append(f"{record.name}: missing reassessment Q4 on final session")
     return warnings
@@ -705,6 +741,7 @@ def main() -> None:
         print(f"  {doc}")
 
     records = parse_docs(doc_paths)
+    apply_canonical_q4(records)
     print_summary(records)
     warnings = validate_records(records)
     for warning in warnings:
