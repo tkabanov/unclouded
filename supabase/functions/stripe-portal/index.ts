@@ -7,9 +7,11 @@
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
   corsHeaders,
+  ensureStripeCustomer,
   getServiceClient,
   getStripe,
   json,
+  loadBillingProfile,
   loadSubscriptionRow,
   resolveRequestAppOrigin,
 } from "../_shared/stripeBilling.ts";
@@ -40,6 +42,9 @@ Deno.serve(async (req) => {
 
   try {
     const service = getServiceClient();
+    const profile = await loadBillingProfile(service, auth.user.id);
+    if (!profile) return json({ error: "Profile not found" }, 404);
+
     const subscription = await loadSubscriptionRow(service, auth.user.id);
 
     if (!subscription?.stripeCustomerId) {
@@ -52,9 +57,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Replaces stale customer IDs left over from a Stripe account / key swap.
+    const customerId = await ensureStripeCustomer(
+      service,
+      profile,
+      subscription.stripeCustomerId,
+    );
+
     const origin = resolveRequestAppOrigin(req, body.returnOrigin);
     const session = await getStripe().billingPortal.sessions.create({
-      customer: subscription.stripeCustomerId,
+      customer: customerId,
       // `billing=portal` lets SettingsSubscriptionTab sync + show recovery copy.
       return_url: `${origin}/settings?tab=subscription&billing=portal`,
     });

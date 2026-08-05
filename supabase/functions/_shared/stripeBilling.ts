@@ -173,9 +173,25 @@ export async function ensureStripeCustomer(
   profile: BillingProfile,
   existingCustomerId: string | null,
 ): Promise<string> {
-  if (existingCustomerId) return existingCustomerId;
+  const stripe = getStripe();
 
-  const customer = await getStripe().customers.create({
+  // Stale IDs happen when STRIPE_SECRET_KEY points at a different Stripe
+  // account than the one that created the stored customer (local QA / key swap).
+  if (existingCustomerId) {
+    try {
+      const existing = await stripe.customers.retrieve(existingCustomerId);
+      if (!("deleted" in existing && existing.deleted)) {
+        return existingCustomerId;
+      }
+    } catch (err) {
+      console.warn(
+        `Stored Stripe customer ${existingCustomerId} missing; creating a replacement`,
+        err,
+      );
+    }
+  }
+
+  const customer = await stripe.customers.create({
     email: profile.email ?? undefined,
     metadata: { userId: profile.id },
   });
