@@ -47,26 +47,26 @@ describe("pathMatchesOnboardingEnrollment", () => {
         {
           ...BUILDING_MOMENTUM_PATH,
           name: "Recovery Roadmap",
-          pillar: "health",
+          pillar: "emotional",
           classifications: "All classifications — this path matches any classification",
           triggerSignals: "enrollment:onboarding; flag:recovery_mode_active = yes — MANDATORY",
         },
-        { ...BASE_CONTEXT, primaryPillar: "health" },
+        { ...BASE_CONTEXT, primaryPillar: "professional" },
       ),
     ).toBe(false);
   });
 
-  it("allows recovery-required paths when recovery flag is active", () => {
+  it("allows recovery-required paths when recovery flag is active regardless of pillar", () => {
     expect(
       pathMatchesOnboardingEnrollment(
         {
           ...BUILDING_MOMENTUM_PATH,
           name: "Recovery Roadmap",
-          pillar: "health",
+          pillar: "emotional",
           classifications: "All classifications — this path matches any classification",
           triggerSignals: "enrollment:onboarding; flag:recovery_mode_active = yes — MANDATORY",
         },
-        { ...BASE_CONTEXT, primaryPillar: "health", recoveryModeActive: true },
+        { ...BASE_CONTEXT, primaryPillar: "professional", recoveryModeActive: true },
       ),
     ).toBe(true);
   });
@@ -78,6 +78,14 @@ describe("pathMatchesOnboardingEnrollment", () => {
         BASE_CONTEXT,
       ),
     ).toBe(false);
+  });
+
+  it("PL-GATE-002: Free cannot play Pro/Premium path sessions after downgrade", () => {
+    expect(userCanAccessPathTier(TIER.FREE, TIER.PRO)).toBe(false);
+    expect(userCanAccessPathTier(TIER.FREE, TIER.PREMIUM)).toBe(false);
+    expect(userCanAccessPathTier(TIER.PRO, TIER.PRO)).toBe(true);
+    expect(userCanAccessPathTier(TIER.PRO, TIER.PREMIUM)).toBe(false);
+    expect(userCanAccessPathTier(TIER.PREMIUM, TIER.PREMIUM)).toBe(true);
   });
 
   it("rejects identity-gated paths when Identity Lens is incomplete", () => {

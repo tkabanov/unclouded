@@ -133,14 +133,21 @@ export function pathMatchesOnboardingEnrollment(
   if (!isTierSlug(path.tier) || !userCanAccessPathTier(context.userTier, path.tier)) {
     return false;
   }
-  if (path.pillar.trim().toLowerCase() !== context.primaryPillar.trim().toLowerCase()) {
+
+  const flagRequirement = parsePathFlagRequirement(path.triggerSignals);
+  // Flag-mandatory recovery/grief paths enroll regardless of primary pillar (Build Brief).
+  const skipPillarMatch =
+    flagRequirement.kind === "recovery_required" || flagRequirement.kind === "grief_required";
+  if (
+    !skipPillarMatch &&
+    path.pillar.trim().toLowerCase() !== context.primaryPillar.trim().toLowerCase()
+  ) {
     return false;
   }
   if (!pathMatchesClassification(path.classifications, context.classificationName)) {
     return false;
   }
 
-  const flagRequirement = parsePathFlagRequirement(path.triggerSignals);
   if (!userMeetsPathFlagRequirement(flagRequirement, context)) {
     return false;
   }

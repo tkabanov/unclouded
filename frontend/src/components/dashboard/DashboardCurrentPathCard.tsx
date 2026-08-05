@@ -1,18 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Route } from "lucide-react";
+import { ArrowRight, Route, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardUserContext } from "@/hooks/useDashboardUser";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
+import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import {
   fetchCurrentPathEnrollment,
   type CurrentPathEnrollment,
 } from "@/lib/dashboard/pathEnrollmentApi";
+import { TIER } from "@/lib/enums/tier";
+import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
 import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 
 function sessionCompletionHref(sessionId: string): string {
   return `${PATHS_ROUTE}?${SESSION_SEARCH_PARAM}=${encodeURIComponent(sessionId)}`;
@@ -21,8 +26,16 @@ function sessionCompletionHref(sessionId: string): string {
 export default function DashboardCurrentPathCard() {
   const { user } = useAuth();
   const { profile } = useDashboardUserContext();
+  const userTier = useEffectiveTier().tier;
   const [loading, setLoading] = useState(true);
   const [enrollment, setEnrollment] = useState<CurrentPathEnrollment | null>(null);
+
+  const pathTier = enrollment?.tier ?? TIER.FREE;
+  const needsUpgrade =
+    Boolean(enrollment?.hasActiveEnrollment) &&
+    !userCanAccessPathTier(userTier, pathTier);
+  const lockedPathFeature = pathTier === TIER.PREMIUM ? "premiumPath" : "proPath";
+  const pathUpsell = useLockedFeatureUpsell(userTier);
 
   const loadEnrollment = useCallback(async () => {
     if (!user) {
@@ -138,10 +151,29 @@ export default function DashboardCurrentPathCard() {
                     Next: {enrollment.nextStepTitle}
                   </p>
                 ) : null}
+                {needsUpgrade ? (
+                  <p
+                    className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
+                    data-testid="dashboard-path-upgrade-required"
+                  >
+                    Upgrade required to continue this path
+                  </p>
+                ) : null}
               </div>
             </div>
 
-            {enrollment.currentSessionId ? (
+            {needsUpgrade ? (
+              <Button
+                type="button"
+                data-style-ref="Button_primary_"
+                className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5 sm:w-auto")}
+                data-testid="dashboard-path-upgrade"
+                onClick={() => pathUpsell.promptUpgrade(lockedPathFeature)}
+              >
+                <Star className="h-4 w-4" aria-hidden />
+                Upgrade Plan
+              </Button>
+            ) : enrollment.currentSessionId ? (
               <Button
                 asChild
                 type="button"
@@ -163,6 +195,13 @@ export default function DashboardCurrentPathCard() {
           No active path yet
         </p>
       )}
+
+      <LockedFeatureUpgradeDialog
+        open={pathUpsell.openFeature === lockedPathFeature}
+        feature={lockedPathFeature}
+        currentTier={userTier}
+        onClose={pathUpsell.closeUpsell}
+      />
     </div>
   );
 }

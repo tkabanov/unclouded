@@ -499,6 +499,21 @@ def default_doc_paths() -> list[Path]:
     return found
 
 
+# Canonical #22 — not authored in batch files (OVR-037 numbering uses path-55 key).
+CLARITY_PRIORITY_RESET = PathRecord(
+    number=55,
+    name="Clarity & Priority Reset",
+    tier="pro",
+    pillar="professional",
+    sub_mode="general_professional",
+    session_count=0,
+    classifications="Performance Stagnation · Building Momentum",
+    flag_required="None — catalog stub; Phase 2 content TO WRITE",
+    subtitle="Professional  ·  Goal excavation and priority architecture  ·  Content TO WRITE",
+    enrollment_onboarding=False,
+)
+
+
 def parse_docs(paths: list[Path]) -> list[PathRecord]:
     numbered: dict[int, PathRecord] = {}
     success: list[PathRecord] = []
@@ -517,6 +532,10 @@ def parse_docs(paths: list[Path]) -> list[PathRecord]:
             if record:
                 success.append(record)
                 success_counter += 1
+
+    # Catalog stub for Canonical path missing from authored batches.
+    if 55 not in numbered:
+        numbered[55] = CLARITY_PRIORITY_RESET
 
     return [numbered[key] for key in sorted(numbered)] + success
 

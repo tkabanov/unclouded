@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
+import { Star } from "lucide-react";
 import {
   SessionCompletionForm,
   type JournalLetterDisposition,
   type PathSessionFormData,
 } from "@/components/design-system/SessionCompletionForm";
+import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
+import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useSessionCompletionRoute } from "@/hooks/useSessionCompletionRoute";
 import { useUserProfile } from "@/lib/userProfile";
 import { createJournalEntry } from "@/lib/journal/journalEntriesApi";
@@ -18,12 +23,16 @@ import {
   isFinalDirectedWritingSession,
   UNSENT_LETTER_JOURNAL_TITLE,
 } from "@/lib/paths/directedWritingHelpers";
+import { TIER } from "@/lib/enums/tier";
+import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import {
   completePathSession,
   fetchPathSession,
+  PathSessionUpgradeRequiredError,
 } from "@/lib/paths/pathsSessionApi";
 import { cn } from "@/lib/utils";
+import { bubbleStyle } from "@/styles";
 import { toast } from "sonner";
 
 type SessionCompletionRouteProps = {
@@ -36,6 +45,7 @@ export default function SessionCompletionRoute({
 }: SessionCompletionRouteProps) {
   const { user } = useAuth();
   const { profile } = useUserProfile();
+  const userTier = useEffectiveTier().tier;
   const { sessionId, isVisible, matchingEnrollment, clearSessionParam } =
     useSessionCompletionRoute();
   const { refresh } = usePathsEnrollmentStore();
@@ -48,16 +58,25 @@ export default function SessionCompletionRoute({
     useState<JournalLetterDisposition | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const pathTier = matchingEnrollment?.tier ?? TIER.FREE;
+  const needsUpgrade = Boolean(
+    matchingEnrollment && !userCanAccessPathTier(userTier, pathTier),
+  );
+  const lockedPathFeature = pathTier === TIER.PREMIUM ? "premiumPath" : "proPath";
+  const pathUpsell = useLockedFeatureUpsell(userTier);
+
   const directedWriting = isDirectedWritingSubMode(matchingEnrollment?.subMode);
   const isFinalSession = isFinalDirectedWritingSession(session?.sessionIndex);
 
   useEffect(() => {
-    if (!isVisible || !sessionId) {
+    if (!isVisible || !sessionId || needsUpgrade) {
       setSession(null);
       setAnswers({});
       setReflectionChecked(false);
       setJournalDisposition(null);
       setSubmitError(null);
+      if (!isVisible || !sessionId) return;
+      setLoading(false);
       return;
     }
 
@@ -85,10 +104,14 @@ export default function SessionCompletionRoute({
     return () => {
       cancelled = true;
     };
-  }, [isVisible, sessionId, matchingEnrollment?.pathSlug]);
+  }, [isVisible, sessionId, matchingEnrollment?.pathSlug, needsUpgrade]);
 
   const handleSubmit = useCallback(async () => {
     if (!sessionId || !matchingEnrollment || !session || submitting || !user) return;
+    if (needsUpgrade) {
+      pathUpsell.promptUpgrade(lockedPathFeature);
+      return;
+    }
 
     const missing = session.questions.filter(
       (question) => !(answers[question.id]?.trim()),
@@ -157,6 +180,7 @@ export default function SessionCompletionRoute({
         microCommitmentText: session.microCommitment,
         pathName: matchingEnrollment.pathName,
         sessionTitle: session.title,
+        pathTier: matchingEnrollment.tier,
       });
       clearSessionParam();
       onReturnToMyPaths();
@@ -168,6 +192,11 @@ export default function SessionCompletionRoute({
       );
     } catch (error) {
       console.error("Failed to submit session completion", error);
+      if (error instanceof PathSessionUpgradeRequiredError) {
+        pathUpsell.promptUpgrade(lockedPathFeature);
+        setSubmitError("Upgrade required to continue this path.");
+        return;
+      }
       const message =
         error instanceof Error
           ? error.message
@@ -189,6 +218,9 @@ export default function SessionCompletionRoute({
     submitting,
     user,
     profile?.onboardingData,
+    needsUpgrade,
+    lockedPathFeature,
+    pathUpsell.promptUpgrade,
     clearSessionParam,
     onReturnToMyPaths,
     refresh,
@@ -204,7 +236,45 @@ export default function SessionCompletionRoute({
   return (
     <div className="flex w-full flex-col">
       <div className={cn("w-full", submitting && "pointer-events-none opacity-70")}>
-        {loading ? (
+        {needsUpgrade ? (
+          <div
+            className="flex w-full flex-col gap-4 rounded-lg border border-border/60 bg-muted/20 p-6"
+            data-testid="session-upgrade-wall"
+            data-has-upgrade="true"
+          >
+            <h2 className="text-xl font-semibold text-foreground">
+              {matchingEnrollment?.pathName ?? "Path"} — upgrade required
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Your progress is saved, but continuing this{" "}
+              {pathTier === TIER.PREMIUM ? "Premium" : "Pro"} path requires an
+              upgraded plan. Session coaching content stays locked until you
+              upgrade.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="cta"
+                data-style-ref="Button_primary_"
+                className={cn(bubbleStyle("Button_primary_"), "gap-1.5")}
+                onClick={() => pathUpsell.promptUpgrade(lockedPathFeature)}
+              >
+                <Star className="h-4 w-4 shrink-0" aria-hidden />
+                Upgrade Plan
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  clearSessionParam();
+                  onReturnToMyPaths();
+                }}
+              >
+                Back to My Paths
+              </Button>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="flex w-full flex-col gap-4">
             <Skeleton className="h-8 w-2/3" />
             <Skeleton className="h-24 w-full" />
@@ -222,7 +292,7 @@ export default function SessionCompletionRoute({
             </p>
           </div>
         ) : session ? (
-          <div className="flex w-full flex-col gap-3">
+          <div className="flex w-full flex-col gap-3" data-has-upgrade="false">
             <SessionCompletionForm
               session={session}
               answers={answers}
@@ -253,6 +323,13 @@ export default function SessionCompletionRoute({
           </p>
         )}
       </div>
+
+      <LockedFeatureUpgradeDialog
+        open={pathUpsell.openFeature === lockedPathFeature}
+        feature={lockedPathFeature}
+        currentTier={userTier}
+        onClose={pathUpsell.closeUpsell}
+      />
     </div>
   );
 }

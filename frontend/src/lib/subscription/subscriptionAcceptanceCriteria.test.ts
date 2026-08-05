@@ -77,6 +77,9 @@ const BOOKINGS_SQL = migration("20260727120000_premium_credits_and_bookings.sql"
 const ABORT_REDIRECT_SQL = migration("20260728120000_one_on_one_abort_redirect.sql");
 const CRON_SQL = migration("20260727130000_subscription_lifecycle_cron.sql");
 const ENFORCEMENT_SQL = migration("20260727140000_paid_feature_server_enforcement.sql");
+const STALE_ENROLLMENT_SQL = migration(
+  "20260804180000_pl_gate_002_stale_enrollment_tier_lock.sql",
+);
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = Date.UTC(2026, 6, 27);
@@ -580,6 +583,19 @@ describe("AC-28 paid-feature access is validated by the backend", () => {
     expect(ENFORCEMENT_SQL).toMatch(
       /REVOKE EXECUTE ON FUNCTION public\.available_premium_credits\(UUID\) FROM authenticated;/,
     );
+  });
+
+  it("PL-GATE-002: stale enrollments cannot complete or read paid sessions", () => {
+    expect(STALE_ENROLLMENT_SQL).toMatch(
+      /Owner updates pathEnrollment with tier for progress[\s\S]*?my_tier_allows[\s\S]*?abandoned/,
+    );
+    expect(STALE_ENROLLMENT_SQL).toMatch(
+      /Owner with tier inserts pathResponse[\s\S]*?path_session_required_tier/,
+    );
+    expect(STALE_ENROLLMENT_SQL).toMatch(
+      /userCanAccessPathSession[\s\S]*?my_tier_allows/,
+    );
+    expect(STALE_ENROLLMENT_SQL).toMatch(/list_path_session_steps/);
   });
 
   it("shows human coaching entry points for Free (upsell on click)", () => {

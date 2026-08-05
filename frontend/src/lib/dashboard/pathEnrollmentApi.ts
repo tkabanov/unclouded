@@ -41,6 +41,8 @@ export interface CurrentPathEnrollment {
   enrollmentId?: string;
   pathName: string;
   pathSlug?: string;
+  /** Path catalog tier — used to lock Continue after downgrade (PL-GATE-002). */
+  tier?: TierSlug;
   progressPercent: number;
   nextStepTitle: string | null;
   /** Opens session completion form at /paths?session= */
@@ -276,6 +278,7 @@ async function parsePathenrollmentRow(
 
   const pathName = catalog?.name ?? embeddedMeta.pathName;
   const pathSlug = catalog?.slug ?? embeddedMeta.pathSlug;
+  const tier = catalog?.tier ?? embeddedMeta.tier;
   const totalSessions = catalog?.sessionsCount || embeddedMeta.totalSessions || sessions.length;
 
   const completedCount = toNumber(row.completedSessionsCount) ?? 0;
@@ -295,6 +298,7 @@ async function parsePathenrollmentRow(
     enrollmentId: row.id,
     pathName,
     pathSlug,
+    tier,
     progressPercent: computeProgressPercent(completedCount, totalSessions),
     nextStepTitle,
     currentSessionId,
@@ -331,6 +335,7 @@ async function deriveFromOnboardingData(
     enrollmentId: state.enrollment_id,
     pathName: catalog?.name ?? "Path",
     pathSlug: catalog?.slug ?? state.path_slug,
+    tier: catalog?.tier,
     progressPercent: computeProgressPercent(
       completedCount,
       catalog?.sessionsCount ?? sessions.length,

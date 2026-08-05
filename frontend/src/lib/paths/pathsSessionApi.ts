@@ -10,8 +10,10 @@ import {
   type PathEnrollmentOnboardingState,
 } from "@/lib/dashboard/microCommitmentsApi";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
+import { TIER, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_RESPONSES_ONBOARDING_KEY } from "@/lib/chat/pathsReflectionApi";
 import { fetchPathSessionsByKey } from "@/lib/paths/pathsCatalogApi";
+import { loadEffectiveTierForUser } from "@/lib/subscription/subscriptionApi";
 import { incrementModulesCompletedCount } from "@/lib/userProfile/userProfileHooks";
 import { loadProfileRow, patchOnboardingAndResults } from "@/lib/userProfile/profileFieldPatch";
 import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
@@ -59,7 +61,20 @@ export type CompletePathSessionInput = {
   microCommitmentText?: string;
   pathName?: string;
   sessionTitle?: string;
+  /** When known, checked client-side before mutating progress (PL-GATE-002). */
+  pathTier?: TierSlug;
 };
+
+export class PathSessionUpgradeRequiredError extends Error {
+  constructor() {
+    super("upgrade_required");
+    this.name = "PathSessionUpgradeRequiredError";
+  }
+}
+
+function userTierAllowsPath(userTier: TierSlug, pathTier: TierSlug): boolean {
+  return TIER_ORDER.indexOf(userTier) >= TIER_ORDER.indexOf(pathTier);
+}
 
 function toCount(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) return Math.max(0, Math.floor(value));
@@ -156,6 +171,14 @@ async function persistAnswersToPathResponseTable(
   const { error } = await client.from("pathResponse").insert(rows as never);
   if (!error) return true;
   if (isSchemaUnavailable(error)) return null;
+  const message = (error.message ?? "").toLowerCase();
+  if (
+    message.includes("policy") ||
+    message.includes("permission") ||
+    message.includes("row-level security")
+  ) {
+    throw new PathSessionUpgradeRequiredError();
+  }
   throw error;
 }
 
@@ -248,6 +271,15 @@ async function advanceEnrollmentInTable(
 
   if (!updateError) return true;
   if (isSchemaUnavailable(updateError)) return null;
+  // RLS rejects progress updates when the caller's tier is below the path tier.
+  const message = (updateError.message ?? "").toLowerCase();
+  if (
+    message.includes("policy") ||
+    message.includes("permission") ||
+    message.includes("row-level security")
+  ) {
+    throw new PathSessionUpgradeRequiredError();
+  }
   throw updateError;
 }
 
@@ -319,6 +351,7 @@ export async function completePathSession(
     microCommitmentText,
     pathName,
     sessionTitle,
+    pathTier,
   } = input;
 
   const trimmedAnswers = answers
@@ -344,11 +377,25 @@ export async function completePathSession(
   } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be signed in to complete a session.");
 
+  if (pathTier && pathTier !== TIER.FREE) {
+    const effectiveTier = await loadEffectiveTierForUser(user.id);
+    if (!userTierAllowsPath(effectiveTier, pathTier)) {
+      throw new PathSessionUpgradeRequiredError();
+    }
+  }
+
   const savedToTable =
     trimmedAnswers.length === 0
       ? true
       : await persistAnswersToPathResponseTable(user.id, sessionId, trimmedAnswers);
   if (savedToTable === null) {
+    // Onboarding fallback must not let Free complete paid sessions after downgrade.
+    if (pathTier && pathTier !== TIER.FREE) {
+      const effectiveTier = await loadEffectiveTierForUser(user.id);
+      if (!userTierAllowsPath(effectiveTier, pathTier)) {
+        throw new PathSessionUpgradeRequiredError();
+      }
+    }
     await persistAnswersToOnboarding(
       user.id,
       sessionId,
@@ -365,6 +412,12 @@ export async function completePathSession(
     setAsFocus,
   );
   if (advanced === null) {
+    if (pathTier && pathTier !== TIER.FREE) {
+      const effectiveTier = await loadEffectiveTierForUser(user.id);
+      if (!userTierAllowsPath(effectiveTier, pathTier)) {
+        throw new PathSessionUpgradeRequiredError();
+      }
+    }
     await advanceEnrollmentInOnboarding(
       user.id,
       sessionId,

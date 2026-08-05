@@ -1,12 +1,16 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { Button } from "@/components/ui/button";
+import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
+import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import type { PathEnrollmentListItem } from "@/lib/dashboard/pathEnrollmentApi";
 import { PATH_ENROLLMENT_STATUS, PATH_ENROLLMENT_STATUS_LABELS } from "@/lib/enums/pathEnrollment";
-import { TIER_LABELS } from "@/lib/enums/tier";
+import { TIER, TIER_LABELS } from "@/lib/enums/tier";
+import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
 import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 
 export interface PathCardProps {
@@ -24,8 +28,13 @@ export default function PathCard({
   onViewDetails,
   className,
 }: PathCardProps) {
+  const userTier = useEffectiveTier().tier;
+  const needsUpgrade = !userCanAccessPathTier(userTier, enrollment.tier);
+  const lockedPathFeature = enrollment.tier === TIER.PREMIUM ? "premiumPath" : "proPath";
+  const pathUpsell = useLockedFeatureUpsell(userTier);
   const statusLabel = PATH_ENROLLMENT_STATUS_LABELS[enrollment.status];
   const canContinue =
+    !needsUpgrade &&
     Boolean(enrollment.currentSessionId) &&
     (enrollment.status === PATH_ENROLLMENT_STATUS.ACTIVE ||
       enrollment.status === PATH_ENROLLMENT_STATUS.PAUSED);
@@ -82,6 +91,14 @@ export default function PathCard({
             Next: {enrollment.currentSessionTitle}
           </p>
         ) : null}
+        {needsUpgrade ? (
+          <p
+            className={cn(bubbleStyle("Text_small_"), "mt-1 text-xs text-muted-foreground")}
+            data-testid="path-card-upgrade-required"
+          >
+            Upgrade required to continue
+          </p>
+        ) : null}
       </div>
 
       <div
@@ -131,6 +148,21 @@ export default function PathCard({
               </Link>
             </Button>
           ) : null}
+          {needsUpgrade &&
+          (enrollment.status === PATH_ENROLLMENT_STATUS.ACTIVE ||
+            enrollment.status === PATH_ENROLLMENT_STATUS.PAUSED) ? (
+            <Button
+              type="button"
+              size="sm"
+              data-style-ref="Button_primary_"
+              className={cn(bubbleStyle("Button_primary_"), "shrink-0 gap-1.5")}
+              data-testid="path-card-upgrade"
+              onClick={() => pathUpsell.promptUpgrade(lockedPathFeature)}
+            >
+              <Star className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Upgrade Plan
+            </Button>
+          ) : null}
           <Button
             type="button"
             size="sm"
@@ -143,6 +175,13 @@ export default function PathCard({
           </Button>
         </div>
       </footer>
+
+      <LockedFeatureUpgradeDialog
+        open={pathUpsell.openFeature === lockedPathFeature}
+        feature={lockedPathFeature}
+        currentTier={userTier}
+        onClose={pathUpsell.closeUpsell}
+      />
     </article>
   );
 }

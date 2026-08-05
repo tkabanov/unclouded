@@ -26,8 +26,8 @@ This is the single authoritative path list for Uncloud360. It supersedes all pri
 | **Free Tier Paths**                  | **10**    | _Paths 1-8, 14-15. Available to all users._                            |
 | **Pro Tier Paths**                   | **41**    | _Paths 9-13, 16-41, 45-51, 53-55. Subscription required._              |
 | **Premium Tier Paths**               | **4**     | _Paths 42-44, 52. Premium subscription required._                      |
-| **Emotional Wellbeing Pillar**       | **25**    | _Core emotional coaching paths._                                       |
-| **Professional Pillar**              | **21**    | _Career, leadership, performance paths._                               |
+| **Emotional Wellbeing Pillar**       | **26**    | _Core emotional coaching paths._                                       |
+| **Professional Pillar**              | **20**    | _Career, leadership, performance paths._                               |
 | **Health & Wellness Pillar**         | **9**     | _Body, sleep, energy, habits paths._                                   |
 
 # **Complete Path List - All 55 Paths**

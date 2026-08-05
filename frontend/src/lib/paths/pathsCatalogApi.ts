@@ -204,6 +204,37 @@ export async function fetchPathSessions(pathId: string): Promise<PathSessionSumm
     .order("index", { ascending: true });
 
   if (error) {
+    if (isSchemaUnavailable(error)) return fetchPathSessionSteps(pathId);
+    throw error;
+  }
+
+  if (Array.isArray(data) && data.length > 0) {
+    return data
+      .map((row) => mapSessionRow(row as PathsessionRow))
+      .filter((item): item is PathSessionSummary => item !== null);
+  }
+
+  // RLS hides paid coaching content for under-tier users; titles still needed
+  // for progress / path detail (PL-GATE-002).
+  return fetchPathSessionSteps(pathId);
+}
+
+/**
+ * Titles-only session list via SECURITY DEFINER RPC — safe for locked paths.
+ */
+export async function fetchPathSessionSteps(pathId: string): Promise<PathSessionSummary[]> {
+  const client = supabase as unknown as UntypedSupabase & {
+    rpc: (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message?: string; code?: string } | null }>;
+  };
+
+  const { data, error } = await client.rpc("list_path_session_steps", {
+    p_path_id: pathId,
+  });
+
+  if (error) {
     if (isSchemaUnavailable(error)) return [];
     throw error;
   }
@@ -211,7 +242,17 @@ export async function fetchPathSessions(pathId: string): Promise<PathSessionSumm
   if (!Array.isArray(data)) return [];
 
   return data
-    .map((row) => mapSessionRow(row as PathsessionRow))
+    .map((row) => {
+      const typed = row as PathsessionRow;
+      if (!typed.id) return null;
+      return {
+        id: typed.id,
+        index: toNumber(typed.index) || 1,
+        title: typed.title?.trim() ?? "",
+        coachingText: "",
+        microCommitment: "",
+      };
+    })
     .filter((item): item is PathSessionSummary => item !== null);
 }
 
@@ -233,7 +274,8 @@ export async function fetchPathSessionTitle(sessionId: string): Promise<string |
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
-    throw error;
+    // Paid session rows are hidden by RLS for under-tier users.
+    return null;
   }
 
   if (!data || typeof data !== "object") return null;

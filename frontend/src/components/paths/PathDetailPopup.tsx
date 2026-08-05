@@ -122,8 +122,11 @@ export default function PathDetailPopup({
   const showUnenroll = enrolled && Boolean(matchedEnrollment?.enrollmentId);
   const showUpgrade = needsUpgrade;
   const continueSessionId = matchedEnrollment?.currentSessionId;
+  // Stale enrollments after downgrade stay visible (progress read-only) but
+  // Continue must not bypass the tier gate — PL-GATE-002 / PL-DOWN-001.
   const showContinue =
     enrolled &&
+    !needsUpgrade &&
     Boolean(continueSessionId) &&
     matchedEnrollment?.status !== PATH_ENROLLMENT_STATUS.COMPLETED;
 
