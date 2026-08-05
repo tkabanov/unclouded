@@ -9,6 +9,7 @@ import { syncLegacyRoleType } from "@/lib/enums/customerRoleTypes";
 import { computeOnboardingModulePreview } from "@/lib/modules/moduleScheduler";
 import { autoEnrollPathsAfterOnboarding } from "@/lib/paths/pathsOnboardingEnrollmentApi";
 import { recordInitialAssessment } from "@/lib/reassessment/completeReassessment";
+import { loadEffectiveTierForUser } from "@/lib/subscription/subscriptionApi";
 import { runOnboardingProfilePipeline } from "@/lib/userProfile/onboardingProfilePipeline";
 import type { OnboardingPayload, SaveOnboardingOptions } from "@/lib/userProfile";
 
@@ -142,10 +143,12 @@ export async function completeOnboarding(
     console.warn("Failed to record initial assessmentResult row", err);
   }
 
+  const userTier = await loadEffectiveTierForUser(userId);
   await autoEnrollPathsAfterOnboarding({
     userId,
     primaryPillar: data.primaryPillar,
     results,
+    userTier,
   });
 
   scheduleWelcomeEmailAfterOnboarding({

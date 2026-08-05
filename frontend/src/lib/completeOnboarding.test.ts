@@ -6,6 +6,8 @@ import {
 } from "./completeOnboarding";
 import { computeOnboardingModulePreview } from "./modules/moduleScheduler";
 import { MODULE_SLUGS } from "./modules/moduleSlugs";
+import { autoEnrollPathsAfterOnboarding } from "./paths/pathsOnboardingEnrollmentApi";
+import { loadEffectiveTierForUser } from "./subscription/subscriptionApi";
 import type { OnboardingPayload } from "./userProfile";
 
 vi.mock("./userProfile/onboardingProfilePipeline", () => ({
@@ -14,6 +16,10 @@ vi.mock("./userProfile/onboardingProfilePipeline", () => ({
 
 vi.mock("./paths/pathsOnboardingEnrollmentApi", () => ({
   autoEnrollPathsAfterOnboarding: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("./subscription/subscriptionApi", () => ({
+  loadEffectiveTierForUser: vi.fn().mockResolvedValue("pro"),
 }));
 
 vi.mock("./reassessment/completeReassessment", () => ({
@@ -110,5 +116,27 @@ describe("completeOnboarding scheduler persist", () => {
     expect(Object.keys(savedPayload!.moduleSchedules ?? {})).toHaveLength(MODULE_SLUGS.length);
     expect(savedPayload!.moduleSchedules).toEqual(schedules);
     expect(navigate).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("passes effective userTier to path auto-enrollment (PL-REC-002)", async () => {
+    const saveOnboardingMock = vi.fn().mockResolvedValue(undefined);
+    const markOnboardingComplete = vi.fn().mockResolvedValue(undefined);
+    const navigate = vi.fn();
+    vi.mocked(loadEffectiveTierForUser).mockResolvedValueOnce("pro");
+
+    await completeOnboarding(BASE_DATA, {
+      userId: "user-pro",
+      saveOnboarding: saveOnboardingMock,
+      markOnboardingComplete,
+      navigate,
+    });
+
+    expect(loadEffectiveTierForUser).toHaveBeenCalledWith("user-pro");
+    expect(autoEnrollPathsAfterOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-pro",
+        userTier: "pro",
+      }),
+    );
   });
 });

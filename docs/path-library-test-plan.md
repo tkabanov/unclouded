@@ -427,32 +427,34 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Expected** | Списки соответствуют матрице §2. |
 | **Observed (2026-08-05, vercel)** | Tier combobox: free → **15** Free-only; pro → **40** Pro-only; premium → **4** Premium-only; All Tiers → 59 (40+15+4). |
 
-### PL-FIL-002 — Filter by pillar
+### PL-FIL-002 — Filter by pillar — TESTED
 
 | | |
 |---|---|
 | **Steps** | Emotional / Professional / Health. |
 | **Expected** | Только paths выбранного pillar; counts разумны. |
-| **Observed (2026-08-05, vercel)** | **FAIL.** `PathsFilterRow` имеет только Tier select — **pillar filter отсутствует** в UI Library. Невозможно отфильтровать Emotional / Professional / Health. |
+| **Observed (2026-08-05, vercel retest)** | **PASS.** Pillar combobox: Emotional **24**, Professional **27**, Health **8** (только свой pillar); All Pillars **59** (=24+27+8). |
 
-### PL-FIL-003 — Locked paths visible vs hidden
+### PL-FIL-003 — Locked paths visible vs hidden — TESTED
 
 | | |
 |---|---|
 | **Steps** | Free user в Library. |
 | **Expected** | Зафиксировать продукт: locked paths **видны** (с lock) для upsell **или** скрыты. Регресс — inconsistent mix. |
+| **Observed (2026-08-05, vercel)** | **Продукт: locked visible** (upsell). Free signup (skip onboarding) → All Tiers: 15 Enroll (Free) + **44 Upgrade required**. Pro filter: 40/40 locked; Premium: 4/4 locked; Free: 15/15 enroll. Mix consistent, не скрыты. |
 
 ---
 
 ## 13. Recommendations / onboarding
 
-### PL-REC-001 — Onboarding auto-enroll respects Free tier
+### PL-REC-001 — Onboarding auto-enroll respects Free tier — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | New Free user; classification + primary pillar. |
 | **Steps** | Complete onboarding. |
 | **Expected** | Auto-enrolled paths только `tier ≤ free` (и flag rules). Нет silent Pro enrollment. |
+| **Observed (2026-08-05, vercel)** | New Free signup → full onboarding (Professional role, health pillar path via answers, Capacity Erosion, health «None of the above»). Subscription **Free**. Auto-enroll: only **Building Daily Structure** (`tier: free`, Active). No Pro/Premium enrollments. |
 
 ### PL-REC-002 — Pro onboarding может рекомендовать Pro paths
 
@@ -461,6 +463,7 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Preconditions** | New Pro user. |
 | **Steps** | Onboarding → recommended / enrolled. |
 | **Expected** | Могут появиться Pro paths; Premium — нет, пока не Premium. |
+| **Observed (2026-08-05, vercel)** | **FAIL.** New user: onboarding → Results → Upgrade to Pro (Stripe) → webhook → Pro active → «Go to my dashboard». Auto-enroll only Free paths (Boundary Setting Foundations, Getting Through Hard Seasons, Nervous System Basics). **Root cause:** `completeOnboarding` вызывает `autoEnrollPathsAfterOnboarding` **без** `userTier`; API defaults `userTier ?? TIER.FREE` (`pathsOnboardingEnrollmentApi.ts`). Pro enrollment при onboarding невозможен при текущем коде. |
 
 ### PL-REC-003 — Flag-gated paths (grief / recovery) — TESTED
 
