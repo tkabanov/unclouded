@@ -25,6 +25,7 @@ import { fetchPathSessionsByKey, type PathCatalogEntry } from "@/lib/paths/paths
 import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
 import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
 import {
+  isActiveHrAssignment,
   isSuccessPlanPath,
   resolveSuccessPlanAccess,
 } from "@/lib/paths/successPlanAccess";
@@ -127,7 +128,7 @@ export default function PathDetailPopup({
     subMode,
     triggerSignals: catalogPath?.triggerSignals,
   });
-  const hasHrAssignment = matchedEnrollment?.source === "hr_assign";
+  const hasHrAssignment = isActiveHrAssignment(matchedEnrollment);
   const [hasSuccessPlanAddon, setHasSuccessPlanAddon] = useState(false);
   const [addonLoading, setAddonLoading] = useState(false);
 

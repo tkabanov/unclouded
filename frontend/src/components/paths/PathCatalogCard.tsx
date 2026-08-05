@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import type { PathEnrollmentListItem } from "@/lib/paths/pathsEnrollmentApi";
 import type { PathModuleGate } from "@/lib/paths/pathModulePrerequisites";
-import { isSuccessPlanPath } from "@/lib/paths/successPlanAccess";
+import { isActiveHrAssignment, isSuccessPlanPath } from "@/lib/paths/successPlanAccess";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 
@@ -43,7 +43,7 @@ export default function PathCatalogCard({
 }: PathCatalogCardProps) {
   const enrolled = isEnrolled(enrollment);
   const successPlan = isSuccessPlanPath(path);
-  const hrAssigned = enrollment?.source === "hr_assign";
+  const hrAssigned = isActiveHrAssignment(enrollment);
   const needsUpgrade = successPlan
     ? !hrAssigned &&
       !hasSuccessPlanAddon &&

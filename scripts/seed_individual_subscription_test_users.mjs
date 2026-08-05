@@ -158,6 +158,43 @@ async function syncSubscription(admin, userId, tier) {
       p_stripe_price_id: null,
     });
     if (error) throw new Error(`billing_sync free ${userId}: ${error.message}`);
+
+    // billing_sync coalesces null Stripe IDs onto existing values — a leftover
+    // Pro checkout on this QA inbox would keep stripeSubscriptionId and webhooks
+    // / re-sync can revive Pro. Force a clean Free row for seed stability.
+    const { error: clearError } = await admin
+      .from("userSubscription")
+      .update({
+        planTier: "free",
+        status: "inactive",
+        billingInterval: null,
+        cancelAtPeriodEnd: false,
+        scheduledDowngradeTier: null,
+        scheduledDowngradeEffectiveAt: null,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        stripePriceId: null,
+        gracePeriodEndsAt: null,
+        lastPaymentFailedAt: null,
+      })
+      .eq("userId", userId);
+    if (clearError) {
+      throw new Error(`clear free subscription ${userId}: ${clearError.message}`);
+    }
+
+    const { error: profileError } = await admin
+      .from("profiles")
+      .update({
+        subscribed: false,
+        tier: "free",
+        accountType: "individual",
+        enterpriseTier: null,
+      })
+      .eq("id", userId);
+    if (profileError) {
+      throw new Error(`clear free profile ${userId}: ${profileError.message}`);
+    }
+
     return end;
   }
 

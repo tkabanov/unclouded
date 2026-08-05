@@ -11,9 +11,10 @@ import {
   fetchCurrentPathEnrollment,
   type CurrentPathEnrollment,
 } from "@/lib/dashboard/pathEnrollmentApi";
+import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER } from "@/lib/enums/tier";
 import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
-import { isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
+import { isActiveHrAssignment, isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
 import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,10 @@ export default function DashboardCurrentPathCard() {
           userTier,
           pathTier,
           hasSuccessPlanAddon: enrollment?.source === "addon",
-          hasHrAssignment: enrollment?.source === "hr_assign",
+          hasHrAssignment: isActiveHrAssignment({
+            source: enrollment?.source,
+            status: PATH_ENROLLMENT_STATUS.ACTIVE,
+          }),
         })
       : !userCanAccessPathTier(userTier, pathTier));
   const lockedPathFeature = successPlan

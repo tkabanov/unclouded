@@ -3,7 +3,9 @@
  *
  * Self-serve: Pro/Premium + active Success Plan add-on.
  * HR assign: enrollment source = hr_assign (allowed for Free seats).
+ * Abandoned / completed HR rows do not grant access (SP-HR-004 unassign).
  */
+import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 
 export const SUCCESS_PLAN_SUB_MODE = "success_plan";
@@ -19,6 +21,18 @@ export function isSuccessPlanPath(input: {
   if (isSuccessPlanSubMode(input.subMode)) return true;
   const signals = input.triggerSignals?.toLowerCase() ?? "";
   return signals.includes("path_type:success_plan");
+}
+
+/** True only while an HR assignment is still live (not abandoned/completed). */
+export function isActiveHrAssignment(enrollment: {
+  source?: string | null;
+  status?: string | null;
+} | null | undefined): boolean {
+  if (!enrollment || enrollment.source !== "hr_assign") return false;
+  return (
+    enrollment.status === PATH_ENROLLMENT_STATUS.ACTIVE ||
+    enrollment.status === PATH_ENROLLMENT_STATUS.PAUSED
+  );
 }
 
 export type SuccessPlanAccessInput = {

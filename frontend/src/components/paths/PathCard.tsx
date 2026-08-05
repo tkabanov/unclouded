@@ -11,7 +11,7 @@ import type { PathEnrollmentListItem } from "@/lib/dashboard/pathEnrollmentApi";
 import { PATH_ENROLLMENT_STATUS, PATH_ENROLLMENT_STATUS_LABELS } from "@/lib/enums/pathEnrollment";
 import { TIER, TIER_LABELS } from "@/lib/enums/tier";
 import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
-import { isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
+import { isActiveHrAssignment, isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
 import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 
 export interface PathCardProps {
@@ -38,7 +38,7 @@ export default function PathCard({
         pathTier: enrollment.tier,
         // Enrolled via add-on checkout implies entitlement while tier stays paid.
         hasSuccessPlanAddon: enrollment.source === "addon",
-        hasHrAssignment: enrollment.source === "hr_assign",
+        hasHrAssignment: isActiveHrAssignment(enrollment),
       })
     : !userCanAccessPathTier(userTier, enrollment.tier);
   const lockedPathFeature = successPlan
@@ -90,7 +90,7 @@ export default function PathCard({
               {successPlan ? "Success Plan" : TIER_LABELS[enrollment.tier]}
             </span>
           </div>
-          {enrollment.source === "hr_assign" ? (
+          {isActiveHrAssignment(enrollment) ? (
             <span className={cn(bubbleStyle("Group_badge_"), "text-xs")}>
               Assigned by employer
             </span>
@@ -169,8 +169,7 @@ export default function PathCard({
             </Button>
           ) : null}
           {needsUpgrade &&
-          (enrollment.status === PATH_ENROLLMENT_STATUS.ACTIVE ||
-            enrollment.status === PATH_ENROLLMENT_STATUS.PAUSED) ? (
+          enrollment.status !== PATH_ENROLLMENT_STATUS.COMPLETED ? (
             <Button
               type="button"
               size="sm"

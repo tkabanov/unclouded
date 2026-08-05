@@ -25,7 +25,7 @@ import {
 } from "@/lib/paths/directedWritingHelpers";
 import { TIER } from "@/lib/enums/tier";
 import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
-import { isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
+import { isActiveHrAssignment, isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import {
   completePathSession,
@@ -73,7 +73,7 @@ export default function SessionCompletionRoute({
             userTier,
             pathTier,
             hasSuccessPlanAddon,
-            hasHrAssignment: matchingEnrollment.source === "hr_assign",
+            hasHrAssignment: isActiveHrAssignment(matchingEnrollment),
           })
         : !userCanAccessPathTier(userTier, pathTier)),
   );
@@ -85,7 +85,7 @@ export default function SessionCompletionRoute({
   const pathUpsell = useLockedFeatureUpsell(userTier);
 
   useEffect(() => {
-    if (!successPlan || matchingEnrollment?.source === "hr_assign") {
+    if (!successPlan || isActiveHrAssignment(matchingEnrollment)) {
       setHasSuccessPlanAddon(false);
       return;
     }
@@ -100,7 +100,7 @@ export default function SessionCompletionRoute({
     return () => {
       cancelled = true;
     };
-  }, [successPlan, matchingEnrollment?.source]);
+  }, [successPlan, matchingEnrollment]);
 
   const directedWriting = isDirectedWritingSubMode(matchingEnrollment?.subMode);
   const isFinalSession = isFinalDirectedWritingSession(session?.sessionIndex);

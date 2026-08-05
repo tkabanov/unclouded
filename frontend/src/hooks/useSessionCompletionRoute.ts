@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import { SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 
@@ -10,7 +11,17 @@ export function useSessionCompletionRoute() {
 
   const matchingEnrollment = useMemo(() => {
     if (!sessionId) return null;
-    return enrollments.find((enrollment) => enrollment.currentSessionId === sessionId) ?? null;
+    const matches = enrollments.filter(
+      (enrollment) => enrollment.currentSessionId === sessionId,
+    );
+    if (matches.length === 0) return null;
+    return (
+      matches.find(
+        (enrollment) =>
+          enrollment.status === PATH_ENROLLMENT_STATUS.ACTIVE ||
+          enrollment.status === PATH_ENROLLMENT_STATUS.PAUSED,
+      ) ?? matches[0]
+    );
   }, [enrollments, sessionId]);
 
   const isVisible = Boolean(sessionId && matchingEnrollment && !loading);

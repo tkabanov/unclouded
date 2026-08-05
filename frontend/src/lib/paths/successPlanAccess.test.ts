@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { TIER } from "@/lib/enums/tier";
+import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import {
+  isActiveHrAssignment,
   isSuccessPlanPath,
   isSuccessPlanSubMode,
   resolveSuccessPlanAccess,
@@ -39,6 +41,39 @@ describe("successPlanAccess", () => {
         hasHrAssignment: false,
       }),
     ).toEqual({ allowed: false, reason: "upgrade_required" });
+  });
+
+  it("treats only active/paused hr_assign as live assignment", () => {
+    expect(
+      isActiveHrAssignment({
+        source: "hr_assign",
+        status: PATH_ENROLLMENT_STATUS.ACTIVE,
+      }),
+    ).toBe(true);
+    expect(
+      isActiveHrAssignment({
+        source: "hr_assign",
+        status: PATH_ENROLLMENT_STATUS.PAUSED,
+      }),
+    ).toBe(true);
+    expect(
+      isActiveHrAssignment({
+        source: "hr_assign",
+        status: PATH_ENROLLMENT_STATUS.ABANDONED,
+      }),
+    ).toBe(false);
+    expect(
+      isActiveHrAssignment({
+        source: "hr_assign",
+        status: PATH_ENROLLMENT_STATUS.COMPLETED,
+      }),
+    ).toBe(false);
+    expect(
+      isActiveHrAssignment({
+        source: "addon",
+        status: PATH_ENROLLMENT_STATUS.ACTIVE,
+      }),
+    ).toBe(false);
   });
 
   it("requires add-on for Pro without purchase", () => {
