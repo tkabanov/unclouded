@@ -123,7 +123,7 @@
 
 1. Seeded paths: 7 rows с `subMode = success_plan` (или `triggerSignals` содержит `path_type:success_plan`).
 2. Stripe price synced / `successPlanAddonPrice` active = $97.
-3. Для localhost checkout: `stripe listen --forward-to …/stripe-webhook`.
+3. Для localhost checkout: Dashboard webhook на remote `stripe-webhook` **или** `stripe listen --forward-to …/stripe-webhook`. Return `?checkout=success&addon=success_plan` также вызывает sync fallback grant.
 4. Workplace с ≥1 member на Free и ≥1 на Pro (для HR matrix).
 
 ---
@@ -201,6 +201,7 @@
 |---|---|
 | **Steps** | Pro → Purchase (path detail или Subscription) → Stripe test pay → return. |
 | **Expected** | `successPlanAddon` active; overview.successPlanAddon.active = true; можно enroll SP. |
+| **Observed (2026-08-05)** | Fresh pay on `free-flags` completed in Stripe but add-on stayed inactive — **no Stripe webhook endpoints**. Fixed via sync fallback + Dashboard endpoint; post-fix `action:sync` → active. |
 
 ### SP-BILL-002 — Premium successful purchase — TESTED
 

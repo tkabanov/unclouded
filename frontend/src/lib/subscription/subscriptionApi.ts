@@ -256,11 +256,13 @@ function sleep(ms: number): Promise<void> {
 
 /**
  * After Stripe Checkout redirect, pull subscription state from Stripe when a
- * webhook hasn't reached the project yet (typical on localhost).
- * For Premium, also wait for the first credit when sync can grant it.
+ * webhook hasn't reached the project yet (typical on localhost / missing
+ * Dashboard endpoint). For Premium, also wait for the first credit when sync
+ * can grant it. For Success Plan add-on checkout, wait until the add-on is active.
  */
 export async function reconcileCheckoutReturn(
   expectedTier: PaidTier | null,
+  options: { expectSuccessPlanAddon?: boolean } = {},
 ): Promise<SubscriptionOverview> {
   let overview = await loadSubscriptionOverview();
 
@@ -271,6 +273,11 @@ export async function reconcileCheckoutReturn(
       overview = await syncBillingFromStripe();
     } catch {
       // Customer/subscription may not be visible to Stripe for a moment after redirect.
+    }
+
+    if (options.expectSuccessPlanAddon) {
+      if (overview.successPlanAddon.active) return overview;
+      continue;
     }
 
     if (overview.effectiveTier === TIER.FREE) continue;

@@ -75,14 +75,20 @@ origin (`returnOrigin` body + `Origin` header), validated against an allowlist
 (localhost, Vercel prod/previews, `APP_ORIGIN` / `APP_ORIGINS`). Localhost QA and
 Vercel prod can share one Supabase project without flipping `APP_ORIGIN`.
 
-**Localhost checkout:** Stripe не POST'ит webhooks на localhost. Без `stripe listen` tier и Premium credits останутся stale после успешной оплаты.
+**Localhost checkout:** Stripe не POST'ит webhooks на localhost. Без `stripe listen` **или** Dashboard webhook endpoint на remote `…/stripe-webhook` tier / add-on / Premium credits останутся stale после успешной оплаты (если нет sync fallback).
 
 ```bash
+# Option A — temporary CLI forward (sets a listen whsec_ you must put in secrets)
 stripe listen --forward-to https://szkextipgpupqoppccoy.supabase.co/functions/v1/stripe-webhook
 npx supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_... --project-ref szkextipgpupqoppccoy
+
+# Option B — permanent Dashboard endpoint (preferred for shared remote)
+# stripe webhook_endpoints create --url https://…/functions/v1/stripe-webhook
+#   enabled: checkout.session.completed, customer.subscription.*, invoice.paid, invoice.payment_failed
+# then secrets set STRIPE_WEBHOOK_SECRET from the endpoint secret
 ```
 
-**Fallback sync tier:** после redirect `?checkout=success` app вызывает `stripe-subscription` `action: sync`. Premium credits всё равно требуют `invoice.paid` через webhook.
+**Fallback sync:** после redirect `?checkout=success` app вызывает `stripe-subscription` `action: sync` — подтягивает tier, Premium credit с latest paid invoice, и **Success Plan add-on** с latest paid Checkout session (`product=success_plan_addon`).
 
 **Ops:** `VITE_COACH_BOOKING_URL` для Wix redirect; webhook: `.../functions/v1/wix-bookings-webhook`.
 

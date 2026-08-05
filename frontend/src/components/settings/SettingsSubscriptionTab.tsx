@@ -26,6 +26,8 @@ import {
   FOUNDING_SLOTS_FULL_MESSAGE,
   checkoutSuccessMessage,
   checkoutSuccessPendingMessage,
+  successPlanAddonCheckoutPendingMessage,
+  successPlanAddonCheckoutSuccessMessage,
   keepPremiumDialogCopy,
   planDisplayName,
   PAYMENT_RECOVERED_MESSAGE,
@@ -193,19 +195,31 @@ export default function SettingsSubscriptionTab() {
     if (!checkout) return;
 
     const planParam = searchParams.get("plan");
+    const addonParam = searchParams.get("addon");
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("checkout");
     nextParams.delete("plan");
+    nextParams.delete("addon");
     setSearchParams(nextParams, { replace: true });
 
     if (checkout === "success") {
+      const expectSuccessPlanAddon = addonParam === "success_plan";
       const expectedTier =
         planParam === TIER.PRO || planParam === TIER.PREMIUM ? planParam : null;
 
-      void reconcileCheckoutReturn(expectedTier)
+      void reconcileCheckoutReturn(expectedTier, { expectSuccessPlanAddon })
         .then((next) => {
           applyOverview(next);
           void refreshProfile();
+          if (expectSuccessPlanAddon) {
+            showCheckoutNotice(
+              next.successPlanAddon.active
+                ? successPlanAddonCheckoutSuccessMessage()
+                : successPlanAddonCheckoutPendingMessage(),
+              next.successPlanAddon.active ? "success" : "pending",
+            );
+            return;
+          }
           const isFoundingMember = next.subscription?.isFoundingMember ?? false;
           const creditGranted = next.credits.balance >= 1;
           const successOptions = { isFoundingMember, creditGranted };
@@ -235,7 +249,12 @@ export default function SettingsSubscriptionTab() {
           console.warn("Checkout return reconcile failed", err);
           void refreshOverview();
           void refreshProfile();
-          showCheckoutNotice(checkoutSuccessPendingMessage(), "pending");
+          showCheckoutNotice(
+            expectSuccessPlanAddon
+              ? successPlanAddonCheckoutPendingMessage()
+              : checkoutSuccessPendingMessage(),
+            "pending",
+          );
         });
       return;
     }

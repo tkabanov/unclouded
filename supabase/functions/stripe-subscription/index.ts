@@ -41,6 +41,7 @@ import {
   listBillableStripeSubscriptions,
 } from "../_shared/stripeSubscriptionReconcile.ts";
 import { grantPremiumCreditFromLatestPaidInvoice } from "../_shared/premiumCreditGrant.ts";
+import { grantSuccessPlanAddonFromLatestPaidCheckout } from "../_shared/successPlanAddonGrant.ts";
 import { syncStripeSubscriptionForUser } from "../_shared/stripeSubscriptionSync.ts";
 
 type ActionName =
@@ -239,6 +240,22 @@ Deno.serve(async (req) => {
           );
         } catch (err) {
           console.error("stripe-subscription sync credit grant failed", err);
+        }
+      }
+
+      // Same lag pattern for one-time Success Plan add-on: pull paid Checkout
+      // sessions when checkout.session.completed never reached the webhook.
+      const customerId = synced.stripeCustomerId;
+      if (customerId && (syncedTier === "pro" || syncedTier === "premium")) {
+        try {
+          await grantSuccessPlanAddonFromLatestPaidCheckout(
+            service,
+            stripe,
+            userId,
+            customerId,
+          );
+        } catch (err) {
+          console.error("stripe-subscription sync success plan grant failed", err);
         }
       }
 

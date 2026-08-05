@@ -240,6 +240,17 @@ export function checkoutSuccessPendingMessage(): string {
   );
 }
 
+export function successPlanAddonCheckoutSuccessMessage(): string {
+  return "Success Plan add-on is active. You can start any of the seven Success Plans from the library.";
+}
+
+export function successPlanAddonCheckoutPendingMessage(): string {
+  return (
+    "Your Success Plan payment was received. If the add-on doesn't show as active in a moment, " +
+    "refresh this page or try again shortly."
+  );
+}
+
 export function checkoutDialogCopy(
   tier: TierSlug,
   options: { foundingEligible?: boolean } = {},

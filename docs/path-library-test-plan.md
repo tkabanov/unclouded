@@ -512,26 +512,30 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Expected** | 55 + 7 = 62 total path rows (или эквивалент); marketing/UI «55 paths» не считает Success Plans. |
 | **Observed (2026-08-05, vercel)** | **PASS** (эквивалент). DB active: library **56** (`subMode≠success_plan`, incl. stub «Clarity & Priority Reset» `sessionsCount:0`) + **7** Success Plans (`subMode:success_plan`) = **63** total. UI Library: 63 cards / 7 «Success Plan». Subscription marketing: «All 55 guided coaching paths» / «Premium-only paths (all 55)» — SP не в счётчике 55. |
 
-### PL-SP-002 — Free cannot purchase / start Success Plan add-on
+### PL-SP-002 — Free cannot purchase / start Success Plan add-on — TESTED
 
 | | |
 |---|---|
 | **Steps** | Free user: найти Success Plan purchase / start (без HR assign). |
 | **Expected** | Недоступно: нет enroll без add-on; purchase CTA требует Pro/Premium. HR assign — единственный путь для Free. |
+| **Observed (2026-08-05, localhost:3000)** | **PASS** на `code4@test.com` (Free workplace seat). Library: 7 SP cards → **Upgrade required** / View Path; detail Burnout Prevention → **Upgrade Plan** only (нет Purchase / Enroll). Subscription: нет секции «Success Plan add-on» / Purchase $97. |
 
-### PL-SP-003 — Pro can purchase Success Plan add-on
+### PL-SP-003 — Pro can purchase Success Plan add-on — TESTED (partial FAIL)
 
 | | |
 |---|---|
 | **Steps** | Pro → purchase Success Plan add-on (когда billing surface готов) → Start SP1. |
 | **Expected** | Entitlement выдаётся; enrollment OK; sessions (5) доступны. |
+| **Observed (2026-08-05, localhost:3000)** | **UI surface PASS / live checkout FAIL.** `free-flags@test.com` (Pro, без add-on): Library «Success Plan add-on required»; detail + Subscription CTA **Purchase … · $97**. `POST …/stripe-checkout` `{product:success_plan_addon}` → **500** `{"error":"We couldn't start Success Plan checkout. Please try again."}` (path detail + Subscription). `sub-pro@test.com` уже **Add-on active**: Library 7× Available/Enrolled; New Manager Active Continue → session 1 coaching + reflections + Submit (без upgrade wall). См. SP-BILL-001 в `success-plans-test-plan.md` (ранее PASS) — текущий 500 = regression / env (price sync / edge deploy). |
+| **Retest (2026-08-05 later, localhost:3000)** | **Checkout FIXED; entitlement grant FAIL.** Same `free-flags`: Purchase → Stripe Checkout OK (`Uncloud360 Success Plan Add-on` $97). Test card 4242 → return URL strips `checkout=success` (handler ran). After refresh: still **Purchase add-on · $97** (not Add-on active); Library still **add-on required**. Root cause: Stripe account had **zero webhook endpoints** — `checkout.session.completed` never reached `stripe-webhook`. Fix: (1) sync fallback `grantSuccessPlanAddonFromLatestPaidCheckout` in `stripe-subscription` action=sync (parity with Premium credits); (2) Dashboard webhook endpoint + `STRIPE_WEBHOOK_SECRET`; (3) frontend reconcile waits on `addon=success_plan`. Post-fix sync on `free-flags` → `successPlanAddon.active=true`. |
 
-### PL-SP-004 — Premium can purchase Success Plan add-on
+### PL-SP-004 — Premium can purchase Success Plan add-on — TESTED
 
 | | |
 |---|---|
 | **Steps** | Аналогично PL-SP-003 на Premium. |
 | **Expected** | Purchase + start OK. |
+| **Observed (2026-08-05, localhost:3000)** | **PASS (entitlement path).** `sub-premium@test.com`: Subscription **Add-on active**; Library все 7 SP **Available to enroll**; Enroll **High Potential** → My Paths Active + Continue. Fresh Stripe purchase not re-run (checkout 500 on Pro without addon; prior SP-BILL-002). |
 
 ### PL-SP-005 — HR assigns Success Plan to employee
 
@@ -555,12 +559,13 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Steps** | Pro employee на Success Plan; из bridge рекомендован Premium library path. |
 | **Expected** | Рекомендация видна, но Start Premium library path всё ещё требует Premium. |
 
-### PL-SP-008 — All 7 plans: 5 sessions + bridge
+### PL-SP-008 — All 7 plans: 5 sessions + bridge — TESTED
 
 | | |
 |---|---|
 | **Steps** | Spot-check session counts per Success Plan in DB/UI. |
 | **Expected** | 5 sessions each; last = bridge to platform library. |
+| **Observed (2026-08-05, localhost:3000)** | **PASS.** Pro+addon Library: all 7 cards `5 sessions`. Detail Career Transition Steps 1–5; S5 = «Landing well - and what comes next from the platform» (bridge). Aligns with prior PL-SES-003. |
 
 ---
 
@@ -648,7 +653,7 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | G1 | ~~Success Plans free self-select~~ → **OVR-038** implemented | Retest PL-SP-002…005 |
 | G2 | ~~Employer assign out of scope~~ → Employer portal assign panel | Retest PL-SP-005/006 |
 | G3 | Phase 2 paths marked TO WRITE in Canonical vs authored batches (OVR-037) | Content QA только для seeded sessions |
-| G4 | ~~Billing surface missing~~ → Stripe one-time Success Plan add-on ($97) | Retest PL-SP-003/004 |
+| G4 | ~~Billing surface missing~~ → Stripe one-time Success Plan add-on ($97) | Checkout + grant: sync fallback + Dashboard webhook endpoint registered (was empty). `free-flags` add-on active after sync. |
 | G5 | Free + HR assign **allowed** (OVR-038) | Confirm in PL-SP-005 |
 
 ---
