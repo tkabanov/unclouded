@@ -477,19 +477,24 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 
 ## 14. Reassessment Question 4
 
-### PL-REA-001 — Q4 uses canonical path name
+### PL-REA-001 — Q4 uses canonical path name — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | User completed path #N; 90-day reassessment due. |
 | **Steps** | Пройти reassessment до path-specific Q4. |
 | **Expected** | Текст совпадает с Canonical «Path-Specific Reassessment Questions» для этого #N (имя path в вопросе каноническое). |
-| **Observed (2026-08-05, vercel)** | **FAIL.** `sub-pro@test.com`: forced `nextReassessmentDate` past; completed Free #1 Getting Through Hard Seasons; reassessment → Progress Reflection. Slot 1 (adaptive, UI «1.»): **«You completed Getting Through Hard Seasons. Looking back, what feels more solid now that was shaky when you started?»** Canonical #1: **«You completed the Getting Through Hard Seasons path. Where are you now compared to when you started - not the ideal version, the real one?»** Имя path каноническое, **полный текст ≠ Canonical** (stale `pathSession.reassessmentReflectionQuestion`). Note: #14/#18 final session Q = null в DB. |
-| **Fix** | Migration `20260805120000_seed_canonical_reassessment_q4.sql` — overwrite final-session Q4 for all 55 library paths from Canonical. Seed script `apply_canonical_q4` so future reseeds don't leave NULL/stale. **Retest after `/deploy` (migrations).** |
+| **Observed (2026-08-05, vercel retest)** | **PASS.** Migration applied: DB final-session Q4 for Getting Through Hard Seasons = Canonical. `sub-pro@test.com` reassessment → Progress Reflection slot 1 (adaptive): «You completed the Getting Through Hard Seasons path. Where are you now compared to when you started - not the ideal version, the real one?» — exact Canonical #1 (UI prefixes «1. »). |
 
-### PL-REA-002 — Sample matrix (минимум)
+### PL-REA-002 — Sample matrix (минимум) — FAIL
 
 Прогнать Q4 хотя бы для: Free #1, Free #14, Pro #18, Premium #52 (когда Premium path completed).
+
+| | |
+|---|---|
+| **Observed (2026-08-05, vercel)** | **FAIL.** Free #1 / Free #14 / Pro #18: DB + adaptive-fetch Q4 = exact Canonical. Premium #52 Sleep Mastery final-session Q4 = **Chronic Stress Recovery** text (`You completed the Chronic Stress Recovery path…`), not Canonical Sleep Mastery. Root cause: migration `20260805120000_seed_canonical_reassessment_q4.sql` maps #51 Chronic Q onto Sleep Mastery pathId `fc2cbfd0-…` and #52 Sleep Q onto wrong id `33de037a-…` (real Chronic id `1f0d836e-…`; Chronic last Q wrongly shows Boundary Mastery). |
+| **Fix** | Follow-up migration `20260805130000_fix_canonical_reassessment_q4_paths_51_55.sql` — correct pathIds for #51–#55 + restore #42–#44 polluted by wrong #52–#54 targets. Retest Premium #52 after apply. Note: #39–#50 in the original seed may still be id-shifted (separate follow-up if needed). |
+| **Retest (2026-08-05, vercel)** | **FAIL (unchanged).** DB via Premium session: Free #1 / #14 / Pro #18 = Canonical PASS. Sleep Mastery (`fc2cbfd0-…`) final Q4 still Chronic Stress text; Chronic (`1f0d836e-…`) still Boundary Mastery text. Fix migration `…130000…` **not applied** on linked remote. |
 
 ---
 
