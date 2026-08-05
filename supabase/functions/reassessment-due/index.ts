@@ -12,6 +12,8 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
+
 const EMAIL_COOLDOWN_MS = 5 * 24 * 60 * 60 * 1000;
 const FROM_ADDRESS = "noreply@uncloud360.ai";
 const SUBJECT = "Your 90-day check-in is ready";
@@ -56,7 +58,7 @@ async function sendResendEmail(params: {
   }
 
   const name = params.firstName?.trim() || "there";
-  const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
+  const appUrl = canonicalAppOrigin();
   const html = `
     <p>Hi ${name},</p>
     <p>Your 90-day PuP 360 check-in is ready. Retake the assessment to see how your scores have changed.</p>

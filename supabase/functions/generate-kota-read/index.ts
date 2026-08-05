@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
+import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
 import {
   buildClassificationLine,
   buildKotaReadUserPrompt,
@@ -224,7 +225,7 @@ Deno.serve(async (req) => {
 
   const serviceClient = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
   const nowIso = new Date().toISOString();
-  const appOrigin = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
+  const appOrigin = canonicalAppOrigin();
   const coachInbox = parseCoachBriefInbox(Deno.env.get("COACH_BRIEF_INBOX"));
   const memberName = profile?.firstName?.trim() || "Member";
   const memberEmail = typeof profile?.email === "string" ? profile.email : null;

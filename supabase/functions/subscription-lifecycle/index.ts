@@ -18,6 +18,7 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 import {
+  canonicalAppOrigin,
   getServiceClient,
   getStripe,
   json,
@@ -147,8 +148,7 @@ async function sendEmail(params: {
 }
 
 function subscriptionUrl(): string {
-  const origin = Deno.env.get("APP_ORIGIN")?.trim() || "https://uncloud360.ai";
-  return `${origin}/settings?tab=subscription`;
+  return `${canonicalAppOrigin()}/settings?tab=subscription`;
 }
 
 async function notifyPaymentFailure(item: LifecycleItem): Promise<string> {

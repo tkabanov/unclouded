@@ -8,8 +8,11 @@ import { PATHS_GRID_EMPTY_TEXT } from "@/lib/paths/routes";
 import { Skeleton } from "@/components/ui/skeleton";
 import PathCard from "@/components/paths/PathCard";
 import PathsFilterRow, {
+  PATHS_PILLAR_FILTER_ALL,
   PATHS_TIER_FILTER_ALL,
+  matchesPillarFilter,
   matchesTierFilter,
+  type PathsPillarFilter,
   type PathsTierFilter,
 } from "@/components/paths/PathsFilterRow";
 
@@ -24,10 +27,16 @@ export default function PathsGridPanel({
 }: PathsGridPanelProps) {
   const { enrollments, loading } = usePathsEnrollmentStore();
   const [selectedTier, setSelectedTier] = useState<PathsTierFilter>(PATHS_TIER_FILTER_ALL);
+  const [selectedPillar, setSelectedPillar] = useState<PathsPillarFilter>(PATHS_PILLAR_FILTER_ALL);
 
   const filteredEnrollments = useMemo(
-    () => enrollments.filter((row) => matchesTierFilter(row.tier, selectedTier)),
-    [enrollments, selectedTier],
+    () =>
+      enrollments.filter(
+        (row) =>
+          matchesTierFilter(row.tier, selectedTier) &&
+          matchesPillarFilter(row.pillarLabel, selectedPillar),
+      ),
+    [enrollments, selectedTier, selectedPillar],
   );
 
   const handleViewDetails = useCallback(
@@ -66,6 +75,8 @@ export default function PathsGridPanel({
         <PathsFilterRow
           selectedTier={selectedTier}
           onTierChange={setSelectedTier}
+          selectedPillar={selectedPillar}
+          onPillarChange={setSelectedPillar}
           className="w-auto"
         />
       </div>
@@ -90,7 +101,7 @@ export default function PathsGridPanel({
               </p>
             ) : (
               <p className={cn(bubbleStyle("Text_body_muted_"), "col-span-full text-sm")}>
-                No paths match the selected tier.
+                No paths match the selected filters.
               </p>
             )
           ) : (

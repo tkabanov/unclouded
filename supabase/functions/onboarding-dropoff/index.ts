@@ -12,6 +12,8 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
+
 const FROM_ADDRESS = "noreply@uncloud360.ai";
 const SUBJECT = "Your PuP 360 results are waiting for you";
 
@@ -53,7 +55,7 @@ async function sendResendEmail(params: {
   }
 
   const name = params.firstName?.trim() || "there";
-  const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
+  const appUrl = canonicalAppOrigin();
   const html = `
     <p>Hi ${name},</p>
     <p>You started setting up your PuP 360 profile — your results are still waiting for you.</p>

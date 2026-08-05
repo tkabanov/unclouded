@@ -6,13 +6,18 @@
  */
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
-  appOrigin,
   corsHeaders,
   getServiceClient,
   getStripe,
   json,
   loadSubscriptionRow,
+  resolveRequestAppOrigin,
 } from "../_shared/stripeBilling.ts";
+
+type PortalBody = {
+  /** Browser origin for portal return_url (validated allowlist). */
+  returnOrigin?: string;
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -24,6 +29,14 @@ Deno.serve(async (req) => {
 
   const auth = await authenticateRequest(req);
   if (!auth) return json({ error: "Unauthorized" }, 401);
+
+  let body: PortalBody = {};
+  try {
+    const text = await req.text();
+    if (text.trim()) body = JSON.parse(text) as PortalBody;
+  } catch {
+    return json({ error: "Invalid JSON body" }, 400);
+  }
 
   try {
     const service = getServiceClient();
@@ -39,10 +52,11 @@ Deno.serve(async (req) => {
       );
     }
 
+    const origin = resolveRequestAppOrigin(req, body.returnOrigin);
     const session = await getStripe().billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
       // `billing=portal` lets SettingsSubscriptionTab sync + show recovery copy.
-      return_url: `${appOrigin()}/settings?tab=subscription&billing=portal`,
+      return_url: `${origin}/settings?tab=subscription&billing=portal`,
     });
 
     return json({ status: "ok", url: session.url });

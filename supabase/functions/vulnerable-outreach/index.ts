@@ -12,6 +12,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
 import { deliverVulnerableOutreach } from "../_shared/vulnerableOutreachDelivery.ts";
 import {
   buildVulnerableOutreachEmailHtml,
@@ -60,10 +61,9 @@ async function sendOutreachEmail(params: {
     return { ok: false, detail: "smtp:skipped — RESEND_API_KEY not set" };
   }
 
-  const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
   const html = buildVulnerableOutreachEmailHtml({
     firstName: params.firstName,
-    appUrl,
+    appUrl: canonicalAppOrigin(),
   });
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(supabaseUrl, serviceKey);
-  const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
+  const appUrl = canonicalAppOrigin();
   const nowMs = Date.now();
   const nowIso = new Date(nowMs).toISOString();
   const pushConfigured = isWebPushConfigured();

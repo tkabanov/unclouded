@@ -334,88 +334,98 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Expected** | Разные locked features (`proPath` vs `premiumPath` или эквивалент); правильный plan highlighted. |
 | **Observed (2026-08-04)** | Free→Pro «Focus…»: title «This path is part of Pro», plans Pro+$29 / Premium+$79. Free→Premium «Sleep Mastery»: title «This path is part of Pro or Premium» (`premiumPath` copy), benefits Premium library. Pro→Premium: only Premium $79 + «Upgrade to Premium» (Pro plan hidden). |
 
-### PL-GATE-004 — Concurrent tabs: upgrade mid-session
+### PL-GATE-004 — Concurrent tabs: upgrade mid-session — TESTED
 
 | | |
 |---|---|
 | **Steps** | Free: open locked Pro path (upsell). В другой вкладке завершить Pro checkout + sync. Вернуться → Start. |
 | **Expected** | После sync entitlement path стартует без reload-багов / stale lock. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS** на `free-flags@test.com`. Tab1: Focus upsell «This path is part of Pro». Tab2: Upgrade to Pro → Stripe Checkout; cancel/success URLs уже на `https://uncloud360.vercel.app/settings?tab=subscription&checkout=…` (не localhost). Оплата test card 4242 → redirect на Vercel; после webhook/sync — «Welcome to Pro!», plan active. Focus: Upgrade required снят → Enroll → My Paths Active → Continue открывает session step 1 без upgrade wall. (Ранее `sub-free@test.com` тоже уже Pro после прошлого checkout.) |
 
 ---
 
 ## 10. Enrollment & progress
 
-### PL-ENR-001 — Start path создаёт active enrollment
+### PL-ENR-001 — Start path создаёт active enrollment — TESTED
 
 | | |
 |---|---|
 | **Steps** | Eligible user → Start Free path. |
 | **Expected** | `pathEnrollment` status active; path появляется в My Paths; progress 0 / session 1. |
+| **Observed (2026-08-05, vercel)** | `free-flags@test.com`: Enroll Free «Boundary Setting Foundations» → POST `pathEnrollment` **201**; list shows `status: active`, `completedSessionsCount: 0`, `currentSessionId` set. My Paths: Active, 0%, Continue → `?session=` step 1 content. |
 
-### PL-ENR-002 — Complete all sessions → completed
+### PL-ENR-002 — Complete all sessions → completed — TESTED
 
 | | |
 |---|---|
 | **Steps** | Пройти все sessions короткого path (напр. 5-session Free). |
 | **Expected** | Status completed; My Paths отражает completion; нельзя «перезапустить» без продукта-правила restart (зафиксировать). |
+| **Observed (2026-08-05, vercel)** | Free «Boundary Setting Foundations» (6 sessions): Submit answers ×6 → progress 17→33→50→67→83→**100% Completed**. My Paths: только «View Path» (нет Continue/Restart). Library: completed, без Enroll/Restart. **Продукт:** restart UI отсутствует. |
 
-### PL-ENR-003 — Abandon / switch path
+### PL-ENR-003 — Abandon / switch path — TESTED
 
 | | |
 |---|---|
 | **Steps** | При наличии UI abandon — abandon; иначе start второго path. |
 | **Expected** | Поведение согласовано с продуктом (один active vs multiple); нет orphan broken state. |
+| **Observed (2026-08-05, vercel)** | **Продукт:** abandon/unenroll UI отсутствует. Multiple active **разрешены** (до enroll: 4 Active). Start второго Free «Building Daily Structure» → Active 0% Continue рядом с прежними; orphan/broken state нет. |
 
-### PL-ENR-004 — sessionsCount совпадает с контентом
+### PL-ENR-004 — sessionsCount совпадает с контентом — TESTED
 
 | | |
 |---|---|
 | **Steps** | Для MVP paths 1–18 (COMPLETE): сравнить `sessionsCount` с числом `pathSession` rows и batch docs. |
 | **Expected** | Совпадение (± documented ~N только если UI показывает approximate — предпочтительно точное число). |
+| **Observed (2026-08-05, vercel)** | REST: первые 18 active paths (A–D…) — `sessionsCount` == `pathSession` rows (exact). UI card «N sessions» совпадает. Sample dialog Steps = N (Boundary: 6 steps; «Last completed: Step 6» не лишний session). **Note:** 4 Premium paths с `sessionsCount`>0 но **0** `pathSession` rows (Deep Identity Work, High Performance Sustainability, Sleep Mastery, The Optimization Protocol) — вне MVP 1–18; см. PL-SES-004. |
 
 ---
 
 ## 11. Session content (authored paths)
 
-### PL-SES-001 — Session structure
+### PL-SES-001 — Session structure — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Path с загруженным batch content. |
 | **Steps** | Открыть session 1: coaching text, reflection questions, micro-commitment. |
 | **Expected** | Все три блока присутствуют и сохраняются (answers persist). |
+| **Observed (2026-08-05, vercel)** | «Building Daily Structure» session: coaching text + 3 reflection textareas + Micro-commitment + Submit answers. После submit → My Paths **17%**, Next = session 2 (progress persisted). |
 
-### PL-SES-002 — Ordered progression
+### PL-SES-002 — Ordered progression — TESTED
 
 | | |
 |---|---|
 | **Steps** | Попытка открыть session N+1 до завершения N (если gated). |
 | **Expected** | Порядок соблюдён **или** explicit free navigation — без пропуска данных progress. |
+| **Observed (2026-08-05, vercel)** | «Building Daily Structure» at 17% (session 2 current). Deep-link `?session=` на session 4/6 → session UI **не** открывается (fallback на Paths list, без explicit lock copy). Continue → корректно session 2. Progress не скипается. **Продукт:** gated, silent fallback. |
 
-### PL-SES-003 — Bridge session (Success Plans only)
+### PL-SES-003 — Bridge session (Success Plans only) — TESTED
 
 | | |
 |---|---|
 | **Steps** | На Success Plan: session 5 = bridge; recommended next library paths. |
 | **Expected** | Bridge copy + рекомендации в library; enrollment в recommended path уважает tier gate пользователя. |
+| **Observed (2026-08-05, vercel)** | Все 7 Success Plans: session 5 bridge titles («…from here / platform…»). UI «Career Transition» s5: bridge coaching + «The platform library has paths…»; **нет** clickable recommended-path links (prose only). Tier-gate enrollment = общий library gate (см. PL-GATE). Detail dialog также имеет **Unenroll** (в отличие от обычных library paths в ENR-003). |
 
-### PL-SES-004 — Phase 2 «TO WRITE» paths
+### PL-SES-004 — Phase 2 «TO WRITE» paths — TESTED
 
 | | |
 |---|---|
 | **Steps** | Открыть path без полного контента (если есть в catalog). |
 | **Expected** | Не падает UI; либо hidden/disabled в Admin, либо empty-state. Не считать content-empty за pass full session QA. |
+| **Observed (2026-08-05, vercel)** | Stub «Clarity & Priority Reset» (Pro, `sessionsCount: 0`): card «Content TO WRITE»; detail «Session steps are not available yet…»; Enroll → My Paths Active без Continue; View Path → empty-state + Unenroll. UI не падает. Premium paths (Sleep Mastery и др.) **имеют** `pathSession` rows (видимы Premium; ранее 0 rows у Pro = RLS). Не full session QA. |
 
 ---
 
 ## 12. Filters & discovery
 
-### PL-FIL-001 — Filter by tier
+### PL-FIL-001 — Filter by tier — TESTED
 
 | | |
 |---|---|
 | **Steps** | Filters Free / Pro / Premium (если есть в `PathsFilterRow`). |
 | **Expected** | Списки соответствуют матрице §2. |
+| **Observed (2026-08-05, vercel)** | Tier combobox: free → **15** Free-only; pro → **40** Pro-only; premium → **4** Premium-only; All Tiers → 59 (40+15+4). |
 
 ### PL-FIL-002 — Filter by pillar
 
@@ -423,6 +433,7 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 |---|---|
 | **Steps** | Emotional / Professional / Health. |
 | **Expected** | Только paths выбранного pillar; counts разумны. |
+| **Observed (2026-08-05, vercel)** | **FAIL.** `PathsFilterRow` имеет только Tier select — **pillar filter отсутствует** в UI Library. Невозможно отфильтровать Emotional / Professional / Health. |
 
 ### PL-FIL-003 — Locked paths visible vs hidden
 

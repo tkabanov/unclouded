@@ -8,6 +8,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
 import {
   buildModuleUnlockSchedulePatch,
   listModuleUnlockCandidatesFromRows,
@@ -53,8 +54,7 @@ async function sendModuleUnlockEmail(params: {
   }
 
   const name = params.firstName?.trim() || "there";
-  const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
-  const moduleUrl = `${appUrl}/settings/know-yourself/${params.slug}`;
+  const moduleUrl = `${canonicalAppOrigin()}/settings/know-yourself/${params.slug}`;
   const html = `
     <p>Hi ${name},</p>
     <p>Your next layer is ready: <strong>${params.displayTitle}</strong> — 10 minutes when you're ready.</p>

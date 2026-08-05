@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
+import { canonicalAppOrigin } from "./appOrigin.ts";
 import {
   canManageWorkplaceMembers,
   userHasWorkplaceHrDelegateRole,
@@ -256,9 +257,9 @@ export async function sendWorkplaceInvitationEmail(
   admin: UntypedClient,
   email: string,
 ): Promise<{ emailSent: boolean }> {
-  const appUrl = Deno.env.get("APP_URL") ?? "http://127.0.0.1:3000";
+  const appUrl = canonicalAppOrigin();
   const { error } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${appUrl.replace(/\/$/, "")}/onboarding`,
+    redirectTo: `${appUrl}/onboarding`,
   });
 
   if (error) {

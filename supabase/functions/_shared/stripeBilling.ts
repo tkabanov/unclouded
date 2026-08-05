@@ -10,6 +10,11 @@ import Stripe from "npm:stripe@17.7.0";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 import {
+  appOrigin,
+  canonicalAppOrigin,
+  resolveRequestAppOrigin,
+} from "./appOrigin.ts";
+import {
   type BillingInterval,
   type PaidTier,
   type SubscriptionTier,
@@ -25,14 +30,12 @@ export type PlanPriceRow = {
   isActive: boolean;
 };
 
+export { appOrigin, canonicalAppOrigin, resolveRequestAppOrigin };
+
 export function requireEnv(name: string): string {
   const value = Deno.env.get(name)?.trim();
   if (!value) throw new Error(`Missing ${name}`);
   return value;
-}
-
-export function appOrigin(): string {
-  return Deno.env.get("APP_ORIGIN")?.trim() || "https://uncloud360.ai";
 }
 
 let stripeSingleton: Stripe | null = null;

@@ -13,8 +13,11 @@ import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import PathCatalogCard from "@/components/paths/PathCatalogCard";
 import PathsFilterRow, {
+  PATHS_PILLAR_FILTER_ALL,
   PATHS_TIER_FILTER_ALL,
+  matchesPillarFilter,
   matchesTierFilter,
+  type PathsPillarFilter,
   type PathsTierFilter,
 } from "@/components/paths/PathsFilterRow";
 
@@ -32,6 +35,7 @@ export default function PathsLibraryCatalogPanel({
   const [loading, setLoading] = useState(true);
   const [paths, setPaths] = useState<PathCatalogEntry[]>([]);
   const [selectedTier, setSelectedTier] = useState<PathsTierFilter>(PATHS_TIER_FILTER_ALL);
+  const [selectedPillar, setSelectedPillar] = useState<PathsPillarFilter>(PATHS_PILLAR_FILTER_ALL);
 
   const userTier = useEffectiveTier().tier;
   const healthFlags = useMemo(
@@ -90,8 +94,13 @@ export default function PathsLibraryCatalogPanel({
   );
 
   const filteredPaths = useMemo(
-    () => visiblePaths.filter((path) => matchesTierFilter(path.tier, selectedTier)),
-    [visiblePaths, selectedTier],
+    () =>
+      visiblePaths.filter(
+        (path) =>
+          matchesTierFilter(path.tier, selectedTier) &&
+          matchesPillarFilter(path.pillar, selectedPillar),
+      ),
+    [visiblePaths, selectedTier, selectedPillar],
   );
 
   const catalogLoading = loading || profileLoading;
@@ -105,7 +114,12 @@ export default function PathsLibraryCatalogPanel({
         </h2>
       </div>
 
-      <PathsFilterRow selectedTier={selectedTier} onTierChange={setSelectedTier} />
+      <PathsFilterRow
+        selectedTier={selectedTier}
+        onTierChange={setSelectedTier}
+        selectedPillar={selectedPillar}
+        onPillarChange={setSelectedPillar}
+      />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {catalogLoading ? (
@@ -117,7 +131,7 @@ export default function PathsLibraryCatalogPanel({
           <p className={cn(bubbleStyle("Text_body_muted_"), "col-span-full text-sm")}>
             {visiblePaths.length === 0
               ? "No guided paths are available for your profile yet."
-              : "No paths match the selected tier."}
+              : "No paths match the selected filters."}
           </p>
         ) : (
           filteredPaths.map((path) => (

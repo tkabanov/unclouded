@@ -269,12 +269,17 @@ export async function reconcileCheckoutReturn(
   return overview;
 }
 
+/** Browser origin so Stripe success/cancel URLs match the tab that started checkout. */
+function checkoutReturnOrigin(): string {
+  return window.location.origin;
+}
+
 export async function startCheckout(
   tier: PaidTier,
   interval: BillingInterval,
 ): Promise<CheckoutResult> {
   const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-    body: { tier, interval },
+    body: { tier, interval, returnOrigin: checkoutReturnOrigin() },
   });
 
   const payload = data as {
@@ -311,7 +316,9 @@ export async function startCheckout(
 }
 
 export async function openBillingPortal(): Promise<string> {
-  const { data, error } = await supabase.functions.invoke("stripe-portal", { body: {} });
+  const { data, error } = await supabase.functions.invoke("stripe-portal", {
+    body: { returnOrigin: checkoutReturnOrigin() },
+  });
   const payload = data as { status?: string; url?: string } | null;
 
   if (payload?.status !== "ok" || !payload.url) {

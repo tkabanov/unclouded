@@ -10,7 +10,6 @@
  */
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
-  appOrigin,
   corsHeaders,
   ensureStripeCustomer,
   getServiceClient,
@@ -19,6 +18,7 @@ import {
   loadBillingProfile,
   loadPlanPrices,
   loadSubscriptionRow,
+  resolveRequestAppOrigin,
   selectPlanPrice,
 } from "../_shared/stripeBilling.ts";
 import {
@@ -40,6 +40,8 @@ import {
 type CheckoutBody = {
   tier?: string;
   interval?: string;
+  /** Browser origin for success/cancel URLs (validated allowlist). */
+  returnOrigin?: string;
 };
 
 function parseTier(value: string | undefined): PaidTier | null {
@@ -182,7 +184,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const returnBase = `${appOrigin()}/settings?tab=subscription`;
+    const origin = resolveRequestAppOrigin(req, body.returnOrigin);
+    const returnBase = `${origin}/settings?tab=subscription`;
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,

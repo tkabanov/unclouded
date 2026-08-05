@@ -8,6 +8,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
 import { isNotificationSentToday } from "../_shared/moduleUnlockLogic.ts";
 
 const FROM_ADDRESS = "noreply@uncloud360.ai";
@@ -32,7 +33,7 @@ async function sendMilestoneEmail(params: {
   }
 
   const name = params.firstName?.trim() || "there";
-  const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://uncloud360.ai";
+  const appUrl = canonicalAppOrigin();
   const html = `
     <p>Hi ${name},</p>
     <p>You completed your first Know Yourself Deeper module. That layer is now part of how Gidget understands you — and there are more waiting when you're ready.</p>

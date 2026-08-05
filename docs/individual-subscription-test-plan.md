@@ -64,8 +64,16 @@ $env:SUPABASE_SERVICE_ROLE_KEY = "..."
 node scripts/sync_stripe_plan_prices.mjs
 
 npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... --project-ref szkextipgpupqoppccoy
-npx supabase secrets set APP_ORIGIN=http://localhost:3000 --project-ref szkextipgpupqoppccoy
+# Canonical origin for email CTAs / invites (not Stripe return URLs).
+npx supabase secrets set APP_ORIGIN=https://uncloud360.vercel.app --project-ref szkextipgpupqoppccoy
+# Optional extras (comma-separated) for preview hosts beyond the built-in allowlist:
+# npx supabase secrets set APP_ORIGINS=https://preview.example.com --project-ref szkextipgpupqoppccoy
 ```
+
+**Stripe return URLs are dynamic:** `stripe-checkout` / `stripe-portal` take the browser
+origin (`returnOrigin` body + `Origin` header), validated against an allowlist
+(localhost, Vercel prod/previews, `APP_ORIGIN` / `APP_ORIGINS`). Localhost QA and
+Vercel prod can share one Supabase project without flipping `APP_ORIGIN`.
 
 **Localhost checkout:** Stripe не POST'ит webhooks на localhost. Без `stripe listen` tier и Premium credits останутся stale после успешной оплаты.
 
