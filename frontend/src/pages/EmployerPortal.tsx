@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
 import EmployerAssessmentBaselinePanel from "@/components/employer/EmployerAssessmentBaselinePanel";
 import EmployerEnrollmentCodesPanel from "@/components/employer/EmployerEnrollmentCodesPanel";
+import EmployerSuccessPlanAssignPanel from "@/components/employer/EmployerSuccessPlanAssignPanel";
 import WorkplaceMembersPanel from "@/components/workplace/WorkplaceMembersPanel";
 import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import {
@@ -113,6 +114,10 @@ export default function EmployerPortalPage() {
               disabled={workplacesLoading || metricsLoading}
               compact
               className="mt-4"
+            />
+            <EmployerSuccessPlanAssignPanel
+              workplaceId={selectedWorkplaceId}
+              disabled={workplacesLoading || metricsLoading}
             />
             <EmployerEnrollmentCodesPanel
               workplaceId={selectedWorkplaceId}

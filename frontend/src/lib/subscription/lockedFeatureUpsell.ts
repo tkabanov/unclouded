@@ -13,6 +13,7 @@ export type LockedFeatureKey =
   | "chatSessionLimit"
   | "proPath"
   | "premiumPath"
+  | "successPlan"
   | "reassessment"
   | "onDemandReassessment"
   | "journalAiReflection"
@@ -72,6 +73,18 @@ export const LOCKED_FEATURES: Record<LockedFeatureKey, LockedFeature> = {
       "All 55 guided coaching paths, including Premium-only content",
       "On-demand reassessment any time after day 30",
       "One credit every month toward 1:1 coaching",
+    ],
+  },
+  successPlan: {
+    key: "successPlan",
+    requiredTier: TIER.PRO,
+    title: "Success Plans are a Pro / Premium add-on",
+    description:
+      "Success Plans are short employer-ready coaching tracks. Purchase the Success Plan add-on on Pro or Premium to unlock all seven, or ask your HR admin to assign one.",
+    benefits: [
+      "Unlock all 7 Success Plans with one add-on purchase",
+      "5 sessions each, including a bridge into the path library",
+      "Available on Pro and Premium subscriptions",
     ],
   },
   reassessment: {

@@ -35,6 +35,7 @@ import {
 } from "@/lib/subscription/subscriptionCopy";
 import {
   reconcileCheckoutReturn,
+  startSuccessPlanAddonCheckout,
   syncBillingFromStripe,
 } from "@/lib/subscription/subscriptionApi";
 import {
@@ -102,6 +103,7 @@ export default function SettingsSubscriptionTab() {
   const [checkoutSuccessNotice, setCheckoutSuccessNotice] = useState<string | null>(
     readStoredCheckoutNotice,
   );
+  const [successPlanCheckoutBusy, setSuccessPlanCheckoutBusy] = useState(false);
 
   const showCheckoutNotice = (message: string, kind: "success" | "pending") => {
     persistCheckoutNotice(message);
@@ -458,6 +460,55 @@ export default function SettingsSubscriptionTab() {
           creditsExpireAt={null}
           redeemable={false}
         />
+      ) : null}
+
+      {!isEnterprise && (effectiveTier === TIER.PRO || effectiveTier === TIER.PREMIUM) ? (
+        <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-5")}>
+          <div className="space-y-1">
+            <h3 className={bubbleStyle("Text_heading_3_")}>Success Plan add-on</h3>
+            <p className="text-sm text-muted-foreground">
+              One-time purchase unlocks all 7 Success Plans. Self-serve access stays active while
+              you remain on Pro or Premium.
+            </p>
+          </div>
+          {overview?.successPlanAddon.active ? (
+            <p className="text-sm font-medium text-foreground">Add-on active</p>
+          ) : (
+            <Button
+              type="button"
+              disabled={successPlanCheckoutBusy}
+              onClick={() => {
+                void (async () => {
+                  setSuccessPlanCheckoutBusy(true);
+                  try {
+                    const result = await startSuccessPlanAddonCheckout();
+                    if (result.status === "redirect") {
+                      window.location.assign(result.url);
+                      return;
+                    }
+                    toast.error(result.message);
+                    if (result.status !== "already_purchased") return;
+                    await refreshOverview();
+                  } catch (err) {
+                    toast.error(
+                      err instanceof Error
+                        ? err.message
+                        : "Couldn't start Success Plan checkout.",
+                    );
+                  } finally {
+                    setSuccessPlanCheckoutBusy(false);
+                  }
+                })();
+              }}
+            >
+              {overview?.successPlanAddon.amountCents != null
+                ? `Purchase add-on · $${(overview.successPlanAddon.amountCents / 100).toFixed(
+                    overview.successPlanAddon.amountCents % 100 === 0 ? 0 : 2,
+                  )}`
+                : "Purchase Success Plan add-on"}
+            </Button>
+          )}
+        </div>
       ) : null}
 
       {!isEnterprise ? <BillingIntervalToggle

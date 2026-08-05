@@ -20,6 +20,7 @@ import PathsFilterRow, {
   type PathsPillarFilter,
   type PathsTierFilter,
 } from "@/components/paths/PathsFilterRow";
+import { loadSubscriptionOverview } from "@/lib/subscription/subscriptionApi";
 
 export interface PathsLibraryCatalogPanelProps {
   className?: string;
@@ -34,6 +35,7 @@ export default function PathsLibraryCatalogPanel({
   const { enrollments } = usePathsEnrollmentStore();
   const [loading, setLoading] = useState(true);
   const [paths, setPaths] = useState<PathCatalogEntry[]>([]);
+  const [hasSuccessPlanAddon, setHasSuccessPlanAddon] = useState(false);
   const [selectedTier, setSelectedTier] = useState<PathsTierFilter>(PATHS_TIER_FILTER_ALL);
   const [selectedPillar, setSelectedPillar] = useState<PathsPillarFilter>(PATHS_PILLAR_FILTER_ALL);
 
@@ -81,6 +83,20 @@ export default function PathsLibraryCatalogPanel({
   useEffect(() => {
     void loadPaths();
   }, [loadPaths]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadSubscriptionOverview()
+      .then((overview) => {
+        if (!cancelled) setHasSuccessPlanAddon(overview.successPlanAddon.active);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSuccessPlanAddon(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const visiblePaths = useMemo(
     () =>
@@ -140,6 +156,7 @@ export default function PathsLibraryCatalogPanel({
               path={path}
               enrollment={enrollmentBySlug.get(path.slug) ?? null}
               userTier={userTier}
+              hasSuccessPlanAddon={hasSuccessPlanAddon}
               moduleGate={resolvePathModuleGate(moduleProfile, path.triggerSignals)}
               onViewDetails={onViewPath}
             />

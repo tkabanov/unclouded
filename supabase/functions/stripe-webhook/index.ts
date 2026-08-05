@@ -25,6 +25,7 @@ import {
   reconcileDuplicateStripeSubscriptions,
 } from "../_shared/stripeSubscriptionReconcile.ts";
 import { grantPremiumCreditForInvoice } from "../_shared/premiumCreditGrant.ts";
+import { grantSuccessPlanAddonFromCheckout } from "../_shared/successPlanAddonGrant.ts";
 import { syncStripeSubscriptionForUser } from "../_shared/stripeSubscriptionSync.ts";
 import {
   graceDeadlineFrom,
@@ -198,6 +199,10 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.product === "success_plan_addon") {
+          await grantSuccessPlanAddonFromCheckout(service, session);
+          break;
+        }
         const subscriptionId =
           typeof session.subscription === "string"
             ? session.subscription

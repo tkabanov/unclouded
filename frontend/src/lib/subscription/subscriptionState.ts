@@ -76,6 +76,13 @@ export type SubscriptionOverview = {
   credits: { balance: number; requiredPerSession: number };
   prices: PlanPrice[];
   foundingSlotsRemaining: number;
+  successPlanAddon: {
+    active: boolean;
+    purchased: boolean;
+    purchasedAt: string | null;
+    amountCents: number | null;
+    currency: string;
+  };
 };
 
 export function normalizeTier(value: string | null | undefined): TierSlug | null {

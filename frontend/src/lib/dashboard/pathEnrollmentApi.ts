@@ -31,6 +31,8 @@ export interface PathEnrollmentListItem {
   tier: TierSlug;
   pillarLabel: string;
   subMode?: string;
+  /** self | addon | hr_assign — OVR-038 provenance */
+  source?: string;
   /** pathenrollment1.currentSessionId — PATHS-07 URL session matching. */
   currentSessionId?: string;
   currentSessionTitle?: string;
@@ -43,6 +45,8 @@ export interface CurrentPathEnrollment {
   pathSlug?: string;
   /** Path catalog tier — used to lock Continue after downgrade (PL-GATE-002). */
   tier?: TierSlug;
+  subMode?: string;
+  source?: string;
   progressPercent: number;
   nextStepTitle: string | null;
   /** Opens session completion form at /paths?session= */
@@ -60,6 +64,7 @@ const EMPTY_ENROLLMENT: CurrentPathEnrollment = {
 type PathenrollmentRow = {
   id?: string;
   status?: string;
+  source?: string | null;
   completedSessionsCount?: number | string | null;
   completedMicroCommitmentSessionIds?: unknown;
   currentSessionId?:
@@ -299,6 +304,8 @@ async function parsePathenrollmentRow(
     pathName,
     pathSlug,
     tier,
+    subMode: catalog?.subMode ?? embeddedMeta.subMode,
+    source: typeof row.source === "string" ? row.source : undefined,
     progressPercent: computeProgressPercent(completedCount, totalSessions),
     nextStepTitle,
     currentSessionId,
@@ -358,7 +365,7 @@ async function tryFetchFromPathenrollmentTable(
   const { data, error } = await client
     .from("pathEnrollment")
     .select(
-      "id, status, completedSessionsCount, completedMicroCommitmentSessionIds, currentSessionId, focusedMicroCommitmentSessionId, pathId",
+      "id, status, source, completedSessionsCount, completedMicroCommitmentSessionIds, currentSessionId, focusedMicroCommitmentSessionId, pathId",
     )
     .eq("userId", userId)
     .eq("status", PATH_ENROLLMENT_STATUS.ACTIVE)
@@ -540,6 +547,7 @@ async function toListItem(
     tier: meta.tier,
     pillarLabel: meta.pillarLabel,
     subMode: meta.subMode,
+    source: typeof row.source === "string" ? row.source : undefined,
     ...sessionFields,
   };
 }
@@ -602,7 +610,7 @@ async function tryFetchPathEnrollmentsFromTable(
   const { data, error } = await client
     .from("pathEnrollment")
     .select(
-      "id, status, pathId, completedSessionsCount, completedMicroCommitmentSessionIds, currentSessionId",
+      "id, status, source, pathId, completedSessionsCount, completedMicroCommitmentSessionIds, currentSessionId",
     )
     .eq("userId", userId);
 

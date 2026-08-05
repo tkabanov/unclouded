@@ -11,6 +11,7 @@ import type { PathEnrollmentListItem } from "@/lib/dashboard/pathEnrollmentApi";
 import { PATH_ENROLLMENT_STATUS, PATH_ENROLLMENT_STATUS_LABELS } from "@/lib/enums/pathEnrollment";
 import { TIER, TIER_LABELS } from "@/lib/enums/tier";
 import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
+import { isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
 import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 
 export interface PathCardProps {
@@ -29,8 +30,22 @@ export default function PathCard({
   className,
 }: PathCardProps) {
   const userTier = useEffectiveTier().tier;
-  const needsUpgrade = !userCanAccessPathTier(userTier, enrollment.tier);
-  const lockedPathFeature = enrollment.tier === TIER.PREMIUM ? "premiumPath" : "proPath";
+  const successPlan = isSuccessPlanPath(enrollment);
+  const needsUpgrade = successPlan
+    ? !userCanAccessPathClient({
+        isSuccessPlan: true,
+        userTier,
+        pathTier: enrollment.tier,
+        // Enrolled via add-on checkout implies entitlement while tier stays paid.
+        hasSuccessPlanAddon: enrollment.source === "addon",
+        hasHrAssignment: enrollment.source === "hr_assign",
+      })
+    : !userCanAccessPathTier(userTier, enrollment.tier);
+  const lockedPathFeature = successPlan
+    ? "successPlan"
+    : enrollment.tier === TIER.PREMIUM
+      ? "premiumPath"
+      : "proPath";
   const pathUpsell = useLockedFeatureUpsell(userTier);
   const statusLabel = PATH_ENROLLMENT_STATUS_LABELS[enrollment.status];
   const canContinue =
@@ -72,9 +87,14 @@ export default function PathCard({
             <span
               className={cn(bubbleStyle("Group_badge_primary_"), "text-xs capitalize")}
             >
-              {TIER_LABELS[enrollment.tier]}
+              {successPlan ? "Success Plan" : TIER_LABELS[enrollment.tier]}
             </span>
           </div>
+          {enrollment.source === "hr_assign" ? (
+            <span className={cn(bubbleStyle("Group_badge_"), "text-xs")}>
+              Assigned by employer
+            </span>
+          ) : null}
         </div>
       </header>
 

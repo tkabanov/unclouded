@@ -5,14 +5,16 @@ import { Button } from "@/components/ui/button";
 import type { PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import type { PathEnrollmentListItem } from "@/lib/paths/pathsEnrollmentApi";
 import type { PathModuleGate } from "@/lib/paths/pathModulePrerequisites";
+import { isSuccessPlanPath } from "@/lib/paths/successPlanAccess";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
-import { TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
+import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 
 export interface PathCatalogCardProps {
   path: PathCatalogEntry;
   enrollment?: PathEnrollmentListItem | null;
   userTier: TierSlug;
   moduleGate?: PathModuleGate | null;
+  hasSuccessPlanAddon?: boolean;
   onViewDetails?: (path: PathCatalogEntry) => void;
   className?: string;
 }
@@ -35,11 +37,24 @@ export default function PathCatalogCard({
   enrollment,
   userTier,
   moduleGate = null,
+  hasSuccessPlanAddon = false,
   onViewDetails,
   className,
 }: PathCatalogCardProps) {
   const enrolled = isEnrolled(enrollment);
-  const needsUpgrade = tierPriority(path.tier) > tierPriority(userTier);
+  const successPlan = isSuccessPlanPath(path);
+  const hrAssigned = enrollment?.source === "hr_assign";
+  const needsUpgrade = successPlan
+    ? !hrAssigned &&
+      !hasSuccessPlanAddon &&
+      tierPriority(userTier) < tierPriority(TIER.PRO)
+    : tierPriority(path.tier) > tierPriority(userTier);
+  const needsPurchase =
+    successPlan &&
+    !enrolled &&
+    !hrAssigned &&
+    !hasSuccessPlanAddon &&
+    tierPriority(userTier) >= tierPriority(TIER.PRO);
   const moduleLocked = Boolean(moduleGate?.blocked) && !enrolled;
 
   return (
@@ -66,8 +81,13 @@ export default function PathCatalogCard({
             <span className={cn(bubbleStyle("Group_badge_"), "text-xs")}>{path.subMode}</span>
           ) : null}
           <span className={cn(bubbleStyle("Group_badge_primary_"), "text-xs capitalize")}>
-            {TIER_LABELS[path.tier]}
+            {successPlan ? "Success Plan" : TIER_LABELS[path.tier]}
           </span>
+          {hrAssigned ? (
+            <span className={cn(bubbleStyle("Group_badge_"), "text-xs")}>
+              Assigned by employer
+            </span>
+          ) : null}
           {enrolled ? (
             <span className={cn(bubbleStyle("Group_badge_"), "text-xs capitalize")}>Enrolled</span>
           ) : null}
@@ -115,6 +135,10 @@ export default function PathCatalogCard({
           <span className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
             Upgrade required
           </span>
+        ) : needsPurchase ? (
+          <span className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
+            Success Plan add-on required
+          </span>
         ) : moduleLocked ? (
           <span className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
             Requires Identity Lens
@@ -132,7 +156,11 @@ export default function PathCatalogCard({
           className={cn(bubbleStyle("Button_accent_"), "shrink-0")}
           onClick={() => onViewDetails?.(path)}
         >
-          {enrolled ? "View Path" : needsUpgrade || moduleLocked ? "View Path" : "Enroll in Path"}
+          {enrolled
+            ? "View Path"
+            : needsUpgrade || needsPurchase || moduleLocked
+              ? "View Path"
+              : "Enroll in Path"}
         </Button>
       </footer>
     </article>

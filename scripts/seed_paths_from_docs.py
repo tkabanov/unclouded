@@ -207,7 +207,10 @@ def normalize_classifications(value: str) -> str:
     return text
 
 
-def normalize_tier(raw: str) -> str:
+def normalize_tier(raw: str, *, path_type: str = "") -> str:
+    # OVR-038: Success Plans are not free self-select; catalog badge uses pro.
+    if path_type == "success_plan":
+        return "pro"
     text = raw.strip().lower()
     if "premium" in text:
         return "premium"
@@ -487,7 +490,7 @@ def parse_success_plan_block(block: str, synthetic_number: int) -> PathRecord | 
     path = PathRecord(
         number=synthetic_number,
         name=name,
-        tier=normalize_tier(meta.get("tier", "free")),
+        tier=normalize_tier(meta.get("tier", "free"), path_type="success_plan"),
         pillar=map_pillar(meta.get("pillar", "professional")),
         sub_mode=meta.get("sub_mode", "success_plan"),
         session_count=session_count,

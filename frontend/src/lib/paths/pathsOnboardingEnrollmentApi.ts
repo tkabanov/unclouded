@@ -110,7 +110,7 @@ async function fetchExistingEnrollmentPathIds(userId: string): Promise<Set<strin
 export async function createPathEnrollmentRow(
   userId: string,
   pathId: string,
-  options?: { setAsPrimary?: boolean },
+  options?: { setAsPrimary?: boolean; source?: "self" | "addon" | "hr_assign" },
 ): Promise<string | null> {
   const sessions = await fetchPathSessions(pathId);
   const firstSessionId = sessions[0]?.id ?? null;
@@ -122,6 +122,7 @@ export async function createPathEnrollmentRow(
     userId,
     pathId,
     status: PATH_ENROLLMENT_STATUS.ACTIVE,
+    source: options?.source ?? "self",
     completedSessionsCount: 0,
     currentSessionId: options?.setAsPrimary ? firstSessionId : null,
     // Focus is set only when the user opts in via "Set as My Focus" on session complete.

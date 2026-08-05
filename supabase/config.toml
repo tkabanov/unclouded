@@ -67,6 +67,9 @@ verify_jwt = true
 [functions.workplace-members]
 verify_jwt = true
 
+[functions.workplace-assign-success-plan]
+verify_jwt = true
+
 # Admin Account Set-Up — platform admin user list/detail + deactivate.
 [functions.admin-users]
 verify_jwt = true

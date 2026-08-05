@@ -13,6 +13,10 @@ import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_RESPONSES_ONBOARDING_KEY } from "@/lib/chat/pathsReflectionApi";
 import { fetchPathSessionsByKey } from "@/lib/paths/pathsCatalogApi";
+import {
+  isSuccessPlanSubMode,
+  userCanAccessPathClient,
+} from "@/lib/paths/successPlanAccess";
 import { loadEffectiveTierForUser } from "@/lib/subscription/subscriptionApi";
 import { incrementModulesCompletedCount } from "@/lib/userProfile/userProfileHooks";
 import { loadProfileRow, patchOnboardingAndResults } from "@/lib/userProfile/profileFieldPatch";
@@ -63,6 +67,8 @@ export type CompletePathSessionInput = {
   sessionTitle?: string;
   /** When known, checked client-side before mutating progress (PL-GATE-002). */
   pathTier?: TierSlug;
+  subMode?: string;
+  enrollmentSource?: string;
 };
 
 export class PathSessionUpgradeRequiredError extends Error {
@@ -352,6 +358,8 @@ export async function completePathSession(
     pathName,
     sessionTitle,
     pathTier,
+    subMode,
+    enrollmentSource,
   } = input;
 
   const trimmedAnswers = answers
@@ -377,8 +385,23 @@ export async function completePathSession(
   } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be signed in to complete a session.");
 
-  if (pathTier && pathTier !== TIER.FREE) {
-    const effectiveTier = await loadEffectiveTierForUser(user.id);
+  const effectiveTier = await loadEffectiveTierForUser(user.id);
+  const successPlan = isSuccessPlanSubMode(subMode);
+  if (successPlan) {
+    let hasAddon = false;
+    if (enrollmentSource !== "hr_assign") {
+      const { data } = await supabase.rpc("i_have_success_plan_addon");
+      hasAddon = data === true;
+    }
+    const allowed = userCanAccessPathClient({
+      isSuccessPlan: true,
+      userTier: effectiveTier,
+      pathTier: pathTier ?? TIER.PRO,
+      hasSuccessPlanAddon: hasAddon,
+      hasHrAssignment: enrollmentSource === "hr_assign",
+    });
+    if (!allowed) throw new PathSessionUpgradeRequiredError();
+  } else if (pathTier && pathTier !== TIER.FREE) {
     if (!userTierAllowsPath(effectiveTier, pathTier)) {
       throw new PathSessionUpgradeRequiredError();
     }

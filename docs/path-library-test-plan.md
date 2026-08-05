@@ -34,14 +34,15 @@
 ### 1.3 Приоритет источников
 
 1. Явная инструкция в текущей задаче (tier split + Success Plans as Pro/Premium add-on, HR-assign)
-2. [`docs/product-overrides.md`](./product-overrides.md) — особенно OVR-019, OVR-037
+2. [`docs/product-overrides.md`](./product-overrides.md) — особенно OVR-019, OVR-037, **OVR-038**
 3. Canonical Path Library + Success Plan Paths + batch content
 4. Bubble IR / migration specs
 
 | Override | Implication for QA |
 |----------|-------------------|
 | **OVR-019** | The Unsent Letter — `tier: free` + health-flag visibility; не путать с Pro path gate |
-| **OVR-037** | Runtime seed из `docs/new_paths_content/` batches. **Известный gap vs target:** Success Plans сейчас seeded как `tier: free` / self-select catalog; employer assign UI out of scope. **Target для этого плана:** Success Plans = add-on Pro/Premium + HR assign, вне 55. Fail/skip с пометкой *IMPL-GAP*, пока код не приведён к target. |
+| **OVR-037** | Runtime seed из `docs/new_paths_content/` batches; library 55 authority. Success Plan access → **OVR-038**. |
+| **OVR-038** | Success Plans = Pro/Premium one-time add-on (unlock all 7) **или** HR assign; Free self-enroll запрещён; Free + HR assign разрешён. |
 | **OVR-003** | Upsell / upgrade — через Settings → Subscription и locked-feature popups |
 
 ---
@@ -486,7 +487,7 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Expected** | Текст совпадает с Canonical «Path-Specific Reassessment Questions» для этого #N (имя path в вопросе каноническое). |
 | **Observed (2026-08-05, vercel retest)** | **PASS.** Migration applied: DB final-session Q4 for Getting Through Hard Seasons = Canonical. `sub-pro@test.com` reassessment → Progress Reflection slot 1 (adaptive): «You completed the Getting Through Hard Seasons path. Where are you now compared to when you started - not the ideal version, the real one?» — exact Canonical #1 (UI prefixes «1. »). |
 
-### PL-REA-002 — Sample matrix (минимум) — FAIL
+### PL-REA-002 — Sample matrix (минимум) — TESTED
 
 Прогнать Q4 хотя бы для: Free #1, Free #14, Pro #18, Premium #52 (когда Premium path completed).
 
@@ -495,26 +496,28 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Observed (2026-08-05, vercel)** | **FAIL.** Free #1 / Free #14 / Pro #18: DB + adaptive-fetch Q4 = exact Canonical. Premium #52 Sleep Mastery final-session Q4 = **Chronic Stress Recovery** text (`You completed the Chronic Stress Recovery path…`), not Canonical Sleep Mastery. Root cause: migration `20260805120000_seed_canonical_reassessment_q4.sql` maps #51 Chronic Q onto Sleep Mastery pathId `fc2cbfd0-…` and #52 Sleep Q onto wrong id `33de037a-…` (real Chronic id `1f0d836e-…`; Chronic last Q wrongly shows Boundary Mastery). |
 | **Fix** | Follow-up migration `20260805130000_fix_canonical_reassessment_q4_paths_51_55.sql` — correct pathIds for #51–#55 + restore #42–#44 polluted by wrong #52–#54 targets. Retest Premium #52 after apply. Note: #39–#50 in the original seed may still be id-shifted (separate follow-up if needed). |
 | **Retest (2026-08-05, vercel)** | **FAIL (unchanged).** DB via Premium session: Free #1 / #14 / Pro #18 = Canonical PASS. Sleep Mastery (`fc2cbfd0-…`) final Q4 still Chronic Stress text; Chronic (`1f0d836e-…`) still Boundary Mastery text. Fix migration `…130000…` **not applied** on linked remote. |
+| **Retest 2 (2026-08-05, vercel)** | **PASS.** DB last-session `reassessmentReflectionQuestion` exact Canonical for Free #1 Getting Through Hard Seasons, Free #14 Foundations of a Balanced Life, Pro #18 Leading Under Pressure, Premium #52 Sleep Mastery. |
 
 ---
 
 ## 15. Success Plans (add-on + HR)
 
-> Target behavior per product brief. Где текущий код = free catalog self-select (OVR-037) — помечать **IMPL-GAP**.
+> Product rule: **OVR-038**. Self-serve = Pro/Premium + one-time add-on; HR assign allowed for Free seats.
 
-### PL-SP-001 — Success Plans не входят в 55
+### PL-SP-001 — Success Plans не входят в 55 — TESTED
 
 | | |
 |---|---|
 | **Steps** | Count library self-select vs `success_plan`. |
 | **Expected** | 55 + 7 = 62 total path rows (или эквивалент); marketing/UI «55 paths» не считает Success Plans. |
+| **Observed (2026-08-05, vercel)** | **PASS** (эквивалент). DB active: library **56** (`subMode≠success_plan`, incl. stub «Clarity & Priority Reset» `sessionsCount:0`) + **7** Success Plans (`subMode:success_plan`) = **63** total. UI Library: 63 cards / 7 «Success Plan». Subscription marketing: «All 55 guided coaching paths» / «Premium-only paths (all 55)» — SP не в счётчике 55. |
 
 ### PL-SP-002 — Free cannot purchase / start Success Plan add-on
 
 | | |
 |---|---|
-| **Steps** | Free user: найти Success Plan purchase / start. |
-| **Expected** | Недоступно без Pro/Premium (+ add-on entitlement) **или** только через future HR assign + seat rules. *IMPL-GAP если сейчас free self-select.* |
+| **Steps** | Free user: найти Success Plan purchase / start (без HR assign). |
+| **Expected** | Недоступно: нет enroll без add-on; purchase CTA требует Pro/Premium. HR assign — единственный путь для Free. |
 
 ### PL-SP-003 — Pro can purchase Success Plan add-on
 
@@ -536,7 +539,7 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 |---|---|
 | **Preconditions** | Workplace HR admin; employee on Pro or Premium seat (*уточнить seat rules*). |
 | **Steps** | HR assigns e.g. «New Manager Success Plan» → employee login → My Paths. |
-| **Expected** | Assigned path visible; employee может проходить без отдельного self-select из core 55. *Skip если assign UI out of scope (OVR-037) — завести bug/ticket на gap.* |
+| **Expected** | Assigned path visible; Free or paid employee может проходить без Success Plan add-on (OVR-038). |
 
 ### PL-SP-006 — HR assign list = ровно 7 plans
 
@@ -642,11 +645,11 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 
 | ID | Topic | Impact |
 |----|-------|--------|
-| G1 | OVR-037: Success Plans сейчас `tier: free` self-select; target = Pro/Premium add-on + HR | PL-SP-* могут fail до реализации |
-| G2 | Employer assign UI «out of scope» в OVR-037 | PL-SP-005/006 skip until built |
+| G1 | ~~Success Plans free self-select~~ → **OVR-038** implemented | Retest PL-SP-002…005 |
+| G2 | ~~Employer assign out of scope~~ → Employer portal assign panel | Retest PL-SP-005/006 |
 | G3 | Phase 2 paths marked TO WRITE in Canonical vs authored batches (OVR-037) | Content QA только для seeded sessions |
-| G4 | Billing surface для Success Plan «purchase add-on» | Уточнить Stripe product/price до PL-SP-003/004 |
-| G5 | Может ли Free employee получить HR-assigned Success Plan без Pro seat? | Нужно product rule перед enterprise QA |
+| G4 | ~~Billing surface missing~~ → Stripe one-time Success Plan add-on ($97) | Retest PL-SP-003/004 |
+| G5 | Free + HR assign **allowed** (OVR-038) | Confirm in PL-SP-005 |
 
 ---
 
@@ -656,7 +659,7 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 - [ ] Free / Pro / Premium access matrix подтверждена UI + server  
 - [ ] Upsells различают Pro vs Premium paths  
 - [ ] Enrollment + session progress на representative Free/Pro/Premium paths  
-- [ ] Success Plans учтены отдельно от 55; add-on/HR правила либо реализованы, либо явно IMPL-GAP с ticket  
+- [ ] Success Plans учтены отдельно от 55; add-on + HR assign per OVR-038  
 - [ ] Reassessment Q4 sample с canonical names  
 - [ ] Smoke §18 зелёный на staging  
 

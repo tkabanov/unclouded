@@ -50,7 +50,7 @@ def main() -> None:
     assert path51.enrollment_onboarding is False
 
     for plan in success:
-        assert plan.tier == "free"
+        assert plan.tier == "pro"
         assert "path_type:success_plan" in plan.build_trigger_signals()
         assert plan.enrollment_onboarding is False
         assert plan.session_count == 5

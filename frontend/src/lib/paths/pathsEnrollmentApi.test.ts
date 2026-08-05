@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PathEnrollmentUpgradeRequiredError, enrollInPath } from "./pathsEnrollmentApi";
+import {
+  PathEnrollmentPurchaseRequiredError,
+  PathEnrollmentUpgradeRequiredError,
+  enrollInPath,
+} from "./pathsEnrollmentApi";
 
 const fetchPathCatalogEntry = vi.fn();
 const fetchPathSessionsByKey = vi.fn();
 const createPathEnrollmentRow = vi.fn();
 const loadEffectiveTierForUser = vi.fn();
+const loadSubscriptionOverview = vi.fn();
+const rpc = vi.fn();
 
 const pathEnrollmentChain = {
   select: vi.fn().mockReturnThis(),
@@ -24,6 +30,7 @@ vi.mock("@/integrations/supabase/client", () => ({
         })),
       };
     }),
+    rpc: (...args: unknown[]) => rpc(...args),
   },
 }));
 
@@ -38,6 +45,7 @@ vi.mock("@/lib/paths/pathsOnboardingEnrollmentApi", () => ({
 
 vi.mock("@/lib/subscription/subscriptionApi", () => ({
   loadEffectiveTierForUser: (...args: unknown[]) => loadEffectiveTierForUser(...args),
+  loadSubscriptionOverview: (...args: unknown[]) => loadSubscriptionOverview(...args),
 }));
 
 describe("enrollInPath", () => {
@@ -46,6 +54,10 @@ describe("enrollInPath", () => {
     loadEffectiveTierForUser.mockResolvedValue("pro");
     createPathEnrollmentRow.mockResolvedValue("enrollment-id");
     fetchPathSessionsByKey.mockResolvedValue([]);
+    rpc.mockResolvedValue({ data: false, error: null });
+    loadSubscriptionOverview.mockResolvedValue({
+      successPlanAddon: { active: false },
+    });
   });
 
   it("rejects enrollment when the user tier is below the path tier", async () => {
@@ -95,6 +107,61 @@ describe("enrollInPath", () => {
 
     expect(createPathEnrollmentRow).toHaveBeenCalledWith("user-id", "path-id", {
       setAsPrimary: true,
+      source: "self",
+    });
+  });
+
+  it("rejects Free self-enroll into Success Plans", async () => {
+    loadEffectiveTierForUser.mockResolvedValue("free");
+    fetchPathCatalogEntry.mockResolvedValue({
+      id: "sp-id",
+      slug: "new-manager-success-plan",
+      tier: "pro",
+      subMode: "success_plan",
+      triggerSignals: "path_type:success_plan",
+    });
+
+    await expect(
+      enrollInPath("user-id", "new-manager-success-plan", {}),
+    ).rejects.toBeInstanceOf(PathEnrollmentUpgradeRequiredError);
+
+    expect(createPathEnrollmentRow).not.toHaveBeenCalled();
+  });
+
+  it("rejects Pro Success Plan enroll without add-on", async () => {
+    loadEffectiveTierForUser.mockResolvedValue("pro");
+    rpc.mockResolvedValue({ data: false, error: null });
+    fetchPathCatalogEntry.mockResolvedValue({
+      id: "sp-id",
+      slug: "new-manager-success-plan",
+      tier: "pro",
+      subMode: "success_plan",
+      triggerSignals: "path_type:success_plan",
+    });
+
+    await expect(
+      enrollInPath("user-id", "new-manager-success-plan", {}),
+    ).rejects.toBeInstanceOf(PathEnrollmentPurchaseRequiredError);
+
+    expect(createPathEnrollmentRow).not.toHaveBeenCalled();
+  });
+
+  it("allows Pro Success Plan enroll with add-on", async () => {
+    loadEffectiveTierForUser.mockResolvedValue("pro");
+    rpc.mockResolvedValue({ data: true, error: null });
+    fetchPathCatalogEntry.mockResolvedValue({
+      id: "sp-id",
+      slug: "new-manager-success-plan",
+      tier: "pro",
+      subMode: "success_plan",
+      triggerSignals: "path_type:success_plan",
+    });
+
+    await enrollInPath("user-id", "new-manager-success-plan", {});
+
+    expect(createPathEnrollmentRow).toHaveBeenCalledWith("user-id", "sp-id", {
+      setAsPrimary: true,
+      source: "addon",
     });
   });
 });

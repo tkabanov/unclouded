@@ -5,11 +5,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
-import { loadEffectiveTierForUser } from "@/lib/subscription/subscriptionApi";
+import { loadEffectiveTierForUser, loadSubscriptionOverview } from "@/lib/subscription/subscriptionApi";
 import { fetchPathCatalogEntry, fetchPathSessionsByKey } from "@/lib/paths/pathsCatalogApi";
 import { createPathEnrollmentRow } from "@/lib/paths/pathsOnboardingEnrollmentApi";
 import type { ModuleProfileInput } from "@/lib/modules/readModuleProfile";
 import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
+import {
+  isSuccessPlanPath,
+  resolveSuccessPlanAccess,
+} from "@/lib/paths/successPlanAccess";
 import {
   PATH_ENROLLMENT_ONBOARDING_KEY,
   type PathEnrollmentOnboardingState,
@@ -68,12 +72,30 @@ export class PathEnrollmentUpgradeRequiredError extends Error {
   }
 }
 
+export class PathEnrollmentPurchaseRequiredError extends Error {
+  constructor() {
+    super("success_plan_purchase_required");
+    this.name = "PathEnrollmentPurchaseRequiredError";
+  }
+}
+
 function userTierAllowsPath(userTier: TierSlug, pathTier: TierSlug): boolean {
   return TIER_ORDER.indexOf(userTier) >= TIER_ORDER.indexOf(pathTier);
 }
 
 async function loadProfileTier(userId: string): Promise<TierSlug> {
   return loadEffectiveTierForUser(userId);
+}
+
+async function loadHasSuccessPlanAddon(): Promise<boolean> {
+  const { data, error } = await supabase.rpc("i_have_success_plan_addon");
+  if (!error && typeof data === "boolean") return data;
+  try {
+    const overview = await loadSubscriptionOverview();
+    return overview.successPlanAddon.active;
+  } catch {
+    return false;
+  }
 }
 
 function resolvePathSlug(pathSlug?: string): string | undefined {
@@ -83,6 +105,7 @@ function resolvePathSlug(pathSlug?: string): string | undefined {
 async function tryEnrollInPathenrollmentTable(
   userId: string,
   pathId: string,
+  options?: { source?: "self" | "addon" },
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
   const { data: existing, error: fetchError } = await client
@@ -105,6 +128,7 @@ async function tryEnrollInPathenrollmentTable(
 
   const enrollmentId = await createPathEnrollmentRow(userId, pathId, {
     setAsPrimary: true,
+    source: options?.source ?? "self",
   });
   if (enrollmentId) return true;
   return null;
@@ -131,12 +155,33 @@ export async function enrollInPath(
   }
 
   const userTier = await loadProfileTier(userId);
-  if (!userTierAllowsPath(userTier, catalog.tier)) {
+  const successPlan = isSuccessPlanPath(catalog);
+
+  if (successPlan) {
+    const hasAddon = await loadHasSuccessPlanAddon();
+    const access = resolveSuccessPlanAccess({
+      userTier,
+      hasSuccessPlanAddon: hasAddon,
+      hasHrAssignment: false,
+    });
+    if (!access.allowed) {
+      if (access.reason === "upgrade_required") {
+        throw new PathEnrollmentUpgradeRequiredError();
+      }
+      throw new PathEnrollmentPurchaseRequiredError();
+    }
+  } else if (!userTierAllowsPath(userTier, catalog.tier)) {
     throw new PathEnrollmentUpgradeRequiredError();
   }
 
-  const fromTable = await tryEnrollInPathenrollmentTable(userId, catalog.id);
+  const fromTable = await tryEnrollInPathenrollmentTable(userId, catalog.id, {
+    source: successPlan ? "addon" : "self",
+  });
   if (fromTable !== null) return;
+
+  if (successPlan) {
+    throw new Error("Could not enroll in this Success Plan.");
+  }
 
   const sessions = await fetchPathSessionsByKey(slug);
   const existing = readEnrollmentState(onboardingData);

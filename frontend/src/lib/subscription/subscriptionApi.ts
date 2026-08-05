@@ -127,6 +127,7 @@ function parsePlanPrices(raw: unknown): PlanPrice[] {
 export function parseSubscriptionOverview(raw: unknown): SubscriptionOverview {
   const row = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const credits = (row.credits ?? {}) as Record<string, unknown>;
+  const addon = (row.successPlanAddon ?? {}) as Record<string, unknown>;
 
   return {
     accountType: row.accountType === "enterprise" ? "enterprise" : "individual",
@@ -141,6 +142,13 @@ export function parseSubscriptionOverview(raw: unknown): SubscriptionOverview {
     prices: parsePlanPrices(row.prices),
     foundingSlotsRemaining:
       typeof row.foundingSlotsRemaining === "number" ? row.foundingSlotsRemaining : 0,
+    successPlanAddon: {
+      active: addon.active === true,
+      purchased: addon.purchased === true,
+      purchasedAt: typeof addon.purchasedAt === "string" ? addon.purchasedAt : null,
+      amountCents: typeof addon.amountCents === "number" ? addon.amountCents : null,
+      currency: typeof addon.currency === "string" ? addon.currency : "usd",
+    },
   };
 }
 
@@ -182,6 +190,13 @@ async function loadSubscriptionOverviewFromProfile(): Promise<SubscriptionOvervi
     },
     prices: [],
     foundingSlotsRemaining: 0,
+    successPlanAddon: {
+      active: false,
+      purchased: false,
+      purchasedAt: null,
+      amountCents: null,
+      currency: "usd",
+    },
   };
 }
 
@@ -218,6 +233,8 @@ export type CheckoutResult =
       overview: SubscriptionOverview | null;
     }
   | { status: "founding_full"; message: string }
+  | { status: "already_purchased"; message: string }
+  | { status: "pro_required"; message: string }
   | { status: "blocked"; message: string };
 
 export async function syncBillingFromStripe(): Promise<SubscriptionOverview> {
@@ -312,6 +329,52 @@ export async function startCheckout(
   return {
     status: "blocked",
     message: getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.checkout),
+  };
+}
+
+/** One-time Success Plan add-on checkout (unlocks all 7 Success Plans). */
+export async function startSuccessPlanAddonCheckout(): Promise<CheckoutResult> {
+  const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+    body: { product: "success_plan_addon", returnOrigin: checkoutReturnOrigin() },
+  });
+
+  const payload = data as {
+    status?: string;
+    url?: string;
+    message?: string;
+  } | null;
+
+  if (payload?.status === "ok" && payload.url) {
+    return { status: "redirect", url: payload.url };
+  }
+
+  if (payload?.status === "already_purchased") {
+    return {
+      status: "already_purchased",
+      message:
+        typeof payload.message === "string"
+          ? payload.message
+          : "You already have the Success Plan add-on.",
+    };
+  }
+
+  if (payload?.status === "pro_required") {
+    return {
+      status: "pro_required",
+      message:
+        typeof payload.message === "string"
+          ? payload.message
+          : "Upgrade to Pro or Premium before purchasing the Success Plan add-on.",
+    };
+  }
+
+  return {
+    status: "blocked",
+    message: getEdgeFunctionErrorMessage(
+      data,
+      error,
+      "Couldn't start Success Plan checkout.",
+    ),
   };
 }
 

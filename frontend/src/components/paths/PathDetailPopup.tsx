@@ -15,6 +15,7 @@ import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { useAuth } from "@/hooks/useAuth";
 import {
   enrollInPath,
+  PathEnrollmentPurchaseRequiredError,
   PathEnrollmentUpgradeRequiredError,
   unenrollFromPath,
   type PathEnrollmentListItem,
@@ -23,10 +24,18 @@ import { useOptionalPathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStor
 import { fetchPathSessionsByKey, type PathCatalogEntry } from "@/lib/paths/pathsCatalogApi";
 import { toModuleProfileInput } from "@/lib/paths/pathModuleProfileInput";
 import { resolvePathModuleGate } from "@/lib/paths/pathModulePrerequisites";
+import {
+  isSuccessPlanPath,
+  resolveSuccessPlanAccess,
+} from "@/lib/paths/successPlanAccess";
 import { TIER, TIER_LABELS, TIER_ORDER, type TierSlug } from "@/lib/enums/tier";
 import { PATH_ENROLLMENT_STATUS } from "@/lib/enums/pathEnrollment";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { useUserProfile } from "@/lib/userProfile";
+import {
+  loadSubscriptionOverview,
+  startSuccessPlanAddonCheckout,
+} from "@/lib/subscription/subscriptionApi";
 import {
   PATHS_PATH_DETAIL_DISCLAIMER_TEXT,
   PATHS_ROUTE,
@@ -114,19 +123,79 @@ export default function PathDetailPopup({
       ),
     [profile, catalogPath?.triggerSignals],
   );
-  const needsUpgrade = tierPriority(pathTier) > tierPriority(userTier);
-  const lockedPathFeature = pathTier === TIER.PREMIUM ? "premiumPath" : "proPath";
+  const isSuccessPlan = isSuccessPlanPath({
+    subMode,
+    triggerSignals: catalogPath?.triggerSignals,
+  });
+  const hasHrAssignment = matchedEnrollment?.source === "hr_assign";
+  const [hasSuccessPlanAddon, setHasSuccessPlanAddon] = useState(false);
+  const [addonLoading, setAddonLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !isSuccessPlan || hasHrAssignment) {
+      setHasSuccessPlanAddon(false);
+      setAddonLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setAddonLoading(true);
+    void loadSubscriptionOverview()
+      .then((overview) => {
+        if (!cancelled) setHasSuccessPlanAddon(overview.successPlanAddon.active);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSuccessPlanAddon(false);
+      })
+      .finally(() => {
+        if (!cancelled) setAddonLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isSuccessPlan, hasHrAssignment]);
+
+  const successPlanAccess = isSuccessPlan
+    ? resolveSuccessPlanAccess({
+        userTier,
+        hasSuccessPlanAddon,
+        hasHrAssignment,
+      })
+    : null;
+  const needsUpgrade = isSuccessPlan
+    ? Boolean(successPlanAccess && !successPlanAccess.allowed && successPlanAccess.reason === "upgrade_required")
+    : tierPriority(pathTier) > tierPriority(userTier);
+  const needsPurchase = Boolean(
+    isSuccessPlan &&
+      successPlanAccess &&
+      !successPlanAccess.allowed &&
+      successPlanAccess.reason === "purchase_required",
+  );
+  const lockedPathFeature = isSuccessPlan
+    ? "successPlan"
+    : pathTier === TIER.PREMIUM
+      ? "premiumPath"
+      : "proPath";
   const pathUpsell = useLockedFeatureUpsell(userTier);
   const enrolled = isActiveEnrollment(matchedEnrollment);
-  const showEnroll = !enrolled && !needsUpgrade && !moduleGate?.blocked && Boolean(pathSlug);
+  const accessBlocked =
+    (isSuccessPlan && successPlanAccess && !successPlanAccess.allowed) ||
+    (!isSuccessPlan && needsUpgrade);
+  const showEnroll =
+    !enrolled &&
+    !accessBlocked &&
+    !addonLoading &&
+    !moduleGate?.blocked &&
+    Boolean(pathSlug);
   const showUnenroll = enrolled && Boolean(matchedEnrollment?.enrollmentId);
   const showUpgrade = needsUpgrade;
+  const showPurchase = needsPurchase && !enrolled;
   const continueSessionId = matchedEnrollment?.currentSessionId;
   // Stale enrollments after downgrade stay visible (progress read-only) but
   // Continue must not bypass the tier gate — PL-GATE-002 / PL-DOWN-001.
+  // HR-assigned Success Plans remain accessible for Free seats (OVR-038).
   const showContinue =
     enrolled &&
-    !needsUpgrade &&
+    !accessBlocked &&
     Boolean(continueSessionId) &&
     matchedEnrollment?.status !== PATH_ENROLLMENT_STATUS.COMPLETED;
 
@@ -190,6 +259,10 @@ export default function PathDetailPopup({
       pathUpsell.promptUpgrade(lockedPathFeature);
       return;
     }
+    if (needsPurchase) {
+      await handlePurchaseAddon();
+      return;
+    }
     setBusy(true);
     try {
       await enrollInPath(
@@ -206,7 +279,32 @@ export default function PathDetailPopup({
         pathUpsell.promptUpgrade(lockedPathFeature);
         return;
       }
+      if (err instanceof PathEnrollmentPurchaseRequiredError) {
+        await handlePurchaseAddon();
+        return;
+      }
       toast.error(err instanceof Error ? err.message : "Could not enroll in this path.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePurchaseAddon = async () => {
+    setBusy(true);
+    try {
+      const result = await startSuccessPlanAddonCheckout();
+      if (result.status === "redirect") {
+        window.location.assign(result.url);
+        return;
+      }
+      if (result.status === "pro_required") {
+        pathUpsell.promptUpgrade("successPlan");
+        return;
+      }
+      toast.error(result.message);
+    } catch (err) {
+      console.error("Failed to start Success Plan checkout", err);
+      toast.error("Could not start Success Plan checkout.");
     } finally {
       setBusy(false);
     }
@@ -264,8 +362,13 @@ export default function PathDetailPopup({
               <span
                 className={cn(bubbleStyle("Group_badge_primary_"), "text-xs capitalize")}
               >
-                {TIER_LABELS[pathTier]}
+                {isSuccessPlan ? "Success Plan" : TIER_LABELS[pathTier]}
               </span>
+              {hasHrAssignment ? (
+                <span className={cn(bubbleStyle("Group_badge_"), "text-xs")}>
+                  Assigned by employer
+                </span>
+              ) : null}
             </div>
 
             <h2
@@ -394,6 +497,19 @@ export default function PathDetailPopup({
               >
                 <Star className="h-4 w-4 shrink-0" aria-hidden />
                 Upgrade Plan
+              </Button>
+            ) : null}
+
+            {showPurchase ? (
+              <Button
+                type="button"
+                variant="cta"
+                data-style-ref="Button_primary_"
+                className={cn(bubbleStyle("Button_primary_"), "gap-1.5")}
+                disabled={busy}
+                onClick={() => void handlePurchaseAddon()}
+              >
+                Purchase Success Plan Add-on
               </Button>
             ) : null}
 

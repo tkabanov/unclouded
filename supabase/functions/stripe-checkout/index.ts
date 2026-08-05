@@ -1,12 +1,14 @@
 /**
- * Free → Pro / Free → Premium checkout.
+ * Free → Pro / Free → Premium checkout, or Success Plan one-time add-on.
  *
  * POST /functions/v1/stripe-checkout
- * Body: { "tier": "pro" | "premium", "interval": "month" | "year" }
+ * Body (subscription): { "tier": "pro" | "premium", "interval": "month" | "year" }
+ * Body (add-on): { "product": "success_plan_addon" }
  * Returns: { "url": "https://checkout.stripe.com/..." }
  *
  * A user who already has a paid subscription must use `stripe-subscription`
- * (upgrade / downgrade / resume) instead — this endpoint only starts new ones.
+ * (upgrade / downgrade / resume) instead — this endpoint only starts new ones
+ * for subscription mode. Success Plan add-on uses mode: payment.
  */
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
@@ -40,6 +42,7 @@ import {
 type CheckoutBody = {
   tier?: string;
   interval?: string;
+  product?: string;
   /** Browser origin for success/cancel URLs (validated allowlist). */
   returnOrigin?: string;
 };
@@ -69,6 +72,119 @@ Deno.serve(async (req) => {
     body = await req.json();
   } catch {
     return json({ error: "Invalid JSON body" }, 400);
+  }
+
+  if (body.product === "success_plan_addon") {
+    try {
+      const service = getServiceClient();
+      const profile = await loadBillingProfile(service, auth.user.id);
+      if (!profile) return json({ error: "Profile not found" }, 404);
+
+      if (profile.accountType === "enterprise") {
+        return json(
+          {
+            status: "enterprise_covered",
+            message:
+              "Success Plans for workplace members are assigned by your HR admin.",
+          },
+          409,
+        );
+      }
+
+      const subscription = await loadSubscriptionRow(service, auth.user.id);
+      const effectiveTier = subscription
+        ? resolveEffectiveTier(subscription)
+        : "free";
+
+      if (effectiveTier !== "pro" && effectiveTier !== "premium") {
+        return json(
+          {
+            status: "pro_required",
+            message:
+              "Upgrade to Pro or Premium before purchasing the Success Plan add-on.",
+          },
+          409,
+        );
+      }
+
+      const { data: existingAddon } = await service
+        .from("successPlanAddon")
+        .select("id")
+        .eq("userId", auth.user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (existingAddon?.id) {
+        return json(
+          {
+            status: "already_purchased",
+            message: "You already have the Success Plan add-on.",
+          },
+          409,
+        );
+      }
+
+      const { data: priceRow, error: priceError } = await service
+        .from("successPlanAddonPrice")
+        .select("stripePriceId, amountCents, isActive")
+        .eq("lookupKey", "unclouded_success_plan_addon")
+        .maybeSingle();
+
+      if (priceError) {
+        console.error("successPlanAddonPrice load failed", priceError);
+        return json({ error: "Couldn't load Success Plan pricing." }, 500);
+      }
+
+      if (!priceRow?.isActive || !priceRow.stripePriceId) {
+        return json(
+          {
+            status: "price_unavailable",
+            message: "Success Plan add-on checkout isn't available yet.",
+          },
+          409,
+        );
+      }
+
+      const customerId = await ensureStripeCustomer(
+        service,
+        profile,
+        subscription?.stripeCustomerId ?? null,
+      );
+
+      const stripe = getStripe();
+      const origin = resolveRequestAppOrigin(req, body.returnOrigin);
+      const returnBase = `${origin}/settings?tab=subscription`;
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer: customerId,
+        line_items: [{ price: priceRow.stripePriceId, quantity: 1 }],
+        client_reference_id: profile.id,
+        metadata: {
+          userId: profile.id,
+          product: "success_plan_addon",
+        },
+        success_url: `${returnBase}&checkout=success&addon=success_plan`,
+        cancel_url: `${returnBase}&checkout=cancelled&addon=success_plan`,
+        allow_promotion_codes: false,
+      });
+
+      if (!session.url) {
+        return json({ error: "Stripe did not return a checkout URL." }, 502);
+      }
+
+      return json({
+        status: "ok",
+        url: session.url,
+        product: "success_plan_addon",
+        amountCents: priceRow.amountCents,
+      });
+    } catch (err) {
+      console.error("stripe-checkout success_plan_addon failed", err);
+      return json(
+        { error: "We couldn't start Success Plan checkout. Please try again." },
+        500,
+      );
+    }
   }
 
   const tier = parseTier(body.tier);
@@ -190,8 +306,6 @@ Deno.serve(async (req) => {
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: price.stripePriceId, quantity: 1 }],
-      // Guards against a double-submit creating two subscriptions for the
-      // same plan choice within the same billing period.
       subscription_data: {
         metadata: {
           userId: profile.id,

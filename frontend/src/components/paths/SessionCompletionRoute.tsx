@@ -25,12 +25,14 @@ import {
 } from "@/lib/paths/directedWritingHelpers";
 import { TIER } from "@/lib/enums/tier";
 import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
+import { isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
 import { usePathsEnrollmentStore } from "@/lib/paths/pathsEnrollmentStore";
 import {
   completePathSession,
   fetchPathSession,
   PathSessionUpgradeRequiredError,
 } from "@/lib/paths/pathsSessionApi";
+import { loadSubscriptionOverview } from "@/lib/subscription/subscriptionApi";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { toast } from "sonner";
@@ -57,13 +59,48 @@ export default function SessionCompletionRoute({
   const [journalDisposition, setJournalDisposition] =
     useState<JournalLetterDisposition | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hasSuccessPlanAddon, setHasSuccessPlanAddon] = useState(false);
 
   const pathTier = matchingEnrollment?.tier ?? TIER.FREE;
+  const successPlan = isSuccessPlanPath({
+    subMode: matchingEnrollment?.subMode,
+  });
   const needsUpgrade = Boolean(
-    matchingEnrollment && !userCanAccessPathTier(userTier, pathTier),
+    matchingEnrollment &&
+      (successPlan
+        ? !userCanAccessPathClient({
+            isSuccessPlan: true,
+            userTier,
+            pathTier,
+            hasSuccessPlanAddon,
+            hasHrAssignment: matchingEnrollment.source === "hr_assign",
+          })
+        : !userCanAccessPathTier(userTier, pathTier)),
   );
-  const lockedPathFeature = pathTier === TIER.PREMIUM ? "premiumPath" : "proPath";
+  const lockedPathFeature = successPlan
+    ? "successPlan"
+    : pathTier === TIER.PREMIUM
+      ? "premiumPath"
+      : "proPath";
   const pathUpsell = useLockedFeatureUpsell(userTier);
+
+  useEffect(() => {
+    if (!successPlan || matchingEnrollment?.source === "hr_assign") {
+      setHasSuccessPlanAddon(false);
+      return;
+    }
+    let cancelled = false;
+    void loadSubscriptionOverview()
+      .then((overview) => {
+        if (!cancelled) setHasSuccessPlanAddon(overview.successPlanAddon.active);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSuccessPlanAddon(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [successPlan, matchingEnrollment?.source]);
 
   const directedWriting = isDirectedWritingSubMode(matchingEnrollment?.subMode);
   const isFinalSession = isFinalDirectedWritingSession(session?.sessionIndex);
@@ -181,6 +218,8 @@ export default function SessionCompletionRoute({
         pathName: matchingEnrollment.pathName,
         sessionTitle: session.title,
         pathTier: matchingEnrollment.tier,
+        subMode: matchingEnrollment.subMode,
+        enrollmentSource: matchingEnrollment.source,
       });
       clearSessionParam();
       onReturnToMyPaths();

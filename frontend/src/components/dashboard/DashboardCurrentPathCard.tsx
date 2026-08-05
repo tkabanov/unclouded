@@ -13,6 +13,7 @@ import {
 } from "@/lib/dashboard/pathEnrollmentApi";
 import { TIER } from "@/lib/enums/tier";
 import { userCanAccessPathTier } from "@/lib/paths/pathEnrollmentMatching";
+import { isSuccessPlanPath, userCanAccessPathClient } from "@/lib/paths/successPlanAccess";
 import { PATHS_ROUTE, SESSION_SEARCH_PARAM } from "@/lib/paths/routes";
 import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { Button } from "@/components/ui/button";
@@ -31,10 +32,23 @@ export default function DashboardCurrentPathCard() {
   const [enrollment, setEnrollment] = useState<CurrentPathEnrollment | null>(null);
 
   const pathTier = enrollment?.tier ?? TIER.FREE;
+  const successPlan = isSuccessPlanPath({ subMode: enrollment?.subMode });
   const needsUpgrade =
     Boolean(enrollment?.hasActiveEnrollment) &&
-    !userCanAccessPathTier(userTier, pathTier);
-  const lockedPathFeature = pathTier === TIER.PREMIUM ? "premiumPath" : "proPath";
+    (successPlan
+      ? !userCanAccessPathClient({
+          isSuccessPlan: true,
+          userTier,
+          pathTier,
+          hasSuccessPlanAddon: enrollment?.source === "addon",
+          hasHrAssignment: enrollment?.source === "hr_assign",
+        })
+      : !userCanAccessPathTier(userTier, pathTier));
+  const lockedPathFeature = successPlan
+    ? "successPlan"
+    : pathTier === TIER.PREMIUM
+      ? "premiumPath"
+      : "proPath";
   const pathUpsell = useLockedFeatureUpsell(userTier);
 
   const loadEnrollment = useCallback(async () => {

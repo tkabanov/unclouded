@@ -33,6 +33,9 @@ if (!SERVICE_ROLE_KEY) {
 }
 
 const PRODUCT_LOOKUP = "unclouded_individual_plans";
+const SUCCESS_PLAN_PRODUCT_LOOKUP = "unclouded_success_plan_addon";
+const SUCCESS_PLAN_PRICE_LOOKUP = "unclouded_success_plan_addon";
+const SUCCESS_PLAN_DEFAULT_CENTS = 9700;
 
 async function stripeRequest(method, path, body) {
   const init = {
@@ -88,6 +91,66 @@ async function ensurePrice(productId, row) {
   return created.id;
 }
 
+async function ensureSuccessPlanProduct() {
+  const listed = await stripeRequest("GET", `/products?limit=100&active=true`);
+  const existing = listed.data?.find((p) => p.metadata?.lookup === SUCCESS_PLAN_PRODUCT_LOOKUP);
+  if (existing) return existing.id;
+
+  const created = await stripeRequest("POST", "/products", {
+    name: "Uncloud360 Success Plan Add-on",
+    "metadata[lookup]": SUCCESS_PLAN_PRODUCT_LOOKUP,
+  });
+  return created.id;
+}
+
+async function ensureSuccessPlanOneTimePrice(productId, amountCents, currency) {
+  const listed = await stripeRequest(
+    "GET",
+    `/prices?limit=100&active=true&lookup_keys[]=${SUCCESS_PLAN_PRICE_LOOKUP}`,
+  );
+  const hit = listed.data?.[0];
+  if (hit?.id) return hit.id;
+
+  const created = await stripeRequest("POST", "/prices", {
+    product: productId,
+    currency: currency ?? "usd",
+    unit_amount: String(amountCents ?? SUCCESS_PLAN_DEFAULT_CENTS),
+    lookup_key: SUCCESS_PLAN_PRICE_LOOKUP,
+    "metadata[product]": "success_plan_addon",
+  });
+  return created.id;
+}
+
+async function syncSuccessPlanAddonPrice(admin) {
+  const { data: row, error } = await admin
+    .from("successPlanAddonPrice")
+    .select("id, amountCents, currency, stripePriceId, isActive")
+    .eq("lookupKey", SUCCESS_PLAN_PRICE_LOOKUP)
+    .maybeSingle();
+  if (error) throw error;
+  if (!row?.isActive) {
+    console.log("Success Plan add-on price row missing or inactive — skip");
+    return;
+  }
+
+  const productId = await ensureSuccessPlanProduct();
+  const priceId = await ensureSuccessPlanOneTimePrice(
+    productId,
+    row.amountCents ?? SUCCESS_PLAN_DEFAULT_CENTS,
+    row.currency ?? "usd",
+  );
+  if (row.stripePriceId === priceId) {
+    console.log(`  success_plan_addon: already linked (${priceId})`);
+    return;
+  }
+  const { error: updateError } = await admin
+    .from("successPlanAddonPrice")
+    .update({ stripePriceId: priceId })
+    .eq("id", row.id);
+  if (updateError) throw updateError;
+  console.log(`  success_plan_addon: ${priceId}`);
+}
+
 async function main() {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -117,6 +180,8 @@ async function main() {
     if (updateError) throw updateError;
     console.log(`  ${row.tierSlug}/${row.billingInterval} founding=${row.isFoundingRate}: ${priceId}`);
   }
+
+  await syncSuccessPlanAddonPrice(admin);
 
   console.log("\nDone. Deploy secret if needed:");
   console.log("  npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... --project-ref szkextipgpupqoppccoy");
