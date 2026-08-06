@@ -73,6 +73,11 @@ export default function ReassessmentResultsReview() {
             first={comparison.first}
             second={comparison.second}
             reflections={profile.reassessmentReflections}
+            pathAdaptiveQ={
+              typeof profile.onboardingData?.path_adaptive_q === "string"
+                ? profile.onboardingData.path_adaptive_q
+                : null
+            }
             priorAssessmentDate={comparison.priorAssessmentDate}
           />
         ) : (

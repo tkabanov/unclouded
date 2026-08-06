@@ -394,3 +394,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | Access via `user_can_access_success_plan`: HR assignment (`pathEnrollment.source = hr_assign`) **or** (effective tier ≥ Pro and active `successPlanAddon`). Catalog badge tier for SP rows is `pro`. Stripe one-time checkout grants the add-on; entitlement for self-serve is gated on effective tier ≥ Pro (downgrade to Free blocks self-serve SP; HR-assigned enrollments remain). Employer portal can assign Success Plans to members. |
 | **Code** | `supabase/migrations/20260805140000_success_plan_addon_and_access.sql`, `supabase/functions/stripe-checkout/index.ts`, `supabase/functions/stripe-webhook/index.ts`, `supabase/functions/workplace-assign-success-plan/index.ts`, `frontend/src/lib/paths/successPlanAccess.ts`, `frontend/src/components/employer/EmployerSuccessPlanAssignPanel.tsx` |
 
+### OVR-039 — Reassessment reflections: Section 3 wording + path-adaptive Q4
+
+| | |
+|---|---|
+| **Date** | 2026-08-06 |
+| **Overrides** | `docs/Uncloud360_Phase2_Requirements_v3.docx.md` Section 2 reflection wording; prior runtime adaptive slot on Question 1; `docs/Uncloud360_Reassessment_Questions.docx.md` Section 4 path numbering/names (pre-Canonical list) |
+| **Authoritative spec** | `docs/Uncloud360_Reassessment_Questions.docx.md` Part 2 §§3–4 logic (standard Q1–Q4 + adaptive replaces Question 4); path Q4 catalog = Canonical / OVR-037 (`pathSession.reassessmentReflectionQuestion`) |
+| **Current behavior** | Four optional unscored reflections use Section 3 copy. Path-adaptive prompt replaces **Question 4** when the user has ≥1 completed path (most recently completed). Path-specific texts are static strings on the final path session (Canonical), not the outdated Section 4 name list. PDF/UI labels use `pathAdaptiveQ` for the adaptive slot. |
+| **Code** | `frontend/src/lib/reassessment.ts`, `frontend/src/components/ReassessmentFlow.tsx`, `frontend/src/components/ResultsComparison.tsx`, `supabase/functions/generate-pup-pdf/index.ts` |
+

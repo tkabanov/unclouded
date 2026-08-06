@@ -56,7 +56,9 @@ export async function completeReassessment(
 
   const existingOnboarding = await loadOnboardingData(input.userId);
   const previousMode = readCoachingModeFromOnboarding(existingOnboarding);
-  const nextFocusText = (input.reflections.reflection_q4 ?? "").trim() || null;
+  const nextFocusFromQ4 = (input.reflections.reflection_q4 ?? "").trim() || null;
+  // When Q4 is path-adaptive, the answer is path reflection — not a "next focus" statement.
+  const nextFocusText = input.pathAdaptiveQ?.trim() ? null : nextFocusFromQ4;
 
   const row = await insertAssessmentResult({
     userId: input.userId,

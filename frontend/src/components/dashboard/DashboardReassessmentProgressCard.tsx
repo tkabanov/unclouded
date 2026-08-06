@@ -49,21 +49,31 @@ export default function DashboardReassessmentProgressCard() {
 
   const handleDownloadPdf = useCallback(() => {
     if (!comparison) return;
+    const pathAdaptiveQ =
+      typeof profile?.onboardingData?.path_adaptive_q === "string"
+        ? profile.onboardingData.path_adaptive_q
+        : null;
     try {
       downloadReassessmentProgressPdf(
         firstName,
         comparison.first,
         comparison.second,
         profile?.reassessmentReflections,
+        pathAdaptiveQ,
       );
       toast.success("Your progress report is downloading.");
     } catch (err) {
       console.error("Failed to generate comparison PDF", err);
       toast.error("Couldn't generate the report. Please try again.");
     }
-  }, [comparison, firstName, profile?.reassessmentReflections]);
+  }, [comparison, firstName, profile?.onboardingData, profile?.reassessmentReflections]);
 
   if (loading || !comparison || !profile?.reassessmentResults) return null;
+
+  const pathAdaptiveQ =
+    typeof profile.onboardingData?.path_adaptive_q === "string"
+      ? profile.onboardingData.path_adaptive_q
+      : null;
 
   return (
     <div className="space-y-5 rounded-xl border border-border bg-card p-5 shadow-card md:p-6">
@@ -102,6 +112,7 @@ export default function DashboardReassessmentProgressCard() {
         first={comparison.first}
         second={comparison.second}
         reflections={profile.reassessmentReflections}
+        pathAdaptiveQ={pathAdaptiveQ}
         priorAssessmentDate={comparison.priorAssessmentDate}
         compact
       />

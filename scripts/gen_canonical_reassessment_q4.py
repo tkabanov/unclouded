@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
-"""Generate migration to seed Canonical Path Library reassessment Q4 texts."""
+"""Generate name-keyed Canonical Q4 fix migration (PL-REA-003)."""
 
 from __future__ import annotations
 
 import re
-import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-NS = uuid.UUID("7c9e6679-7425-40de-944b-e07fc1f90ae7")
-CANONICAL = ROOT / "docs" / "new_paths_content" / "Uncloud360_Canonical_Path_Library.md"
-OUT = ROOT / "supabase" / "migrations" / "20260805120000_seed_canonical_reassessment_q4.sql"
+CANONICAL = ROOT / "docs/new_paths_content/Uncloud360_Canonical_Path_Library.md"
+OUT = ROOT / "supabase/migrations/20260806120000_fix_canonical_reassessment_q4_by_name.sql"
 
-ROW_RE = re.compile(
-    r"\|\s*\*\*(\d+)\*\*\s*\|\s*\*\*(.+?)\*\*\s*\|\s*(.+?)\s*\|$"
-)
+ROW_RE = re.compile(r"\|\s*\*\*(\d+)\*\*\s*\|\s*\*\*(.+?)\*\*\s*\|\s*(.+?)\s*\|$")
 
 
-def main() -> None:
+def load_canonical_q4_by_name() -> list[tuple[int, str, str]]:
     rows: list[tuple[int, str, str]] = []
     for line in CANONICAL.read_text(encoding="utf-8").splitlines():
         m = ROW_RE.match(line.strip())
@@ -26,48 +22,52 @@ def main() -> None:
         n = int(m.group(1))
         name = m.group(2).strip()
         q = m.group(3).strip()
-        if n < 1 or n > 55:
-            continue
-        if not q.startswith("You completed"):
-            continue
-        rows.append((n, name, q))
+        if 1 <= n <= 55 and q.startswith("You completed"):
+            rows.append((n, name, q))
+    return rows
 
+
+def main() -> None:
+    rows = load_canonical_q4_by_name()
     if len(rows) != 55:
         raise SystemExit(f"Expected 55 Q4 rows, got {len(rows)}")
 
-    lines: list[str] = [
-        "-- PL-REA-001: overwrite final-session reassessmentReflectionQuestion",
-        "-- with Canonical Path Library Q4.",
+    lines = [
+        "-- PL-REA-003: rewrite final-session reassessmentReflectionQuestion by path.name.",
+        "--",
+        "-- Bug in 20260805120000_seed_canonical_reassessment_q4.sql (+ partial fix",
+        "-- 20260805130000): updates used uuid5(path-{Canonical#}), but runtime path ids",
+        "-- follow batch PATH N numbering (OVR-037). Result: many name-swapped Q4 texts.",
+        "--",
         "-- Authority: docs/new_paths_content/Uncloud360_Canonical_Path_Library.md",
-        "-- § Path-Specific Reassessment Questions",
-        "-- Fixes stale July seed copy (paths 1–3+) and NULL after Aug 4 reseed",
-        "-- (e.g. #14 Foundations of a Balanced Life, #18 Leading Under Pressure).",
+        "-- § Path-Specific Reassessment Questions — matched by Canonical path name.",
+        "-- Stub «Clarity & Priority Reset» has 0 sessions; UPDATE is a no-op (expected).",
         "",
         "BEGIN;",
         "",
     ]
 
     for n, name, q in rows:
-        path_id = str(uuid.uuid5(NS, f"path-{n}"))
         q_sql = q.replace("'", "''")
-        lines.append(f"-- #{n} {name}")
+        name_sql = name.replace("'", "''")
+        lines.append(f"-- Canonical #{n}: {name}")
         lines.append('UPDATE public."pathSession" ps')
         lines.append(f"SET \"reassessmentReflectionQuestion\" = '{q_sql}'")
-        lines.append(f"WHERE ps.\"pathId\" = '{path_id}'")
+        lines.append("FROM public.path p")
+        lines.append("WHERE p.id = ps.\"pathId\"")
+        lines.append(f"  AND p.name = '{name_sql}'")
+        lines.append("  AND COALESCE(p.\"subMode\", '') <> 'success_plan'")
         lines.append("  AND ps.index = (")
         lines.append(
-            f"    SELECT MAX(s.index) FROM public.\"pathSession\" s "
-            f"WHERE s.\"pathId\" = '{path_id}'"
+            "    SELECT MAX(s.index) FROM public.\"pathSession\" s "
+            "WHERE s.\"pathId\" = p.id"
         )
         lines.append("  );")
         lines.append("")
 
     lines.extend(["COMMIT;", ""])
     OUT.write_text("\n".join(lines), encoding="utf-8")
-    print(f"Wrote {OUT} ({len(rows)} updates)")
-    for n, name, q in rows:
-        if n in (1, 14, 18):
-            print(f"  #{n}: {q}")
+    print(f"Wrote {OUT} ({len(rows)} updates by name)")
 
 
 if __name__ == "__main__":

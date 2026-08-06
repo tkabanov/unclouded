@@ -419,6 +419,7 @@ export default function ReassessmentFlow() {
                 first={baseline}
                 second={secondResults}
                 reflections={reflections}
+                pathAdaptiveQ={pathAdaptiveQ}
                 tier={tier}
                 showWhatIsNext
                 priorAssessmentDate={priorAssessmentDate}

@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import type { ResultsData } from "@/lib/classification";
 import {
   computeScoreDeltas,
-  reflectionQuestions,
+  reflectionQuestionsWithAdaptive,
   summarizeProgress,
   type ReflectionAnswers,
 } from "@/lib/reassessment";
@@ -34,6 +34,7 @@ export function downloadReassessmentProgressPdf(
   first: ResultsData,
   second: ResultsData,
   reflections?: ReflectionAnswers | null,
+  pathAdaptiveQ?: string | null,
 ): void {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -117,7 +118,8 @@ export function downloadReassessmentProgressPdf(
   doc.text(`Pressure: ${first.pressure_profile}  →  ${second.pressure_profile}`, margin, y);
   advance(24);
 
-  const answeredReflections = reflectionQuestions.filter(
+  const labeledQuestions = reflectionQuestionsWithAdaptive(pathAdaptiveQ);
+  const answeredReflections = labeledQuestions.filter(
     (question) => (reflections?.[question.field] ?? "").trim().length > 0,
   );
 

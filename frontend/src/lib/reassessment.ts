@@ -1,6 +1,6 @@
 import type { ResultsData } from "./classification";
 
-// 4 optional progress reflection questions (Section 2 wording).
+// 4 optional progress reflection questions (Reassessment Questions Part 2 §3).
 // These are NOT scored. They feed the AI context block and the PDF report.
 export interface ReflectionQuestion {
   field: string;
@@ -11,23 +11,27 @@ export interface ReflectionQuestion {
 export const reflectionQuestions: ReflectionQuestion[] = [
   {
     field: "reflection_q1",
-    question: "Looking back over the last 90 days, what feels genuinely different now?",
-    placeholder: "e.g. I'm sleeping better and I react less to small setbacks…",
+    question:
+      "Looking back at the past 90 days, what has shifted most in how you show up — even if the change is small?",
+    placeholder: "e.g. I pause before reacting, and I notice stress earlier…",
   },
   {
     field: "reflection_q2",
-    question: "What still feels hard or unresolved?",
-    placeholder: "e.g. Evenings still feel heavy and I struggle to wind down…",
+    question:
+      "What has been the hardest part of this period, and what does that tell you about what you most need right now?",
+    placeholder: "e.g. Evenings still feel heavy — I need more recovery, not more effort…",
   },
   {
     field: "reflection_q3",
-    question: "What's one change or win you're proud of?",
-    placeholder: "e.g. I finally set a boundary at work and it held…",
+    question:
+      "What are you most ready to let go of, change, or move past as you head into the next 90 days?",
+    placeholder: "e.g. The habit of saying yes when I mean no…",
   },
   {
     field: "reflection_q4",
-    question: "What would you like your coach to focus on for the next season?",
-    placeholder: "e.g. Building a consistent morning routine and follow-through…",
+    question:
+      "If you could name one thing that would make the next 90 days meaningfully different from the last 90, what would it be?",
+    placeholder: "e.g. Protecting one non-negotiable morning routine…",
   },
 ];
 
@@ -56,8 +60,22 @@ export function readReflectionAnswer(
 
 export type ReflectionAnswers = Record<string, string>;
 
-/** Index of the reflection slot replaced by a path-adaptive variant (Section 2). */
-export const PATH_ADAPTIVE_QUESTION_SLOT = 0;
+/**
+ * Index of the reflection slot replaced by a path-adaptive variant
+ * (Reassessment Questions Part 2 — Question 4).
+ */
+export const PATH_ADAPTIVE_QUESTION_SLOT = 3;
+
+/** Standard reflection bank with Question 4 overridden when a path-adaptive prompt exists. */
+export function reflectionQuestionsWithAdaptive(
+  pathAdaptiveQ?: string | null,
+): ReflectionQuestion[] {
+  const adaptive = pathAdaptiveQ?.trim();
+  if (!adaptive) return reflectionQuestions;
+  return reflectionQuestions.map((q, i) =>
+    i === PATH_ADAPTIVE_QUESTION_SLOT ? { ...q, question: adaptive } : q,
+  );
+}
 
 // One score dimension compared across the two assessments.
 export interface ScoreDelta {

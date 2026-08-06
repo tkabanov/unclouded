@@ -421,35 +421,41 @@ def session_has_content(session: PathSessionRecord) -> bool:
     return bool(session.coaching_text or session.questions or session.micro_commitment)
 
 
-def load_canonical_q4_by_number() -> dict[int, str]:
-    """Path-Specific Reassessment Questions from Canonical Path Library (PL-REA authority)."""
+def load_canonical_q4_by_name() -> dict[str, str]:
+    """Path-Specific Reassessment Questions from Canonical Path Library (PL-REA authority).
+
+    Keyed by Canonical path **name** (not Canonical #). Batch PATH N numbering
+    differs from Canonical status-table numbering (OVR-037); matching by number
+    previously swapped ~25 Q4 texts onto the wrong paths.
+    """
     canonical = NEW_PATHS_DIR / "Uncloud360_Canonical_Path_Library.md"
     if not canonical.exists():
         return {}
     row_re = re.compile(
         r"\|\s*\*\*(\d+)\*\*\s*\|\s*\*\*(.+?)\*\*\s*\|\s*(.+?)\s*\|$"
     )
-    out: dict[int, str] = {}
+    out: dict[str, str] = {}
     for line in canonical.read_text(encoding="utf-8").splitlines():
         m = row_re.match(line.strip())
         if not m:
             continue
         n = int(m.group(1))
+        name = m.group(2).strip()
         q = m.group(3).strip()
         if 1 <= n <= 55 and q.startswith("You completed"):
-            out[n] = q
+            out[name] = q
     return out
 
 
 def apply_canonical_q4(records: list[PathRecord]) -> None:
     """Prefer Canonical Q4 over batch-doc / missing meta (avoids stale or NULL seeds)."""
-    canonical = load_canonical_q4_by_number()
+    canonical = load_canonical_q4_by_name()
     if not canonical:
         return
     for record in records:
         if record.path_type == "success_plan":
             continue
-        q4 = canonical.get(record.number)
+        q4 = canonical.get(record.name)
         if not q4:
             continue
         record.reassessment_reflection_question = q4

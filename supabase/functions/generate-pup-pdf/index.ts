@@ -18,22 +18,29 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/** Standard reflections — Reassessment Questions Part 2 §3. Path-adaptive replaces Q4. */
+const PATH_ADAPTIVE_QUESTION_FIELD = "reflection_q4";
+
 const REFLECTION_QUESTIONS: Array<{ field: string; question: string }> = [
   {
     field: "reflection_q1",
-    question: "Looking back at the past 90 days, what shifted most for you?",
+    question:
+      "Looking back at the past 90 days, what has shifted most in how you show up — even if the change is small?",
   },
   {
     field: "reflection_q2",
-    question: "What are you still working on that feels unfinished?",
+    question:
+      "What has been the hardest part of this period, and what does that tell you about what you most need right now?",
   },
   {
     field: "reflection_q3",
-    question: "What did you do differently because of your coaching sessions?",
+    question:
+      "What are you most ready to let go of, change, or move past as you head into the next 90 days?",
   },
   {
     field: "reflection_q4",
-    question: "What do you want to focus on in the next 90 days?",
+    question:
+      "If you could name one thing that would make the next 90 days meaningfully different from the last 90, what would it be?",
   },
 ];
 
@@ -83,9 +90,15 @@ function buildReflections(row: Record<string, unknown>): PupPdfReflection[] {
     row.reflectionQ3,
     row.reflectionQ4,
   ];
+  const pathAdaptiveQ =
+    typeof row.pathAdaptiveQ === "string" ? row.pathAdaptiveQ.trim() : "";
   return REFLECTION_QUESTIONS.map((q, i) => {
     const answer = typeof answers[i] === "string" ? String(answers[i]).trim() : "";
-    return { field: q.field, question: q.question, answer };
+    const question =
+      q.field === PATH_ADAPTIVE_QUESTION_FIELD && pathAdaptiveQ
+        ? pathAdaptiveQ
+        : q.question;
+    return { field: q.field, question, answer };
   }).filter((r) => r.answer.length > 0);
 }
 

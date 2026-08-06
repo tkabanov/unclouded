@@ -9,7 +9,7 @@ import type { ResultsData } from "@/lib/classification";
 import {
   computeScoreDeltas,
   summarizeProgress,
-  reflectionQuestions,
+  reflectionQuestionsWithAdaptive,
   readReflectionAnswer,
   NINETY_DAYS_MS,
   type ReflectionAnswers,
@@ -32,6 +32,8 @@ interface ResultsComparisonProps {
   first: ResultsData;
   second: ResultsData;
   reflections?: ReflectionAnswers | null;
+  /** Path-specific Question 4 text when the user had a completed path. */
+  pathAdaptiveQ?: string | null;
   compact?: boolean;
   tier?: TierSlug;
   showWhatIsNext?: boolean;
@@ -181,6 +183,7 @@ const ResultsComparison = ({
   first,
   second,
   reflections,
+  pathAdaptiveQ,
   compact,
   tier,
   showWhatIsNext,
@@ -198,11 +201,12 @@ const ResultsComparison = ({
   const summary = summarizeProgress(first, second, firstName);
   const trajectory = computeTrajectoryType(first, second);
   const trajectoryCopy = trajectoryLanguage(trajectory);
-  const reflectionFields = compact ? COMPACT_REFLECTION_ORDER : reflectionQuestions.map((q) => q.field);
-  const reflectionQuestionByField = new Map(reflectionQuestions.map((q) => [q.field, q]));
+  const labeledQuestions = reflectionQuestionsWithAdaptive(pathAdaptiveQ);
+  const reflectionFields = compact ? COMPACT_REFLECTION_ORDER : labeledQuestions.map((q) => q.field);
+  const reflectionQuestionByField = new Map(labeledQuestions.map((q) => [q.field, q]));
   const answeredReflections = reflectionFields
     .map((field) => reflectionQuestionByField.get(field))
-    .filter((q): q is (typeof reflectionQuestions)[number] => Boolean(q))
+    .filter((q): q is (typeof labeledQuestions)[number] => Boolean(q))
     .filter((q) => readReflectionAnswer(reflections, q.field).length > 0);
   const isPremium = tier === TIER.PREMIUM;
   const isPro = tier === TIER.PRO;

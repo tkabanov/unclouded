@@ -484,8 +484,9 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 |---|---|
 | **Preconditions** | User completed path #N; 90-day reassessment due. |
 | **Steps** | Пройти reassessment до path-specific Q4. |
-| **Expected** | Текст совпадает с Canonical «Path-Specific Reassessment Questions» для этого #N (имя path в вопросе каноническое). |
-| **Observed (2026-08-05, vercel retest)** | **PASS.** Migration applied: DB final-session Q4 for Getting Through Hard Seasons = Canonical. `sub-pro@test.com` reassessment → Progress Reflection slot 1 (adaptive): «You completed the Getting Through Hard Seasons path. Where are you now compared to when you started - not the ideal version, the real one?» — exact Canonical #1 (UI prefixes «1. »). |
+| **Expected** | Текст совпадает с Canonical «Path-Specific Reassessment Questions» для этого #N (имя path в вопросе каноническое). Adaptive replaces **Question 4** (slot 4 / `reflection_q4`), not Q1 — see OVR-039. |
+| **Observed (2026-08-05, vercel retest)** | **PASS.** Migration applied: DB final-session Q4 for Getting Through Hard Seasons = Canonical. `sub-pro@test.com` reassessment → Progress Reflection slot 1 (adaptive): «You completed the Getting Through Hard Seasons path. Where are you now compared to when you started - not the ideal version, the real one?» — exact Canonical #1 (UI prefixes «1. »). *(Note: at test time adaptive was on slot 1; post–OVR-039 expect the same Canonical text on **Q4**.)* |
+| **Observed (2026-08-05, §18 regression smoke)** | **PASS.** `sub-pro@test.com` → Start reassessment → Progress Reflection Q1 (adaptive, most recent completed = Leading Under Pressure): «You completed the Leading Under Pressure path. What has shifted in how you lead when things are hard - and what do you still need to work on?» — exact DB final-session `reassessmentReflectionQuestion` / Canonical path name. *(Post–OVR-039: same copy on Q4.)* |
 
 ### PL-REA-002 — Sample matrix (минимум) — TESTED
 
@@ -537,27 +538,30 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 | **Expected** | Purchase + start OK. |
 | **Observed (2026-08-05, localhost:3000)** | **PASS (entitlement path).** `sub-premium@test.com`: Subscription **Add-on active**; Library все 7 SP **Available to enroll**; Enroll **High Potential** → My Paths Active + Continue. Fresh Stripe purchase not re-run (checkout 500 on Pro without addon; prior SP-BILL-002). |
 
-### PL-SP-005 — HR assigns Success Plan to employee
+### PL-SP-005 — HR assigns Success Plan to employee — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Workplace HR admin; employee on Pro or Premium seat (*уточнить seat rules*). |
 | **Steps** | HR assigns e.g. «New Manager Success Plan» → employee login → My Paths. |
 | **Expected** | Assigned path visible; Free or paid employee может проходить без Success Plan add-on (OVR-038). |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** HR `code@test.com` → `/employer` Assign Success Plans → assign **Career Transition** to Free seat `code4@test.com` (Sam Taylor). Current assignments lists it. As code4 (Subscription **Free**, no add-on): My Paths shows **Assigned by employer** + Active + Continue for Career Transition + New Manager; non-assigned Burnout Prevention → Upgrade required. Continue → session opens with coaching + Submit (no Upgrade wall). Confirms OVR-038 / G5 Free + HR assign. |
 
-### PL-SP-006 — HR assign list = ровно 7 plans
+### PL-SP-006 — HR assign list = ровно 7 plans — TESTED
 
 | | |
 |---|---|
 | **Steps** | HR assign picker. |
 | **Expected** | Только 7 имён из §2.5; нет смешения с library 55. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** HR `code@test.com` → Assign Success Plans combobox: **7** options — New Manager, Burnout Prevention, Leadership Development, Career Transition, Returning from Leave, Performance Improvement, High Potential. Missing/extra empty; no library 55 names mixed in. |
 
-### PL-SP-007 — Assigned Success Plan не обходит Premium library gate
+### PL-SP-007 — Assigned Success Plan не обходит Premium library gate — TESTED
 
 | | |
 |---|---|
 | **Steps** | Pro employee на Success Plan; из bridge рекомендован Premium library path. |
 | **Expected** | Рекомендация видна, но Start Premium library path всё ещё требует Premium. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** Pro `code2@test.com` with active HR Leadership SP: bridge session «Your leadership development plan - and the platform paths that serve it» (prose about platform paths; no clickable Premium enroll links). Library **Deep Identity Work** (Premium): card Upgrade required; detail badge Premium + **Upgrade Plan** only (no Enroll). HR SP entitlement ≠ library Premium unlock. |
 
 ### PL-SP-008 — All 7 plans: 5 sessions + bridge — TESTED
 
@@ -571,51 +575,57 @@ _(Canonical summary historically said 25/21/9; the Complete Path List sums to 26
 
 ## 16. Admin
 
-### PL-ADM-001 — Admin Paths lists tiers correctly
+### PL-ADM-001 — Admin Paths lists tiers correctly — TESTED
 
 | | |
 |---|---|
 | **Steps** | Settings → Admin → Paths; найти Free/Pro/Premium samples + Success Plan. |
 | **Expected** | Metadata editable/consistent with Canonical; Success Plan type отличим. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** `admin@uncloud360.dev` → Settings → Admin → Paths. Free: Getting Through Hard Seasons (**Free**); Pro: Focus and Follow-Through (**Pro**); Premium: Sleep Mastery + Deep Identity Work (**Premium**); SP: New Manager Success Plan (**Pro** badge + `success_plan` sub-mode, distinct from library). |
 
-### PL-ADM-002 — Disable path hides from library
+### PL-ADM-002 — Disable path hides from library — TESTED
 
 | | |
 |---|---|
 | **Steps** | Disable Pro path; login Pro user → Library. |
 | **Expected** | Path не стартуется / скрыт; existing enrollment поведение зафиксировать. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** Admin disabled **Financial Foundation** (Pro → Disabled). Pro `code2` Paths Library: Financial Foundation **absent**; other paths (Focus, Getting Through) still visible. Re-enabled after test (Admin → Enabled). No existing enrollment on that path to check. |
 
-### PL-ADM-003 — Non-admin cannot manage paths
+### PL-ADM-003 — Non-admin cannot manage paths — TESTED
 
 | | |
 |---|---|
 | **Steps** | Non-admin Settings. |
 | **Expected** | Нет Admin → Paths. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** `code2@test.com` Settings tabs: Profile / Security / Subscription only (no Admin). Deep-link `/settings?tab=admin` redirects to `/settings` without Admin Console / Paths. |
 
 ---
 
 ## 17. Downgrade / lifecycle impact
 
-### PL-DOWN-001 — Pro → Free: Pro enrollments
+### PL-DOWN-001 — Pro → Free: Pro enrollments — TESTED
 
 | | |
 |---|---|
 | **Steps** | Cancel Pro, дождаться expiry (или seed expired); открыть former Pro enrollment. |
 | **Expected** | Нет продолжения paid sessions (Upgrade Plan / wall); Free paths остаются. См. PL-GATE-002. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** `sub-free@test.com` (Subscription Free) My Paths: stale Pro **Breaking Out of the Comfortable Plateau** + **Focus and Follow-Through** → Active + «Upgrade required to continue» + **Upgrade Plan** (no Continue). Free enrollment still has Continue; Library Free paths available. Aligns with PL-GATE-002. |
 
-### PL-DOWN-002 — Premium → Pro: Premium enrollments
+### PL-DOWN-002 — Premium → Pro: Premium enrollments — TESTED
 
 | | |
 |---|---|
 | **Steps** | Scheduled downgrade → после даты; Premium path enrollment. |
 | **Expected** | Premium paths locked; Pro paths остаются. |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS** (post-effective simulated). `sub-premium` had active enrollments on all 4 Premium paths. Simulated effective Premium→Pro (`userSubscription.planTier`+`profiles.tier` → pro; `effective_user_tier=pro`). Subscription UI: **Pro** active. My Paths: Sleep Mastery / Deep Identity / High Performance Sustainability / Optimization Protocol → «Upgrade required to continue» + **Upgrade Plan** (4). Upgrade CTA opens Premium upsell (no session Continue). Non-Premium Continue links still present. Fixture restored to Premium after test. |
 
-### PL-DOWN-003 — Success Plan add-on expiry
+### PL-DOWN-003 — Success Plan add-on expiry — TESTED
 
 | | |
 |---|---|
 | **Steps** | Купленный add-on истёк / seat lost; открыть Success Plan. |
 | **Expected** | Access revoked по правилам billing (зафиксировать: immediate vs period end). |
+| **Observed (2026-08-05, https://uncloud360.vercel.app)** | **PASS.** Product: one-time add-on has **no period expiry** — revoke is **immediate** (`successPlanAddon.status=revoked`). Revoked `free-flags@test.com` add-on: Subscription → **Purchase add-on · $97** (not Add-on active); `user_has_success_plan_addon=false`; `user_can_access_path(New Manager)=false`. Session deep-link → **upgrade wall** («New Manager Success Plan — upgrade required», coaching locked, no Submit). Note: My Paths card may still show Continue link, but Continue opens wall. Add-on restored after test. |
 
 ---
 
