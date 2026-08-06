@@ -176,8 +176,61 @@ def clean_text(value: str) -> str:
     return text.strip()
 
 
+# Batch/doc footers that follow the last session in a markdown file and must
+# never land in coachingText / microCommitment.
+# Prefer line-anchored / explicit completion markers so in-body mentions of
+# "Uncloud360" in coaching copy are not truncated.
+SESSION_FOOTER_CUT_RE = re.compile(
+    r"(?:"
+    r"BATCH\s+\d+\s+COMPLETE"
+    r"|Batch\s+\d+\s+Complete"
+    r"|ALL\s+\d+\s+MVP\s+PATHS\s+COMPLETE"
+    r"|The\s+Uncloud360\s+Path\s+Library\s+is\s+Complete"
+    r"|FOR\s+THE\s+DEVELOPER"
+    # Trailing italic/doc colophon lines (Phase 2 / Success Plan footers)
+    r"|(?:^|\n)\s*_?Uncloud360[^\n]*(?:Batch|Success Plan|Confidential)"
+    r"|(?:^|\n)\s*_Proven Under Pressure"
+    r"|(?:^|\n)\s*Uncloud360[^\n]*(?:Batch|Success Plan Paths|Confidential)"
+    r")",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# After markdown table flattening, the same footers can sit on the same line as
+# the micro-commitment. Safe for PART 3 only (coaching may mention Uncloud360).
+MICRO_INLINE_FOOTER_RE = re.compile(
+    r"\s+(?:"
+    r"BATCH\s+\d+\s+COMPLETE"
+    r"|Batch\s+\d+\s+Complete"
+    r"|ALL\s+\d+\s+MVP\s+PATHS\s+COMPLETE"
+    r"|The\s+Uncloud360\s+Path\s+Library\s+is\s+Complete"
+    r"|Uncloud360\S*\s*[·.\-].*(?:Batch|Success Plan|Confidential|Proven Under Pressure)"
+    r"|Proven Under Pressure[^\n]*Confidential"
+    r")\s*\Z",
+    re.IGNORECASE | re.DOTALL,
+)
+
+MICRO_FOOTER_LEAK_RE = re.compile(
+    r"(?:"
+    r"BATCH\s+\d+\s+COMPLETE"
+    r"|Batch\s+\d+\s+Complete"
+    r"|ALL\s+\d+\s+MVP\s+PATHS\s+COMPLETE"
+    r"|The\s+Uncloud360\s+Path\s+Library\s+is\s+Complete"
+    r"|Phase\s+2\s+Path\s+Content"
+    r"|MVP\s+Path\s+Content\s+Batch"
+    r"|Success\s+Plan\s+Paths\s*[·.\-]\s*Confidential"
+    r"|FOR\s+THE\s+DEVELOPER"
+    r")",
+    re.IGNORECASE,
+)
+
+
 def trim_session_footer(text: str) -> str:
-    trimmed = text.split("FOR THE DEVELOPER", 1)[0]
+    """Drop batch/document footers that trail the last PART 3 in a doc."""
+    match = SESSION_FOOTER_CUT_RE.search(text)
+    trimmed = text[: match.start()] if match else text
+    inline = MICRO_INLINE_FOOTER_RE.search(trimmed)
+    if inline:
+        trimmed = trimmed[: inline.start()]
     return clean_text(trimmed)
 
 
@@ -300,8 +353,14 @@ def split_session_body(block: str, index: int, session_count: int) -> str:
     # Cut at next session / path / success plan
     next_re = re.compile(
         r"\*\*S\d+\s*\||\|\s*(?:\*\*)?S\d+(?:\*\*)?\s*\||\*\*BRIDGE SESSION\s*\||"
-        r"\*\*PATH\s+\d+|\*\*SUCCESS PLAN",
-        re.IGNORECASE,
+        r"\*\*PATH\s+\d+|\*\*SUCCESS PLAN|"
+        r"BATCH\s+\d+\s+COMPLETE|Batch\s+\d+\s+Complete|"
+        r"ALL\s+\d+\s+MVP\s+PATHS\s+COMPLETE|"
+        r"The\s+Uncloud360\s+Path\s+Library\s+is\s+Complete|"
+        r"FOR\s+THE\s+DEVELOPER|"
+        r"(?:^|\n)\s*_?Uncloud360[^\n]*(?:Batch|Success Plan|Confidential)|"
+        r"(?:^|\n)\s*_Proven Under Pressure",
+        re.IGNORECASE | re.MULTILINE,
     )
     next_match = next_re.search(tail)
     # Skip if next match is at position 0 (shouldn't happen)
@@ -319,11 +378,13 @@ def extract_part_bodies(session_body: str) -> dict[int, str]:
         start = match.end()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(session_body)
         chunk = session_body[start:end]
-        cut = re.search(
-            r"\n\*\*S\d+|\n\*\*BRIDGE|\n\*\*PATH|\n\*\*SUCCESS|\nFOR THE DEVELOPER",
-            chunk,
-            flags=re.IGNORECASE,
-        )
+        cut = SESSION_FOOTER_CUT_RE.search(chunk)
+        if not cut:
+            cut = re.search(
+                r"\n\*\*S\d+|\n\*\*BRIDGE|\n\*\*PATH|\n\*\*SUCCESS",
+                chunk,
+                flags=re.IGNORECASE,
+            )
         if cut:
             chunk = chunk[: cut.start()]
         bodies[part_num] = chunk
@@ -699,6 +760,30 @@ def validate_records(records: list[PathRecord]) -> list[str]:
         if record.path_type != "success_plan":
             if record.sessions and not record.sessions[-1].reassessment_reflection_question:
                 warnings.append(f"{record.name}: missing reassessment Q4 on final session")
+        for session in record.sessions:
+            if session.micro_commitment and MICRO_FOOTER_LEAK_RE.search(
+                session.micro_commitment
+            ):
+                warnings.append(
+                    f"{record.name} S{session.index}: microCommitment still contains "
+                    f"batch/document footer"
+                )
+            if session.coaching_text and SESSION_FOOTER_CUT_RE.search(
+                session.coaching_text
+            ):
+                # Only flag explicit completion footers in coaching (not product name).
+                if re.search(
+                    r"BATCH\s+\d+\s+COMPLETE|Batch\s+\d+\s+Complete|"
+                    r"ALL\s+\d+\s+MVP\s+PATHS\s+COMPLETE|"
+                    r"The\s+Uncloud360\s+Path\s+Library\s+is\s+Complete|"
+                    r"FOR\s+THE\s+DEVELOPER",
+                    session.coaching_text,
+                    flags=re.IGNORECASE,
+                ):
+                    warnings.append(
+                        f"{record.name} S{session.index}: coachingText still contains "
+                        f"batch/document footer"
+                    )
     return warnings
 
 

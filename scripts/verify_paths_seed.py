@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from seed_paths_from_docs import (  # noqa: E402
+    apply_canonical_q4,
     default_doc_paths,
     parse_docs,
     validate_records,
@@ -20,13 +21,14 @@ MIGRATION = ROOT / "supabase" / "migrations" / "20260804160000_seed_paths_librar
 
 def main() -> None:
     records = parse_docs(default_doc_paths())
+    apply_canonical_q4(records)
     warnings = validate_records(records)
     assert not warnings, warnings
 
     numbered = [r for r in records if r.path_type != "success_plan"]
     success = [r for r in records if r.path_type == "success_plan"]
-    assert len(numbered) == 51, len(numbered)
-    assert [r.number for r in numbered] == list(range(4, 55))
+    assert len(numbered) == 52, len(numbered)
+    assert [r.number for r in numbered] == list(range(4, 56))
     assert len(success) == 7, len(success)
 
     premium = [r for r in numbered if r.tier == "premium"]
@@ -56,12 +58,36 @@ def main() -> None:
         assert plan.session_count == 5
         assert plan.sessions[-1].reassessment_reflection_question
 
+    # Batch/doc footers must not leak into micro-commitments (last session of each batch).
+    leak = re.compile(
+        r"(BATCH\s+\d+\s+COMPLETE|Batch\s+\d+\s+Complete|ALL\s+\d+\s+MVP\s+PATHS\s+COMPLETE|"
+        r"The\s+Uncloud360\s+Path\s+Library\s+is\s+Complete|Phase\s+2\s+Path\s+Content|"
+        r"MVP\s+Path\s+Content\s+Batch|Success\s+Plan\s+Paths\s*[·.\-]\s*Confidential|"
+        r"FOR\s+THE\s+DEVELOPER)",
+        re.IGNORECASE,
+    )
+    for record in records:
+        for session in record.sessions:
+            assert not leak.search(session.micro_commitment or ""), (
+                f"{record.name} S{session.index}: footer in microCommitment"
+            )
+
     sql = MIGRATION.read_text(encoding="utf-8")
+    assert "BATCH 1 COMPLETE" not in sql
+    assert "Phase 2 Path Content - Batch" not in sql
+    assert "ALL 18 MVP PATHS COMPLETE" not in sql
+    assert "The Uncloud360 Path Library is Complete" not in sql
+    for line in sql.splitlines():
+        if 'INSERT INTO public."pathSession"' in line:
+            assert "BATCH" not in line or "COMPLETE" not in line
+            assert "Phase 2 Path Content" not in line
+            assert "Proven Under Pressure" not in line
+            assert "Path Library is Complete" not in line
     assert "DELETE FROM public.path " not in sql and not re.search(
         r"DELETE FROM public\.path\b", sql
     )
     assert "Unsent Letter" not in sql
-    assert sql.count("ON CONFLICT (id)") == 58
+    assert sql.count("ON CONFLICT (id)") == 59
     assert sql.count("path_type:success_plan") == 7
     assert sql.count("prerequisite:module:identity") == 1
     assert sql.count("'premium'") == 4
