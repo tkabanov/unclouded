@@ -322,7 +322,7 @@ Password seed: `qwerty123` (см. individual subscription seeds).
 | **Steps** | Download reassessment progress PDF (client jspdf path). |
 | **Expected** | Reflections section: Q1–Q3 standard labels; Q4 label = `pathAdaptiveQ` when set; only non-empty answers included. |
 
-### REA-PDF-003 — PuP 360 PDF (generate-pup-pdf) adaptive Q4
+### REA-PDF-003 — PuP 360 PDF (generate-pup-pdf) adaptive Q4 — TESTED
 
 | | |
 |---|---|
@@ -330,7 +330,7 @@ Password seed: `qwerty123` (см. individual subscription seeds).
 | **Steps** | Generate / download PuP PDF. |
 | **Expected** | Reflections block uses path-adaptive question string for Q4 field; answers present. OVR-007. |
 
-### REA-PDF-004 — Empty reflections omitted from PDF
+### REA-PDF-004 — Empty reflections omitted from PDF — TESTED
 
 | | |
 |---|---|
@@ -341,7 +341,7 @@ Password seed: `qwerty123` (см. individual subscription seeds).
 
 ## 10. Negative / regression
 
-### REA-NEG-001 — Adaptive must not replace Q1 (OVR-039 regression)
+### REA-NEG-001 — Adaptive must not replace Q1 (OVR-039 regression) — TESTED
 
 | | |
 |---|---|
@@ -349,7 +349,7 @@ Password seed: `qwerty123` (см. individual subscription seeds).
 | **Steps** | Reflection UI. |
 | **Expected** | Q1 text = Section 3 Q1 always. Path-specific text only on Q4. |
 
-### REA-NEG-002 — Missing session Q4 falls back to default
+### REA-NEG-002 — Missing session Q4 falls back to default — TESTED
 
 | | |
 |---|---|
@@ -357,21 +357,21 @@ Password seed: `qwerty123` (см. individual subscription seeds).
 | **Steps** | Reflection step. |
 | **Expected** | Default Section 3 Q4; no crash; console may warn lookup failed / null — UI still usable. |
 
-### REA-NEG-003 — Lookup failure does not block reassessment
+### REA-NEG-003 — Lookup failure does not block reassessment — TESTED
 
 | | |
 |---|---|
 | **Steps** | Simulate schema/network failure on pathEnrollment/pathSession (or observe logged warn); continue flow. |
 | **Expected** | Reflections still show (default bank); complete still works. |
 
-### REA-NEG-004 — Do not fail against outdated Section 4 name list
+### REA-NEG-004 — Do not fail against outdated Section 4 name list — TESTED
 
 | | |
 |---|---|
 | **Steps** | Compare UI/DB Q4 for Canonical #1 vs Reassessment Questions doc Section 4 row #1. |
 | **Expected** | Product uses **Getting Through Hard Seasons** Canonical text. Mismatch with doc Section 4 «Stress Regulation Foundations» is **PASS** under OVR-039, not a defect. |
 
-### REA-NEG-005 — Legacy reflection field aliases still readable if present
+### REA-NEG-005 — Legacy reflection field aliases still readable if present — TESTED
 
 | | |
 |---|---|
