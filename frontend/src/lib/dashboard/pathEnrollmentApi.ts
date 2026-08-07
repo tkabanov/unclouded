@@ -31,6 +31,8 @@ export interface PathEnrollmentListItem {
   tier: TierSlug;
   pillarLabel: string;
   subMode?: string;
+  /** Catalog sessionsCount — used for "Session N of M" path-closing labels. */
+  totalSessions?: number;
   /** self | addon | hr_assign — OVR-038 provenance */
   source?: string;
   /** pathenrollment1.currentSessionId — PATHS-07 URL session matching. */
@@ -547,6 +549,7 @@ async function toListItem(
     tier: meta.tier,
     pillarLabel: meta.pillarLabel,
     subMode: meta.subMode,
+    totalSessions: meta.totalSessions > 0 ? meta.totalSessions : undefined,
     source: typeof row.source === "string" ? row.source : undefined,
     ...sessionFields,
   };
@@ -594,6 +597,10 @@ async function deriveListFromOnboardingData(
       tier: catalog?.tier ?? TIER.FREE,
       pillarLabel: catalog?.pillar ?? "",
       subMode: catalog?.subMode,
+      totalSessions:
+        (catalog?.sessionsCount ?? sessions.length) > 0
+          ? catalog?.sessionsCount ?? sessions.length
+          : undefined,
       currentSessionId,
       currentSessionTitle: currentSessionId
         ? (await sessionTitleFromId(currentSessionId)) ?? undefined

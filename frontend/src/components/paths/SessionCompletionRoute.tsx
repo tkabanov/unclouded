@@ -33,6 +33,7 @@ import {
   fetchPathSession,
   PathSessionUpgradeRequiredError,
 } from "@/lib/paths/pathsSessionApi";
+import { formatPathSessionNumber } from "@/lib/paths/formatPathSessionNumber";
 import {
   generatePathClosingInsight,
   type PathClosingInsight,
@@ -271,7 +272,10 @@ export default function SessionCompletionRoute({
         enrollmentSource: matchingEnrollment.source,
       });
 
-      const sessionNumber = `Session ${session.sessionIndex ?? "?"} of path`;
+      const sessionNumber = formatPathSessionNumber(
+        session.sessionIndex,
+        matchingEnrollment.totalSessions,
+      );
       let insight: PathClosingInsight | null = null;
       if (canUseJournalAiReflection(userTier)) {
         const reflectionResponses = mappedAnswers
@@ -303,11 +307,16 @@ export default function SessionCompletionRoute({
       await refresh();
       clearSessionParam();
       onReturnToMyPaths();
-      toast.success(
-        directedWriting && isFinalSession && journalDisposition === "save"
-          ? "Session completed — letter saved to your journal"
-          : "Session completed",
-      );
+      if (canUseJournalAiReflection(userTier)) {
+        toast.success("Session completed");
+        toast.message("Kota's note couldn't be generated right now.");
+      } else {
+        toast.success(
+          directedWriting && isFinalSession && journalDisposition === "save"
+            ? "Session completed — letter saved to your journal"
+            : "Session completed",
+        );
+      }
     } catch (error) {
       console.error("Failed to submit session completion", error);
       if (error instanceof PathSessionUpgradeRequiredError) {
@@ -339,6 +348,7 @@ export default function SessionCompletionRoute({
     needsUpgrade,
     lockedPathFeature,
     pathUpsell.promptUpgrade,
+    userTier,
     clearSessionParam,
     onReturnToMyPaths,
     refresh,

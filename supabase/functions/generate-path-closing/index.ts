@@ -7,6 +7,7 @@ import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
   buildStandaloneUserContext,
   canUseStandaloneProPrompts,
+  formatPathSessionNumber,
   generatePathClosingInsight,
   normalizeStandaloneTier,
 } from "../_shared/standalonePrompts/index.ts";
@@ -103,14 +104,25 @@ Deno.serve(async (req) => {
   if (!sessionRow) return jsonResponse(404, { error: "Path session not found" });
 
   let pathName = typeof body.pathName === "string" ? body.pathName.trim() : "";
-  if (!pathName && sessionRow.pathId) {
+  let pathSessionsCount: number | null = null;
+  if (sessionRow.pathId) {
     const { data: pathRow } = await service
       .from("path")
-      .select("name")
+      .select("name, sessionsCount")
       .eq("id", sessionRow.pathId)
       .maybeSingle();
-    pathName = typeof pathRow?.name === "string" ? pathRow.name : "Path";
+    if (!pathName) {
+      pathName = typeof pathRow?.name === "string" ? pathRow.name : "Path";
+    }
+    const count = pathRow?.sessionsCount;
+    if (typeof count === "number" && count > 0) {
+      pathSessionsCount = count;
+    } else if (typeof count === "string") {
+      const parsed = Number.parseInt(count, 10);
+      if (Number.isFinite(parsed) && parsed > 0) pathSessionsCount = parsed;
+    }
   }
+  if (!pathName) pathName = "Path";
 
   let reflectionResponses =
     typeof body.reflectionResponses === "string" ? body.reflectionResponses.trim() : "";
@@ -133,7 +145,7 @@ Deno.serve(async (req) => {
   const sessionNumber =
     typeof body.sessionNumber === "string" && body.sessionNumber.trim()
       ? body.sessionNumber.trim()
-      : `Session ${sessionRow.index ?? "?"}`;
+      : formatPathSessionNumber(sessionRow.index, pathSessionsCount);
   const sessionTheme =
     typeof body.sessionTheme === "string" && body.sessionTheme.trim()
       ? body.sessionTheme.trim()

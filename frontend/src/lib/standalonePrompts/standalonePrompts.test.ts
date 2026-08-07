@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { parseDailyInsights } from "../../../../supabase/functions/_shared/standalonePrompts/dailyInsights.ts";
-import { parsePathClosing } from "../../../../supabase/functions/_shared/standalonePrompts/pathClosing.ts";
+import {
+  buildPathClosingPrompt,
+  parsePathClosing,
+} from "../../../../supabase/functions/_shared/standalonePrompts/pathClosing.ts";
 import { parseCoachingSummary } from "../../../../supabase/functions/_shared/standalonePrompts/coachingSummary.ts";
 import { recentThemesFromSessionMemory } from "../../../../supabase/functions/_shared/standalonePrompts/context.ts";
 import {
@@ -34,6 +37,25 @@ describe("standalone prompt parsers", () => {
     });
     expect(parsed?.acknowledgment).toContain("weight");
     expect(parsed?.cta_text).toContain("Kota");
+  });
+
+  it("builds path closing prompt with tone adjustments and stay-with guidance", () => {
+    const { prompt } = buildPathClosingPrompt({
+      pathName: "Hard Seasons",
+      sessionNumber: "Session 3 of 6",
+      sessionTheme: "Naming the load",
+      reflectionResponses: "Q: What landed?\nA: The weight I keep carrying.",
+      classification: "High Output Hidden Instability",
+      coachingMode: "Stabilizer",
+      activeFlags: "none",
+    });
+    expect(prompt).toContain("TONE ADJUSTMENTS");
+    expect(prompt).toContain("not dissolve when they close the app");
+    expect(prompt).toContain("If coaching_mode = Rebuilder");
+    expect(prompt).toContain("If coaching_mode = Stabilizer");
+    expect(prompt).toContain("If coaching_mode = Builder");
+    expect(prompt).toContain("If coaching_mode = Optimizer");
+    expect(prompt).toContain("If grief_mode or recovery_mode is active");
   });
 
   it("parses coaching summary five sections", () => {

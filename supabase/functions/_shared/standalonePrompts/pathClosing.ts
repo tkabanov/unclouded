@@ -59,10 +59,17 @@ A closing insight with two parts:
 PART 1 — ACKNOWLEDGMENT (2–3 sentences)
 Name something specific from their reflection responses that felt true or significant. Draw from what they actually wrote — not from the session theme in general. Do not summarize their responses back to them. Name the thing underneath what they wrote.
 PART 2 — SOMETHING TO SIT WITH (1–2 sentences)
-One thought, reframe, or seed worth carrying forward from this session. This is not advice or a next step. It is something worth holding.
+One thought, reframe, or seed worth carrying forward from this session. This is not advice or a next step. It is something worth holding. It should feel like it will stay with them — not dissolve when they close the app.
 
 WHAT THIS IS NOT
 Not a congratulations. Not "great work today." Not a generic summary of the session theme. Not a list of what they learned. Not a question that demands an answer right now.
+
+TONE ADJUSTMENTS
+If coaching_mode = Rebuilder: gentle and stabilizing. The acknowledgment honors what it took to show up.
+If coaching_mode = Stabilizer: honest and steady. Name what their reflection revealed without adding pressure.
+If coaching_mode = Builder: forward-facing. The seed should point toward the next thing.
+If coaching_mode = Optimizer: precise and direct. Name the specific edge their reflection touched.
+If grief_mode or recovery_mode is active: the acknowledgment leads with presence, not insight.
 
 OUTPUT FORMAT
 Return a JSON object with exactly this structure:

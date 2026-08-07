@@ -5,6 +5,8 @@ export * from "./journalReflection.ts";
 export * from "./dailyInsights.ts";
 export * from "./dailyInsightsSchedule.ts";
 export * from "./pathClosing.ts";
+export * from "./formatPathSessionNumber.ts";
+
 export * from "./trajectoryStatement.ts";
 export * from "./coachingSummary.ts";
 export * from "./runners.ts";
