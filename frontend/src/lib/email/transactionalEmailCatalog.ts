@@ -10,7 +10,8 @@ export type TransactionalEmailSource =
   | "us_606"
   | "phase2_section8"
   | "build_brief_section13"
-  | "supabase_auth";
+  | "supabase_auth"
+  | "ai_prompt_spec_prompt_5";
 
 export type TransactionalEmailId =
   | "auth_password_reset"
@@ -37,6 +38,7 @@ export type TransactionalEmailId =
   | "notification_daily_checkin"
   | "notification_kota_daily_insight"
   | "notification_coaching_record_ready"
+  | "ops_coaching_summary_failed"
   | "notification_gidget_nudge"
   | "notification_path_progress"
   | "notification_reassessment_due"
@@ -339,6 +341,18 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
     channel: "edge_smtp",
     status: "live",
     source: "build_brief_section13",
+    from: TRANSACTIONAL_EMAIL_FROM,
+  },
+  {
+    id: "ops_coaching_summary_failed",
+    name: "Ops: coaching summary failed twice",
+    trigger:
+      "Prompt 5 second OpenAI failure after ~5m retry — flags profiles.coachingSummaryFailed; emails OPS_NOTIFY_EMAIL or COACH_BRIEF_INBOX",
+    subject: "Coaching summary failed — {name}",
+    priority: "high",
+    channel: "edge_smtp",
+    status: "live",
+    source: "ai_prompt_spec_prompt_5",
     from: TRANSACTIONAL_EMAIL_FROM,
   },
   {

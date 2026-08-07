@@ -287,7 +287,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Finish reassessment → results screen |
 | **Expected** | Trajectory statement 2–3 sentences виден **сразу** (sync). Сохранён (`trajectoryStatementText` на assessment/user). Называет значимое движение / честно про decline / forward focus. Не «you've made great progress» generic. |
 
-### AIP-P4-002 — PDF Section 3 (Pro and Premium)
+### AIP-P4-002 — PDF Section 3 (Pro and Premium) — TESTED
 
 | | |
 |---|---|
@@ -318,7 +318,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 **Trigger:** async after reassessment save  
 **Tier:** **Premium only**
 
-### AIP-P5-001 — Results screen not blocked + preparing copy
+### AIP-P5-001 — Results screen not blocked + preparing copy — TESTED
 
 | | |
 |---|---|
@@ -326,7 +326,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Observe results immediately |
 | **Expected** | Results UI доступен без ожидания summary. Message вроде: **"Your Complete Coaching Record is being prepared. You'll be notified when your PDF is ready."** |
 
-### AIP-P5-002 — Ready notification + flags
+### AIP-P5-002 — Ready notification + flags — TESTED
 
 | | |
 |---|---|
@@ -334,7 +334,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Wait; check push and/or email |
 | **Expected** | `coachingSummaryReady` = true; JSON stored (`coachingSummaryJson`). Notify: **"Your Complete Coaching Record is ready"** (push title matches; email subject same). |
 
-### AIP-P5-003 — Five sections in JSON / PDF
+### AIP-P5-003 — Five sections in JSON / PDF — TESTED
 
 | | |
 |---|---|
@@ -348,7 +348,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 |---|---|
 | **Preconditions** | Simulate OpenAI failure (invalid key / mock) if possible |
 | **Steps** | Trigger summary job |
-| **Expected** | Retry once after ~5 minutes. Second fail: flag account / notify ops (Dr. Sam); **do not** ship Premium PDF without summary. |
+| **Expected** | First fail → `202` `coaching_summary_retry_scheduled`, `assessmentResult.coachingSummaryRetryAt` ≈ now+5m (override: env `COACHING_SUMMARY_RETRY_MS`), attemptCount=1. Minute cron `generate-coaching-summary` (empty body) runs the retry. Second fail → `502` `coaching_summary_failed`, `profiles.coachingSummaryFailed=true`, ops email (`OPS_NOTIFY_EMAIL` or `COACH_BRIEF_INBOX`); **do not** ship Premium PDF without summary (P5-003 fail-closed). |
 
 ### AIP-P5-005 — Pro excluded
 
