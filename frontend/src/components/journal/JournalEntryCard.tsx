@@ -1,6 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { JournalEntryListItem } from "@/lib/journal/journalEntriesApi";
+import { shouldShowJournalReflection } from "@/lib/journal/journalReflectionReveal";
 import { bubbleStyle } from "@/styles";
 
 const MOOD_EMOJI: Record<string, string> = {
@@ -94,7 +95,7 @@ export default function JournalEntryCard({
           "flex flex-wrap items-center justify-between gap-3 pt-1",
         )}
       >
-        {entry.has_ai_reflection ? (
+        {shouldShowJournalReflection(entry) ? (
           <div
             className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-1.5")}
           >

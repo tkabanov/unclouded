@@ -55,6 +55,22 @@ function resolveAiConfidence(sessionCount: number): string {
   return "Exploratory";
 }
 
+/**
+ * Prompt 1 recent_themes: up to 3 themes from the last 2 session summaries,
+ * or "none" if fewer than 2 sessions completed.
+ */
+export function recentThemesFromSessionMemory(
+  records: Array<{ topic?: string | null; summaryStub?: string | null }>,
+): string {
+  if (records.length < 2) return "none";
+  const themes = records
+    .slice(-2)
+    .map((r) => r.topic?.trim() || r.summaryStub?.trim() || "")
+    .filter(Boolean)
+    .slice(0, 3);
+  return themes.length > 0 ? themes.join(", ") : "none";
+}
+
 function compressSessionThemes(
   onboardingData: Record<string, unknown>,
   maxChars: number,
@@ -62,10 +78,7 @@ function compressSessionThemes(
   const records = readSessionMemoryRecords(onboardingData);
   const sessionCount = records.length;
   const recent = records.slice(-5);
-  const themes = recent
-    .map((r) => r.topic?.trim() || r.summaryStub?.trim() || "")
-    .filter(Boolean)
-    .slice(-3);
+  const themes = recentThemesFromSessionMemory(records);
   const compressedParts = recent.map((r) => {
     const bits = [r.topic, r.summaryStub, r.keyPatternOrInsight].filter(
       (v): v is string => typeof v === "string" && Boolean(v.trim()),
@@ -87,7 +100,7 @@ function compressSessionThemes(
   }
 
   return {
-    themes: themes.length > 0 ? themes.join(", ") : "none",
+    themes,
     compressed: compressed || "none",
     sessionCount,
     openCommitment,

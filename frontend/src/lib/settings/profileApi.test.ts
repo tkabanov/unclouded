@@ -36,6 +36,7 @@ describe("saveProfileForm", () => {
       firstName: "",
       lastName: "",
       sobrietyStartDate: "",
+      roleTypes: [],
     });
 
     expect(mockUpdate).toHaveBeenCalledWith(

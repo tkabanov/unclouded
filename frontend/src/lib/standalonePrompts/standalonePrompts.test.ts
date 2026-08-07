@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { parseDailyInsights } from "../../../../supabase/functions/_shared/standalonePrompts/dailyInsights.ts";
 import { parsePathClosing } from "../../../../supabase/functions/_shared/standalonePrompts/pathClosing.ts";
 import { parseCoachingSummary } from "../../../../supabase/functions/_shared/standalonePrompts/coachingSummary.ts";
+import { recentThemesFromSessionMemory } from "../../../../supabase/functions/_shared/standalonePrompts/context.ts";
+import {
+  dailyInsightPruneBeforeDate,
+  dailyInsightsRetryDelayMs,
+  preferredInsightHour,
+  shouldGenerateDailyInsights,
+} from "../../../../supabase/functions/_shared/standalonePrompts/dailyInsightsSchedule.ts";
 import {
   formatKotaReadBrief,
   parseKotaReadBrief,
@@ -43,6 +50,80 @@ describe("standalone prompt parsers", () => {
       section_5_body: "Next body",
     });
     expect(parsed?.section_5_body).toBe("Next body");
+  });
+});
+
+describe("Prompt 1 recent_themes", () => {
+  it("returns none with fewer than 2 sessions", () => {
+    expect(recentThemesFromSessionMemory([])).toBe("none");
+    expect(
+      recentThemesFromSessionMemory([{ topic: "Only one", summaryStub: "Stub" }]),
+    ).toBe("none");
+  });
+
+  it("takes up to 3 themes from the last 2 session summaries", () => {
+    const themes = recentThemesFromSessionMemory([
+      { topic: "Old", summaryStub: "ignored" },
+      { topic: "Boundaries", summaryStub: "Named overload" },
+      { topic: "", summaryStub: "Sleep debt" },
+      { topic: "Fourth would be trimmed if mapped", summaryStub: "x" },
+    ]);
+    // last 2 only
+    expect(themes).toBe("Sleep debt, Fourth would be trimmed if mapped");
+  });
+});
+
+describe("Prompt 1 schedule gate", () => {
+  it("defaults preferred hour to 8", () => {
+    expect(preferredInsightHour(null)).toBe(8);
+    expect(preferredInsightHour({ preferredInsightHour: 14 })).toBe(14);
+  });
+
+  it("runs at preferred hour once, then defers to retryAt", () => {
+    expect(
+      shouldGenerateDailyInsights({
+        localHour: 8,
+        preferredHour: 8,
+        hasInsightToday: false,
+        retry: null,
+      }),
+    ).toEqual({ run: true, isRetry: false });
+
+    const retryAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    expect(
+      shouldGenerateDailyInsights({
+        localHour: 8,
+        preferredHour: 8,
+        hasInsightToday: false,
+        retry: { attemptCount: 1, retryAt },
+        nowMs: Date.now(),
+      }),
+    ).toEqual({ run: false, isRetry: false });
+
+    expect(
+      shouldGenerateDailyInsights({
+        localHour: 9,
+        preferredHour: 8,
+        hasInsightToday: false,
+        retry: { attemptCount: 1, retryAt: new Date(Date.now() - 1000).toISOString() },
+        nowMs: Date.now(),
+      }),
+    ).toEqual({ run: true, isRetry: true });
+
+    expect(
+      shouldGenerateDailyInsights({
+        localHour: 9,
+        preferredHour: 8,
+        hasInsightToday: false,
+        retry: { attemptCount: 2, retryAt: null },
+      }),
+    ).toEqual({ run: false, isRetry: false });
+  });
+
+  it("prunes before today-minus-6 and reads retry delay env", () => {
+    expect(dailyInsightPruneBeforeDate("2026-08-07")).toBe("2026-08-01");
+    expect(dailyInsightsRetryDelayMs("60000")).toBe(60000);
+    expect(dailyInsightsRetryDelayMs(undefined)).toBe(30 * 60 * 1000);
   });
 });
 

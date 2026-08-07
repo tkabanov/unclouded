@@ -16,6 +16,7 @@ import {
   type JournalEntryListItem,
   updateJournalEntry,
 } from "@/lib/journal/journalEntriesApi";
+import { shouldShowJournalReflection } from "@/lib/journal/journalReflectionReveal";
 import type { TierSlug } from "@/lib/enums/tier";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -83,8 +84,9 @@ export default function EntryDetailPopup({
     setTitle(entry.title === "Untitled entry" ? "" : entry.title);
     setMoodTag(entry.moodTag ?? "");
     setContent(entry.content);
-    setAiReflection(entry.reflectionReady ? entry.aiReflection : null);
-    setReflectionReady(Boolean(entry.reflectionReady && entry.aiReflection));
+    const showReflection = shouldShowJournalReflection(entry);
+    setAiReflection(showReflection ? entry.aiReflection : null);
+    setReflectionReady(showReflection);
     setShowDeleteConfirm(false);
   }, [open, entry]);
 

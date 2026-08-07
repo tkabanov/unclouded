@@ -14,6 +14,12 @@ import {
   generateDailyInsights,
   normalizeStandaloneTier,
 } from "../_shared/standalonePrompts/index.ts";
+import {
+  dailyInsightPruneBeforeDate,
+  dailyInsightsRetryDelayMs,
+  preferredInsightHour,
+  shouldGenerateDailyInsights,
+} from "../_shared/standalonePrompts/dailyInsightsSchedule.ts";
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -36,7 +42,7 @@ function authorize(req: Request, serviceKey: string): boolean {
 }
 
 /** Local YYYY-MM-DD and hour for a profile timezone (fallback America/New_York). */
-function localDateAndHour(
+export function localDateAndHour(
   timeZone: string | null | undefined,
   now = new Date(),
 ): { date: string; hour: number } {
@@ -59,21 +65,6 @@ function localDateAndHour(
     const iso = now.toISOString();
     return { date: iso.slice(0, 10), hour: now.getUTCHours() };
   }
-}
-
-function preferredHour(onboardingData: unknown): number {
-  if (!onboardingData || typeof onboardingData !== "object") return 8;
-  const raw = onboardingData as Record<string, unknown>;
-  const value =
-    raw.preferred_insight_hour ??
-    raw.preferredInsightHour ??
-    raw.kota_insight_hour;
-  if (typeof value === "number" && value >= 0 && value <= 23) return Math.floor(value);
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 23) return Math.floor(parsed);
-  }
-  return 8;
 }
 
 Deno.serve(async (req) => {
@@ -104,9 +95,11 @@ Deno.serve(async (req) => {
   if (error) return json({ error: error.message }, 500);
 
   const appUrl = canonicalAppOrigin();
+  const retryDelayMs = dailyInsightsRetryDelayMs();
   let generated = 0;
   let skipped = 0;
   let failed = 0;
+  let scheduledRetry = 0;
 
   for (const profile of profiles ?? []) {
     const tier = normalizeStandaloneTier(profile.tier);
@@ -118,11 +111,7 @@ Deno.serve(async (req) => {
     const { date, hour } = localDateAndHour(
       typeof profile.timeZone === "string" ? profile.timeZone : null,
     );
-    const dueHour = preferredHour(profile.onboardingData);
-    if (hour !== dueHour) {
-      skipped += 1;
-      continue;
-    }
+    const dueHour = preferredInsightHour(profile.onboardingData);
 
     const { data: existing } = await service
       .from("dailyInsight")
@@ -131,7 +120,30 @@ Deno.serve(async (req) => {
       .eq("insightDate", date)
       .maybeSingle();
 
-    if (existing) {
+    const { data: retryRow } = await service
+      .from("dailyInsightRetry")
+      .select("attemptCount, retryAt")
+      .eq("userId", profile.id)
+      .eq("insightDate", date)
+      .maybeSingle();
+
+    const retryState =
+      retryRow && typeof retryRow === "object"
+        ? {
+            attemptCount:
+              typeof retryRow.attemptCount === "number" ? retryRow.attemptCount : 0,
+            retryAt: typeof retryRow.retryAt === "string" ? retryRow.retryAt : null,
+          }
+        : null;
+
+    const gate = shouldGenerateDailyInsights({
+      localHour: hour,
+      preferredHour: dueHour,
+      hasInsightToday: Boolean(existing),
+      retry: retryState,
+    });
+
+    if (!gate.run) {
       skipped += 1;
       continue;
     }
@@ -147,23 +159,34 @@ Deno.serve(async (req) => {
         aiConfidenceLevel: ctx.aiConfidenceLevel,
         activeFlags: ctx.activeFlags,
       });
-    } catch {
-      // Spec: retry once after 30 minutes — mark for ops via log; cron will retry next hour.
-      // For immediate retry path within this invoke:
-      try {
-        await new Promise((r) => setTimeout(r, 500));
-        insights = await generateDailyInsights({
-          classification: ctx.classification,
-          coachingMode: ctx.coachingMode,
-          recentThemes: ctx.recentThemes,
-          aiConfidenceLevel: ctx.aiConfidenceLevel,
-          activeFlags: ctx.activeFlags,
-        });
-      } catch (err) {
-        console.error("daily_insights_failed", profile.id, err);
+    } catch (err) {
+      console.error("daily_insights_failed", profile.id, err);
+      const nextAttempt = (retryState?.attemptCount ?? 0) + 1;
+      if (nextAttempt === 1) {
+        const retryAt = new Date(Date.now() + retryDelayMs).toISOString();
+        await service.from("dailyInsightRetry").upsert(
+          {
+            userId: profile.id,
+            insightDate: date,
+            attemptCount: 1,
+            retryAt,
+          },
+          { onConflict: "userId,insightDate" },
+        );
+        scheduledRetry += 1;
+      } else {
+        await service.from("dailyInsightRetry").upsert(
+          {
+            userId: profile.id,
+            insightDate: date,
+            attemptCount: 2,
+            retryAt: null,
+          },
+          { onConflict: "userId,insightDate" },
+        );
         failed += 1;
-        continue;
       }
+      continue;
     }
 
     const { data: inserted, error: insertError } = await service
@@ -185,6 +208,19 @@ Deno.serve(async (req) => {
       failed += 1;
       continue;
     }
+
+    await service
+      .from("dailyInsightRetry")
+      .delete()
+      .eq("userId", profile.id)
+      .eq("insightDate", date);
+
+    const pruneBefore = dailyInsightPruneBeforeDate(date);
+    await service
+      .from("dailyInsight")
+      .delete()
+      .eq("userId", profile.id)
+      .lt("insightDate", pruneBefore);
 
     const { data: subs } = await service
       .from("pushDeviceSubscription")
@@ -211,5 +247,5 @@ Deno.serve(async (req) => {
     generated += 1;
   }
 
-  return json({ ok: true, generated, skipped, failed });
+  return json({ ok: true, generated, skipped, failed, scheduledRetry });
 });

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { createJournalEntry } from "@/lib/journal/journalEntriesApi";
 import { requestJournalReflectionInBackground } from "@/lib/journal/journalReflectionApi";
+import { markJournalReflectionPendingReveal } from "@/lib/journal/journalReflectionReveal";
 import { canUseJournalAiReflection } from "@/lib/journal/journalEntitlements";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { cn } from "@/lib/utils";
@@ -66,6 +67,7 @@ export default function NewEntryPopup({
         },
         onboardingData,
       );
+      markJournalReflectionPendingReveal(created.id);
       if (canUseJournalAiReflection(userTier)) {
         void requestJournalReflectionInBackground(created.id).catch(() => {
           /* reflection appears on next visit when ready */

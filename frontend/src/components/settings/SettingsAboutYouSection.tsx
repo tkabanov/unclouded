@@ -46,10 +46,20 @@ import {
   WORK_ENVIRONMENT_ORDER,
 } from "@/lib/enums/aboutYouProfile";
 import type { AboutYouFormState } from "@/lib/settings/profileApi";
+import { DEFAULT_PREFERRED_INSIGHT_HOUR } from "@/lib/settings/profileApi";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
 const EMPTY_SELECT_VALUE = "__empty__";
+
+const KOTA_MESSAGE_HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => {
+  const suffix = hour < 12 ? "AM" : "PM";
+  const twelve = hour % 12 === 0 ? 12 : hour % 12;
+  return {
+    value: String(hour),
+    label: `${twelve}:00 ${suffix} (${String(hour).padStart(2, "0")}:00)`,
+  };
+});
 
 interface SettingsAboutYouSectionProps {
   form: AboutYouFormState;
@@ -376,9 +386,27 @@ export default function SettingsAboutYouSection({
         />
         {form.timeZone ? (
           <p className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}>
-            Your time zone is used for check-in reminders and notifications.
+            Your time zone is used for check-in reminders and Kota daily messages.
           </p>
         ) : null}
+        <ProfileSelectField
+          id="about-kota-message-hour"
+          label="Kota messages time"
+          value={String(form.preferredInsightHour)}
+          placeholder="Select hour"
+          options={KOTA_MESSAGE_HOUR_OPTIONS}
+          onChange={(value) =>
+            onChange(
+              "preferredInsightHour",
+              value === ""
+                ? DEFAULT_PREFERRED_INSIGHT_HOUR
+                : Number.parseInt(value, 10),
+            )
+          }
+        />
+        <p className={cn(bubbleStyle("Text_small_"), "text-muted-foreground")}>
+          Pro and Premium: Kota leaves three insights each day at this local hour (default 8:00).
+        </p>
       </section>
     </div>
   );

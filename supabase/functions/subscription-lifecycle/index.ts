@@ -28,8 +28,10 @@ import {
   type PlanPriceRow,
 } from "../_shared/stripeBilling.ts";
 import type { BillingInterval } from "../_shared/subscriptionLifecycle.ts";
-
-const FROM_ADDRESS = "noreply@uncloud360.ai";
+import {
+  sendGridSmtpLabel,
+  sendTransactionalEmail,
+} from "../_shared/sendgridMail.ts";
 
 const LIFECYCLE_KINDS = [
   "expireCancellation",
@@ -123,28 +125,8 @@ async function sendEmail(params: {
   subject: string;
   html: string;
 }): Promise<string> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) return "smtp:skipped — RESEND_API_KEY not set";
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: FROM_ADDRESS,
-        to: [params.to],
-        subject: params.subject,
-        html: params.html,
-      }),
-    });
-    if (!res.ok) return `resend_error: ${res.status} ${await res.text()}`;
-    return "sent";
-  } catch (err) {
-    return `resend_error: ${err instanceof Error ? err.message : "unknown"}`;
-  }
+  const result = await sendTransactionalEmail(params);
+  return result.detail;
 }
 
 function subscriptionUrl(): string {
@@ -333,6 +315,6 @@ Deno.serve(async (req) => {
     applied: outcomes,
     failed: failures,
     staleHolds: releaseError ? { error: releaseError.message } : releaseData,
-    smtp: Deno.env.get("RESEND_API_KEY") ? "resend" : "skipped",
+    smtp: sendGridSmtpLabel(),
   });
 });

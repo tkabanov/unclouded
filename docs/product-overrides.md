@@ -434,3 +434,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | Pro/Premium users see a **From Kota / Kota's Messages** dashboard card with three AI-generated insights per day (7-day rolling). Push notification **"Kota left you a message"** fires only after insights are stored. Pro plan marketing may again mention personalized daily Kota insights. Admin curated article tooling may remain for content ops but is **not** the user feed. |
 | **Code** | `frontend/src/components/dashboard/DashboardKotaMessagesCard.tsx`, `frontend/src/pages/Dashboard.tsx`, `supabase/functions/generate-daily-insights/`, `supabase/migrations/20260807120000_standalone_ai_prompts.sql`, `frontend/src/lib/subscription/planCatalog.ts` |
 
+### OVR-043 — Transactional email provider: SendGrid (not Resend)
+
+| | |
+|---|---|
+| **Date** | 2026-08-07 |
+| **Overrides** | Interim Supabase edge wiring that called Resend (`RESEND_API_KEY` / `api.resend.com`) for platform transactional mail |
+| **Authoritative spec** | Owner request; Phase 2 / US-606 SendGrid direction |
+| **Current behavior** | All platform event emails from edge functions go through **SendGrid** Mail Send (`SENDGRID_API_KEY`). Shared helper: `supabase/functions/_shared/sendgridMail.ts`. Default from: `noreply@uncloud360.ai`. When the key is unset, sends are skipped (`smtp:skipped`) and cohorts are still stamped. Supabase Auth templates may use SendGrid SMTP separately in the Dashboard. |
+| **Code** | `supabase/functions/_shared/sendgridMail.ts`, `kotaReadDelivery.ts`, `module-unlock`, `notification-milestone`, `vulnerable-outreach`, `reassessment-due`, `onboarding-dropoff`, `subscription-lifecycle`, `generate-coaching-summary`; docs: `supabase/EMAIL_TEMPLATES.md` |
+

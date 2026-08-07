@@ -15,6 +15,7 @@ import {
   type PushSubscriptionRow,
 } from "../_shared/webPushDelivery.ts";
 import { parseCoachBriefInbox } from "../_shared/kotaReadDelivery.ts";
+import { sendTransactionalEmail } from "../_shared/sendgridMail.ts";
 import {
   buildStandaloneUserContext,
   canUsePremiumPdfPrompts,
@@ -74,22 +75,13 @@ async function notifyCoachingSummaryReady(params: {
     });
   }
 
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey || !params.email?.includes("@")) return;
+  if (!params.email?.includes("@")) return;
 
   const name = params.firstName?.trim() || "there";
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "noreply@uncloud360.ai",
-      to: [params.email],
-      subject: "Your Complete Coaching Record is ready",
-      html: `<p>Hi ${name},</p><p>Your Complete Coaching Record is ready.</p><p><a href="${appUrl}/dashboard">Open dashboard</a></p><p>— Uncloud360</p>`,
-    }),
+  await sendTransactionalEmail({
+    to: params.email,
+    subject: "Your Complete Coaching Record is ready",
+    html: `<p>Hi ${name},</p><p>Your Complete Coaching Record is ready.</p><p><a href="${appUrl}/dashboard">Open dashboard</a></p><p>— Uncloud360</p>`,
   });
 }
 
@@ -110,26 +102,15 @@ async function notifyOpsCoachingSummaryFailed(params: {
   if (recipients.length === 0) {
     return { ok: false, detail: "smtp:skipped — OPS_NOTIFY_EMAIL / COACH_BRIEF_INBOX not configured" };
   }
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    return { ok: false, detail: "smtp:skipped — RESEND_API_KEY not set" };
-  }
 
   const appUrl = canonicalAppOrigin();
   const name = params.firstName?.trim() || "Unknown";
   const memberEmail = params.email?.trim() || "n/a";
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "noreply@uncloud360.ai",
-      to: recipients,
-      subject: `Coaching summary failed — ${name}`,
-      html: `
+  return sendTransactionalEmail({
+    to: recipients,
+    subject: `Coaching summary failed — ${name}`,
+    html: `
         <p>Premium coaching summary generation failed twice (Prompt 5).</p>
         <p><strong>User:</strong> ${name} (${memberEmail})</p>
         <p><strong>User ID:</strong> ${params.userId}</p>
@@ -139,14 +120,7 @@ async function notifyOpsCoachingSummaryFailed(params: {
         <p><a href="${appUrl}/settings?tab=admin">Open Admin Console</a></p>
         <p>— Uncloud360</p>
       `.trim(),
-    }),
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    return { ok: false, detail: `resend_error: ${res.status} ${text}` };
-  }
-  return { ok: true, detail: `sent:${recipients.join(",")}` };
 }
 
 type ServiceClient = ReturnType<typeof createClient>;

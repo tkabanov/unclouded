@@ -144,7 +144,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 |---|---|
 | **Preconditions** | Pro/Premium без insight за «сегодня» в TZ пользователя; OpenAI OK |
 | **Steps** | Invoke `generate-daily-insights` (cron secret или service role). Проверить DB row `dailyInsight` (или эквивалент), затем push/notification |
-| **Expected** | Одна запись на user+date с 3 insights (`title` 3–6 слов, `body` 2–3 абзаца). Notification **"Kota left you a message"** только **после** успешного store. При fail API — **нет** notification; retry once ~30 min. |
+| **Expected** | Одна запись на user+date с 3 insights (`title` 3–6 слов, `body` 2–3 абзаца). Notification **"Kota left you a message"** только **после** успешного store. При fail API — **нет** notification; schedule `dailyInsightRetry.retryAt` ≈ now+30m (`DAILY_INSIGHTS_RETRY_MS`); cron `*/15` делает **один** retry; второй fail — exhausted, без notify. |
 
 ### AIP-P1-002 — Dashboard feed UI — TESTED
 
@@ -160,15 +160,15 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 |---|---|
 | **Preconditions** | ≥7 дней insights (seed или несколько invoke с разными date) |
 | **Steps** | Открыть feed / запросить API списка |
-| **Expected** | Видны не более 7 дней; новый день вытесняет самый старый. |
+| **Expected** | Видны не более 7 дней; новый день вытесняет самый старый (UI + DB prune `insightDate < today-6` после insert). |
 
 ### AIP-P1-004 — Preferred time / default 8am — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | User TZ set; preferred hour = default или кастом в onboardingData |
-| **Steps** | Запустить hourly cron около границы часа; или unit/logic check `preferredHour` + `localDateAndHour` |
-| **Expected** | Генерация в локальный preferred hour (default 8). Не генерировать повторно в тот же local date. |
+| **Preconditions** | User TZ set; preferred hour = default 8 или кастом в Settings → Profile (`onboardingData.preferredInsightHour`) |
+| **Steps** | Запустить cron `*/15` около границы часа; или unit check `preferredInsightHour` + `shouldGenerateDailyInsights` |
+| **Expected** | Первая генерация в локальный preferred hour. Retry только по `retryAt`, не повторный fire в тот же preferred hour. Не генерировать повторно в тот же local date. |
 
 ### AIP-P1-005 — Free / duplicate day — TESTED
 
@@ -342,7 +342,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Inspect JSON + Premium PDF download |
 | **Expected** | Keys/titles: Where You Started / What Moved / What Came Up / What the Data Reveals / The Next Chapter (or spec titles). Coherent Kota narrative, specific to user data. PDF **must not** generate Complete Coaching Record without summary (fail closed if not ready — `coaching_summary_not_ready`). |
 
-### AIP-P5-004 — Failure retry + escalate
+### AIP-P5-004 — Failure retry + escalate — TESTED
 
 | | |
 |---|---|
@@ -350,7 +350,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Trigger summary job |
 | **Expected** | First fail → `202` `coaching_summary_retry_scheduled`, `assessmentResult.coachingSummaryRetryAt` ≈ now+5m (override: env `COACHING_SUMMARY_RETRY_MS`), attemptCount=1. Minute cron `generate-coaching-summary` (empty body) runs the retry. Second fail → `502` `coaching_summary_failed`, `profiles.coachingSummaryFailed=true`, ops email (`OPS_NOTIFY_EMAIL` or `COACH_BRIEF_INBOX`); **do not** ship Premium PDF without summary (P5-003 fail-closed). |
 
-### AIP-P5-005 — Pro excluded
+### AIP-P5-005 — Pro excluded — TESTED
 
 | | |
 |---|---|
@@ -365,7 +365,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 **Trigger:** human coach booking confirmed (1:1 or group)  
 **Tier:** Pro + Premium (booking entitlements per subscription rules)
 
-### AIP-P6-001 — Generate on booking + store
+### AIP-P6-001 — Generate on booking + store — TESTED
 
 | | |
 |---|---|
@@ -373,7 +373,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Confirm booking |
 | **Expected** | `generate-kota-read` fires; Kota's Read JSON on `coachBooking` (or group booking row): `patterns_observed`, `not_yet_reached`, `be_careful_about`, `most_important_now`, `confidence_note`. |
 
-### AIP-P6-002 — Full brief = factual + Kota's Read
+### AIP-P6-002 — Full brief = factual + Kota's Read — TESTED
 
 | | |
 |---|---|
@@ -385,7 +385,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 
 | | |
 |---|---|
-| **Preconditions** | `COACH_BRIEF_INBOX` / Resend configured |
+| **Preconditions** | `COACH_BRIEF_INBOX` / SendGrid configured |
 | **Steps** | Book session; check inbox + `coach_kota_read_brief` delivery log |
 | **Expected** | Email to assigned coach / configured inbox immediately after generation. Catalog hook `coach_kota_read_brief` reflects delivery. |
 

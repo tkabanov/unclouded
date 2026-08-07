@@ -11,7 +11,7 @@ Branded transactional email system for the Supabase stack. **Auth emails are liv
 | Disclaimer | AI-powered coaching only — not therapy or medical advice. Emergency: 988 or 911. |
 | Brand colors | Teal `#00B8B8`, blue `#0570C9`, primary CTA `#0987C5` (see `frontend/src/lib/email/branding.ts`) |
 
-Phase 2 originally specified Bubble + SendGrid. This repo uses **Supabase Auth templates** for account emails and documents platform emails for a future edge/SMTP slice. No SendGrid wiring exists in this codebase.
+Phase 2 originally specified Bubble + SendGrid. This repo uses **Supabase Auth templates** for account emails and **SendGrid** (`SENDGRID_API_KEY`) for platform event emails from edge functions. Shared sender: `supabase/functions/_shared/sendgridMail.ts`.
 
 ## App redirect parity (password reset)
 
@@ -40,9 +40,25 @@ Paste HTML from `supabase/email-templates/` into each template. Set subjects to 
 
 GoTrue variables used: `{{ .ConfirmationURL }}`, `{{ .NewEmail }}` (email change). Do not remove `{{ .ConfirmationURL }}` — it carries the signed redirect.
 
-## Production SMTP (ops — PM gated)
+## Production SMTP (ops)
 
-1. **Authentication → SMTP Settings**: configure custom SMTP (SendGrid, Resend, Postmark, etc.) with verified domain `uncloud360.ai`.
+### Platform event emails (edge → SendGrid)
+
+Set these **Supabase Edge Function secrets** (Dashboard → Edge Functions → Secrets, or `supabase secrets set`):
+
+| Secret | Required | Purpose |
+| --- | --- | --- |
+| `SENDGRID_API_KEY` | yes (to send) | SendGrid API key with Mail Send permission |
+| `SENDGRID_FROM_EMAIL` | no | Defaults to `noreply@uncloud360.ai` |
+| `SENDGRID_FROM_NAME` | no | Defaults to `Uncloud360` |
+| `COACH_BRIEF_INBOX` | for Kota's Read | Comma-separated coach/ops inboxes |
+| `OPS_NOTIFY_EMAIL` | for Prompt 5 fail escalate | Ops inbox (falls back to `COACH_BRIEF_INBOX`) |
+
+Until `SENDGRID_API_KEY` is set, edge functions **stamp cohorts** and return `smtp:skipped — SENDGRID_API_KEY not set` (no crash).
+
+### Supabase Auth emails (GoTrue SMTP)
+
+1. **Authentication → SMTP Settings**: configure custom SMTP (SendGrid recommended) with verified domain `uncloud360.ai`.
 2. Set sender to `noreply@uncloud360.ai`.
 3. **Authentication → URL Configuration**: set Site URL to production app origin; add `https://<app>/reset_pw` to redirect allow list.
 4. **Authentication → Providers → Email**: enable email confirmations in production (`enable_confirmations = true`). Local dev keeps confirmations off in `config.toml` (built-in SMTP rate limit).
@@ -72,7 +88,7 @@ Edge function: `supabase/functions/module-unlock`.
 - Selects onboarding-complete profiles whose next due module has reached `scheduledAt`, is incomplete, and has not exhausted initial + 3-day resend notifications.
 - Respects global max **1 notification per user per local day** via `lastNotificationSentAt` + profile `timeZone`.
 - Stamps `moduleSchedules[slug].unlockNotifiedAt` / `unlockResentAt` and `lastNotificationSentAt` after each attempt.
-- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
+- Sends via SendGrid when `SENDGRID_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
 - Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <MODULE_UNLOCK_CRON_SECRET>`.
 
 **Schedule (live):** `pg_cron` job `daily-module-unlock` at **13:00 UTC** → `invoke_scheduled_edge_function('module-unlock')`.
@@ -91,7 +107,7 @@ Edge function: `supabase/functions/vulnerable-outreach`.
 - Daily cohort: profiles with `grief_mode_active` or `recovery_mode_active` in `results`, onboarding complete, **≥10 days** since last `chatConversation` activity (or since onboarding if never chatted).
 - Copy: **"Kota is here when you're ready."** — warm, low-pressure; no missed-session guilt framing.
 - Frequency cap: **once per 7 days** via `vulnerableOutreachEmailedAt`.
-- **Channel:** Web Push when the user has a registered subscription and `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` are set on the edge function; otherwise Resend email when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`). Expired push subscriptions (410/404) are removed automatically; email is used as fallback.
+- **Channel:** Web Push when the user has a registered subscription and `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` are set on the edge function; otherwise SendGrid email when `SENDGRID_API_KEY` is set (from `noreply@uncloud360.ai`). Expired push subscriptions (410/404) are removed automatically; email is used as fallback.
 - Frontend registers subscriptions via `register-push-subscription` edge fn + `public/push-sw.js` (env: `VITE_VAPID_PUBLIC_KEY`).
 - Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <VULNERABLE_OUTREACH_CRON_SECRET>`.
 
@@ -109,7 +125,7 @@ Edge function: `supabase/functions/reassessment-due`.
 
 - Selects Pro/Premium profiles where `nextReassessmentDate <= now` and `reassessmentDueEmailedAt` is null or older than 5 days.
 - Stamps `reassessmentDueEmailedAt` after each attempt.
-- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
+- Sends via SendGrid when `SENDGRID_API_KEY` is set (from `noreply@uncloud360.ai`); otherwise cohort is stamped with `smtp:skipped`.
 - Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <REASSESSMENT_DUE_CRON_SECRET>`.
 
 **Schedule (live):** `pg_cron` job `daily-reassessment-due` at **15:00 UTC** → `invoke_scheduled_edge_function('reassessment-due')`. Frontend hooks may also invoke the same function for dry-run/cohort checks.
@@ -119,8 +135,8 @@ Edge function: `supabase/functions/reassessment-due`.
 Edge function: `supabase/functions/onboarding-dropoff`.
 
 - Selects profiles where `onboardingCompleted = false`, `email IS NOT NULL`, account age **≥ 24 hours**, and `onboardingDropoffEmailedAt` is null.
-- Stamps `onboardingDropoffEmailedAt` after each attempt (send or Resend skip).
-- Sends via Resend when `RESEND_API_KEY` is set (from `noreply@uncloud360.ai`); subject: *Your PuP 360 results are waiting for you*; CTA links to `{APP_ORIGIN}/onboarding`.
+- Stamps `onboardingDropoffEmailedAt` after each attempt (send or SendGrid skip).
+- Sends via SendGrid when `SENDGRID_API_KEY` is set (from `noreply@uncloud360.ai`); subject: *Your PuP 360 results are waiting for you*; CTA links to `{APP_ORIGIN}/onboarding`.
 - Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <ONBOARDING_DROPOFF_CRON_SECRET>`.
 
 **Schedule (live on project `szkextipgpupqoppccoy`):** `pg_cron` job `daily-onboarding-dropoff` at **16:00 UTC** → `invoke_scheduled_edge_function('onboarding-dropoff')` (vault: `project_url`, `edge_cron_service_role_key`, optional `onboarding_dropoff_cron_secret`). Migration: `20260722130000_onboarding_dropoff_email.sql`.

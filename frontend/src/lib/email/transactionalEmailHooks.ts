@@ -98,7 +98,7 @@ export async function requestTransactionalEmail(
     case "onboarding_dropoff":
       return skippedResult(
         emailId,
-        "Delivered by scheduled edge function onboarding-dropoff (Resend when RESEND_API_KEY is set).",
+        "Delivered by scheduled edge function onboarding-dropoff (SendGrid when SENDGRID_API_KEY is set).",
       );
     case "milestone_recovery":
     case "path_completion":
@@ -109,7 +109,7 @@ export async function requestTransactionalEmail(
     case "coach_kota_read_brief":
       return placeholderResult(
         emailId,
-        "Delivered when a Premium member books a coach — generate-kota-read edge fn emails COACH_BRIEF_INBOX via Resend and logs delivery on coachBooking.",
+        "Delivered when a Premium member books a coach — generate-kota-read edge fn emails COACH_BRIEF_INBOX via SendGrid and logs delivery on coachBooking.",
       );
     case "notification_module_unlock": {
       const candidates = await listModuleUnlockCandidates();
@@ -117,7 +117,7 @@ export async function requestTransactionalEmail(
       return placeholderResult(
         emailId,
         inCohort
-          ? `User is in unlock cohort (${candidates.length} total). Delivery runs via scheduled edge function module-unlock (Resend when RESEND_API_KEY is set).`
+          ? `User is in unlock cohort (${candidates.length} total). Delivery runs via scheduled edge function module-unlock (SendGrid when SENDGRID_API_KEY is set).`
           : `Cohort selected (${candidates.length} due). This user was not due. Production path: cron → module-unlock.`,
       );
     }
@@ -132,7 +132,7 @@ export async function requestTransactionalEmail(
       return placeholderResult(
         emailId,
         inCohort
-          ? `User is in vulnerable outreach pre-cohort (${candidates.length} total). Edge fn confirms ≥10-day inactivity before send. Production path: daily cron → vulnerable-outreach (Web Push when subscribed + VAPID configured, else Resend when RESEND_API_KEY is set).`
+          ? `User is in vulnerable outreach pre-cohort (${candidates.length} total). Edge fn confirms ≥10-day inactivity before send. Production path: daily cron → vulnerable-outreach (Web Push when subscribed + VAPID configured, else SendGrid when SENDGRID_API_KEY is set).`
           : `Pre-cohort selected (${candidates.length} due on mode + 7-day cap). This user was not in grief/recovery outreach queue.`,
       );
     }
@@ -159,13 +159,13 @@ export async function requestTransactionalEmail(
     }
     case "reassessment_90_day":
     case "notification_reassessment_due": {
-      // Cohort selection is live. Production send is cron → edge fn reassessment-due (Resend when keyed).
+      // Cohort selection is live. Production send is cron → edge fn reassessment-due (SendGrid when keyed).
       const candidates = await listReassessmentDueCandidates();
       const inCohort = candidates.some((c) => c.userId === payload.userId);
       return placeholderResult(
         emailId,
         inCohort
-          ? `User is in the due cohort (${candidates.length} total). Delivery runs via scheduled edge function reassessment-due (Resend when RESEND_API_KEY is set).`
+          ? `User is in the due cohort (${candidates.length} total). Delivery runs via scheduled edge function reassessment-due (SendGrid when SENDGRID_API_KEY is set).`
           : `Cohort selected (${candidates.length} due). This user was not due (or already emailed). Production path: cron → reassessment-due.`,
       );
     }

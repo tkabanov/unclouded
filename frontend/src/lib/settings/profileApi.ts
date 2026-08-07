@@ -16,6 +16,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 const SOBRIETY_DATE_KEY = "sobriety_start_date";
+/** Prompt 1 — Kota daily messages preferred local hour (0–23). */
+export const PREFERRED_INSIGHT_HOUR_KEY = "preferredInsightHour" as const;
+export const DEFAULT_PREFERRED_INSIGHT_HOUR = 8;
 
 const ABOUT_YOU_SELECT =
   "ageRange, careerStage, genderIdentity, employmentStatus, industry, companySize, workEnvironment, managesATeam, relationshipStatus, parentingStatus, chronicHealthCondition, physicalActivityLevel, stateRegion, timeZone" as const;
@@ -46,6 +49,8 @@ export interface AboutYouFormState {
   stateRegion: string;
   stateRegionCustom: string;
   timeZone: string;
+  /** Local hour 0–23 for Kota daily messages (stored in onboardingData). */
+  preferredInsightHour: number;
 }
 
 export const EMPTY_ABOUT_YOU_FORM: AboutYouFormState = {
@@ -65,7 +70,17 @@ export const EMPTY_ABOUT_YOU_FORM: AboutYouFormState = {
   stateRegion: "",
   stateRegionCustom: "",
   timeZone: "",
+  preferredInsightHour: DEFAULT_PREFERRED_INSIGHT_HOUR,
 };
+
+export function normalizePreferredInsightHour(value: unknown): number {
+  if (typeof value === "number" && value >= 0 && value <= 23) return Math.floor(value);
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 23) return Math.floor(parsed);
+  }
+  return DEFAULT_PREFERRED_INSIGHT_HOUR;
+}
 
 function trimOrNull(value: string): string | null {
   const trimmed = value.trim();
@@ -97,7 +112,10 @@ type ProfileSettingsRow = AboutYouRow & {
   onboardingData?: Record<string, unknown> | null;
 };
 
-function mapAboutYouRowToForm(row: AboutYouRow | null | undefined): AboutYouFormState {
+function mapAboutYouRowToForm(
+  row: AboutYouRow | null | undefined,
+  onboarding: Record<string, unknown> = {},
+): AboutYouFormState {
   const gender = splitGenderIdentityForForm(row?.genderIdentity);
   const state = splitStateRegionForForm(row?.stateRegion);
 
@@ -118,13 +136,20 @@ function mapAboutYouRowToForm(row: AboutYouRow | null | undefined): AboutYouForm
     stateRegion: state.stateRegion,
     stateRegionCustom: state.stateRegionCustom,
     timeZone: row?.timeZone ?? "",
+    preferredInsightHour: normalizePreferredInsightHour(
+      onboarding[PREFERRED_INSIGHT_HOUR_KEY] ??
+        onboarding.preferred_insight_hour ??
+        onboarding.kota_insight_hour,
+    ),
   };
 }
 
 function mapAboutYouFromProfileRow(
   row: ProfileSettingsRow | null | undefined,
 ): AboutYouFormState {
-  const aboutYou = mapAboutYouRowToForm(row);
+  const onboarding =
+    (row?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
+  const aboutYou = mapAboutYouRowToForm(row, onboarding);
   return applyRoleTypesAboutYouPrefill(aboutYou, row?.roleTypes, row?.roleType);
 }
 
@@ -215,7 +240,7 @@ function mapProfileRowToForm(
 export async function loadAboutYouForm(userId: string): Promise<AboutYouFormState> {
   const { data, error } = await supabase
     .from("profiles")
-    .select(`${ABOUT_YOU_SELECT}, roleType, roleTypes`)
+    .select(`${ABOUT_YOU_SELECT}, roleType, roleTypes, onboardingData`)
     .eq("id", userId)
     .maybeSingle();
 
@@ -260,9 +285,28 @@ export async function saveProfileForm(userId: string, values: ProfileFormState):
 export async function saveAboutYouForm(userId: string, values: AboutYouFormState): Promise<void> {
   validateAboutYouCustomFields(values);
 
+  const { data: existing, error: readError } = await supabase
+    .from("profiles")
+    .select("onboardingData")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (readError) throw readError;
+
+  const onboarding =
+    (existing?.onboardingData as Record<string, unknown> | null | undefined) ?? {};
+  const hour = normalizePreferredInsightHour(values.preferredInsightHour);
+
   const { error } = await supabase
     .from("profiles")
-    .update(mapAboutYouFormToUpdate(values) as never)
+    .update({
+      ...mapAboutYouFormToUpdate(values),
+      onboardingData: {
+        ...onboarding,
+        [PREFERRED_INSIGHT_HOUR_KEY]: hour,
+        preferred_insight_hour: hour,
+      } as never,
+    } as never)
     .eq("id", userId);
 
   if (error) throw error;

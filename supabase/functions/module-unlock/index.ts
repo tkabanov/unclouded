@@ -15,8 +15,11 @@ import {
   parseModuleSchedules,
   type ModuleUnlockProfileRow,
 } from "../_shared/moduleUnlockLogic.ts";
+import {
+  sendGridSmtpLabel,
+  sendTransactionalEmail,
+} from "../_shared/sendgridMail.ts";
 
-const FROM_ADDRESS = "noreply@uncloud360.ai";
 const SUBJECT = "Your next layer is ready";
 
 type SendResult = { ok: boolean; detail: string };
@@ -48,11 +51,6 @@ async function sendModuleUnlockEmail(params: {
   displayTitle: string;
   slug: string;
 }): Promise<SendResult> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    return { ok: false, detail: "smtp:skipped — RESEND_API_KEY not set" };
-  }
-
   const name = params.firstName?.trim() || "there";
   const moduleUrl = `${canonicalAppOrigin()}/settings/know-yourself/${params.slug}`;
   const html = `
@@ -62,26 +60,11 @@ async function sendModuleUnlockEmail(params: {
     <p>— Uncloud360</p>
   `;
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM_ADDRESS,
-      to: [params.to],
-      subject: SUBJECT,
-      html,
-    }),
+  return sendTransactionalEmail({
+    to: params.to,
+    subject: SUBJECT,
+    html,
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    return { ok: false, detail: `resend_error: ${res.status} ${text}` };
-  }
-
-  return { ok: true, detail: "sent" };
 }
 
 Deno.serve(async (req) => {
@@ -175,6 +158,6 @@ Deno.serve(async (req) => {
     skippedSmtp,
     userIds: stamped,
     sendResults,
-    smtp: Deno.env.get("RESEND_API_KEY") ? "resend" : "skipped",
+    smtp: sendGridSmtpLabel(),
   });
 });

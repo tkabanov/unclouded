@@ -32,6 +32,18 @@ export type KotaReadContext = {
   firstName?: string;
   scoresLine?: string;
   pathsLine?: string;
+  lastSessionDate?: string;
+};
+
+export type FactualBriefInput = {
+  classification: string;
+  scoresLine: string;
+  coachingMode: string;
+  pathsLine: string;
+  openCommitment: string;
+  activeFlags: string;
+  sessionCount: number;
+  lastSessionDate: string;
 };
 
 export const KOTA_READ_SYSTEM_PROMPT =
@@ -116,6 +128,70 @@ export function formatKotaReadBrief(brief: KotaReadBrief): string {
     "Confidence note",
     brief.confidence_note.trim(),
   ].join("\n").trim();
+}
+
+/**
+ * Factual pre-session section (no AI) — classification, scores, mode, paths,
+ * open commitment, flags, session count / last session date.
+ */
+export function formatFactualBriefSection(input: FactualBriefInput): string {
+  const scoresLine = input.scoresLine.trim() || "Scores: not recorded";
+  const pathsLine = input.pathsLine.trim() || "Active paths: none recorded";
+  const openCommitment = input.openCommitment.trim()
+    ? input.openCommitment.trim().startsWith("Open commitment:")
+      ? input.openCommitment.trim()
+      : `Open commitment: ${input.openCommitment.trim()}`
+    : "Open commitment: none recorded";
+
+  return [
+    "FACTUAL DATA",
+    "",
+    `Classification: ${input.classification.trim() || "not recorded"}`,
+    scoresLine.startsWith("Scores") ? scoresLine : `Scores: ${scoresLine}`,
+    `Coaching mode: ${input.coachingMode.trim() || "not recorded"}`,
+    pathsLine.startsWith("Active paths") ? pathsLine : `Active paths: ${pathsLine}`,
+    openCommitment,
+    `Active flags: ${input.activeFlags.trim() || "none"}`,
+    `Sessions completed: ${input.sessionCount}`,
+    `Last session date: ${input.lastSessionDate.trim() || "not recorded"}`,
+  ].join("\n");
+}
+
+/** Full coach brief document: factual (no AI) + Kota's Read (AI). */
+export function formatFullCoachBrief(factualSection: string, kotaRead: string): string {
+  return [factualSection.trim(), "", kotaRead.trim()].filter(Boolean).join("\n").trim();
+}
+
+export function resolveLastSessionDate(
+  records: Array<{ closedAt: string }>,
+): string {
+  let latestMs = -Infinity;
+  let latestIso: string | null = null;
+  for (const record of records) {
+    const ms = Date.parse(record.closedAt);
+    if (Number.isFinite(ms) && ms > latestMs) {
+      latestMs = ms;
+      latestIso = record.closedAt;
+    }
+  }
+  if (!latestIso) return "not recorded";
+  const parsed = new Date(latestIso);
+  if (!Number.isFinite(parsed.getTime())) return "not recorded";
+  return parsed.toISOString().slice(0, 10);
+}
+
+/** Build factual section from Prompt 6 context fields. */
+export function formatFactualBriefFromContext(context: KotaReadContext): string {
+  return formatFactualBriefSection({
+    classification: context.classification,
+    scoresLine: context.scoresLine?.trim() || "Scores: not recorded",
+    coachingMode: context.coachingMode,
+    pathsLine: context.pathsLine?.trim() || "Active paths: none recorded",
+    openCommitment: context.openCommitment,
+    activeFlags: context.activeFlags,
+    sessionCount: context.sessionCount,
+    lastSessionDate: context.lastSessionDate?.trim() || "not recorded",
+  });
 }
 
 export function buildKotaReadUserPrompt(context: KotaReadContext): string {

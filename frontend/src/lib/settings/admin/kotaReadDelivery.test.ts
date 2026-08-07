@@ -20,12 +20,25 @@ describe("kotaReadDelivery", () => {
     expect(escapeHtml("<script>alert('x')</script>")).not.toContain("<script>");
   });
 
-  it("builds coach email subject and body", () => {
+  it("builds coach email subject and body with factual + Kota's Read", () => {
     const subject = buildKotaReadEmailSubject("Alex");
+    const factualSection = [
+      "FACTUAL DATA",
+      "",
+      "Classification: Capacity Erosion",
+      "Scores — Stability 2.4, Performance 2.8, Alignment 2.6",
+      "Coaching mode: Stabilizer",
+      "Active paths: Recovery Roadmap (active, 1 sessions completed)",
+      "Open commitment: lights out by 10pm twice",
+      "Active flags: none",
+      "Sessions completed: 6",
+      "Last session date: 2026-07-01",
+    ].join("\n");
     const html = buildKotaReadEmailHtml({
       memberName: "Alex",
       memberEmail: "alex@example.com",
       scheduledAt: "2026-07-20T15:00:00.000Z",
+      factualSection,
       kotaRead: "KOTA'S READ — Coach handoff brief\n\nUnderneath\nSomething deeper.",
       adminConsoleUrl: "https://uncloud360.ai/settings?tab=admin",
     });
@@ -33,6 +46,13 @@ describe("kotaReadDelivery", () => {
     expect(subject).toContain("Alex");
     expect(html).toContain("Alex");
     expect(html).toContain("Admin Console");
+    expect(html).toContain("FACTUAL DATA");
+    expect(html).toContain("Classification: Capacity Erosion");
+    expect(html).toContain("Scores — Stability 2.4");
+    expect(html).toContain("Coaching mode: Stabilizer");
+    expect(html).toContain("Sessions completed: 6");
+    expect(html).toContain("Last session date: 2026-07-01");
+    expect(html).toContain("KOTA'S READ");
     expect(html).toContain("Underneath");
     expect(html).not.toContain("<script>");
   });

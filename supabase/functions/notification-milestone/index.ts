@@ -10,8 +10,11 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
 import { isNotificationSentToday } from "../_shared/moduleUnlockLogic.ts";
+import {
+  sendGridSmtpLabel,
+  sendTransactionalEmail,
+} from "../_shared/sendgridMail.ts";
 
-const FROM_ADDRESS = "noreply@uncloud360.ai";
 const SUBJECT = "Something's building";
 
 type MilestoneKind = "first_module_complete";
@@ -27,11 +30,6 @@ async function sendMilestoneEmail(params: {
   to: string;
   firstName: string | null;
 }): Promise<{ ok: boolean; detail: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    return { ok: false, detail: "smtp:skipped — RESEND_API_KEY not set" };
-  }
-
   const name = params.firstName?.trim() || "there";
   const appUrl = canonicalAppOrigin();
   const html = `
@@ -41,26 +39,11 @@ async function sendMilestoneEmail(params: {
     <p>— Uncloud360</p>
   `;
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM_ADDRESS,
-      to: [params.to],
-      subject: SUBJECT,
-      html,
-    }),
+  return sendTransactionalEmail({
+    to: params.to,
+    subject: SUBJECT,
+    html,
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    return { ok: false, detail: `resend_error: ${res.status} ${text}` };
-  }
-
-  return { ok: true, detail: "sent" };
 }
 
 Deno.serve(async (req) => {
@@ -162,6 +145,6 @@ Deno.serve(async (req) => {
     sent,
     detail,
     stampedAt: nowIso,
-    smtp: Deno.env.get("RESEND_API_KEY") ? "resend" : "skipped",
+    smtp: sendGridSmtpLabel(),
   });
 });

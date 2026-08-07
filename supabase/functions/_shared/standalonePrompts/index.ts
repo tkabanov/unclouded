@@ -3,6 +3,7 @@ export * from "./context.ts";
 export * from "./parseJson.ts";
 export * from "./journalReflection.ts";
 export * from "./dailyInsights.ts";
+export * from "./dailyInsightsSchedule.ts";
 export * from "./pathClosing.ts";
 export * from "./trajectoryStatement.ts";
 export * from "./coachingSummary.ts";

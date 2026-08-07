@@ -2,14 +2,15 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
 import {
-  buildClassificationLine,
   buildKotaReadUserPrompt,
   buildPathsLine,
   buildScoresLine,
   filterSessionMemoryForKotaRead,
+  formatFactualBriefFromContext,
   formatKotaReadBrief,
   KOTA_READ_SYSTEM_PROMPT,
   parseKotaReadBrief,
+  resolveLastSessionDate,
   resolveOpenCommitmentLine,
   sessionMemoryToLines,
   type KotaReadContext,
@@ -121,6 +122,7 @@ async function buildKotaReadContext(
     firstName: profile.firstName?.trim() || "Member",
     scoresLine: buildScoresLine(results),
     pathsLine: await fetchPathEnrollmentLines(supabase, userId),
+    lastSessionDate: resolveLastSessionDate(sessionRecords),
   };
 }
 
@@ -231,6 +233,8 @@ Deno.serve(async (req) => {
     return jsonResponse(502, { error: "Failed to generate Kota's Read" });
   }
 
+  const factualSection = formatFactualBriefFromContext(context);
+
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
   if (!serviceKey) {
     return jsonResponse(500, { error: "Missing SUPABASE_SERVICE_ROLE_KEY" });
@@ -250,6 +254,7 @@ Deno.serve(async (req) => {
     memberName,
     memberEmail,
     scheduledAt,
+    factualSection,
     kotaRead,
     adminConsoleUrl: `${appOrigin}/settings?tab=admin`,
   });

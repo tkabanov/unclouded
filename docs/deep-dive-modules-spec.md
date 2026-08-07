@@ -318,7 +318,7 @@ History answers are select/radio slugs only (no free text). Included in AI syste
 1. **Git:** commit and merge all `frontend/src/lib/modules/`, wizard UI, admin analytics, edge fns, and migrations `20260717120000`–`20260717170000`.
 2. **Database:** `supabase db push` or `migrate deploy` on staging/production.
 3. **Edge functions:** deploy `module-unlock`, `notification-milestone`, and updated `chat` (loads module columns via `loadServerProfile.ts`).
-4. **Secrets:** `RESEND_API_KEY`, `MODULE_UNLOCK_CRON_SECRET`, `REASSESSMENT_DUE_CRON_SECRET` in Supabase project settings.
+4. **Secrets:** `SENDGRID_API_KEY`, `MODULE_UNLOCK_CRON_SECRET`, `REASSESSMENT_DUE_CRON_SECRET` in Supabase project settings.
 5. **Cron (ops):** daily `POST /functions/v1/module-unlock` and `POST /functions/v1/reassessment-due` with service-role bearer (see [`supabase/EMAIL_TEMPLATES.md`](../supabase/EMAIL_TEMPLATES.md)).
 6. **Smoke:** onboarding → Results preview → Profile Know Yourself list → complete one module → chat prompt includes module modifier → Admin Analytics shows module counts.
 

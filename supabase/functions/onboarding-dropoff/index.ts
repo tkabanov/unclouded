@@ -8,13 +8,16 @@
  *
  * Selects users where onboardingCompleted is false, account age >= 24h,
  * and onboardingDropoffEmailedAt is null.
- * Sends via Resend when RESEND_API_KEY is set; otherwise stamps only.
+ * Sends via SendGrid when SENDGRID_API_KEY is set; otherwise stamps only.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
+import {
+  sendGridSmtpLabel,
+  sendTransactionalEmail,
+} from "../_shared/sendgridMail.ts";
 
-const FROM_ADDRESS = "noreply@uncloud360.ai";
 const SUBJECT = "Your PuP 360 results are waiting for you";
 
 type Candidate = {
@@ -45,15 +48,10 @@ function authorize(req: Request, serviceKey: string): boolean {
   return false;
 }
 
-async function sendResendEmail(params: {
+async function sendDropoffEmail(params: {
   to: string;
   firstName: string | null;
 }): Promise<{ ok: boolean; detail: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    return { ok: false, detail: "smtp:skipped — RESEND_API_KEY not set" };
-  }
-
   const name = params.firstName?.trim() || "there";
   const appUrl = canonicalAppOrigin();
   const html = `
@@ -63,26 +61,11 @@ async function sendResendEmail(params: {
     <p>— Uncloud360</p>
   `;
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM_ADDRESS,
-      to: [params.to],
-      subject: SUBJECT,
-      html,
-    }),
+  return sendTransactionalEmail({
+    to: params.to,
+    subject: SUBJECT,
+    html,
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    return { ok: false, detail: `resend_error: ${res.status} ${text}` };
-  }
-
-  return { ok: true, detail: "sent" };
 }
 
 Deno.serve(async (req) => {
@@ -130,7 +113,7 @@ Deno.serve(async (req) => {
   for (const candidate of candidates) {
     let detail = "smtp:skipped — no email on profile";
     if (candidate.email) {
-      const result = await sendResendEmail({
+      const result = await sendDropoffEmail({
         to: candidate.email,
         firstName: candidate.firstName,
       });
@@ -158,6 +141,6 @@ Deno.serve(async (req) => {
     stampedCount: stamped.length,
     userIds: stamped,
     sendResults,
-    smtp: Deno.env.get("RESEND_API_KEY") ? "resend" : "skipped",
+    smtp: sendGridSmtpLabel(),
   });
 });

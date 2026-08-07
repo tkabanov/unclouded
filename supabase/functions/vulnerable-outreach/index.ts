@@ -8,7 +8,7 @@
  *
  * Copy: "Kota is here when you're ready." — warm, no guilt framing.
  * Cap: once per 7 days per user (`vulnerableOutreachEmailedAt`).
- * Channel: Web Push when user has an active subscription + VAPID configured; else Resend email.
+ * Channel: Web Push when user has an active subscription + VAPID configured; else SendGrid email.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -26,8 +26,10 @@ import {
   sendWebPushToSubscription,
   type PushSubscriptionRow,
 } from "../_shared/webPushDelivery.ts";
-
-const FROM_ADDRESS = "noreply@uncloud360.ai";
+import {
+  sendGridSmtpLabel,
+  sendTransactionalEmail,
+} from "../_shared/sendgridMail.ts";
 
 type SendResult = { ok: boolean; detail: string };
 
@@ -56,36 +58,21 @@ async function sendOutreachEmail(params: {
   to: string;
   firstName: string | null;
 }): Promise<SendResult> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    return { ok: false, detail: "smtp:skipped — RESEND_API_KEY not set" };
-  }
-
   const html = buildVulnerableOutreachEmailHtml({
     firstName: params.firstName,
     appUrl: canonicalAppOrigin(),
   });
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM_ADDRESS,
-      to: [params.to],
-      subject: VULNERABLE_OUTREACH_EMAIL_SUBJECT,
-      html,
-    }),
+  const result = await sendTransactionalEmail({
+    to: params.to,
+    subject: VULNERABLE_OUTREACH_EMAIL_SUBJECT,
+    html,
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    return { ok: false, detail: `resend_error: ${res.status} ${text}` };
+  if (result.ok) {
+    return { ok: true, detail: "smtp:sent" };
   }
-
-  return { ok: true, detail: "smtp:sent" };
+  return result;
 }
 
 Deno.serve(async (req) => {
@@ -273,7 +260,7 @@ Deno.serve(async (req) => {
     expiredSubscriptionsRemoved,
     userIds: stamped,
     sendResults,
-    smtp: Deno.env.get("RESEND_API_KEY") ? "resend" : "skipped",
+    smtp: sendGridSmtpLabel(),
     push: pushConfigured ? "web-push" : "skipped",
   });
 });

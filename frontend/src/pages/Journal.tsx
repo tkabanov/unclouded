@@ -11,6 +11,7 @@ import {
   type JournalEntryListItem,
 } from "@/lib/journal/journalEntriesApi";
 import { canUseJournalAiReflection } from "@/lib/journal/journalEntitlements";
+import { clearJournalReflectionPendingReveals } from "@/lib/journal/journalReflectionReveal";
 import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +33,13 @@ export default function Journal() {
   const [entryDetailOpen, setEntryDetailOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntryListItem | null>(null);
   const hasLoadedEntriesRef = useRef(false);
+  const clearedPendingRevealsRef = useRef(false);
+
+  // Reveal Kota reflections suppressed during the previous Journal visit (spec: show on return / page load).
+  if (!clearedPendingRevealsRef.current) {
+    clearedPendingRevealsRef.current = true;
+    clearJournalReflectionPendingReveals();
+  }
 
   const load = useCallback(async (options?: { silent?: boolean }) => {
     if (!user) {
