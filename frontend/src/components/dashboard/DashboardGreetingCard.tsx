@@ -1,5 +1,5 @@
 import { CalendarDays, CircleCheck, Download, Heart, Sparkles } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardUserContext } from "@/hooks/useDashboardUser";
 import { downloadOnboardingResultsPdf } from "@/lib/dashboard/downloadOnboardingResultsPdf";
 import { DASHBOARD_DAILY_CHECKIN_ID } from "@/lib/dashboard/routes";
+import { resolveDashboardModulePreview } from "@/lib/modules/dashboardModulePreview";
 import { cn } from "@/lib/utils";
 
 function getGreeting(): string {
@@ -27,9 +28,11 @@ export default function DashboardGreetingCard() {
   const {
     firstName,
     classificationName,
+    classificationKey,
     pressureProfile,
     recoveryModeActive,
     griefModeActive,
+    traumaInformedMode,
     hasResults,
     profile,
   } = useDashboardUserContext();
@@ -37,16 +40,37 @@ export default function DashboardGreetingCard() {
   const greetingName = firstName.trim() ? `${getGreeting()}, ${firstName.trim()}` : getGreeting();
   const results = profile?.results ?? null;
 
+  const deepDive = useMemo(() => {
+    if (!profile) return null;
+    const preview = resolveDashboardModulePreview({
+      profile,
+      classificationKey,
+      healthFlags: {
+        recovery_mode_active: recoveryModeActive,
+        grief_mode_active: griefModeActive,
+        trauma_informed_mode: traumaInformedMode,
+      },
+    });
+    if (!preview) return null;
+    return { title: preview.displayTitle, daysUntilUnlock: preview.daysUntilUnlock };
+  }, [
+    profile,
+    classificationKey,
+    recoveryModeActive,
+    griefModeActive,
+    traumaInformedMode,
+  ]);
+
   const handleDownloadPdf = useCallback(() => {
     if (!results) return;
     try {
-      downloadOnboardingResultsPdf(firstName, results);
+      downloadOnboardingResultsPdf(firstName, results, deepDive);
       toast.success("Your results PDF is downloading.");
     } catch (err) {
       console.error("Failed to generate PDF", err);
       toast.error("Couldn't generate the PDF. Please try again.");
     }
-  }, [firstName, results]);
+  }, [deepDive, firstName, results]);
 
   const scrollToCheckIn = useCallback(() => {
     document.getElementById(DASHBOARD_DAILY_CHECKIN_ID)?.scrollIntoView({

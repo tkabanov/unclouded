@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import type { ResultsData } from "@/lib/classification";
+import { sanitizePdfText } from "@/lib/pdf/sanitizePdfText";
 import {
   computeScoreDeltas,
   reflectionQuestionsWithAdaptive,
@@ -24,7 +25,7 @@ function deltaTextColor(delta: number): [number, number, number] {
 }
 
 function slugifyName(firstName: string): string {
-  const slug = firstName.trim().toLowerCase().replace(/[^a-z0-9]/g, "-");
+  const slug = firstName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
   return slug || "your";
 }
 
@@ -46,6 +47,13 @@ export function downloadReassessmentProgressPdf(
     y += amount;
   };
 
+  const ensureSpace = (needed: number) => {
+    if (y + needed > doc.internal.pageSize.getHeight() - 56) {
+      doc.addPage();
+      y = 56;
+    }
+  };
+
   doc.setFillColor(...PRIMARY);
   doc.rect(0, 0, pageWidth, 8, "F");
 
@@ -57,7 +65,7 @@ export function downloadReassessmentProgressPdf(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(...MUTED);
-  doc.text("90-Day Reassessment · Progress Report", margin, y + 16);
+  doc.text("90-Day Reassessment - Progress Report", margin, y + 16);
   doc.text(
     new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }),
     pageWidth - margin,
@@ -70,7 +78,7 @@ export function downloadReassessmentProgressPdf(
   doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
-  const headlineLines = doc.splitTextToSize(summary.headline, contentWidth);
+  const headlineLines = doc.splitTextToSize(sanitizePdfText(summary.headline), contentWidth);
   doc.text(headlineLines, margin, y);
   y += headlineLines.length * 18;
   advance(18);
@@ -80,12 +88,15 @@ export function downloadReassessmentProgressPdf(
   advance(22);
 
   for (const row of computeScoreDeltas(first, second)) {
+    ensureSpace(40);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(...TEXT);
     doc.text(row.label, margin, y);
 
-    const deltaLabel = `${row.first.toFixed(1)}  →  ${row.second.toFixed(1)}   (${row.delta > 0 ? "+" : ""}${row.delta.toFixed(1)})`;
+    const deltaLabel = sanitizePdfText(
+      `${row.first.toFixed(1)}  ->  ${row.second.toFixed(1)}   (${row.delta > 0 ? "+" : ""}${row.delta.toFixed(1)})`,
+    );
     doc.setTextColor(...deltaTextColor(row.delta));
     doc.setFont("helvetica", "bold");
     doc.text(deltaLabel, pageWidth - margin, y, { align: "right" });
@@ -101,6 +112,7 @@ export function downloadReassessmentProgressPdf(
   }
 
   advance(6);
+  ensureSpace(60);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(...TEXT);
@@ -109,13 +121,21 @@ export function downloadReassessmentProgressPdf(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(...TEXT);
-  const classificationLine = summary.classificationChanged
-    ? `${first.classification.name}  →  ${second.classification.name}`
-    : `${second.classification.name} (unchanged)`;
+  const classificationLine = sanitizePdfText(
+    summary.classificationChanged
+      ? `${first.classification.name}  ->  ${second.classification.name}`
+      : `${second.classification.name} (unchanged)`,
+  );
   doc.text(classificationLine, margin, y);
   advance(16);
   doc.setTextColor(...MUTED);
-  doc.text(`Pressure: ${first.pressure_profile}  →  ${second.pressure_profile}`, margin, y);
+  doc.text(
+    sanitizePdfText(
+      `Pressure: ${first.pressure_profile}  ->  ${second.pressure_profile}`,
+    ),
+    margin,
+    y,
+  );
   advance(24);
 
   const labeledQuestions = reflectionQuestionsWithAdaptive(pathAdaptiveQ);
@@ -124,6 +144,7 @@ export function downloadReassessmentProgressPdf(
   );
 
   if (answeredReflections.length > 0) {
+    ensureSpace(40);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(...TEXT);
@@ -131,21 +152,24 @@ export function downloadReassessmentProgressPdf(
     advance(20);
 
     for (const question of answeredReflections) {
-      if (y > doc.internal.pageSize.getHeight() - 90) {
-        doc.addPage();
-        y = 56;
-      }
+      const questionLines = doc.splitTextToSize(
+        sanitizePdfText(question.question),
+        contentWidth,
+      );
+      const answerLines = doc.splitTextToSize(
+        sanitizePdfText(reflections?.[question.field] ?? ""),
+        contentWidth,
+      );
+      ensureSpace(questionLines.length * 13 + answerLines.length * 13 + 24);
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(...TEXT);
-      const questionLines = doc.splitTextToSize(question.question, contentWidth);
       doc.text(questionLines, margin, y);
       y += questionLines.length * 13;
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(...MUTED);
-      const answerLines = doc.splitTextToSize(reflections?.[question.field] ?? "", contentWidth);
       doc.text(answerLines, margin, y);
       y += answerLines.length * 13 + 12;
     }
@@ -158,7 +182,9 @@ export function downloadReassessmentProgressPdf(
   doc.setFontSize(8);
   doc.setTextColor(...MUTED);
   const disclaimerLines = doc.splitTextToSize(
-    "Uncloud360 provides AI-powered coaching only — not therapy, diagnosis, or medical advice. In an emergency, call 988 or 911.",
+    sanitizePdfText(
+      "Uncloud360 provides AI-powered coaching only - not therapy, diagnosis, or medical advice. In an emergency, call 988 or 911.",
+    ),
     contentWidth,
   );
   doc.text(disclaimerLines, margin, footerY);

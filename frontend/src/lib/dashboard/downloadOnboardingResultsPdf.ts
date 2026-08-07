@@ -5,22 +5,45 @@ import {
   type ResultsData,
 } from "@/lib/classification";
 import { assessmentScoreRgb } from "@/lib/dashboard/assessmentScoreStyle";
+import { sanitizePdfText } from "@/lib/pdf/sanitizePdfText";
 
 const PRIMARY: [number, number, number] = [48, 120, 116];
 const TEXT: [number, number, number] = [38, 45, 45];
 const MUTED: [number, number, number] = [110, 120, 120];
+
+export type ResultsPdfDeepDive = {
+  title: string;
+  daysUntilUnlock: number;
+};
 
 function slugifyName(firstName: string): string {
   const slug = firstName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
   return slug || "your";
 }
 
+function resolveDeepDive(
+  results: ResultsData,
+  deepDive?: ResultsPdfDeepDive | null,
+): { title: string; days: number } | null {
+  const title = (deepDive?.title ?? results.first_module ?? "").trim();
+  const days = deepDive?.daysUntilUnlock ?? results.module_days;
+  if (!title || typeof days !== "number" || !Number.isFinite(days)) {
+    return null;
+  }
+  return { title, days };
+}
+
 /** Client-side onboarding results PDF (Lovable dashboard hero download). */
-export function downloadOnboardingResultsPdf(firstName: string, results: ResultsData): void {
+export function downloadOnboardingResultsPdf(
+  firstName: string,
+  results: ResultsData,
+  deepDive?: ResultsPdfDeepDive | null,
+): void {
   const classification =
     resolveClassificationCopy(results.classification) ?? results.classification;
-  const tradeoff = classification.tradeoff || results.tradeoff_statement;
-  const tagline = classification.tagline || classification.description || "";
+  const tradeoff = sanitizePdfText(classification.tradeoff || results.tradeoff_statement);
+  const tagline = sanitizePdfText(classification.tagline || classification.description || "");
+  const recommended = resolveDeepDive(results, deepDive);
 
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -55,7 +78,11 @@ export function downloadOnboardingResultsPdf(firstName: string, results: Results
   doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text(`Here's what we're seeing, ${firstName.trim() || "there"}.`, margin, y);
+  doc.text(
+    sanitizePdfText(`Here's what we're seeing, ${firstName.trim() || "there"}.`),
+    margin,
+    y,
+  );
 
   advance(28);
   doc.setFillColor(240, 246, 245);
@@ -70,7 +97,7 @@ export function downloadOnboardingResultsPdf(firstName: string, results: Results
 
   doc.setTextColor(...PRIMARY);
   doc.setFontSize(15);
-  doc.text(classification.name, margin + 16, y + 40);
+  doc.text(sanitizePdfText(classification.name), margin + 16, y + 40);
 
   doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "italic");
@@ -114,7 +141,7 @@ export function downloadOnboardingResultsPdf(firstName: string, results: Results
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.setTextColor(...PRIMARY);
-  doc.text(results.pressure_profile, margin, y);
+  doc.text(sanitizePdfText(results.pressure_profile), margin, y);
   advance(24);
 
   const activeModes: string[] = [];
@@ -150,7 +177,10 @@ export function downloadOnboardingResultsPdf(firstName: string, results: Results
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10.5);
   doc.setTextColor(...TEXT);
-  const meansLines = doc.splitTextToSize(classification.whatThisMeans || "", contentWidth);
+  const meansLines = doc.splitTextToSize(
+    sanitizePdfText(classification.whatThisMeans || ""),
+    contentWidth,
+  );
   doc.text(meansLines, margin, y);
   y += Math.max(meansLines.length, 1) * 14;
   advance(20);
@@ -166,23 +196,27 @@ export function downloadOnboardingResultsPdf(firstName: string, results: Results
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10.5);
     doc.setTextColor(...TEXT);
-    const areaLines = doc.splitTextToSize(area, contentWidth - 20);
+    const areaLines = doc.splitTextToSize(sanitizePdfText(area), contentWidth - 20);
     doc.text(areaLines, margin + 16, y);
     y += areaLines.length * 14 + 6;
   }
 
-  advance(10);
-  doc.setFillColor(240, 246, 245);
-  doc.roundedRect(margin, y, contentWidth, 40, 8, 8, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(...PRIMARY);
-  const moduleDaysLabel = results.module_days === 1 ? "day" : "days";
-  doc.text(
-    `Recommended next deep-dive:  ${results.first_module} (${results.module_days} ${moduleDaysLabel})`,
-    margin + 16,
-    y + 24,
-  );
+  if (recommended) {
+    advance(10);
+    doc.setFillColor(240, 246, 245);
+    doc.roundedRect(margin, y, contentWidth, 40, 8, 8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(...PRIMARY);
+    const moduleDaysLabel = recommended.days === 1 ? "day" : "days";
+    doc.text(
+      sanitizePdfText(
+        `Recommended next deep-dive:  ${recommended.title} (${recommended.days} ${moduleDaysLabel})`,
+      ),
+      margin + 16,
+      y + 24,
+    );
+  }
 
   const footerY = doc.internal.pageSize.getHeight() - 40;
   doc.setDrawColor(220, 222, 222);
@@ -190,7 +224,10 @@ export function downloadOnboardingResultsPdf(firstName: string, results: Results
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(...MUTED);
-  const disclaimerLines = doc.splitTextToSize(STANDING_RESULTS_DISCLAIMER, contentWidth);
+  const disclaimerLines = doc.splitTextToSize(
+    sanitizePdfText(STANDING_RESULTS_DISCLAIMER),
+    contentWidth,
+  );
   doc.text(disclaimerLines, margin, footerY);
 
   doc.save(`uncloud360-results-${slugifyName(firstName)}.pdf`);

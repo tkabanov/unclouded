@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { CircleCheck, Download, Gauge, Target } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,6 +9,7 @@ import { useDashboardUserContext } from "@/hooks/useDashboardUser";
 import { resolveClassificationCopy, STANDING_RESULTS_DISCLAIMER } from "@/lib/classification";
 import { assessmentScoreClassName } from "@/lib/dashboard/assessmentScoreStyle";
 import { downloadOnboardingResultsPdf } from "@/lib/dashboard/downloadOnboardingResultsPdf";
+import { resolveDashboardModulePreview } from "@/lib/modules/dashboardModulePreview";
 import { cn } from "@/lib/utils";
 
 const SCORE_METRICS = [
@@ -19,7 +20,15 @@ const SCORE_METRICS = [
 ];
 
 export default function DashboardAssessmentResultsCard() {
-  const { firstName, hasResults, profile } = useDashboardUserContext();
+  const {
+    firstName,
+    hasResults,
+    profile,
+    classificationKey,
+    recoveryModeActive,
+    griefModeActive,
+    traumaInformedMode,
+  } = useDashboardUserContext();
   const results = profile?.results ?? null;
   const classification = results
     ? resolveClassificationCopy(results.classification) ?? results.classification
@@ -27,16 +36,37 @@ export default function DashboardAssessmentResultsCard() {
   const tradeoff =
     classification?.tradeoff || results?.tradeoff_statement || "";
 
+  const deepDive = useMemo(() => {
+    if (!profile) return null;
+    const preview = resolveDashboardModulePreview({
+      profile,
+      classificationKey,
+      healthFlags: {
+        recovery_mode_active: recoveryModeActive,
+        grief_mode_active: griefModeActive,
+        trauma_informed_mode: traumaInformedMode,
+      },
+    });
+    if (!preview) return null;
+    return { title: preview.displayTitle, daysUntilUnlock: preview.daysUntilUnlock };
+  }, [
+    profile,
+    classificationKey,
+    recoveryModeActive,
+    griefModeActive,
+    traumaInformedMode,
+  ]);
+
   const handleDownloadPdf = useCallback(() => {
     if (!results) return;
     try {
-      downloadOnboardingResultsPdf(firstName, results);
+      downloadOnboardingResultsPdf(firstName, results, deepDive);
       toast.success("Your results PDF is downloading.");
     } catch (err) {
       console.error("Failed to generate PDF", err);
       toast.error("Couldn't generate the PDF. Please try again.");
     }
-  }, [firstName, results]);
+  }, [deepDive, firstName, results]);
 
   if (!hasResults || !results || !classification) return null;
 
