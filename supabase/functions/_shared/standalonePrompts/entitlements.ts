@@ -8,12 +8,12 @@ export function normalizeStandaloneTier(raw: unknown): StandaloneTier {
   return "free";
 }
 
-/** Prompts 1–3 and coach brief on bookable sessions. */
+/** Prompts 1–4 and coach brief (Pro + Premium). Prompt 4 Trajectory Statement is Pro+Premium. */
 export function canUseStandaloneProPrompts(tier: StandaloneTier): boolean {
   return tier === "pro" || tier === "premium";
 }
 
-/** Prompts 4–5 Premium PDF narrative. */
+/** Prompt 5 Coaching Summary — Premium PDF narrative only. */
 export function canUsePremiumPdfPrompts(tier: StandaloneTier): boolean {
   return tier === "premium";
 }

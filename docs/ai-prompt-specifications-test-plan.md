@@ -1,7 +1,7 @@
 # План тестирования: AI Prompt Specifications (standalone prompts)
 
 **Спека:** [`docs/Uncloud360_AI_Prompt_Specifications.docx.md`](./Uncloud360_AI_Prompt_Specifications.docx.md)  
-**Override:** OVR-042 (`docs/product-overrides.md`) — Dashboard Kota daily messages (Prompt 1)  
+**Overrides:** OVR-042 (`docs/product-overrides.md`) — Dashboard Kota daily messages (Prompt 1); OVR-044 — Trajectory Statement Pro+Premium / assessment storage / static fallback  
 **Код (ориентиры):**
 
 | Prompt | Edge function | UI / storage |
@@ -277,7 +277,8 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 ## 8. Prompt 4 — Trajectory Statement
 
 **Trigger:** sync at 90-day reassessment score save  
-**Tier:** Pro + Premium (в PDF Section 3 обоих; Premium также на results)
+**Tier:** Pro + Premium (в PDF Section 3 обоих; Premium также на results)  
+**Override:** [OVR-044](./product-overrides.md) — Pro+Premium AI, storage on `assessmentResult`, static `trajectoryLanguage` fallback
 
 ### AIP-P4-001 — Sync display on reassessment results — TESTED
 

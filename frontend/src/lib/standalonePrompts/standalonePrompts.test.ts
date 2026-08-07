@@ -17,6 +17,11 @@ import {
   parseKotaReadBrief,
   buildKotaReadUserPrompt,
 } from "../../../../supabase/functions/_shared/kotaReadBrief.ts";
+import {
+  buildTrajectoryStatementPrompt,
+  countCompletedEnrollmentsInPeriod,
+  resolveTrajectoryPeriodBounds,
+} from "../../../../supabase/functions/_shared/standalonePrompts/trajectoryStatement.ts";
 
 describe("standalone prompt parsers", () => {
   it("parses daily insights JSON", () => {
@@ -72,6 +77,67 @@ describe("standalone prompt parsers", () => {
       section_5_body: "Next body",
     });
     expect(parsed?.section_5_body).toBe("Next body");
+  });
+
+  it("builds trajectory statement prompt with EXAMPLES and core guidance", () => {
+    const { prompt, system } = buildTrajectoryStatementPrompt({
+      classificationBefore: "High Output Hidden Instability",
+      classificationAfter: "Building Momentum",
+      stabilityBefore: "2.8",
+      stabilityAfter: "3.6",
+      stabilityChange: "+0.8",
+      performanceBefore: "4.0",
+      performanceAfter: "4.1",
+      performanceChange: "+0.1",
+      alignmentBefore: "3.0",
+      alignmentAfter: "3.2",
+      alignmentChange: "+0.2",
+      coachingModeBefore: "Stabilizer",
+      coachingModeAfter: "Builder",
+      pathsCompleted: "2",
+      activeFlags: "none",
+    });
+    expect(system).toContain("2–3 sentences only");
+    expect(prompt).toContain("EXAMPLES OF GOOD TRAJECTORY STATEMENTS");
+    expect(prompt).toContain("Name the most significant movement");
+    expect(prompt).toContain("you've made great progress");
+    expect(prompt).toContain("Paths completed this period: 2");
+  });
+});
+
+describe("Prompt 4 trajectory period helpers", () => {
+  it("uses previous assessment date as window start when present", () => {
+    const { startIso, endIso } = resolveTrajectoryPeriodBounds(
+      "2026-05-01T12:00:00.000Z",
+      "2026-08-01T12:00:00.000Z",
+    );
+    expect(startIso).toBe("2026-05-01T12:00:00.000Z");
+    expect(endIso).toBe("2026-08-01T12:00:00.000Z");
+  });
+
+  it("falls back to 90-day lookback when there is no previous assessment", () => {
+    const { startIso, endIso } = resolveTrajectoryPeriodBounds(
+      null,
+      "2026-08-01T12:00:00.000Z",
+    );
+    expect(endIso).toBe("2026-08-01T12:00:00.000Z");
+    expect(startIso).toBe("2026-05-03T12:00:00.000Z");
+  });
+
+  it("counts completed enrollments inside the window only", () => {
+    const startIso = "2026-05-01T00:00:00.000Z";
+    const endIso = "2026-08-01T00:00:00.000Z";
+    const count = countCompletedEnrollmentsInPeriod(
+      [
+        { status: "completed", updatedAt: "2026-06-15T00:00:00.000Z" },
+        { status: "completed", updatedAt: "2026-04-01T00:00:00.000Z" },
+        { status: "active", updatedAt: "2026-06-20T00:00:00.000Z" },
+        { status: "completed", updatedAt: "2026-07-20T00:00:00.000Z" },
+      ],
+      startIso,
+      endIso,
+    );
+    expect(count).toBe(2);
   });
 });
 

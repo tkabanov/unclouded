@@ -9,6 +9,7 @@ import {
   canUseStandaloneProPrompts,
   generateTrajectoryStatementText,
   normalizeStandaloneTier,
+  resolveTrajectoryPeriodBounds,
   scoreFromResults,
 } from "../_shared/standalonePrompts/index.ts";
 
@@ -144,16 +145,36 @@ Deno.serve(async (req) => {
       : scoreFromResults(afterResults, "alignment_score");
 
   const ctx = buildStandaloneUserContext(profile ?? {});
+  // Before-mode from prior scores only — do not reuse current onboarding state signals.
   const beforeCtx = buildStandaloneUserContext({
-    results: beforeResults,
-    onboardingData: profile?.onboardingData,
+    results: {
+      ...beforeResults,
+      ...(stabilityBefore != null ? { stability_score: stabilityBefore } : {}),
+      ...(performanceBefore != null ? { performance_score: performanceBefore } : {}),
+      ...(alignmentBefore != null ? { alignment_score: alignmentBefore } : {}),
+      ...(typeof previous?.classification === "string"
+        ? { classification: previous.classification }
+        : {}),
+    },
+    onboardingData: {},
   });
+
+  const previousAssessmentDate =
+    typeof previous?.assessmentDate === "string" ? previous.assessmentDate : null;
+  const currentAssessmentDate =
+    typeof assessment.assessmentDate === "string" ? assessment.assessmentDate : null;
+  const { startIso, endIso } = resolveTrajectoryPeriodBounds(
+    previousAssessmentDate,
+    currentAssessmentDate,
+  );
 
   const { count: pathsCompleted } = await auth.supabase
     .from("pathEnrollment")
     .select("id", { count: "exact", head: true })
     .eq("userId", auth.user.id)
-    .eq("status", "completed");
+    .eq("status", "completed")
+    .gte("updatedAt", startIso)
+    .lte("updatedAt", endIso);
 
   let statement: string;
   try {

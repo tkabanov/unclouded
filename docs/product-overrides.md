@@ -444,3 +444,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | All platform event emails from edge functions go through **SendGrid** Mail Send (`SENDGRID_API_KEY`). Shared helper: `supabase/functions/_shared/sendgridMail.ts`. Default from: `noreply@uncloud360.ai`. When the key is unset, sends are skipped (`smtp:skipped`) and cohorts are still stamped. Supabase Auth templates may use SendGrid SMTP separately in the Dashboard. |
 | **Code** | `supabase/functions/_shared/sendgridMail.ts`, `kotaReadDelivery.ts`, `module-unlock`, `notification-milestone`, `vulnerable-outreach`, `reassessment-due`, `onboarding-dropoff`, `subscription-lifecycle`, `generate-coaching-summary`; docs: `supabase/EMAIL_TEMPLATES.md` |
 
+### OVR-044 — Trajectory Statement (Prompt 4): Pro+Premium, assessment storage, static fallback
+
+| | |
+|---|---|
+| **Date** | 2026-08-07 |
+| **Overrides** | `docs/Uncloud360_AI_Prompt_Specifications.docx.md` Prompt 4 header “Available to: Premium”; store `trajectory_statement_text` on User; imply AI text always present |
+| **Authoritative spec** | Same doc — Prompt 4 implementation note (Section 3 of both Pro and Premium PDFs); Phase 2 seven static trajectory types as degrade path |
+| **Current behavior** | AI Trajectory Statement generates for **Pro and Premium** at reassessment completion (sync). Text is stored on **`assessmentResult.trajectoryStatementText`** (per-cycle history), not on User/profiles. Results screen and PDF prefer AI text; if missing, fall back to static `trajectoryLanguage` by trajectory type. `paths_completed` counts enrollments completed in the reassessment window (previous assessment → current, or 90-day lookback). |
+| **Code** | `supabase/functions/generate-trajectory-statement/`, `supabase/functions/_shared/standalonePrompts/trajectoryStatement.ts`, `supabase/functions/generate-pup-pdf/resolveTrajectoryStatement.ts`, `frontend/src/components/ResultsComparison.tsx`, `frontend/src/lib/reassessment/completeReassessment.ts` |
+
