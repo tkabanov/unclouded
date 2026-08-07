@@ -132,6 +132,21 @@ describe("resolveSessionOpeningTemplate", () => {
     expect(instruction).not.toContain("One specific context sentence before agenda");
   });
 
+  it("buildSessionLifecycleInstruction uses path-closing handoff when context note is present", () => {
+    const note =
+      "The user just completed Session 1 of path of Comfortable Plateau and wants to discuss something that came up.";
+    const instruction = buildSessionLifecycleInstruction(
+      "session_open",
+      baseProfile(),
+      note,
+    );
+
+    expect(instruction).toContain("Opening kind: path_closing_handoff");
+    expect(instruction).toContain("Comfortable Plateau");
+    expect(instruction).toContain("Invite them to share what came up");
+    expect(instruction).not.toContain("One specific context sentence before agenda");
+  });
+
   it("uses after-module opening when a module was completed recently", () => {
     const opening = resolveSessionOpeningTemplate(
       baseProfile({

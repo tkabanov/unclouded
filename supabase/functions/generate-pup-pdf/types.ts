@@ -5,11 +5,26 @@ export const COACHING_DISCLAIMER =
 
 export type PupPdfTier = "pro" | "premium";
 
+export type PupPdfCoachingSummarySections = {
+  section_1_title: string;
+  section_1_body: string;
+  section_2_title: string;
+  section_2_body: string;
+  section_3_title: string;
+  section_3_body: string;
+  section_4_title: string;
+  section_4_body: string;
+  section_5_title: string;
+  section_5_body: string;
+};
+
 export type PupPdfNarrative = {
   generatedForTier?: PupPdfTier;
   coachingContext: string;
   coachingSummary?: string | null;
   nextFocus?: string | null;
+  /** Prompt 5 structured sections — preferred over flat coachingSummary/nextFocus when present. */
+  coachingSummarySections?: PupPdfCoachingSummarySections | null;
 };
 
 export type PupPdfScorePoint = {

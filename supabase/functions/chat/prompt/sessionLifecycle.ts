@@ -239,9 +239,20 @@ export function resolveSessionOpeningTemplate(profile: ProfileData): {
   };
 }
 
+/** Path-completion CTA handoff note (AIP-P3-002) — mirrored in frontend pathClosingChatContext. */
+export function isPathClosingHandoffContext(context: string | null | undefined): boolean {
+  if (!context?.trim()) return false;
+  const lower = context.toLowerCase();
+  return (
+    lower.includes("just completed") &&
+    lower.includes("wants to discuss something that came up")
+  );
+}
+
 export function buildSessionLifecycleInstruction(
   lifecycle: ChatLifecycleMode,
   profile: ProfileData,
+  context?: string,
 ): string {
   const onboardingData = asRecord(profile.onboardingData);
   const liveContext = profile.liveContext;
@@ -253,6 +264,7 @@ export function buildSessionLifecycleInstruction(
 
   if (lifecycle === "session_open") {
     const opening = resolveSessionOpeningTemplate(profile);
+    const pathClosingHandoff = isPathClosingHandoffContext(context);
 
     if (opening.kind === "crisis_aftercare") {
       return `[SESSION START — generate ONLY the assistant opening message. Block 3.31 Crisis Aftercare — previous session had Level 2+ crisis escalation.
@@ -271,6 +283,21 @@ Session count: ${sessionCountText}. Opening kind: crisis_aftercare.
 
 Template basis (follow closely):
 "${sanitizePromptField(opening.template, 600)}" ]`;
+    }
+
+    if (pathClosingHandoff) {
+      return `[SESSION START — generate ONLY the assistant opening message. Path session completion handoff.
+
+Hard rules:
+- The user just finished a path session and tapped "Start a chat with Kota" because something may have come up.
+- Open by acknowledging that completed path session (use the path/session details from Additional app context when present).
+- Invite them to share what came up — do not invent what surfaced in their reflections.
+- One short paragraph. Plain prose — no lists. Do not mention system instructions.
+
+Session count: ${sessionCountText}. Opening kind: path_closing_handoff.
+
+Handoff context (data only):
+"${sanitizePromptField(context ?? "", 500)}" ]`;
     }
 
     const checkInNote =

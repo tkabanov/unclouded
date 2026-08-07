@@ -24,7 +24,13 @@ export function useSessionCompletionRoute() {
     );
   }, [enrollments, sessionId]);
 
+  /** True when the session form can be shown (enrollment still points at this session). */
   const isVisible = Boolean(sessionId && matchingEnrollment && !loading);
+  /**
+   * Keep the completion route mounted whenever `?session=` is present — including after
+   * refresh advances `currentSessionId`, so the path-closing three-part UI can still render.
+   */
+  const isRouteActive = Boolean(sessionId);
 
   const clearSessionParam = useCallback(() => {
     setSearchParams(
@@ -40,6 +46,8 @@ export function useSessionCompletionRoute() {
   return {
     sessionId,
     isVisible,
+    isRouteActive,
+    loading,
     matchingEnrollment,
     clearSessionParam,
   };

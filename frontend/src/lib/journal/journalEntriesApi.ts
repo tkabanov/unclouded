@@ -10,6 +10,7 @@ export interface JournalEntryListItem {
   createdAt: string;
   updatedAt: string;
   aiReflection: string | null;
+  reflectionReady: boolean;
   has_ai_reflection: boolean;
 }
 
@@ -42,6 +43,7 @@ type UdsJournalEntryRow = {
   moodTag?: string | null;
   content?: string | null;
   aiReflection?: string | null;
+  reflectionReady?: boolean | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -61,6 +63,17 @@ function isSchemaUnavailable(error: { code?: string; message?: string }): boolea
   );
 }
 
+/** Missing column (e.g. reflectionReady before migration) — PostgREST 400 / PGRST204. */
+function isColumnUnavailable(error: { code?: string; message?: string }): boolean {
+  const message = error.message?.toLowerCase() ?? "";
+  return (
+    error.code === "PGRST204" ||
+    error.code === "42703" ||
+    (message.includes("could not find the") && message.includes("column")) ||
+    (message.includes("does not exist") && message.includes("column"))
+  );
+}
+
 function truncatePreview(content: string, maxLength = 200): string {
   const trimmed = content.trim();
   if (!trimmed) return "";
@@ -74,10 +87,13 @@ function mapJournalEntryRow(row: {
   body: string;
   mood: string | null;
   aiReflection?: string | null;
+  reflectionReady?: boolean | null;
   createdAt: string;
   updatedAt: string;
 }): JournalEntryListItem {
   const aiReflection = row.aiReflection?.trim() || null;
+  const reflectionReady =
+    row.reflectionReady === true || Boolean(aiReflection);
   return {
     id: row.id,
     title: row.title.trim() || "Untitled entry",
@@ -86,8 +102,9 @@ function mapJournalEntryRow(row: {
     content_preview: truncatePreview(row.body),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-    aiReflection: aiReflection,
-    has_ai_reflection: Boolean(aiReflection),
+    aiReflection: reflectionReady ? aiReflection : null,
+    reflectionReady,
+    has_ai_reflection: reflectionReady && Boolean(aiReflection),
   };
 }
 
@@ -207,36 +224,12 @@ function normalizeJournalEntryInput(input: JournalEntryInput): JournalEntryInput
   };
 }
 
-async function tryCreateInUdsJournalEntryTable(
-  userId: string,
-  input: JournalEntryInput,
-): Promise<JournalEntryListItem | null> {
-  const client = supabase as unknown as UntypedSupabase;
-  const { data, error } = await client
-    .from("journalEntry")
-    .insert({
-      title: input.title || "Untitled entry",
-      moodTag: input.moodTag,
-      content: input.content,
-      userId: userId,
-    })
-    .select("id, title, moodTag, content, createdAt, updatedAt")
-    .single();
+const JOURNAL_SELECT_WITH_REFLECTION =
+  "id, title, moodTag, content, aiReflection, reflectionReady, createdAt, updatedAt";
+const JOURNAL_SELECT_BASE =
+  "id, title, moodTag, content, aiReflection, createdAt, updatedAt";
 
-  if (error) {
-    if (isSchemaUnavailable(error)) return null;
-    throw error;
-  }
-
-  const row = data as {
-    id: string;
-    title?: string | null;
-    moodTag?: string | null;
-    content?: string | null;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-
+function mapUdsJournalRow(row: UdsJournalEntryRow): JournalEntryListItem {
   const now = new Date().toISOString();
   return mapJournalEntryRow({
     id: row.id,
@@ -244,9 +237,50 @@ async function tryCreateInUdsJournalEntryTable(
     body: row.content ?? "",
     mood: row.moodTag ?? null,
     aiReflection: row.aiReflection ?? null,
+    reflectionReady: row.reflectionReady ?? Boolean(row.aiReflection),
     createdAt: row.createdAt ?? now,
     updatedAt: row.updatedAt ?? now,
   });
+}
+
+async function tryCreateInUdsJournalEntryTable(
+  userId: string,
+  input: JournalEntryInput,
+): Promise<JournalEntryListItem | null> {
+  const client = supabase as unknown as UntypedSupabase;
+  const payload = {
+    title: input.title || "Untitled entry",
+    moodTag: input.moodTag,
+    content: input.content,
+    userId: userId,
+  };
+
+  const primary = await client
+    .from("journalEntry")
+    .insert(payload)
+    .select(JOURNAL_SELECT_WITH_REFLECTION)
+    .single();
+
+  if (!primary.error) {
+    return mapUdsJournalRow(primary.data as UdsJournalEntryRow);
+  }
+
+  if (isSchemaUnavailable(primary.error)) return null;
+
+  if (isColumnUnavailable(primary.error)) {
+    const fallback = await client
+      .from("journalEntry")
+      .insert(payload)
+      .select(JOURNAL_SELECT_BASE)
+      .single();
+    if (fallback.error) {
+      if (isSchemaUnavailable(fallback.error)) return null;
+      throw fallback.error;
+    }
+    return mapUdsJournalRow(fallback.data as UdsJournalEntryRow);
+  }
+
+  throw primary.error;
 }
 
 /**
@@ -258,31 +292,29 @@ export async function fetchJournalEntries(
   onboardingData?: Record<string, unknown> | null,
 ): Promise<JournalEntryListItem[]> {
   const client = supabase as unknown as UntypedSupabase;
-  const { data: udsData, error: udsError } = await client
+  const primary = await client
     .from("journalEntry")
-    .select(
-      "id, title, moodTag, content, aiReflection, createdAt, updatedAt",
-    )
+    .select(JOURNAL_SELECT_WITH_REFLECTION)
     .eq("userId", userId)
     .order("createdAt", { ascending: false });
 
-  if (!udsError) {
-    const now = new Date().toISOString();
-    return (udsData ?? []).map((row) => {
-      const typed = row as UdsJournalEntryRow;
-      return mapJournalEntryRow({
-        id: typed.id,
-        title: typed.title ?? "",
-        body: typed.content ?? "",
-        mood: typed.moodTag ?? null,
-        aiReflection: typed.aiReflection ?? null,
-        createdAt: typed.createdAt ?? now,
-        updatedAt: typed.updatedAt ?? now,
-      });
-    });
+  if (!primary.error) {
+    return (primary.data ?? []).map((row) => mapUdsJournalRow(row as UdsJournalEntryRow));
   }
 
-  if (!isSchemaUnavailable(udsError)) throw udsError;
+  if (isColumnUnavailable(primary.error)) {
+    const fallback = await client
+      .from("journalEntry")
+      .select(JOURNAL_SELECT_BASE)
+      .eq("userId", userId)
+      .order("createdAt", { ascending: false });
+    if (!fallback.error) {
+      return (fallback.data ?? []).map((row) => mapUdsJournalRow(row as UdsJournalEntryRow));
+    }
+    if (!isSchemaUnavailable(fallback.error)) throw fallback.error;
+  } else if (!isSchemaUnavailable(primary.error)) {
+    throw primary.error;
+  }
 
   return applyReflectionFallback(readOnboardingJournalEntries(onboardingData), onboardingData);
 }
@@ -371,20 +403,34 @@ async function trySaveReflectionInUdsJournalEntryTable(
   aiReflectionText: string,
 ): Promise<boolean | null> {
   const client = supabase as unknown as UntypedSupabase;
-  const { data, error } = await client
+  const primary = await client
     .from("journalEntry")
-    .update({ aiReflection: aiReflectionText })
+    .update({ aiReflection: aiReflectionText, reflectionReady: true })
     .eq("id", entryId)
     .eq("userId", userId)
     .select("id")
     .maybeSingle();
 
-  if (error) {
-    if (isSchemaUnavailable(error)) return null;
-    throw error;
+  if (!primary.error) return Boolean(primary.data);
+
+  if (isSchemaUnavailable(primary.error)) return null;
+
+  if (isColumnUnavailable(primary.error)) {
+    const fallback = await client
+      .from("journalEntry")
+      .update({ aiReflection: aiReflectionText })
+      .eq("id", entryId)
+      .eq("userId", userId)
+      .select("id")
+      .maybeSingle();
+    if (fallback.error) {
+      if (isSchemaUnavailable(fallback.error)) return null;
+      throw fallback.error;
+    }
+    return Boolean(fallback.data);
   }
 
-  return Boolean(data);
+  throw primary.error;
 }
 
 /**
@@ -507,5 +553,19 @@ export async function saveJournalEntryReflection(
   const rows = await fetchJournalEntries(userId, onboardingData);
   const updated = rows.find((row) => row.id === entryId);
   if (!updated) throw new Error("Journal entry not found");
-  return { ...updated, aiReflection: reflection, has_ai_reflection: true };
+  return {
+    ...updated,
+    aiReflection: reflection,
+    reflectionReady: true,
+    has_ai_reflection: true,
+  };
+}
+
+export async function fetchJournalEntryById(
+  userId: string,
+  entryId: string,
+  onboardingData?: Record<string, unknown> | null,
+): Promise<JournalEntryListItem | null> {
+  const rows = await fetchJournalEntries(userId, onboardingData);
+  return rows.find((row) => row.id === entryId) ?? null;
 }

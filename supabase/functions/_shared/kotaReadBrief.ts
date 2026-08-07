@@ -1,4 +1,4 @@
-/** Block 3.35 — structured Kota's Read coach handoff brief. */
+/** Prompt 6 — Pre-Coaching Brief — Kota's Read (AI Prompt Specifications). */
 
 import { DAILY_CHECKINS_ONBOARDING_KEY } from "../chat/liveContext/liveContextHelpers.ts";
 import {
@@ -10,68 +10,53 @@ import type { SessionMemoryRecord } from "../chat/sessionMemory/sessionMemoryHel
 
 export const KOTA_READ_SESSION_WINDOW_DAYS = 90;
 
-export type KotaReadPattern = {
-  pattern: string;
-  trigger: string;
-  approachTried: string;
-  result: string;
-};
-
 export type KotaReadBrief = {
-  sessionThemes: string;
-  patterns: KotaReadPattern[];
-  underneath: string;
-  caution: string;
+  patterns_observed: string;
+  not_yet_reached: string;
+  be_careful_about: string;
+  most_important_now: string;
+  confidence_note: string;
 };
 
 export type KotaReadContext = {
-  firstName: string;
-  classificationLine: string;
-  scoresLine: string;
-  pathsLine: string;
-  openCommitmentLine: string;
-  sessionMemoryLines: string[];
-  memoryFactsJson: string;
+  classification: string;
+  coachingMode: string;
+  sessionCount: number;
+  aiConfidenceLevel: string;
+  confirmedFingerprintSignals: string;
+  sessionMemoryCompressed: string;
+  activeFlags: string;
+  commitmentFollowThroughRate: string;
+  openCommitment: string;
+  /** Optional factual lines still useful for grounding. */
+  firstName?: string;
+  scoresLine?: string;
+  pathsLine?: string;
 };
 
 export const KOTA_READ_SYSTEM_PROMPT =
-  "You are Kota, the AI coaching presence in Uncloud360. Produce a structured coach handoff brief as JSON only — no prose outside JSON. Ground every field in the supplied session history and memory. Do not speculate about clinical conditions. Do not include information that would violate coaching trust.";
+  "You are Kota — the AI coaching presence inside Uncloud360. A user has booked a session with a human PuP coach. You are generating Kota's Read — the section of the pre-session brief that gives the coach your actual observations about this person. This is not a data summary — the coach already has the data. This is what you have noticed that the data alone does not show. Tone: direct, professional, written coach-to-coach. Return JSON only.";
 
 export const KOTA_READ_JSON_INSTRUCTIONS = `Return JSON with this exact shape:
 {
-  "sessionThemes": "2-4 sentences summarizing session themes from the supplied history",
-  "patterns": [
-    {
-      "pattern": "what the user tends to do",
-      "trigger": "when it shows up",
-      "approachTried": "what Kota tried",
-      "result": "what happened"
-    }
-  ],
-  "underneath": "one presenting issue or thread where something deeper has not surfaced yet",
-  "caution": "sensitivity or fingerprint signal plus an approach that tends to backfire"
+  "patterns_observed": "[bullet-point formatted text — use \\n between bullets]",
+  "not_yet_reached": "[1–2 sentences]",
+  "be_careful_about": "[1–2 sentences]",
+  "most_important_now": "[1–2 sentences]",
+  "confidence_note": "[one sentence noting the ai_confidence_level and session count context]"
 }
 
-Rules:
-- Include 1 to 3 patterns only when supported by the history.
-- patterns must be specific — no generic coaching language.
-- underneath names the presenting issue in plain language (the formatter adds the handoff framing).
-- caution must name a concrete sensitivity and a concrete approach to avoid.
-- No markdown, no bullet lists, no clinical diagnoses.`;
+COMPONENT 1 — PATTERNS I'VE OBSERVED (2–4 bullet points)
+Precise behavioral and engagement patterns. If fewer than 5 sessions completed, note observations are provisional.
+COMPONENT 2 — WHAT I HAVEN'T BEEN ABLE TO GET TO (1–2 sentences)
+COMPONENT 3 — ONE THING TO BE CAREFUL ABOUT (1–2 sentences)
+COMPONENT 4 — WHAT I THINK IS MOST IMPORTANT RIGHT NOW (1–2 sentences)
+
+WHAT THIS BRIEF IS NOT
+Not a diagnosis. Not clinical language. Not a prediction. Nothing speculative without being labeled as such.`;
 
 function readString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function readPattern(value: unknown): KotaReadPattern | null {
-  if (!value || typeof value !== "object") return null;
-  const row = value as Record<string, unknown>;
-  const pattern = readString(row.pattern);
-  const trigger = readString(row.trigger);
-  const approachTried = readString(row.approachTried);
-  const result = readString(row.result);
-  if (!pattern || !trigger || !approachTried || !result) return null;
-  return { pattern, trigger, approachTried, result };
 }
 
 export function parseKotaReadBrief(raw: unknown): KotaReadBrief | null {
@@ -86,79 +71,72 @@ export function parseKotaReadBrief(raw: unknown): KotaReadBrief | null {
 
   if (!parsed || typeof parsed !== "object") return null;
   const row = parsed as Record<string, unknown>;
-  const sessionThemes = readString(row.sessionThemes);
-  const underneath = readString(row.underneath);
-  const caution = readString(row.caution);
-  const patterns = Array.isArray(row.patterns)
-    ? row.patterns
-        .map((entry) => readPattern(entry))
-        .filter((entry): entry is KotaReadPattern => entry !== null)
-        .slice(0, 3)
-    : [];
+  const patterns_observed = readString(row.patterns_observed);
+  const not_yet_reached = readString(row.not_yet_reached);
+  const be_careful_about = readString(row.be_careful_about);
+  const most_important_now = readString(row.most_important_now);
+  const confidence_note = readString(row.confidence_note);
 
-  if (!sessionThemes || !underneath || !caution || patterns.length === 0) {
+  if (
+    !patterns_observed ||
+    !not_yet_reached ||
+    !be_careful_about ||
+    !most_important_now ||
+    !confidence_note
+  ) {
     return null;
   }
 
-  return { sessionThemes, patterns, underneath, caution };
+  return {
+    patterns_observed,
+    not_yet_reached,
+    be_careful_about,
+    most_important_now,
+    confidence_note,
+  };
 }
 
-export function formatPatternLine(pattern: KotaReadPattern): string {
-  return `This user tends to ${pattern.pattern}. It shows up when ${pattern.trigger}. Kota has tried ${pattern.approachTried} with ${pattern.result}.`;
-}
-
-export function formatUnderneathLine(underneath: string): string {
-  const trimmed = underneath.trim();
-  if (/^there is something underneath/i.test(trimmed)) return trimmed;
-  return `There is something underneath ${trimmed} that has not surfaced yet. Worth exploring.`;
-}
-
-export function formatCautionLine(caution: string): string {
-  const trimmed = caution.trim();
-  if (/^this user/i.test(trimmed)) return trimmed;
-  return `This user ${trimmed}`;
-}
-
-/** Render Block 3.35 structured brief for coachBooking.kotaRead storage. */
+/** Render Prompt 6 structured brief for coachBooking.kotaRead storage. */
 export function formatKotaReadBrief(brief: KotaReadBrief): string {
-  const sections = [
+  return [
     "KOTA'S READ — Coach handoff brief",
     "",
-    "Session themes (recent)",
-    brief.sessionThemes.trim(),
+    "Patterns I've observed",
+    brief.patterns_observed.trim(),
     "",
-    "Patterns observed",
-    ...brief.patterns.map((pattern, index) => `${index + 1}. ${formatPatternLine(pattern)}`),
+    "What I haven't been able to get to",
+    brief.not_yet_reached.trim(),
     "",
-    "Underneath",
-    formatUnderneathLine(brief.underneath),
+    "One thing to be careful about",
+    brief.be_careful_about.trim(),
     "",
-    "Be careful about",
-    formatCautionLine(brief.caution),
-  ];
-
-  return sections.join("\n").trim();
+    "What I think is most important right now",
+    brief.most_important_now.trim(),
+    "",
+    "Confidence note",
+    brief.confidence_note.trim(),
+  ].join("\n").trim();
 }
 
 export function buildKotaReadUserPrompt(context: KotaReadContext): string {
   return [
     KOTA_READ_JSON_INSTRUCTIONS,
     "",
-    "Factual context for the coach (use as grounding; do not repeat verbatim unless relevant):",
-    `Member: ${context.firstName}`,
-    context.classificationLine,
-    context.scoresLine,
-    context.pathsLine,
-    context.openCommitmentLine,
-    "",
-    "Recent session memory (last 90 days):",
-    context.sessionMemoryLines.length > 0
-      ? context.sessionMemoryLines.join("\n")
-      : "(none recorded)",
-    "",
-    "Longitudinal memory facts:",
-    context.memoryFactsJson,
-  ].join("\n");
+    "USER DATA",
+    `Classification: ${context.classification}`,
+    `Coaching mode: ${context.coachingMode}`,
+    `Sessions completed: ${context.sessionCount}`,
+    `AI confidence level: ${context.aiConfidenceLevel}`,
+    `Confirmed fingerprint signals: ${context.confirmedFingerprintSignals}`,
+    `Session themes (compressed): ${context.sessionMemoryCompressed}`,
+    `Active flags: ${context.activeFlags}`,
+    `Commitment follow-through rate: ${context.commitmentFollowThroughRate}`,
+    `Current open commitment: ${context.openCommitment}`,
+    context.scoresLine ? context.scoresLine : "",
+    context.pathsLine ? context.pathsLine : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 export function buildClassificationLine(results: Record<string, unknown> | null): string {
@@ -302,4 +280,14 @@ export function buildPathsLine(
         `${entry.pathName} (${entry.status}, ${entry.completedSessionsCount} sessions completed)`,
     )
     .join("; ")}`;
+}
+
+/** @deprecated — kept for older test fixtures; prefer formatKotaReadBrief. */
+export function formatPatternLine(pattern: {
+  pattern: string;
+  trigger: string;
+  approachTried: string;
+  result: string;
+}): string {
+  return `This user tends to ${pattern.pattern}. It shows up when ${pattern.trigger}. Kota has tried ${pattern.approachTried} with ${pattern.result}.`;
 }

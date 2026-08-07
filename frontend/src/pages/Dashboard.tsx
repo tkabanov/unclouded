@@ -12,6 +12,7 @@ import DashboardJournalPreviewCard from "@/components/dashboard/DashboardJournal
 import DashboardAssessmentResultsCard from "@/components/dashboard/DashboardAssessmentResultsCard";
 import DashboardReassessmentProgressCard from "@/components/dashboard/DashboardReassessmentProgressCard";
 import DashboardReassessmentButton from "@/components/dashboard/DashboardReassessmentButton";
+import DashboardKotaMessagesCard from "@/components/dashboard/DashboardKotaMessagesCard";
 import ContinueOnboardingBanner from "@/components/dashboard/ContinueOnboardingBanner";
 import ReassessmentPdfDownloadCard from "@/components/dashboard/ReassessmentPdfDownloadCard";
 import WebPushRegistrationEffect from "@/components/notifications/WebPushRegistrationEffect";
@@ -24,6 +25,7 @@ function DashboardGreetingRow() {
     <div className="flex w-full flex-col gap-4">
       <DashboardGreetingCard />
       <WebPushEnableBannerGate />
+      <DashboardKotaMessagesCard />
       <DashboardMicroCommitments />
     </div>
   );

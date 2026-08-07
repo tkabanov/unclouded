@@ -34,7 +34,7 @@ describe("pupPdfTypes helpers", () => {
           coachingSummary: "Summary",
           nextFocus: "Focus",
           generatedForTier: "premium",
-          renderVersion: 4,
+          renderVersion: 5,
         },
         "premium",
         true,

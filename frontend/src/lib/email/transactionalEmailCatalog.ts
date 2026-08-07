@@ -35,6 +35,8 @@ export type TransactionalEmailId =
   | "coach_kota_read_brief"
   | "notification_module_unlock"
   | "notification_daily_checkin"
+  | "notification_kota_daily_insight"
+  | "notification_coaching_record_ready"
   | "notification_gidget_nudge"
   | "notification_path_progress"
   | "notification_reassessment_due"
@@ -316,6 +318,28 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
     source: "build_brief_section13",
     from: TRANSACTIONAL_EMAIL_FROM,
     placeholderReason: "Push/in-app preferred on mobile; email variant awaits scheduler + SMTP.",
+  },
+  {
+    id: "notification_kota_daily_insight",
+    name: "Kota left you a message",
+    trigger: "After dailyInsight row stored for Pro/Premium user (AI Prompt Spec Prompt 1)",
+    subject: "Kota left you a message",
+    priority: "medium",
+    channel: "edge_smtp",
+    status: "live",
+    source: "build_brief_section13",
+    from: TRANSACTIONAL_EMAIL_FROM,
+  },
+  {
+    id: "notification_coaching_record_ready",
+    name: "Complete Coaching Record ready",
+    trigger: "After Premium coachingSummaryReady at reassessment (AI Prompt Spec Prompt 5)",
+    subject: "Your Complete Coaching Record is ready",
+    priority: "high",
+    channel: "edge_smtp",
+    status: "live",
+    source: "build_brief_section13",
+    from: TRANSACTIONAL_EMAIL_FROM,
   },
   {
     id: "notification_gidget_nudge",

@@ -424,3 +424,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | After onboarding/reassessment save, `calculateUserClassification` uses the same `computeClassification` rules as Step 12 (High Output when stability &lt; 3.2 and performance ≥ 3.5; Capacity Erosion when stability &lt; 3.0 and pressure profile is «System Overload»). Pipeline runs pressure profile **before** classification so that branch can fire. Dashboard assessment card and Step 12 share the same classification key for the same scores. |
 | **Code** | `frontend/src/lib/classification.ts` (`computeClassification`), `frontend/src/lib/userProfile/classifyUser.ts`, `frontend/src/lib/userProfile/calculateUserClassification.ts`, `frontend/src/lib/userProfile/onboardingProfilePipeline.ts` |
 
+### OVR-042 — Dashboard Kota daily messages (AI Prompt Spec Prompt 1)
+
+| | |
+|---|---|
+| **Date** | 2026-08-07 |
+| **Overrides** | OVR-032 (no Dashboard Coaching Insights card); OVR-036 (Pro copy must not promise daily insights feed); curated `coachingInsightArticle` / `userDailyInsightFeed` as the user-facing daily feed |
+| **Authoritative spec** | `docs/Uncloud360_AI_Prompt_Specifications.docx.md` — Prompt 1 Coaching Insights — Kota's Messages |
+| **Current behavior** | Pro/Premium users see a **From Kota / Kota's Messages** dashboard card with three AI-generated insights per day (7-day rolling). Push notification **"Kota left you a message"** fires only after insights are stored. Pro plan marketing may again mention personalized daily Kota insights. Admin curated article tooling may remain for content ops but is **not** the user feed. |
+| **Code** | `frontend/src/components/dashboard/DashboardKotaMessagesCard.tsx`, `frontend/src/pages/Dashboard.tsx`, `supabase/functions/generate-daily-insights/`, `supabase/migrations/20260807120000_standalone_ai_prompts.sql`, `frontend/src/lib/subscription/planCatalog.ts` |
+

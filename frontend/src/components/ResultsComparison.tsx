@@ -44,6 +44,10 @@ interface ResultsComparisonProps {
   newMode?: string | null;
   recommendedPaths?: RecommendedPath[];
   nextFocusText?: string | null;
+  /** AI trajectory statement (Prompt 4) when available. */
+  trajectoryStatement?: string | null;
+  /** Premium: coaching summary still generating. */
+  coachingSummaryPreparing?: boolean;
   pdfState?: PdfDownloadState;
   onDownloadPdf?: () => void;
   onRetryPdf?: () => void;
@@ -193,6 +197,8 @@ const ResultsComparison = ({
   newMode,
   recommendedPaths = [],
   nextFocusText,
+  trajectoryStatement,
+  coachingSummaryPreparing = false,
   pdfState = "idle",
   onDownloadPdf,
   onRetryPdf,
@@ -200,7 +206,7 @@ const ResultsComparison = ({
   const deltas = computeScoreDeltas(first, second);
   const summary = summarizeProgress(first, second, firstName);
   const trajectory = computeTrajectoryType(first, second);
-  const trajectoryCopy = trajectoryLanguage(trajectory);
+  const trajectoryCopy = trajectoryStatement?.trim() || trajectoryLanguage(trajectory);
   const labeledQuestions = reflectionQuestionsWithAdaptive(pathAdaptiveQ);
   const reflectionFields = compact ? COMPACT_REFLECTION_ORDER : labeledQuestions.map((q) => q.field);
   const reflectionQuestionByField = new Map(labeledQuestions.map((q) => [q.field, q]));
@@ -424,8 +430,16 @@ const ResultsComparison = ({
                   ? "Retry PDF"
                   : pdfReady
                     ? pdfLabel
-                    : "Preparing PDF…"}
+                    : coachingSummaryPreparing
+                      ? "Preparing Complete Coaching Record…"
+                      : "Preparing PDF…"}
               </Button>
+            ) : null}
+            {coachingSummaryPreparing && !pdfReady ? (
+              <p className="w-full text-center text-xs text-muted-foreground sm:basis-full">
+                Your Complete Coaching Record is being prepared. You&apos;ll be notified when your
+                PDF is ready.
+              </p>
             ) : null}
 
             {isPro ? (

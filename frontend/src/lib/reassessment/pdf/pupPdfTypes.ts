@@ -1,7 +1,7 @@
 export const PUP_PDF_PAYLOAD_VERSION = 1 as const;
 
 /** Bump when client PDF layout changes — invalidates cached files. */
-export const PUP_PDF_RENDER_VERSION = 4 as const;
+export const PUP_PDF_RENDER_VERSION = 5 as const;
 
 export const PUP_PDF_STORAGE_BUCKET = "pup-pdf-reports" as const;
 
@@ -9,6 +9,19 @@ export const COACHING_DISCLAIMER =
   "Uncloud360 is an adaptive human guidance platform that provides AI-powered coaching support. It is not a substitute for therapy, counseling, psychiatry, or any other licensed mental health or medical service. If you are experiencing a mental health crisis, please contact the 988 Suicide and Crisis Lifeline (call or text 988) or your local emergency services. Uncloud360 is not a covered entity under HIPAA.";
 
 export type PupPdfTier = "pro" | "premium";
+
+export type PupPdfCoachingSummarySections = {
+  section_1_title: string;
+  section_1_body: string;
+  section_2_title: string;
+  section_2_body: string;
+  section_3_title: string;
+  section_3_body: string;
+  section_4_title: string;
+  section_4_body: string;
+  section_5_title: string;
+  section_5_body: string;
+};
 
 export type PupPdfNarrative = {
   /** Tier the narrative was generated for — used to invalidate on upgrade. */
@@ -18,6 +31,8 @@ export type PupPdfNarrative = {
   coachingContext: string;
   coachingSummary?: string | null;
   nextFocus?: string | null;
+  /** Prompt 5 structured sections — preferred over flat coachingSummary/nextFocus when present. */
+  coachingSummarySections?: PupPdfCoachingSummarySections | null;
 };
 
 export type PupPdfCacheRow = {

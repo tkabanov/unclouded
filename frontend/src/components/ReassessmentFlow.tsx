@@ -428,6 +428,10 @@ export default function ReassessmentFlow() {
                 newMode={completeResult?.newMode}
                 recommendedPaths={completeResult?.recommendedPaths}
                 nextFocusText={completeResult?.nextFocusText}
+                trajectoryStatement={completeResult?.trajectoryStatement}
+                coachingSummaryPreparing={
+                  tier === TIER.PREMIUM && pdfState !== "ready"
+                }
                 pdfState={
                   tier === TIER.PRO || tier === TIER.PREMIUM ? pdfState : "idle"
                 }

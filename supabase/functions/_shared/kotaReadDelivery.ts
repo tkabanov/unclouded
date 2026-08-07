@@ -39,7 +39,7 @@ export function buildKotaReadEmailHtml(params: {
   const adminUrl = escapeHtml(params.adminConsoleUrl);
 
   return `
-    <p>A Premium member booked a human coaching session. Kota prepared this private handoff brief.</p>
+    <p>A Pro/Premium member booked a human coaching session. Kota prepared this private handoff brief.</p>
     <p><strong>Member:</strong> ${memberName}</p>
     ${memberEmail}
     <p><strong>Scheduled:</strong> ${scheduledLabel}</p>

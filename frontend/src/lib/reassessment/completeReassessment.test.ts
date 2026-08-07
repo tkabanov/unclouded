@@ -32,6 +32,11 @@ vi.mock("@/lib/reassessment/recommendPathsAfterReassessment", () => ({
   recommendPathsAfterReassessment: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock("@/lib/reassessment/standalonePdfPromptsApi", () => ({
+  generateTrajectoryStatement: vi.fn().mockResolvedValue("Trajectory statement text."),
+  requestCoachingSummaryGeneration: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/lib/modules/completeModule", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/modules/completeModule")>();
   return {
@@ -92,6 +97,7 @@ describe("completeReassessment module refresh hook", () => {
     expect(result.modulesAcceleratedUnlock).toEqual(
       expect.arrayContaining(["body", "relational"]),
     );
+    expect(result.trajectoryStatement).toBe("Trajectory statement text.");
     expect(mockUpdate).toHaveBeenCalled();
   });
 

@@ -80,10 +80,12 @@ export const PLAN_CATALOG: readonly PlanCatalogEntry[] = [
         "90-day reassessment — automatic trigger at day 90",
         "Score comparison, classification update, trajectory statement",
         "Basic PuP 360 PDF summary at reassessment — 1-2 pages",
-        "AI journal reflection — share an entry, receive a coaching response",
+        "AI journal reflection — Kota leaves a quiet note when you return",
+        "Daily Kota messages — three personalized insights each day",
         "Daily check-in with streak tracking and dashboard widget",
         "Path and recovery milestone recognition with AI acknowledgment",
         "One group coaching session per month",
+        "Pre-coaching brief for your human coach when you book",
       ),
       ...excluded(
         "On-demand reassessment (90-day cycle only)",

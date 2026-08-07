@@ -4,68 +4,58 @@ import {
   buildKotaReadUserPrompt,
   filterSessionMemoryForKotaRead,
   formatKotaReadBrief,
-  formatPatternLine,
   parseKotaReadBrief,
   resolveOpenCommitmentLine,
 } from "../../../../supabase/functions/_shared/kotaReadBrief.ts";
 
 describe("kotaReadBrief", () => {
-  it("parses structured JSON brief", () => {
+  it("parses structured JSON brief (Prompt 6)", () => {
     const brief = parseKotaReadBrief({
-      sessionThemes: "Work overload and boundary guilt have dominated recent sessions.",
-      patterns: [
-        {
-          pattern: "minimize depletion while continuing to over-deliver",
-          trigger: "manager asks for one more thing",
-          approachTried: "naming the cost without asking them to stop performing",
-          result: "brief honesty, then quick return to reassurance",
-        },
-      ],
-      underneath: "the fear that slowing down means becoming replaceable",
-      caution: "pushes back hard when challenged too directly before trust is rebuilt",
+      patterns_observed: "- minimizes depletion while over-delivering",
+      not_yet_reached: "Fear of becoming replaceable if they slow down.",
+      be_careful_about: "Pushes back hard when challenged too directly before trust is rebuilt.",
+      most_important_now: "They need steadiness more than another insight.",
+      confidence_note: "Kota has completed 12 sessions with this user at Direct confidence level.",
     });
 
-    expect(brief?.patterns).toHaveLength(1);
-    expect(formatPatternLine(brief!.patterns[0])).toContain("It shows up when");
+    expect(brief?.patterns_observed).toContain("over-delivering");
+    expect(brief?.confidence_note).toContain("Direct");
   });
 
-  it("formats Block 3.35 sections for storage", () => {
+  it("formats Prompt 6 sections for storage", () => {
     const formatted = formatKotaReadBrief({
-      sessionThemes: "Recent sessions focused on recovery boundaries.",
-      patterns: [
-        {
-          pattern: "intellectualize exhaustion",
-          trigger: "asked how they are really doing",
-          approachTried: "slowing pace and validating depletion",
-          result: "more honesty for a few exchanges",
-        },
-      ],
-      underneath: "grief they have not fully named",
-      caution: "gets smaller when pushed toward big commitments too early",
+      patterns_observed: "- intellectualize exhaustion",
+      not_yet_reached: "Grief they have not fully named.",
+      be_careful_about: "Gets smaller when pushed toward big commitments too early.",
+      most_important_now: "Presence before precision.",
+      confidence_note: "Kota has completed 8 sessions at Guided confidence level.",
     });
 
-    expect(formatted).toContain("Session themes (recent)");
-    expect(formatted).toContain("Patterns observed");
-    expect(formatted).toContain("Underneath");
-    expect(formatted).toContain("Be careful about");
-    expect(formatted).toContain("has not surfaced yet");
+    expect(formatted).toContain("Patterns I've observed");
+    expect(formatted).toContain("What I haven't been able to get to");
+    expect(formatted).toContain("One thing to be careful about");
+    expect(formatted).toContain("What I think is most important right now");
+    expect(formatted).toContain("Confidence note");
   });
 
-  it("builds user prompt with factual context", () => {
+  it("builds user prompt with Prompt 6 fields", () => {
     const prompt = buildKotaReadUserPrompt({
-      firstName: "Alex",
-      classificationLine: "Classification: Capacity Erosion",
+      classification: "Capacity Erosion",
+      coachingMode: "Stabilizer",
+      sessionCount: 6,
+      aiConfidenceLevel: "Guided",
+      confirmedFingerprintSignals: "over_responsibility",
+      sessionMemoryCompressed: "- Boundaries: User named manager overload",
+      activeFlags: "none",
+      commitmentFollowThroughRate: "72%",
+      openCommitment: "rest before 10pm twice this week",
       scoresLine: "Scores — Stability 2.4, Performance 2.8, Alignment 2.6",
       pathsLine: "Active paths: Recovery Roadmap (active, 1 sessions completed)",
-      openCommitmentLine: "Open commitment: rest before 10pm twice this week",
-      sessionMemoryLines: ["- Boundaries: User named manager overload"],
-      memoryFactsJson: '{"statedGoals":"Be present with kids"}',
     });
 
     expect(prompt).toContain("Classification: Capacity Erosion");
-    expect(prompt).toContain("Open commitment:");
-    expect(prompt).toContain("last 90 days");
-    expect(prompt).toContain('"patterns"');
+    expect(prompt).toContain("patterns_observed");
+    expect(prompt).toContain("Guided");
   });
 
   it("filters session memory to the last 90 days", () => {
@@ -78,35 +68,32 @@ describe("kotaReadBrief", () => {
           summaryStub: "old theme",
         },
         {
-          conversationId: "recent",
+          conversationId: "new",
           closedAt: "2026-07-01T12:00:00.000Z",
-          topic: "recent",
-          summaryStub: "recent theme",
+          topic: "new",
+          summaryStub: "new theme",
         },
       ],
-      new Date("2026-07-20T12:00:00.000Z"),
+      new Date("2026-07-15T12:00:00.000Z"),
     );
-
     expect(filtered).toHaveLength(1);
-    expect(filtered[0]?.topic).toBe("recent");
+    expect(filtered[0]?.conversationId).toBe("new");
   });
 
-  it("reports open commitment only when follow-through status is open", () => {
+  it("resolves open commitment line from session memory", () => {
     const line = resolveOpenCommitmentLine(
       [
         {
           conversationId: "c1",
-          closedAt: "2026-07-10",
-          topic: "sleep",
-          summaryStub: "Named poor sleep.",
-          microCommitment: "No screens after 10pm",
-          commitmentStatus: "completed",
+          closedAt: "2026-07-01T12:00:00.000Z",
+          topic: "Rest",
+          summaryStub: "Named depletion",
+          microCommitment: "lights out by 10pm twice",
         },
       ],
-      { micro_commitment_active_text: "No screens after 10pm" },
-      new Date("2026-07-20"),
+      null,
+      new Date("2026-07-02T12:00:00.000Z"),
     );
-
-    expect(line).toBe("Open commitment: none recorded");
+    expect(line.toLowerCase()).toContain("open commitment");
   });
 });

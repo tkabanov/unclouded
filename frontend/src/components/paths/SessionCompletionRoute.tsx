@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   SessionCompletionForm,
   type JournalLetterDisposition,
@@ -32,10 +33,23 @@ import {
   fetchPathSession,
   PathSessionUpgradeRequiredError,
 } from "@/lib/paths/pathsSessionApi";
+import {
+  generatePathClosingInsight,
+  type PathClosingInsight,
+} from "@/lib/paths/pathClosingApi";
+import { setPathClosingChatContext } from "@/lib/paths/pathClosingChatContext";
+import { createConversation } from "@/lib/chat/chatConversationsApi";
+import { canStartNewChatSession } from "@/lib/chat/chatSessionLimit";
+import { CONVERSATION_SEARCH_PARAM, CHAT_ROUTE } from "@/lib/chat/routes";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { canUseJournalAiReflection } from "@/lib/journal/journalEntitlements";
 import { loadSubscriptionOverview } from "@/lib/subscription/subscriptionApi";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { toast } from "sonner";
+
+/** @deprecated Prefer `PATH_CLOSING_CHAT_CONTEXT_KEY` from pathClosingChatContext. */
+export { PATH_CLOSING_CHAT_CONTEXT_KEY } from "@/lib/paths/pathClosingChatContext";
 
 type SessionCompletionRouteProps = {
   onReturnToMyPaths: () => void;
@@ -45,11 +59,17 @@ type SessionCompletionRouteProps = {
 export default function SessionCompletionRoute({
   onReturnToMyPaths,
 }: SessionCompletionRouteProps) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const userTier = useEffectiveTier().tier;
-  const { sessionId, isVisible, matchingEnrollment, clearSessionParam } =
-    useSessionCompletionRoute();
+  const {
+    sessionId,
+    isVisible,
+    loading: enrollmentsLoading,
+    matchingEnrollment,
+    clearSessionParam,
+  } = useSessionCompletionRoute();
   const { refresh } = usePathsEnrollmentStore();
   const [session, setSession] = useState<PathSessionFormData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,6 +80,35 @@ export default function SessionCompletionRoute({
     useState<JournalLetterDisposition | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hasSuccessPlanAddon, setHasSuccessPlanAddon] = useState(false);
+  const [closingInsight, setClosingInsight] = useState<PathClosingInsight | null>(null);
+  const [closingMeta, setClosingMeta] = useState<{
+    pathName: string;
+    sessionNumber: string;
+  } | null>(null);
+  /** Enrollment snapshot for dismiss actions after refresh advances currentSessionId. */
+  const [pinnedEnrollment, setPinnedEnrollment] = useState(matchingEnrollment);
+
+  useEffect(() => {
+    if (matchingEnrollment) {
+      setPinnedEnrollment(matchingEnrollment);
+    }
+  }, [matchingEnrollment]);
+
+  // Stale ?session= (enrollment no longer points here, no closing UI) → My Paths.
+  useEffect(() => {
+    if (closingInsight) return;
+    if (!sessionId || enrollmentsLoading) return;
+    if (matchingEnrollment) return;
+    clearSessionParam();
+    onReturnToMyPaths();
+  }, [
+    closingInsight,
+    sessionId,
+    enrollmentsLoading,
+    matchingEnrollment,
+    clearSessionParam,
+    onReturnToMyPaths,
+  ]);
 
   const pathTier = matchingEnrollment?.tier ?? TIER.FREE;
   const successPlan = isSuccessPlanPath({
@@ -221,9 +270,39 @@ export default function SessionCompletionRoute({
         subMode: matchingEnrollment.subMode,
         enrollmentSource: matchingEnrollment.source,
       });
+
+      const sessionNumber = `Session ${session.sessionIndex ?? "?"} of path`;
+      let insight: PathClosingInsight | null = null;
+      if (canUseJournalAiReflection(userTier)) {
+        const reflectionResponses = mappedAnswers
+          .map((a) => `Q: ${a.questionText}\nA: ${a.answerText}`)
+          .join("\n\n");
+        insight = await generatePathClosingInsight({
+          sessionId,
+          enrollmentId: matchingEnrollment.enrollmentId,
+          pathName: matchingEnrollment.pathName,
+          sessionNumber,
+          sessionTheme: session.title,
+          reflectionResponses,
+        });
+      }
+
+      if (insight) {
+        // Set closing UI before refresh — refresh advances currentSessionId / loading and
+        // would otherwise unmount this route before the three-part screen can paint (AIP-P3-001).
+        setClosingMeta({
+          pathName: matchingEnrollment.pathName ?? "Path",
+          sessionNumber,
+        });
+        setClosingInsight(insight);
+        toast.success("Session completed");
+        void refresh();
+        return;
+      }
+
+      await refresh();
       clearSessionParam();
       onReturnToMyPaths();
-      await refresh();
       toast.success(
         directedWriting && isFinalSession && journalDisposition === "save"
           ? "Session completed — letter saved to your journal"
@@ -265,7 +344,110 @@ export default function SessionCompletionRoute({
     refresh,
   ]);
 
-  if (!isVisible) return null;
+  // Closing insight must render even when isVisible is false (enrollment already advanced).
+  if (closingInsight) {
+    return (
+      <div
+        className="flex w-full flex-col gap-6 rounded-lg border border-border/60 bg-muted/10 p-6"
+        data-testid="path-closing-insight"
+      >
+        <div className="space-y-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            From Kota
+          </p>
+          <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+            {closingInsight.acknowledgment}
+          </p>
+        </div>
+        <div className="h-px w-full bg-border/50" aria-hidden />
+        <p className="text-sm italic leading-relaxed text-muted-foreground whitespace-pre-wrap">
+          {closingInsight.sitWith}
+        </p>
+        <div className="flex flex-wrap gap-2 pt-2">
+          <Button
+            type="button"
+            variant="cta"
+            onClick={() => {
+              void (async () => {
+                const note = `The user just completed ${closingMeta?.sessionNumber ?? "a path session"} of ${
+                  closingMeta?.pathName ?? pinnedEnrollment?.pathName ?? "a path"
+                } and wants to discuss something that came up.`;
+                setPathClosingChatContext(note);
+
+                if (!user) {
+                  clearSessionParam();
+                  void refresh();
+                  navigate(CHAT_ROUTE);
+                  return;
+                }
+
+                if (
+                  !canStartNewChatSession({
+                    tier: profile?.tier ?? null,
+                    subscribed: profile?.subscribed ?? false,
+                    accountType: profile?.accountType ?? null,
+                    enterpriseTier: profile?.enterpriseTier ?? null,
+                    onboardingData: profile?.onboardingData ?? null,
+                  })
+                ) {
+                  pathUpsell.promptUpgrade("chatSessionLimit");
+                  return;
+                }
+
+                try {
+                  const created = await createConversation(
+                    user.id,
+                    profile?.onboardingData ?? null,
+                  );
+                  trackProductEvent("session_started", {
+                    conversation_id: created.id,
+                    source: "path_closing",
+                  });
+                  clearSessionParam();
+                  void refresh();
+                  navigate(
+                    `${CHAT_ROUTE}?${CONVERSATION_SEARCH_PARAM}=${encodeURIComponent(created.id)}`,
+                  );
+                } catch {
+                  toast.error("Couldn't start a chat. Please try again.");
+                }
+              })();
+            }}
+          >
+            {closingInsight.ctaText}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              clearSessionParam();
+              void refresh();
+              onReturnToMyPaths();
+            }}
+          >
+            Back to My Paths
+          </Button>
+        </div>
+        <LockedFeatureUpgradeDialog
+          open={pathUpsell.openFeature === "chatSessionLimit"}
+          feature="chatSessionLimit"
+          currentTier={userTier}
+          onClose={pathUpsell.closeUpsell}
+        />
+      </div>
+    );
+  }
+
+  if (!isVisible) {
+    return (
+      <div className="flex w-full flex-col gap-4">
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
 
   const isComingSoon =
     Boolean(session) &&

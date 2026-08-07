@@ -61,7 +61,10 @@ export function openExternalBookingUrl(url: string): boolean {
 }
 
 /** Kota's Read is a nice-to-have: a booking stands even if generation fails. */
-async function generateKotaRead(bookingId: string): Promise<string | null> {
+async function generateKotaRead(
+  bookingId: string,
+  bookingTable: "coachBooking" | "groupSessionBooking" = "coachBooking",
+): Promise<string | null> {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
   if (!token) return null;
@@ -74,7 +77,7 @@ async function generateKotaRead(bookingId: string): Promise<string | null> {
         Authorization: `Bearer ${token}`,
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
-      body: JSON.stringify({ bookingId }),
+      body: JSON.stringify({ bookingId, bookingTable }),
     });
     if (!response.ok) return null;
     const payload = (await response.json()) as { kotaRead?: string };
@@ -200,6 +203,8 @@ export async function requestGroupSessionBooking(): Promise<GroupSessionBookingR
         readString(row, "error") ?? "Could not request your group session. Please try again.",
     };
   }
+
+  void generateKotaRead(bookingId, "groupSessionBooking");
 
   return {
     status: "ok",

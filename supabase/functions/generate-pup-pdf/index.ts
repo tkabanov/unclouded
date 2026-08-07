@@ -1,7 +1,7 @@
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
+import { parseCoachingSummary } from "../_shared/standalonePrompts/coachingSummary.ts";
 import { extractSubDimensions } from "./extractSubDimensions.ts";
-import { generatePdfNarrative } from "./prompts.ts";
-import { trajectoryLanguage } from "./trajectoryCopy.ts";
+import { resolveTrajectoryStatement } from "./resolveTrajectoryStatement.ts";
 import {
   COACHING_DISCLAIMER,
   PUP_PDF_PAYLOAD_VERSION,
@@ -56,22 +56,6 @@ function resolvePdfTier(tierRaw: string | null | undefined): PupPdfTier | null {
   if (tier === "premium") return "premium";
   if (tier === "pro") return "pro";
   return null;
-}
-
-function readSessionMemorySnippets(onboardingData: Record<string, unknown> | null): string[] {
-  const raw = onboardingData?.chat_session_memory;
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .slice(-5)
-    .map((entry) => {
-      if (!entry || typeof entry !== "object") return null;
-      const row = entry as Record<string, unknown>;
-      const topic = typeof row.topic === "string" ? row.topic.trim() : "";
-      const summary = typeof row.summaryStub === "string" ? row.summaryStub.trim() : "";
-      if (!topic && !summary) return null;
-      return `- ${topic}${summary ? `: ${summary}` : ""}`;
-    })
-    .filter((line): line is string => Boolean(line));
 }
 
 function readMicroCommitment(onboardingData: Record<string, unknown> | null): string | null {
@@ -227,7 +211,19 @@ Deno.serve(async (req) => {
 
     const trajectoryType =
       typeof assessment.trajectoryType === "string" ? assessment.trajectoryType : null;
+    const trajectoryStatementText = resolveTrajectoryStatement(
+      assessment.trajectoryStatementText,
+      trajectoryType,
+    );
     const reflections = buildReflections(assessment as Record<string, unknown>);
+
+    const coachingSummary = parseCoachingSummary(assessment.coachingSummaryJson);
+    if (pdfTier === "premium" && (!assessment.coachingSummaryReady || !coachingSummary)) {
+      return jsonResponse(409, {
+        error: "Your Complete Coaching Record is still being prepared. You'll be notified when ready.",
+        code: "coaching_summary_not_ready",
+      });
+    }
 
     const { data: historyRows } = await auth.supabase
       .from("assessmentResult")
@@ -277,26 +273,33 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // Prefer Prompt 5 coachingSummaryJson; else stored pdfNarrative; else light Pro context.
     let narrative = !force ? parseNarrative(assessment.pdfNarrative) : null;
     if (narrative && !narrativeMatchesTier(narrative, pdfTier)) {
       narrative = null;
     }
-    if (!narrative) {
-      const generated = await generatePdfNarrative({
-        tier: pdfTier,
-        firstName: profile.firstName?.trim() || "there",
-        scores,
-        classificationName,
-        trajectoryType,
-        trajectoryStatement: trajectoryLanguage(trajectoryType),
-        reflections: reflections.map((r) => ({ question: r.question, answer: r.answer })),
-        sessionMemorySnippets: readSessionMemorySnippets(onboardingData),
-        pathHistoryLines: pathHistory.map(
-          (p) => `- ${p.pathName} (${p.status}, ${p.completedSessionsCount} sessions)`,
-        ),
-      });
-      narrative = { ...generated, generatedForTier: pdfTier };
 
+    if (pdfTier === "premium" && coachingSummary) {
+      narrative = {
+        generatedForTier: "premium",
+        coachingContext: coachingSummary.section_1_body,
+        coachingSummary: [
+          coachingSummary.section_1_body,
+          coachingSummary.section_2_body,
+          coachingSummary.section_3_body,
+          coachingSummary.section_4_body,
+        ].join("\n\n"),
+        nextFocus: coachingSummary.section_5_body,
+        coachingSummarySections: coachingSummary,
+      };
+    } else if (!narrative) {
+      narrative = {
+        generatedForTier: pdfTier,
+        coachingContext:
+          `${classificationName}. Stability ${scores.stability}, Performance ${scores.performance}, Alignment ${scores.alignment}.`,
+        coachingSummary: null,
+        nextFocus: null,
+      };
       await auth.supabase
         .from("assessmentResult")
         .update({ pdfNarrative: narrative as unknown as never })
@@ -316,7 +319,7 @@ Deno.serve(async (req) => {
       classificationDescription,
       focusAreas,
       trajectoryType,
-      trajectoryStatement: trajectoryLanguage(trajectoryType),
+      trajectoryStatement: trajectoryStatementText,
       microCommitment: readMicroCommitment(onboardingData),
       reflections,
       disclaimer: COACHING_DISCLAIMER,

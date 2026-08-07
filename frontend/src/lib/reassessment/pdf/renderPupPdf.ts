@@ -1,6 +1,9 @@
 import { jsPDF } from "jspdf";
 import { sanitizeSubDimensions } from "@/lib/reassessment/pdf/extractSubDimensions";
-import type { PupPdfPayload } from "@/lib/reassessment/pdf/pupPdfTypes";
+import type {
+  PupPdfCoachingSummarySections,
+  PupPdfPayload,
+} from "@/lib/reassessment/pdf/pupPdfTypes";
 import { COACHING_DISCLAIMER } from "@/lib/reassessment/pdf/pupPdfTypes";
 
 const PAGE_WIDTH = 210;
@@ -349,6 +352,41 @@ function drawReflectionBlock(
   return y + boxH + 5;
 }
 
+function coachingSummarySectionEntries(
+  sections: PupPdfCoachingSummarySections,
+): Array<{ title: string; body: string }> {
+  return [
+    { title: sections.section_1_title, body: sections.section_1_body },
+    { title: sections.section_2_title, body: sections.section_2_body },
+    { title: sections.section_3_title, body: sections.section_3_body },
+    { title: sections.section_4_title, body: sections.section_4_body },
+    { title: sections.section_5_title, body: sections.section_5_body },
+  ].filter((s) => s.title.trim() && s.body.trim());
+}
+
+function drawCoachingSummarySections(
+  doc: jsPDF,
+  sections: PupPdfCoachingSummarySections,
+  y: number,
+): number {
+  const entries = coachingSummarySectionEntries(sections);
+  if (entries.length === 0) return y;
+
+  y = drawSectionBlock(doc, "Coaching summary", 20, y);
+  for (const entry of entries) {
+    const bodyLines = splitLines(doc, entry.body, CONTENT_WIDTH, 10);
+    y = ensureSpace(doc, y, textBlockHeight(1, 11) + textBlockHeight(bodyLines.length, 10) + 10);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    setText(doc, C.text);
+    doc.text(entry.title, MARGIN, y);
+    y += 6;
+    y = drawBodyText(doc, entry.body, y, { fontSize: 10 });
+    y += 2;
+  }
+  return y;
+}
+
 function drawSubDimensionGroup(
   doc: jsPDF,
   pillar: string,
@@ -583,7 +621,12 @@ export function renderPupPdf(payload: PupPdfPayload): Uint8Array {
     y = drawCallout(doc, payload.trajectoryStatement, y, C.callout);
   }
 
-  {
+  const summarySections = payload.narrative.coachingSummarySections;
+  const hasSummarySections =
+    summarySections != null && coachingSummarySectionEntries(summarySections).length > 0;
+
+  // Structured Prompt 5 sections replace the legacy coaching-context callout.
+  if (!hasSummarySections && payload.narrative.coachingContext.trim()) {
     const ctxLines = splitLines(doc, payload.narrative.coachingContext, CONTENT_WIDTH - 14, 10);
     y = drawSectionBlock(
       doc,
@@ -658,36 +701,40 @@ export function renderPupPdf(payload: PupPdfPayload): Uint8Array {
       }
     }
 
-    if (payload.narrative.coachingSummary) {
-      const summaryLines = splitLines(
-        doc,
-        payload.narrative.coachingSummary,
-        CONTENT_WIDTH,
-        10,
-      );
-      y = drawSectionBlock(
-        doc,
-        "Coaching summary",
-        Math.min(textBlockHeight(summaryLines.length, 10) + 8, 80),
-        y,
-      );
-      y = drawBodyText(doc, payload.narrative.coachingSummary, y, { fontSize: 10 });
-    }
+    if (hasSummarySections && summarySections) {
+      y = drawCoachingSummarySections(doc, summarySections, y);
+    } else {
+      if (payload.narrative.coachingSummary) {
+        const summaryLines = splitLines(
+          doc,
+          payload.narrative.coachingSummary,
+          CONTENT_WIDTH,
+          10,
+        );
+        y = drawSectionBlock(
+          doc,
+          "Coaching summary",
+          Math.min(textBlockHeight(summaryLines.length, 10) + 8, 80),
+          y,
+        );
+        y = drawBodyText(doc, payload.narrative.coachingSummary, y, { fontSize: 10 });
+      }
 
-    if (payload.narrative.nextFocus) {
-      const focusLines = splitLines(
-        doc,
-        payload.narrative.nextFocus,
-        CONTENT_WIDTH - 14,
-        10,
-      );
-      y = drawSectionBlock(
-        doc,
-        "Next 90-day focus",
-        textBlockHeight(focusLines.length, 10) + 16,
-        y,
-      );
-      y = drawCallout(doc, payload.narrative.nextFocus, y, [255, 248, 236]);
+      if (payload.narrative.nextFocus) {
+        const focusLines = splitLines(
+          doc,
+          payload.narrative.nextFocus,
+          CONTENT_WIDTH - 14,
+          10,
+        );
+        y = drawSectionBlock(
+          doc,
+          "Next 90-day focus",
+          textBlockHeight(focusLines.length, 10) + 16,
+          y,
+        );
+        y = drawCallout(doc, payload.narrative.nextFocus, y, [255, 248, 236]);
+      }
     }
   }
 

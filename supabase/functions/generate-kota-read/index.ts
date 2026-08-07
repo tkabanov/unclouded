@@ -19,6 +19,11 @@ import {
   sendKotaReadBriefEmail,
 } from "../_shared/kotaReadDelivery.ts";
 import { readSessionMemoryRecords } from "../chat/sessionMemory/sessionMemoryHelpers.ts";
+import {
+  buildStandaloneUserContext,
+  canUseStandaloneProPrompts,
+  normalizeStandaloneTier,
+} from "../_shared/standalonePrompts/index.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +32,7 @@ const corsHeaders = {
 
 type RequestBody = {
   bookingId?: string;
+  bookingTable?: "coachBooking" | "groupSessionBooking";
 };
 
 function jsonResponse(status: number, payload: Record<string, unknown>): Response {
@@ -81,7 +87,6 @@ async function buildKotaReadContext(
     results?: unknown;
     onboardingData?: unknown;
   },
-  memoryFacts: Record<string, unknown> | null,
 ): Promise<KotaReadContext> {
   const onboardingData =
     profile.onboardingData && typeof profile.onboardingData === "object"
@@ -94,15 +99,28 @@ async function buildKotaReadContext(
   const sessionRecords = filterSessionMemoryForKotaRead(
     readSessionMemoryRecords(onboardingData),
   );
+  const standalone = buildStandaloneUserContext(profile);
+  const compressed = sessionMemoryToLines(sessionRecords).join("\n").slice(0, 2400);
 
   return {
+    classification: standalone.classification,
+    coachingMode: standalone.coachingMode,
+    sessionCount: standalone.sessionCount,
+    aiConfidenceLevel: standalone.aiConfidenceLevel,
+    confirmedFingerprintSignals:
+      standalone.sessionCount < 5
+        ? "none — fewer than 5 sessions completed"
+        : standalone.confirmedFingerprintSignals,
+    sessionMemoryCompressed: compressed || standalone.sessionMemoryCompressed,
+    activeFlags: standalone.activeFlags,
+    commitmentFollowThroughRate: standalone.commitmentFollowThroughRate,
+    openCommitment: resolveOpenCommitmentLine(sessionRecords, onboardingData).replace(
+      /^Open commitment:\s*/i,
+      "",
+    ),
     firstName: profile.firstName?.trim() || "Member",
-    classificationLine: buildClassificationLine(results),
     scoresLine: buildScoresLine(results),
     pathsLine: await fetchPathEnrollmentLines(supabase, userId),
-    openCommitmentLine: resolveOpenCommitmentLine(sessionRecords, onboardingData),
-    sessionMemoryLines: sessionMemoryToLines(sessionRecords),
-    memoryFactsJson: JSON.stringify(memoryFacts ?? {}),
   };
 }
 
@@ -170,8 +188,11 @@ Deno.serve(async (req) => {
     return jsonResponse(400, { error: "bookingId is required" });
   }
 
+  const bookingTable =
+    body.bookingTable === "groupSessionBooking" ? "groupSessionBooking" : "coachBooking";
+
   const { data: booking, error: bookingError } = await auth.supabase
-    .from("coachBooking")
+    .from(bookingTable)
     .select("id, userId, scheduledAt")
     .eq("id", bookingId)
     .eq("userId", auth.user.id)
@@ -184,29 +205,21 @@ Deno.serve(async (req) => {
     return jsonResponse(404, { error: "Booking not found" });
   }
 
-  const [{ data: profile }, { data: memoryFacts }] = await Promise.all([
-    auth.supabase
-      .from("profiles")
-      .select("firstName, email, results, onboardingData, tier")
-      .eq("id", auth.user.id)
-      .maybeSingle(),
-    auth.supabase
-      .from("userMemoryFacts")
-      .select("peopleInLife, userLanguage, openAvoidances, userInsights, statedGoals")
-      .eq("userId", auth.user.id)
-      .maybeSingle(),
-  ]);
+  const { data: profile } = await auth.supabase
+    .from("profiles")
+    .select("firstName, email, results, onboardingData, tier")
+    .eq("id", auth.user.id)
+    .maybeSingle();
 
-  const tier = typeof profile?.tier === "string" ? profile.tier.trim().toLowerCase() : "";
-  if (tier !== "premium") {
-    return jsonResponse(403, { error: "Premium membership required" });
+  const tier = normalizeStandaloneTier(profile?.tier);
+  if (!canUseStandaloneProPrompts(tier)) {
+    return jsonResponse(403, { error: "Pro or Premium membership required" });
   }
 
   const context = await buildKotaReadContext(
     auth.supabase,
     auth.user.id,
     profile ?? {},
-    (memoryFacts as Record<string, unknown> | null) ?? null,
   );
 
   const kotaRead = await generateKotaRead({
@@ -241,13 +254,15 @@ Deno.serve(async (req) => {
     adminConsoleUrl: `${appOrigin}/settings?tab=admin`,
   });
 
+  const updatePayload: Record<string, unknown> = {
+    kotaRead,
+    kotaReadEmailedAt: delivery.ok ? nowIso : null,
+    kotaReadEmailDetail: delivery.detail,
+  };
+
   const { error: updateError } = await serviceClient
-    .from("coachBooking")
-    .update({
-      kotaRead,
-      kotaReadEmailedAt: delivery.ok ? nowIso : null,
-      kotaReadEmailDetail: delivery.detail,
-    })
+    .from(bookingTable)
+    .update(updatePayload)
     .eq("id", bookingId)
     .eq("userId", auth.user.id);
 

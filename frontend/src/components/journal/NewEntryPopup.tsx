@@ -13,6 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createJournalEntry } from "@/lib/journal/journalEntriesApi";
+import { requestJournalReflectionInBackground } from "@/lib/journal/journalReflectionApi";
+import { canUseJournalAiReflection } from "@/lib/journal/journalEntitlements";
+import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
@@ -31,6 +34,7 @@ export default function NewEntryPopup({
   onboardingData,
   onSaved,
 }: NewEntryPopupProps) {
+  const userTier = useEffectiveTier().tier;
   const [title, setTitle] = useState("");
   const [moodTag, setMoodTag] = useState("");
   const [content, setContent] = useState("");
@@ -53,7 +57,7 @@ export default function NewEntryPopup({
 
     setSaving(true);
     try {
-      await createJournalEntry(
+      const created = await createJournalEntry(
         userId,
         {
           title: title,
@@ -62,6 +66,11 @@ export default function NewEntryPopup({
         },
         onboardingData,
       );
+      if (canUseJournalAiReflection(userTier)) {
+        void requestJournalReflectionInBackground(created.id).catch(() => {
+          /* reflection appears on next visit when ready */
+        });
+      }
       toast.success("Entry saved.");
       onSaved();
       dismiss();

@@ -40,6 +40,7 @@ export interface CompleteReassessmentResult {
   nextFocusText: string | null;
   modulesRefreshOffered: ModuleSlug[];
   modulesAcceleratedUnlock: ModuleSlug[];
+  trajectoryStatement: string | null;
 }
 
 /**
@@ -170,6 +171,18 @@ export async function completeReassessment(
         })
       : [];
 
+  let trajectoryStatement: string | null = null;
+  try {
+    const { generateTrajectoryStatement, requestCoachingSummaryGeneration } =
+      await import("@/lib/reassessment/standalonePdfPromptsApi");
+    trajectoryStatement = await generateTrajectoryStatement(row.id);
+    if (input.tier === TIER.PREMIUM) {
+      void requestCoachingSummaryGeneration(row.id);
+    }
+  } catch (err) {
+    console.warn("Standalone PDF prompts after reassessment failed", err);
+  }
+
   return {
     trajectoryType,
     classificationChanged,
@@ -182,6 +195,7 @@ export async function completeReassessment(
     nextFocusText,
     modulesRefreshOffered,
     modulesAcceleratedUnlock,
+    trajectoryStatement,
   };
 }
 

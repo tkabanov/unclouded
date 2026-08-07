@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Info, Lock, Sparkles, X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +16,6 @@ import {
   type JournalEntryListItem,
   updateJournalEntry,
 } from "@/lib/journal/journalEntriesApi";
-import { generateJournalReflection } from "@/lib/journal/journalReflectionApi";
-import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
-import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import type { TierSlug } from "@/lib/enums/tier";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -56,7 +53,7 @@ export interface EntryDetailPopupProps {
   entry: JournalEntryListItem | null;
   userId: string;
   onboardingData?: Record<string, unknown> | null;
-  /** Pro/Premium only — Free sees a locked control that explains the upgrade. */
+  /** @deprecated kept for callers — reflections generate automatically on save. */
   canGenerateAiReflection?: boolean;
   currentTier: TierSlug;
   onSaved: () => void;
@@ -69,35 +66,30 @@ export default function EntryDetailPopup({
   entry,
   userId,
   onboardingData,
-  canGenerateAiReflection = false,
-  currentTier,
+  currentTier: _currentTier,
   onSaved,
-  onReflectionGenerated,
 }: EntryDetailPopupProps) {
-  const journalUpsell = useLockedFeatureUpsell(currentTier);
   const [title, setTitle] = useState("");
   const [moodTag, setMoodTag] = useState("");
   const [content, setContent] = useState("");
   const [aiReflection, setAiReflection] = useState<string | null>(null);
+  const [reflectionReady, setReflectionReady] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (!open || !entry) return;
     setTitle(entry.title === "Untitled entry" ? "" : entry.title);
     setMoodTag(entry.moodTag ?? "");
     setContent(entry.content);
-    setAiReflection(entry.aiReflection);
+    setAiReflection(entry.reflectionReady ? entry.aiReflection : null);
+    setReflectionReady(Boolean(entry.reflectionReady && entry.aiReflection));
     setShowDeleteConfirm(false);
   }, [open, entry]);
 
   const dismiss = () => onOpenChange(false);
-  const busy = saving || deleting || generating;
-  // Free tier sees the section too, with a locked button that explains the
-  // upgrade instead of the feature silently not existing.
-  const showAiReflectionSection = true;
+  const busy = saving || deleting;
 
   const handleSave = async () => {
     if (!entry) return;
@@ -141,32 +133,6 @@ export default function EntryDetailPopup({
       toast.error("Couldn't delete that entry.");
     } finally {
       setDeleting(false);
-    }
-  };
-
-  const handleGenerateReflection = async () => {
-    if (!entry || !canGenerateAiReflection) return;
-
-    setGenerating(true);
-    try {
-      const updated = await generateJournalReflection(
-        userId,
-        {
-          ...entry,
-          title: title.trim() || entry.title,
-          moodTag: moodTag.trim() || null,
-          content: content.trim() || entry.content,
-        },
-        onboardingData,
-      );
-      setAiReflection(updated.aiReflection);
-      onReflectionGenerated?.(updated);
-      toast.success("AI reflection generated.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Couldn't generate a reflection.";
-      toast.error(message);
-    } finally {
-      setGenerating(false);
     }
   };
 
@@ -335,118 +301,43 @@ export default function EntryDetailPopup({
               </div>
             </div>
 
-            {showAiReflectionSection ? (
+            {reflectionReady && aiReflection ? (
               <section
                 className={cn(
                   bubbleStyle("Group_transparent_"),
-                  "space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4",
+                  "space-y-2 border-t border-border/40 pt-4",
                 )}
               >
-                <div
+                <p
+                  data-style-ref="Text_caption_"
                   className={cn(
-                    bubbleStyle("Group_transparent_"),
-                    "flex flex-wrap items-center justify-between gap-3",
+                    bubbleStyle("Text_caption_"),
+                    "text-xs font-medium uppercase tracking-wide text-muted-foreground",
                   )}
                 >
-                  <div
-                    className={cn(bubbleStyle("Group_transparent_"), "space-y-1")}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        data-style-ref="Icon_primary_"
-                        className={cn(bubbleStyle("Icon_primary_"), "inline-flex")}
-                        aria-hidden
-                      >
-                        <Sparkles className="h-4 w-4" />
-                      </span>
-                      <span
-                        data-style-ref="Text_label_"
-                        className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
-                      >
-                        AI Coaching Reflection
-                      </span>
-                      <span
-                        data-style-ref="Text_caption_"
-                        className={cn(
-                          bubbleStyle("Text_caption_"),
-                          "inline-flex items-center gap-1 text-xs text-muted-foreground",
-                        )}
-                      >
-                        <Info className="h-3 w-3" aria-hidden />
-                        Coaching only
-                      </span>
-                    </div>
-                  </div>
-
-                  {canGenerateAiReflection ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      data-style-ref="Button_secondary_"
-                      className={bubbleStyle("Button_secondary_")}
-                      onClick={handleGenerateReflection}
-                      disabled={busy}
-                    >
-                      {generating ? "Generating…" : "Generate Reflection"}
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5"
-                      onClick={() => journalUpsell.promptUpgrade("journalAiReflection")}
-                    >
-                      <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                      Unlock reflections
-                    </Button>
+                  From Kota
+                </p>
+                <p
+                  data-style-ref="Text_body_muted_"
+                  className={cn(
+                    bubbleStyle("Text_body_muted_"),
+                    "whitespace-pre-wrap text-sm italic leading-relaxed text-muted-foreground",
                   )}
-                </div>
-
-                <div
-                  className={cn(bubbleStyle("Group_transparent_"), "space-y-2")}
                 >
-                  {aiReflection ? (
-                    <p
-                      data-style-ref="Text_body_muted_"
-                      className={cn(
-                        bubbleStyle("Text_body_muted_"),
-                        "whitespace-pre-wrap text-sm leading-relaxed",
-                      )}
-                    >
-                      {aiReflection}
-                    </p>
-                  ) : (
-                    <p
-                      data-style-ref="Text_body_muted_"
-                      className={cn(
-                        bubbleStyle("Text_body_muted_"),
-                        "text-sm italic text-muted-foreground",
-                      )}
-                    >
-                      {canGenerateAiReflection
-                        ? "Generate a coaching reflection based on this entry."
-                        : "AI journal reflection is available on Pro and Premium."}
-                    </p>
+                  {aiReflection}
+                </p>
+                <p
+                  data-style-ref="Text_caption_"
+                  className={cn(
+                    bubbleStyle("Text_caption_"),
+                    "inline-flex items-center gap-1 text-xs text-muted-foreground",
                   )}
-
-                  <p
-                    data-style-ref="Text_caption_"
-                    className={cn(bubbleStyle("Text_caption_"), "text-xs text-muted-foreground")}
-                  >
-                    This reflection is coaching guidance only — not therapy or medical advice.
-                  </p>
-                </div>
+                >
+                  <Info className="h-3 w-3" aria-hidden />
+                  Coaching only — not therapy or medical advice.
+                </p>
               </section>
             ) : null}
-
-            <LockedFeatureUpgradeDialog
-              open={journalUpsell.openFeature === "journalAiReflection"}
-              feature="journalAiReflection"
-              currentTier={currentTier}
-              onClose={journalUpsell.closeUpsell}
-            />
 
             <DialogFooter
               className={cn(

@@ -78,6 +78,22 @@ verify_jwt = true
 [functions.generate-kota-read]
 verify_jwt = true
 
+# Standalone Kota prompts (AI Prompt Specifications).
+[functions.generate-journal-reflection]
+verify_jwt = true
+
+[functions.generate-path-closing]
+verify_jwt = true
+
+[functions.generate-trajectory-statement]
+verify_jwt = true
+
+[functions.generate-coaching-summary]
+verify_jwt = false
+
+[functions.generate-daily-insights]
+verify_jwt = false
+
 # Individual Subscription Management — Stripe checkout / portal / plan changes.
 [functions.stripe-checkout]
 verify_jwt = true

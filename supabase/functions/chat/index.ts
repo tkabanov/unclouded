@@ -88,7 +88,11 @@ function buildSystemWithLifecycle(
 ): string {
   const base = buildSystemPrompt(profileData, context, promptLayers);
   if (!lifecycle) return base;
-  const instruction = buildSessionLifecycleInstruction(lifecycle, profileData ?? {});
+  const instruction = buildSessionLifecycleInstruction(
+    lifecycle,
+    profileData ?? {},
+    context,
+  );
   return `${base}\n\n---\n\n${instruction}`;
 }
 

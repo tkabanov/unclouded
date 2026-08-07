@@ -25,6 +25,11 @@ import {
   requestSessionOpening,
 } from "@/lib/chat/chatSessionLifecycleApi";
 import { resolveCommitmentPromptMessageId } from "@/lib/chat/commitmentPromptHelpers";
+import {
+  consumePathClosingChatContext,
+  mergeChatContextWithPathClosing,
+  peekPathClosingChatContext,
+} from "@/lib/paths/pathClosingChatContext";
 import { readPreferredCoachingMode } from "@/lib/dashboard/coachingModeApi";
 import { formatChatModeBadgeText } from "@/lib/enums/coachingMode";
 import { cn } from "@/lib/utils";
@@ -160,8 +165,17 @@ export default function ChatPanelMount({
       openerSentForConversation.current = conversationId;
       setAwaitingAssistantReply(true);
       try {
-        const openingText = await requestSessionOpening(profileData, context, conversationId);
+        const pathClosingNote = peekPathClosingChatContext();
+        const openingContext = mergeChatContextWithPathClosing(context, pathClosingNote);
+        const openingText = await requestSessionOpening(
+          profileData,
+          openingContext,
+          conversationId,
+        );
         await sendAssistantMessage(openingText, []);
+        if (pathClosingNote) {
+          consumePathClosingChatContext();
+        }
       } catch (error) {
         if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
           setSessionLimitBlocked(true);

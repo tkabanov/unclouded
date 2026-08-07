@@ -82,4 +82,32 @@ describe("renderPupPdf", () => {
     expect(premium.byteLength).toBeGreaterThan(pro.byteLength);
     expect(pupPdfContainsDisclaimer(premium)).toBe(true);
   });
+
+  it("renders Prompt 5 titled coaching summary sections when present", () => {
+    const bytes = renderPupPdf(
+      basePayload({
+        tier: "premium",
+        premiumBranding: true,
+        trajectoryStatement:
+          "Over the last 90 days, you've transitioned to a Comfortable Plateau.",
+        narrative: {
+          coachingContext: "Should not appear as Coaching context when sections exist.",
+          coachingSummarySections: {
+            section_1_title: "Where You Started",
+            section_1_body: "You began seeking clarity and steadier ground.",
+            section_2_title: "What Moved",
+            section_2_body: "Sleep Mastery completion marked the clearest progress.",
+            section_3_title: "What Came Up",
+            section_3_body: "Alignment and fulfillment themes kept returning.",
+            section_4_title: "What the Data Reveals",
+            section_4_body: "Scores sit on a comfortable plateau around three.",
+            section_5_title: "The Next Chapter",
+            section_5_body: "Stretch just outside the current comfort zone.",
+          },
+        },
+      }),
+    );
+    expect(bytes.byteLength).toBeGreaterThan(500);
+    expect(pupPdfContainsDisclaimer(bytes)).toBe(true);
+  });
 });
