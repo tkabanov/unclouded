@@ -50,7 +50,9 @@ function buildProfile(overrides: Partial<UserProfile> = {}): UserProfile {
       classification: {
         key: "capacity_erosion",
         name: "Capacity Erosion",
-        description: "",
+        tagline: "",
+        tradeoff: "",
+        whatThisMeans: "",
         focusAreas: [],
       },
       recovery_mode_active: false,

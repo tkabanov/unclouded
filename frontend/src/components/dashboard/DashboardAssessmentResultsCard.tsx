@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardUserContext } from "@/hooks/useDashboardUser";
+import { resolveClassificationCopy, STANDING_RESULTS_DISCLAIMER } from "@/lib/classification";
 import { assessmentScoreClassName } from "@/lib/dashboard/assessmentScoreStyle";
 import { downloadOnboardingResultsPdf } from "@/lib/dashboard/downloadOnboardingResultsPdf";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,11 @@ const SCORE_METRICS = [
 export default function DashboardAssessmentResultsCard() {
   const { firstName, hasResults, profile } = useDashboardUserContext();
   const results = profile?.results ?? null;
+  const classification = results
+    ? resolveClassificationCopy(results.classification) ?? results.classification
+    : null;
+  const tradeoff =
+    classification?.tradeoff || results?.tradeoff_statement || "";
 
   const handleDownloadPdf = useCallback(() => {
     if (!results) return;
@@ -32,7 +38,7 @@ export default function DashboardAssessmentResultsCard() {
     }
   }, [firstName, results]);
 
-  if (!hasResults || !results) return null;
+  if (!hasResults || !results || !classification) return null;
 
   return (
     <Card className="overflow-hidden border-primary/20 shadow-card">
@@ -84,12 +90,10 @@ export default function DashboardAssessmentResultsCard() {
             <Badge variant="secondary" className="text-xs">
               Classification
             </Badge>
-            <span className="text-base font-semibold text-primary">
-              {results.classification.name}
-            </span>
+            <span className="text-base font-semibold text-primary">{classification.name}</span>
           </div>
-          <p className="text-sm leading-relaxed text-foreground">
-            {results.classification.description}
+          <p className="text-sm leading-relaxed text-foreground italic">
+            &ldquo;{classification.tagline}&rdquo;
           </p>
         </div>
 
@@ -100,12 +104,20 @@ export default function DashboardAssessmentResultsCard() {
             </p>
             <p className="text-base font-semibold text-foreground">{results.pressure_profile}</p>
           </div>
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-            <p className="text-sm italic leading-relaxed text-foreground">
-              &ldquo;{results.tradeoff_statement}&rdquo;
-            </p>
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-1">
+            <p className="text-xs font-medium uppercase tracking-wider text-primary">Tradeoff</p>
+            <p className="text-sm leading-relaxed text-foreground">{tradeoff}</p>
           </div>
         </div>
+
+        {classification.whatThisMeans ? (
+          <div className="space-y-1 rounded-xl border border-border p-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              What This Means
+            </p>
+            <p className="text-sm leading-relaxed text-foreground">{classification.whatThisMeans}</p>
+          </div>
+        ) : null}
 
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -113,7 +125,7 @@ export default function DashboardAssessmentResultsCard() {
             <p className="text-sm font-semibold text-foreground">Your focus areas</p>
           </div>
           <ul className="space-y-2">
-            {results.classification.focusAreas.map((area) => (
+            {classification.focusAreas.map((area) => (
               <li key={area} className="flex items-start gap-2.5 text-sm text-foreground">
                 <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                 <span>{area}</span>
@@ -121,6 +133,10 @@ export default function DashboardAssessmentResultsCard() {
             ))}
           </ul>
         </div>
+
+        <p className="border-t border-border pt-4 text-xs text-muted-foreground leading-relaxed">
+          {STANDING_RESULTS_DISCLAIMER}
+        </p>
       </CardContent>
     </Card>
   );

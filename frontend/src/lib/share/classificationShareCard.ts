@@ -25,7 +25,7 @@ export function generateReferralCode(existingCode?: string | null): string {
 function resolveTagline(classificationKey: string): string {
   const entry = classifications[classificationKey];
   if (!entry) return "Personal growth starts with honest self-awareness.";
-  return entry.description.split(".")[0]?.trim() ?? entry.name;
+  return entry.tagline.trim() || entry.name;
 }
 
 /** Build share-card metadata for a user's classification + referral link. */

@@ -467,6 +467,8 @@ const Onboarding = () => {
             stateSignals={stateSignals}
             behavioralPatterns={behavioralPatterns}
             healthFlags={healthFlags}
+            primaryPillar={primaryPillar}
+            userTier={profile?.tier}
             modulePreview={resultsModulePreview}
             referralCode={referralCode}
             onComplete={handleComplete}

@@ -1,17 +1,26 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Shield, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { computeResults } from "@/lib/classification";
+import {
+  computeResults,
+  getDashboardConfig,
+  resolveClassificationCopy,
+  resolveRecommendedPathNames,
+  STANDING_RESULTS_DISCLAIMER,
+} from "@/lib/classification";
+import { assessmentScoreBarClass } from "@/lib/dashboard/assessmentScoreStyle";
 import {
   computeOnboardingModulePreview,
   type OnboardingModulePreview,
 } from "@/lib/modules/moduleScheduler";
+import { recommendPathsAfterReassessment } from "@/lib/reassessment/recommendPathsAfterReassessment";
+import { TIER, type TierSlug } from "@/lib/enums/tier";
 import ClassificationShareCard from "@/components/share/ClassificationShareCard";
 import OnboardingStepActions from "@/components/onboarding/OnboardingStepActions";
 import type { OnboardingStepChromeProps } from "@/components/onboarding/OnboardingStepActions";
 
-interface OnboardingResultsProps {
+interface OnboardingResultsProps extends OnboardingStepChromeProps {
   firstName: string;
   stabilityScores: Record<string, number>;
   performanceScores: Record<string, number>;
@@ -30,6 +39,8 @@ interface OnboardingResultsProps {
     health_none_of_the_above?: boolean;
     selected_flags: string[];
   };
+  primaryPillar?: string;
+  userTier?: TierSlug | string | null;
   modulePreview?: OnboardingModulePreview;
   referralCode?: string | null;
   onComplete: () => void;
@@ -38,12 +49,6 @@ interface OnboardingResultsProps {
 
 function ScoreGauge({ label, score }: { label: string; score: number }) {
   const pct = (score / 5) * 100;
-  const color =
-    score < 3.2
-      ? "bg-red-500"
-      : score < 3.8
-      ? "bg-amber-500"
-      : "bg-primary";
 
   return (
     <div className="space-y-1.5">
@@ -53,12 +58,16 @@ function ScoreGauge({ label, score }: { label: string; score: number }) {
       </div>
       <div className="h-2.5 rounded-full bg-muted overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-700", color)}
+          className={cn("h-full rounded-full transition-all duration-700", assessmentScoreBarClass(score))}
           style={{ width: `${pct}%` }}
         />
       </div>
     </div>
   );
+}
+
+function isTierSlug(value: string | null | undefined): value is TierSlug {
+  return value === TIER.FREE || value === TIER.PRO || value === TIER.PREMIUM;
 }
 
 const OnboardingResults = ({
@@ -71,6 +80,8 @@ const OnboardingResults = ({
   stateSignals,
   behavioralPatterns,
   healthFlags,
+  primaryPillar = "",
+  userTier,
   modulePreview: modulePreviewProp,
   referralCode,
   onComplete,
@@ -101,6 +112,11 @@ const OnboardingResults = ({
     ]
   );
 
+  const classification = useMemo(
+    () => resolveClassificationCopy(results.classification) ?? results.classification,
+    [results.classification],
+  );
+
   const modulePreview = useMemo(() => {
     if (modulePreviewProp) return modulePreviewProp;
     const anchorDate = new Date();
@@ -128,6 +144,67 @@ const OnboardingResults = ({
     healthFlags,
   ]);
 
+  const fallbackPathNames = useMemo(
+    () =>
+      getDashboardConfig(classification, {
+        recovery_mode_active: results.recovery_mode_active,
+        grief_mode_active: results.grief_mode_active,
+        trauma_informed_mode: results.trauma_informed_mode,
+      }).paths.map((p) => p.name),
+    [classification, results.recovery_mode_active, results.grief_mode_active, results.trauma_informed_mode],
+  );
+
+  const [recommendedPaths, setRecommendedPaths] = useState<string[]>(fallbackPathNames.slice(0, 2));
+
+  useEffect(() => {
+    let cancelled = false;
+    const tier = isTierSlug(userTier) ? userTier : TIER.FREE;
+    const recovery = results.recovery_mode_active;
+    const grief = results.grief_mode_active;
+    const trauma = results.trauma_informed_mode;
+
+    void (async () => {
+      try {
+        const matched = await recommendPathsAfterReassessment({
+          primaryPillar,
+          results: {
+            ...results,
+            classification,
+            first_module: "",
+            module_days: 0,
+          },
+          userTier: tier,
+          limit: 2,
+        });
+        if (cancelled) return;
+        setRecommendedPaths(
+          resolveRecommendedPathNames(
+            matched.map((p) => p.name),
+            classification,
+            {
+              recovery_mode_active: recovery,
+              grief_mode_active: grief,
+              trauma_informed_mode: trauma,
+            },
+            2,
+          ),
+        );
+      } catch {
+        if (!cancelled) setRecommendedPaths(fallbackPathNames.slice(0, 2));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    primaryPillar,
+    userTier,
+    classification,
+    results,
+    fallbackPathNames,
+  ]);
+
   const nextSteps = [
     "Your dashboard will be personalized to your profile",
     "AI coaching will adapt to your patterns and preferences",
@@ -147,6 +224,17 @@ const OnboardingResults = ({
           </h1>
         </div>
 
+        {/* Classification name + tagline */}
+        <div className="bg-card border border-border rounded-xl p-6 space-y-3 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Your Classification
+          </p>
+          <h2 className="text-2xl font-bold text-foreground">{classification.name}</h2>
+          <p className="text-muted-foreground text-base leading-relaxed italic">
+            &ldquo;{classification.tagline}&rdquo;
+          </p>
+        </div>
+
         <div className="space-y-4 bg-card border border-border rounded-xl p-5">
           <ScoreGauge label="Stability" score={results.stability_score} />
           <ScoreGauge label="Performance" score={results.performance_score} />
@@ -155,38 +243,22 @@ const OnboardingResults = ({
 
         {/* Pressure Profile Pill (bTIHk) */}
         <div className="flex justify-center">
-          <Badge
-            variant="secondary"
-            className="text-sm px-4 py-1.5 font-medium"
-          >
+          <Badge variant="secondary" className="text-sm px-4 py-1.5 font-medium">
             {results.pressure_profile}
           </Badge>
-        </div>
-
-        {/* Tradeoff Statement (bTIHq) */}
-        <div
-          className="bg-primary/10 border border-primary/20 rounded-xl p-5"
-        >
-          <p className="text-foreground text-base md:text-lg leading-relaxed italic">
-            "{results.tradeoff_statement}"
-          </p>
         </div>
 
         {/* Recovery / Grief Pills */}
         {(results.recovery_mode_active || results.grief_mode_active) && (
           <div className="flex flex-wrap gap-2 justify-center">
             {results.recovery_mode_active && (
-              <Badge
-                className="bg-primary hover:bg-primary text-primary-foreground px-4 py-1.5 text-sm font-medium gap-1.5"
-              >
+              <Badge className="bg-primary hover:bg-primary text-primary-foreground px-4 py-1.5 text-sm font-medium gap-1.5">
                 <Shield className="h-3.5 w-3.5" />
                 Recovery Mode Active
               </Badge>
             )}
             {results.grief_mode_active && (
-              <Badge
-                className="bg-sky-500 hover:bg-sky-500 text-white px-4 py-1.5 text-sm font-medium gap-1.5"
-              >
+              <Badge className="bg-sky-500 hover:bg-sky-500 text-white px-4 py-1.5 text-sm font-medium gap-1.5">
                 <Heart className="h-3.5 w-3.5" />
                 Grief-Informed Coaching Active
               </Badge>
@@ -194,39 +266,60 @@ const OnboardingResults = ({
           </div>
         )}
 
-        {/* Classification Card (bTIKI) */}
-        <div
-          className="bg-card border border-border rounded-xl p-6 space-y-4"
-        >
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Your Classification
-            </p>
-            <h2 className="text-2xl font-bold text-foreground">
-              {results.classification.name}
-            </h2>
-          </div>
-          <p className="text-muted-foreground text-base leading-relaxed">
-            {results.classification.description}
+        {/* Tradeoff */}
+        <div className="bg-primary/10 border border-primary/20 rounded-xl p-5 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Tradeoff</p>
+          <p className="text-foreground text-base md:text-lg leading-relaxed">
+            {results.tradeoff_statement}
           </p>
-          <div className="space-y-2 pt-1">
-            <p className="text-sm font-semibold text-foreground">
-              Your focus areas:
-            </p>
+        </div>
+
+        {/* What This Means */}
+        <div className="bg-card border border-border rounded-xl p-5 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            What This Means
+          </p>
+          <p className="text-foreground text-base leading-relaxed">{classification.whatThisMeans}</p>
+        </div>
+
+        {/* Focus areas */}
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-foreground">Your focus areas:</p>
+          <ul className="space-y-1.5">
+            {classification.focusAreas.map((area) => (
+              <li key={area} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                {area}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Recommended paths — top 2 */}
+        {recommendedPaths.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-foreground">Recommended paths</p>
             <ul className="space-y-1.5">
-              {results.classification.focusAreas.map((area, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+              {recommendedPaths.map((name) => (
+                <li key={name} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                  {area}
+                  {name}
                 </li>
               ))}
             </ul>
           </div>
+        )}
+
+        {/* Standing disclaimer */}
+        <div className="border-t border-border pt-6">
+          <p className="text-xs text-muted-foreground leading-relaxed text-center max-w-lg mx-auto">
+            {STANDING_RESULTS_DISCLAIMER}
+          </p>
         </div>
 
         {/* REQ-09 — optional classification share card */}
         <ClassificationShareCard
-          classificationKey={results.classification.key}
+          classificationKey={classification.key}
           referralCode={referralCode}
         />
 
@@ -248,10 +341,8 @@ const OnboardingResults = ({
         <div className="bg-muted/50 border border-border rounded-xl p-4 text-center">
           <p className="text-sm text-muted-foreground">
             Your first deep-dive:{" "}
-            <span className="font-semibold text-foreground">
-              {modulePreview.displayTitle}
-            </span>{" "}
-            — available in{" "}
+            <span className="font-semibold text-foreground">{modulePreview.displayTitle}</span> — available
+            in{" "}
             <span className="font-semibold text-foreground">
               {modulePreview.daysUntilUnlock}{" "}
               {modulePreview.daysUntilUnlock === 1 ? "day" : "days"}

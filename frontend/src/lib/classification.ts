@@ -7,8 +7,12 @@ import { resolvePressureProfile } from "@/lib/userProfile/buildPressureProfile";
 export interface ClassificationType {
   key: string;
   name: string;
-  description: string;
+  tagline: string;
+  tradeoff: string;
+  whatThisMeans: string;
   focusAreas: string[];
+  /** @deprecated Prefer `tagline`. Kept for older persisted JSONB shapes. */
+  description?: string;
 }
 
 export interface ResultsData {
@@ -29,85 +33,150 @@ export interface ResultsData {
 /** Classification output without module scheduler preview (filled by caller at onboarding). */
 export type CoreResultsData = Omit<ResultsData, "first_module" | "module_days">;
 
+/** Standing disclaimer on every results screen (not classification-triggered). */
+export const STANDING_RESULTS_DISCLAIMER =
+  "Uncloud360 provides AI-powered coaching guidance only — not therapy, diagnosis, or medical advice. If you are in crisis, please call or text 988.";
+
 export const classifications: Record<string, ClassificationType> = {
+  high_output_hidden_instability: {
+    key: "high_output_hidden_instability",
+    name: "High Output / Hidden Instability",
+    tagline:
+      "You're delivering on the outside. Internally, the gap between how you look and how you feel is where the real work begins.",
+    tradeoff:
+      "Right now, your output is outpacing your foundation. The question isn't whether you can keep performing — you clearly can. It's whether the pace you're keeping is one you can actually sustain.",
+    whatThisMeans:
+      "You're performing well and people around you likely have no idea what it's costing you. That's the nature of this pattern — it doesn't announce itself. Naming it now, before it does, is exactly the right move.",
+    focusAreas: [
+      "Close the gap between external performance and internal state",
+      "Reintroduce honest self-check-ins without judgment",
+      "Build sustainable rhythms that match your actual capacity — not your output expectations",
+    ],
+  },
   capacity_erosion: {
     key: "capacity_erosion",
     name: "Capacity Erosion",
-    description:
-      "Your internal capacity is being stretched beyond what's sustainable right now. This isn't a character flaw — it's a system under load. The first priority is stabilization, not optimization.",
+    tagline:
+      "You've been carrying more than your system can sustainably hold. The fact that you're still functioning is a testament to your resilience — and also the problem.",
+    tradeoff:
+      "Right now, functioning is the goal. Growth costs energy that doesn't currently exist. The most important thing you can do right now is stop asking yourself to do more — and start asking yourself what can come off.",
+    whatThisMeans:
+      "This isn't a discipline problem or a mindset problem. Your system is genuinely depleted. Pushing harder from here doesn't produce more — it produces breakdown. The first work is stabilization, not optimization.",
     focusAreas: [
-      "Reduce cognitive and emotional load before adding new goals",
-      "Rebuild daily recovery rituals that actually stick",
-      "Identify the 1–2 changes that create the most relief fastest",
-    ],
-  },
-  performance_stagnation: {
-    key: "performance_stagnation",
-    name: "Performance Stagnation",
-    description:
-      "You have the foundation, but forward motion has stalled. This isn't laziness — it's a signal that something in your system needs recalibrating. Clarity and follow-through are your leverage points.",
-    focusAreas: [
-      "Identify what's blocking consistent execution",
-      "Rebuild commitment systems that match your energy",
-      "Create accountability loops that don't rely on willpower",
+      "Stabilize before anything else — no new goals, no new commitments right now",
+      "Identify what is draining you that can be reduced, removed, or redistributed",
+      "Build one small recovery practice that actually fits your current life",
     ],
   },
   alignment_fracture: {
     key: "alignment_fracture",
     name: "Alignment Fracture",
-    description:
-      "There's a disconnect between what you're doing and what actually matters to you. The discomfort you feel isn't failure — it's your values asking to be heard.",
+    tagline:
+      "Something deeper is off. You may be functioning, or even performing — but the life you're living doesn't quite fit the person you know yourself to be.",
+    tradeoff:
+      "Right now, the gap between who you are and how you're living is the source of the friction. It's not a performance problem. It's an alignment problem — and those require a different kind of work.",
+    whatThisMeans:
+      "The discomfort you're feeling isn't a sign that something is wrong with you. It's a signal that something important is out of place. The work here isn't to fix yourself — it's to find the thread and follow it back to what actually matters.",
     focusAreas: [
-      "Reconnect with your core values beneath the noise",
-      "Audit where your time and energy actually go vs. where they should",
-      "Make one values-aligned decision this week and notice how it feels",
+      "Name what is misaligned before trying to change it",
+      "Reconnect with the values that have always been non-negotiable for you",
+      "Build small, daily proof points that your life can start to reflect who you actually are",
     ],
   },
-  high_output_hidden_instability: {
-    key: "high_output_hidden_instability",
-    name: "High Output / Hidden Instability",
-    description:
-      "You're getting things done on the surface, but internally you're running on fumes. The gap between how you look and how you feel is where the real work begins.",
+  performance_stagnation: {
+    key: "performance_stagnation",
+    name: "Performance Stagnation",
+    tagline: "You know what you need to do. The gap between knowing and doing is where the real work lives.",
+    tradeoff:
+      "Right now, understanding isn't the problem — execution is. More insight won't close the gap. Structure, accountability, and a different relationship with starting will.",
+    whatThisMeans:
+      "This isn't a motivation problem and it isn't a character flaw. You're navigating a very specific pattern — and the approaches you've been using to break through it are probably the same ones that haven't worked before. Something different is needed here, not more of the same.",
     focusAreas: [
-      "Close the gap between external performance and internal state",
-      "Reintroduce honest self-check-ins without judgment",
-      "Build sustainable rhythms that match your actual energy",
-    ],
-  },
-  optimization_ready: {
-    key: "optimization_ready",
-    name: "Optimization Ready",
-    description:
-      "You're in a surprisingly strong position. The foundation is solid — now it's about building on it without burning out or losing direction.",
-    focusAreas: [
-      "Lock in the habits and patterns that are already working",
-      "Stretch into growth areas with structured challenge",
-      "Anticipate and prepare for common derailment triggers",
+      "Identify the specific point where follow-through breaks down — the gap is almost always in the same place",
+      "Build accountability structures that don't depend on willpower alone",
+      "Make the next action smaller than feels necessary — then do it",
     ],
   },
   comfortable_plateau: {
     key: "comfortable_plateau",
     name: "Comfortable Plateau",
-    description:
-      "You've reached a stable place — but something tells you there's more. The challenge isn't survival anymore; it's choosing growth when staying put feels easier.",
+    tagline:
+      "Things are okay. And okay usually has a quiet, accumulating cost that doesn't announce itself until it's been sitting there a long time.",
+    tradeoff:
+      "Right now, comfort is real — but so is the cost of staying still. The question isn't whether things are bad. It's whether this is actually the life you want, or whether you've quietly stopped asking that question.",
+    whatThisMeans:
+      "You're not in crisis. There's nothing obviously wrong. And that's exactly what makes this pattern easy to miss. The friction isn't pain — it's a low-grade sense that you're capable of more than this, and that you've been trading that potential for stability. That's worth looking at honestly.",
     focusAreas: [
-      "Identify the area where comfort has become stagnation",
-      "Reconnect with what excited you before things leveled off",
-      "Take one small, intentional risk this week",
+      "Name honestly what okay is costing you — not dramatically, just truthfully",
+      "Identify the one area where you've stopped pushing that used to matter most",
+      "Take one step toward growth that feels slightly uncomfortable — not a leap, a step",
     ],
   },
   building_momentum: {
     key: "building_momentum",
     name: "Building Momentum",
-    description:
-      "You're moving in the right direction and the early signs are promising. The key now is consistency — protecting what's working while building on it.",
+    tagline:
+      "You're oriented toward growth and things are moving. The work now is consistency — keeping what's working working.",
+    tradeoff:
+      "Right now, the gap isn't direction — it's consistency. You know where you want to go. The question is whether the habits and structures you have in place are strong enough to get you there without depending on motivation to show up every day.",
+    whatThisMeans:
+      "This is a genuinely good place to be. You have momentum and you have orientation — that combination is rarer than it sounds. The risk at this stage isn't falling behind. It's overextending, losing the thread, or getting distracted by what looks like a better path. Protect what's working while you build.",
     focusAreas: [
-      "Identify your current momentum drivers and protect them",
-      "Build consistency systems before adding complexity",
-      "Track progress visually to reinforce the pattern",
+      "Identify your one highest-leverage action and protect time for it",
+      "Build the return into every commitment — not if you miss a day, when",
+      "Watch for the patterns that have knocked you off course before and name them before they do it again",
+    ],
+  },
+  optimization_ready: {
+    key: "optimization_ready",
+    name: "Optimization Ready",
+    tagline:
+      "Your foundation is solid and you're genuinely ready to stretch. The question now is where to apply the edge.",
+    tradeoff:
+      "Right now, the ceiling isn't your capacity — it's your clarity about where to push. You have the foundation. The work is precision: identifying where the highest-leverage growth lives and going there with full commitment.",
+    whatThisMeans:
+      "You're operating from a strong base. This isn't the moment for more reflection or more analysis — it's the moment to move. The most valuable thing you can do right now is identify the one area where you're most ready to stretch and commit to it fully, rather than distributing effort across everything equally.",
+    focusAreas: [
+      "Identify the one dimension — professional, relational, or personal — where growth would create the most meaningful change",
+      "Set a 90-day target that requires you to stretch, not just maintain",
+      "Build in a challenge mechanism — someone or something that will hold you to the higher standard",
     ],
   },
 };
+
+/**
+ * Prefer live Results Screen Copy by classification key so stale profiles.results
+ * JSONB (old description/focusAreas) still renders current copy.
+ */
+export function resolveClassificationCopy(
+  keyOrClassification: string | ClassificationType | null | undefined,
+): ClassificationType | null {
+  if (!keyOrClassification) return null;
+
+  const key =
+    typeof keyOrClassification === "string"
+      ? keyOrClassification.trim()
+      : keyOrClassification.key?.trim() ?? "";
+
+  if (key && classifications[key]) {
+    return classifications[key];
+  }
+
+  if (typeof keyOrClassification === "object") {
+    const stale = keyOrClassification;
+    return {
+      key: stale.key,
+      name: stale.name,
+      tagline: stale.tagline ?? stale.description ?? "",
+      tradeoff: stale.tradeoff ?? "",
+      whatThisMeans: stale.whatThisMeans ?? stale.description ?? "",
+      focusAreas: Array.isArray(stale.focusAreas) ? stale.focusAreas : [],
+      description: stale.tagline ?? stale.description,
+    };
+  }
+
+  return null;
+}
 
 // Dashboard configuration per classification
 export interface DashboardConfig {
@@ -172,7 +241,7 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         showStretchGoals: false,
         paths: [
           { name: "Stress Regulation Foundations", description: "Build your baseline calm" },
-          { name: "Emotional Recovery Toolkit", description: "Restore from the inside out" },
+          { name: "Sleep & Recovery Basics", description: "Restore capacity through rest" },
         ],
       };
     case "performance_stagnation":
@@ -183,7 +252,7 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         gidgetCta: "Let's get unstuck — your coach is ready",
         checkinExtraQuestion: "Did you do the thing?",
         paths: [
-          { name: "Clarity and Direction", description: "Cut through the noise" },
+          { name: "Clarity & Priority Reset", description: "Cut through the noise" },
           { name: "Follow-Through Systems", description: "Close the gap between intention and action" },
         ],
       };
@@ -204,7 +273,7 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         tradeoffAlwaysProminent: true,
         stabilityWarning: true,
         paths: [
-          { name: "Burnout Awareness", description: "Protect your engine" },
+          { name: "High Performance Sustainability", description: "Protect your engine" },
           { name: "Stress Regulation Foundations", description: "Build sustainable capacity" },
         ],
         gidgetCta: "Your output is real. Let's make it sustainable.",
@@ -216,8 +285,8 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         showPremiumUpsell: true,
         gidgetCta: "You're in a strong position. Let's identify your next edge.",
         paths: [
+          { name: "Optimization Protocol", description: "Apply your edge with precision" },
           { name: "Strategic Focus System", description: "Sharpen your edge" },
-          { name: "Leadership Under Pressure", description: "Lead with clarity" },
         ],
       };
     case "comfortable_plateau":
@@ -238,13 +307,40 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
         showProgressDelta: true,
         gidgetCta: "You're ready to move. Let's find your highest leverage.",
         paths: [
-          { name: "Follow-Through Systems", description: "Lock in your progress" },
-          { name: "Building Professional Momentum", description: "Sustain and grow" },
+          { name: "Follow-Through Mastery", description: "Lock in your progress" },
+          { name: "Strategic Focus System", description: "Sustain and grow" },
         ],
       };
     default:
       return base;
   }
+}
+
+/**
+ * Top 2 recommended path names: engine matches first, then dashboard-config fallback.
+ */
+export function resolveRecommendedPathNames(
+  matchedNames: string[],
+  classification: ClassificationType,
+  flags: {
+    recovery_mode_active: boolean;
+    grief_mode_active: boolean;
+    trauma_informed_mode: boolean;
+  },
+  limit = 2,
+): string[] {
+  const names = matchedNames.map((n) => n.trim()).filter(Boolean);
+  if (names.length >= limit) return names.slice(0, limit);
+
+  const fallback = getDashboardConfig(classification, flags).paths.map((p) => p.name);
+  const merged = [...names];
+  for (const name of fallback) {
+    if (merged.length >= limit) break;
+    if (!merged.some((n) => n.toLowerCase() === name.toLowerCase())) {
+      merged.push(name);
+    }
+  }
+  return merged.slice(0, limit);
 }
 
 function computePressureProfile(
@@ -258,31 +354,8 @@ function computePressureProfile(
   return resolvePressureProfile(loadSignalSlugs, nervousSystemSlug);
 }
 
-function computeTradeoffStatement(
-  stability: number,
-  performance: number,
-  alignment: number,
-  pressureProfile: string
-): string {
-  if (stability < 3.0 && performance >= 3.5) {
-    return "You're performing well on the outside, but your foundation is showing cracks. This is the pattern that leads to sudden breakdowns — not gradual ones.";
-  }
-  if (alignment < 3.0 && performance >= 3.5) {
-    return "You're putting in serious effort, but it's pointed in the wrong direction. The exhaustion you feel isn't from working too hard — it's from working on the wrong things.";
-  }
-  if (stability < 3.0 && alignment < 3.0) {
-    return "You're carrying too much with too little support, and what you're carrying doesn't even feel like yours. The first step isn't doing more — it's letting go of what isn't serving you.";
-  }
-  if (pressureProfile === "System Overload") {
-    return "Your system is absorbing more than it can process. This isn't about willpower or motivation — it's about capacity. You need relief before you need a plan.";
-  }
-  if (stability >= 3.8 && performance >= 3.8 && alignment >= 3.8) {
-    return "You're in a rare position of strength across all three dimensions. The opportunity now is to build on this momentum without overreaching.";
-  }
-  return "There's a gap between where you are and where you want to be — but it's narrower than it feels. Small, targeted adjustments will move the needle faster than a complete overhaul.";
-}
-
-function computeClassification(
+/** Shared classification engine — Step 12, persist pipeline, and reassessment. */
+export function computeClassification(
   stability: number,
   performance: number,
   alignment: number,
@@ -341,8 +414,8 @@ export function computeResults(
   const alignment = alignmentScores.alignment_score ?? 3;
 
   const pressureProfile = computePressureProfile(loadSignals, stateSignals, behavioralPatterns);
-  const tradeoffStatement = computeTradeoffStatement(stability, performance, alignment, pressureProfile);
   const classification = computeClassification(stability, performance, alignment, pressureProfile);
+  const resolved = resolveClassificationCopy(classification) ?? classification;
 
   const traumaFlags = ["trauma_history", "trauma_informed"];
   const trauma_informed_mode = healthFlags.selected_flags.some(f => traumaFlags.includes(f));
@@ -353,8 +426,8 @@ export function computeResults(
     alignment_score: alignment,
     orientation_score: orientationScore,
     pressure_profile: pressureProfile,
-    tradeoff_statement: tradeoffStatement,
-    classification,
+    tradeoff_statement: resolved.tradeoff,
+    classification: resolved,
     recovery_mode_active: healthFlags.recovery_mode_active,
     grief_mode_active: healthFlags.grief_mode_active,
     trauma_informed_mode,

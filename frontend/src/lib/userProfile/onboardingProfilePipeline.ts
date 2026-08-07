@@ -18,12 +18,13 @@ export async function runPillarScoreCalculators(userId: string): Promise<void> {
 
 /**
  * Full onboarding profile pipeline after AUTH-05 save:
- * pillar scores → classification → pressure profile → behavioral fingerprint → AI coaching modes.
+ * pillar scores → pressure profile → classification → behavioral fingerprint → AI coaching modes.
+ * Pressure runs before classification so Capacity Erosion (System Overload) matches Step 12.
  */
 export async function runOnboardingProfilePipeline(userId: string): Promise<void> {
   await runPillarScoreCalculators(userId);
-  await calculateUserClassification(userId);
   await calculateUserPressureProfile(userId);
+  await calculateUserClassification(userId);
   await calculateUserBehavioralFingerprint(userId);
   await calculateUserAiCoachingMode(userId);
 }

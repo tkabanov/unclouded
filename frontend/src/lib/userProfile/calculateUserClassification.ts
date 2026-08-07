@@ -44,11 +44,20 @@ export async function calculateUserClassification(userId: string): Promise<strin
       ? orientationFromCamel
       : orientation;
 
+  const pressureFromResults =
+    typeof results?.pressure_profile === "string" ? results.pressure_profile : "";
+  const pressureFromOnboarding =
+    typeof onboardingData.pressureProfile === "string"
+      ? onboardingData.pressureProfile
+      : "";
+  const pressure_profile = pressureFromResults || pressureFromOnboarding;
+
   const { classification, classification_os } = resolveClassification({
     stability_score: stability,
     performance_score: performance,
     alignment_score: alignment,
     orientation_score: resolvedOrientation,
+    pressure_profile,
   });
 
   await patchOnboardingAndResults(

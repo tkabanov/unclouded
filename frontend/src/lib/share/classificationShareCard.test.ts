@@ -24,6 +24,7 @@ describe("classificationShareCard", () => {
 
     expect(metadata.shareUrl).toBe("https://app.uncloud360.ai/signup?ref=TESTCODE");
     expect(metadata.classificationName).toBe("Capacity Erosion");
+    expect(metadata.tagline).toContain("carrying more than your system");
   });
 });
 

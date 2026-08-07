@@ -404,3 +404,23 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | Four optional unscored reflections use Section 3 copy. Path-adaptive prompt replaces **Question 4** when the user has ≥1 completed path (most recently completed). Path-specific texts are static strings on the final path session (Canonical), not the outdated Section 4 name list. PDF/UI labels use `pathAdaptiveQ` for the adaptive slot. |
 | **Code** | `frontend/src/lib/reassessment.ts`, `frontend/src/components/ReassessmentFlow.tsx`, `frontend/src/components/ResultsComparison.tsx`, `supabase/functions/generate-pup-pdf/index.ts` |
 
+### OVR-040 — Results screen copy: static per-classification copy
+
+| | |
+|---|---|
+| **Date** | 2026-08-07 |
+| **Overrides** | Older build-brief results copy; score-heuristic `computeTradeoffStatement` for onboarding/dashboard/PDF display |
+| **Authoritative spec** | `docs/Uncloud360_Results_Screen_Copy_All_Classifications.docx.md` |
+| **Current behavior** | Onboarding Results, Dashboard assessment card, and client onboarding PDF use per-classification static copy (name, tagline, tradeoff, What This Means, focus areas) from `classification.ts`, resolved by key at render so stale `profiles.results` JSONB still shows live copy. Tradeoff persisted on new completions is the static classification tradeoff. Score colors: &lt;3.2 amber/red, 3.2–3.7 neutral gray, ≥3.8 green. Top 2 recommended path names from enrollment matching (dashboard-config fallback). Standing 988 disclaimer on every results surface. Classification engine rules unchanged. |
+| **Code** | `frontend/src/lib/classification.ts`, `frontend/src/components/OnboardingResults.tsx`, `frontend/src/components/dashboard/DashboardAssessmentResultsCard.tsx`, `frontend/src/lib/dashboard/downloadOnboardingResultsPdf.ts`, `frontend/src/lib/dashboard/assessmentScoreStyle.ts`, `frontend/src/lib/share/classificationShareCard.ts` |
+
+### OVR-041 — Classification persist uses Step 12 engine (not Bubble bTHzg)
+
+| | |
+|---|---|
+| **Date** | 2026-08-07 |
+| **Overrides** | Bubble custom event `calculate_user_classification` / `bTHzg` (`resolveClassificationOs`): High Output required `performance >= 4`; any other `stability < 3.2` became Capacity Erosion |
+| **Authoritative spec** | Live onboarding Step 12 `computeClassification` in `classification.ts`; `docs/tmp-results-copy-test-scenarios.md` RES-SURF-001 parity |
+| **Current behavior** | After onboarding/reassessment save, `calculateUserClassification` uses the same `computeClassification` rules as Step 12 (High Output when stability &lt; 3.2 and performance ≥ 3.5; Capacity Erosion when stability &lt; 3.0 and pressure profile is «System Overload»). Pipeline runs pressure profile **before** classification so that branch can fire. Dashboard assessment card and Step 12 share the same classification key for the same scores. |
+| **Code** | `frontend/src/lib/classification.ts` (`computeClassification`), `frontend/src/lib/userProfile/classifyUser.ts`, `frontend/src/lib/userProfile/calculateUserClassification.ts`, `frontend/src/lib/userProfile/onboardingProfilePipeline.ts` |
+
