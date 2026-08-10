@@ -49,12 +49,19 @@ export function buildCoachBookingUrl(baseUrl: string, bookingId: string): string
   }
 }
 
-/** Opens the external calendar; false when blocked or when open throws. */
+/**
+ * Opens the external calendar; false when blocked or when open throws.
+ * Do not pass noopener/noreferrer as window features — those force a null
+ * return even when the tab opened, which falsely aborts the booking hold.
+ * Clear opener on the returned window for the same isolation as noopener.
+ */
 export function openExternalBookingUrl(url: string): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const opened = window.open(url, "_blank", "noopener,noreferrer");
-    return opened !== null;
+    const opened = window.open(url, "_blank");
+    if (!opened) return false;
+    opened.opener = null;
+    return true;
   } catch {
     return false;
   }

@@ -395,7 +395,45 @@ export default function ReassessmentFlow() {
           />
         )}
 
-        {step === 6 && secondResults && baseline && (
+        {step === 6 && secondResults && baseline && saveError && !completeResult && (
+          <div className="flex flex-1 items-center justify-center px-4 py-12">
+            <div className="w-full max-w-md space-y-4 text-center">
+              <h1 className="text-2xl font-bold text-foreground">Couldn&apos;t finish your results</h1>
+              <p className="text-muted-foreground">
+                Your scores are ready, but we couldn&apos;t save this reassessment or prepare your
+                trajectory. Please try again.
+              </p>
+              <Button
+                variant="cta"
+                onClick={() => {
+                  setSaveError(false);
+                  setSaved(false);
+                }}
+              >
+                Try again
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 6 && secondResults && baseline && !completeResult && !saveError && (
+          <div className="flex flex-1 items-center justify-center px-4 py-12">
+            <div className="w-full max-w-md space-y-5 text-center">
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                  Calculating your progress…
+                </h1>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Comparing your scores and writing your trajectory statement. This usually takes a
+                  few seconds.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 6 && secondResults && baseline && completeResult && (
           <div className="flex flex-1 items-start justify-center overflow-y-auto px-4 py-10">
             <div className="w-full max-w-2xl space-y-8 pb-12">
               <div className="space-y-2 text-center">
@@ -407,12 +445,10 @@ export default function ReassessmentFlow() {
                 </h1>
               </div>
 
-              {completeResult && (
-                <ReassessmentModuleRefreshBanner
-                  refreshOfferedSlugs={completeResult.modulesRefreshOffered}
-                  acceleratedSlugs={completeResult.modulesAcceleratedUnlock}
-                />
-              )}
+              <ReassessmentModuleRefreshBanner
+                refreshOfferedSlugs={completeResult.modulesRefreshOffered}
+                acceleratedSlugs={completeResult.modulesAcceleratedUnlock}
+              />
 
               <ResultsComparison
                 firstName={firstName}
@@ -423,12 +459,12 @@ export default function ReassessmentFlow() {
                 tier={tier}
                 showWhatIsNext
                 priorAssessmentDate={priorAssessmentDate}
-                modeChanged={completeResult?.modeChanged}
-                previousMode={completeResult?.previousMode}
-                newMode={completeResult?.newMode}
-                recommendedPaths={completeResult?.recommendedPaths}
-                nextFocusText={completeResult?.nextFocusText}
-                trajectoryStatement={completeResult?.trajectoryStatement}
+                modeChanged={completeResult.modeChanged}
+                previousMode={completeResult.previousMode}
+                newMode={completeResult.newMode}
+                recommendedPaths={completeResult.recommendedPaths}
+                nextFocusText={completeResult.nextFocusText}
+                trajectoryStatement={completeResult.trajectoryStatement}
                 coachingSummaryPreparing={
                   tier === TIER.PREMIUM && pdfState !== "ready"
                 }

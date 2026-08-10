@@ -1,4 +1,5 @@
-import { Sparkles } from "lucide-react";
+import { useId, useState } from "react";
+import { ChevronDown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { JournalEntryListItem } from "@/lib/journal/journalEntriesApi";
 import { shouldShowJournalReflection } from "@/lib/journal/journalReflectionReveal";
@@ -42,6 +43,11 @@ export default function JournalEntryCard({
   onViewEntry,
   className,
 }: JournalEntryCardProps) {
+  const [reflectionOpen, setReflectionOpen] = useState(false);
+  const reflectionPanelId = useId();
+  const showReflection = shouldShowJournalReflection(entry);
+  const reflectionText = entry.aiReflection?.trim() ?? "";
+
   return (
     <article
       data-style-ref="Group_card_"
@@ -95,9 +101,17 @@ export default function JournalEntryCard({
           "flex flex-wrap items-center justify-between gap-3 pt-1",
         )}
       >
-        {shouldShowJournalReflection(entry) ? (
-          <div
-            className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-1.5")}
+        {showReflection && reflectionText ? (
+          <button
+            type="button"
+            className={cn(
+              bubbleStyle("Group_transparent_"),
+              "inline-flex items-center gap-1.5 rounded-sm text-left outline-none",
+              "hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            )}
+            aria-expanded={reflectionOpen}
+            aria-controls={reflectionPanelId}
+            onClick={() => setReflectionOpen((open) => !open)}
           >
             <span
               data-style-ref="Icon_primary_"
@@ -112,7 +126,14 @@ export default function JournalEntryCard({
             >
               AI Reflection
             </span>
-          </div>
+            <ChevronDown
+              className={cn(
+                "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform",
+                reflectionOpen && "rotate-180",
+              )}
+              aria-hidden
+            />
+          </button>
         ) : (
           <span />
         )}
@@ -126,6 +147,35 @@ export default function JournalEntryCard({
           View &amp; Edit
         </button>
       </div>
+
+      {showReflection && reflectionText && reflectionOpen ? (
+        <div
+          id={reflectionPanelId}
+          className={cn(
+            bubbleStyle("Group_transparent_"),
+            "space-y-1.5 border-t border-border/40 pt-3",
+          )}
+        >
+          <p
+            data-style-ref="Text_caption_"
+            className={cn(
+              bubbleStyle("Text_caption_"),
+              "text-xs font-medium uppercase tracking-wide text-muted-foreground",
+            )}
+          >
+            From Kota
+          </p>
+          <p
+            data-style-ref="Text_body_muted_"
+            className={cn(
+              bubbleStyle("Text_body_muted_"),
+              "whitespace-pre-wrap text-sm italic leading-relaxed text-muted-foreground",
+            )}
+          >
+            {reflectionText}
+          </p>
+        </div>
+      ) : null}
     </article>
   );
 }

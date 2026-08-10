@@ -404,60 +404,63 @@ const ResultsComparison = ({
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:justify-center">
-            <Button variant="cta" size="lg" asChild className="group">
-              <Link to="/chat">
-                Continue coaching
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            {showPdfButton ? (
-              <Button
-                variant="outline"
-                size="lg"
-                className="gap-2"
-                disabled={pdfBusy && !pdfFailed}
-                onClick={() => {
-                  if (pdfFailed) {
-                    onRetryPdf?.();
-                    return;
-                  }
-                  if (pdfReady) onDownloadPdf?.();
-                }}
-              >
-                <FileText className="h-4 w-4" />
-                {pdfFailed
-                  ? "Retry PDF"
-                  : pdfReady
-                    ? pdfLabel
-                    : coachingSummaryPreparing
-                      ? "Preparing Complete Coaching Record…"
-                      : "Preparing PDF…"}
+          <div className="flex flex-col gap-3 pt-1">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-center">
+              <Button variant="cta" size="lg" asChild className="group w-full sm:w-auto">
+                <Link to="/chat">
+                  Continue coaching
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Link>
               </Button>
-            ) : null}
+              {showPdfButton ? (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full gap-2 sm:w-auto"
+                  disabled={pdfBusy && !pdfFailed}
+                  onClick={() => {
+                    if (pdfFailed) {
+                      onRetryPdf?.();
+                      return;
+                    }
+                    if (pdfReady) onDownloadPdf?.();
+                  }}
+                >
+                  <FileText className="h-4 w-4" />
+                  {pdfFailed
+                    ? "Retry PDF"
+                    : pdfReady
+                      ? pdfLabel
+                      : coachingSummaryPreparing
+                        ? "Preparing Complete Coaching Record…"
+                        : "Preparing PDF…"}
+                </Button>
+              ) : null}
+            </div>
             {coachingSummaryPreparing && !pdfReady ? (
-              <p className="w-full text-center text-xs text-muted-foreground sm:basis-full">
+              <p className="text-center text-xs text-muted-foreground">
                 Your Complete Coaching Record is being prepared. You&apos;ll be notified when your
                 PDF is ready.
               </p>
             ) : null}
-
             {isPro ? (
-              <Button
-                variant="ghost"
-                size="lg"
-                className="gap-2"
-                onClick={() => pdfUpsell.promptUpgrade("pupPdfReport")}
-              >
-                <Lock className="h-4 w-4" aria-hidden />
-                Get the full Premium report
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => pdfUpsell.promptUpgrade("pupPdfReport")}
+                >
+                  <Lock className="h-4 w-4" aria-hidden />
+                  Get the full Premium report
+                </Button>
+              </div>
             ) : null}
-          </div>
-          <div className="text-center">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard">Back to my dashboard</Link>
-            </Button>
+            <div className="text-center">
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/dashboard">Back to my dashboard</Link>
+              </Button>
+            </div>
           </div>
         </div>
       ) : null}

@@ -57,7 +57,7 @@ describe("requestOneOnOneBooking", () => {
   });
 
   it("does not abort when the calendar opens", async () => {
-    vi.spyOn(window, "open").mockReturnValue({} as Window);
+    vi.spyOn(window, "open").mockReturnValue({ opener: window } as Window);
 
     const result = await requestOneOnOneBooking({
       externalCalendarUrl: "https://example.com/book",
@@ -77,8 +77,13 @@ describe("openExternalBookingUrl", () => {
     expect(openExternalBookingUrl("https://example.com")).toBe(false);
   });
 
-  it("returns true when open succeeds", () => {
-    vi.spyOn(window, "open").mockReturnValue({} as Window);
-    expect(openExternalBookingUrl("https://example.com")).toBe(true);
+  it("opens without noopener features and clears opener", () => {
+    const child = { opener: window } as Window;
+    const openSpy = vi.spyOn(window, "open").mockReturnValue(child);
+
+    expect(openExternalBookingUrl("https://example.com/book")).toBe(true);
+    expect(openSpy).toHaveBeenCalledWith("https://example.com/book", "_blank");
+    expect(openSpy.mock.calls[0]?.length).toBe(2);
+    expect(child.opener).toBeNull();
   });
 });

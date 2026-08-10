@@ -464,3 +464,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | Kota's Read is stored as **`kotaReadJson`** on `coachBooking` / `groupSessionBooking` (legacy `kotaRead` TEXT may remain on older rows). Email goes to **`assignedCoachEmail`** when set (Admin Coach briefs can edit it via `admin_set_coach_booking_email`); otherwise **`COACH_BRIEF_INBOX`**. Session memory for the AI call is **last 5 sessions**, ~600 tokens. Prompt 6 edge gate remains Pro+Premium; **1:1 booking itself stays Premium-only** (OVR-027) — Pro reaches Prompt 6 via **group** booking. |
 | **Code** | `supabase/migrations/20260810120000_kota_read_json_assigned_coach.sql`, `supabase/functions/generate-kota-read/`, `supabase/functions/_shared/kotaReadBrief.ts`, `kotaReadDelivery.ts`, `frontend/src/components/settings/admin/AdminCoachBookingsTab.tsx`, `frontend/src/lib/settings/admin/adminCoachBookingsApi.ts` |
 
+### OVR-046 — Journal list: AI Reflection expands inline on the card
+
+| | |
+|---|---|
+| **Date** | 2026-08-10 |
+| **Overrides** | Prompt 2 / JOURNAL list UI that only showed an **AI Reflection** indicator (detail popup was the place to read Kota’s note) |
+| **Authoritative spec** | Owner request — toggle reflection on the list card |
+| **Current behavior** | On `/journal` entry cards, the **AI Reflection** control toggles an inline **From Kota** block (collapsed by default). Full edit still via **View & Edit**. |
+| **Code** | `frontend/src/components/journal/JournalEntryCard.tsx` |
+

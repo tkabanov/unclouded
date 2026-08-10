@@ -382,7 +382,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Open coach email (or log body) |
 | **Expected** | **Factual** (no AI): classification/scores, coaching mode, paths, open commitment, flags, session count/last date. **Kota's Read**: patterns (bullets; provisional if &lt;5 sessions), not-yet-reached, be-careful-about, most-important-now. Tone: professional coach-to-coach, not user-facing warmth. Not diagnosis/clinical. Session themes input: last 5 sessions, ~600 tokens. |
 
-### AIP-P6-003 — Email delivery until Coach Workspace
+### AIP-P6-003 — Email delivery until Coach Workspace — TESTED
 
 | | |
 |---|---|
@@ -390,7 +390,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Book session; optionally set assigned coach email in Admin → Coach briefs; check inbox + `coach_kota_read_brief` delivery log |
 | **Expected** | Email to **assigned coach** when `assignedCoachEmail` is set (`kotaReadEmailDetail` like `sent:assigned:…`); otherwise **COACH_BRIEF_INBOX** (`sent:inbox:…`). Catalog hook `coach_kota_read_brief` reflects delivery. |
 
-### AIP-P6-004 — crisis_prone / low history
+### AIP-P6-004 — crisis_prone / low history — TESTED
 
 | | |
 |---|---|
@@ -398,7 +398,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 | **Steps** | Generate brief |
 | **Expected** | crisis_prone explicitly noted in be-careful. &lt;5 sessions: provisional language / insufficient history paths as in prompt. |
 
-### AIP-P6-005 — Free / no entitlement
+### AIP-P6-005 — Free / no entitlement — TESTED
 
 | | |
 |---|---|
