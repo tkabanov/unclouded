@@ -454,3 +454,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | AI Trajectory Statement generates for **Pro and Premium** at reassessment completion (sync). Text is stored on **`assessmentResult.trajectoryStatementText`** (per-cycle history), not on User/profiles. Results screen and PDF prefer AI text; if missing, fall back to static `trajectoryLanguage` by trajectory type. `paths_completed` counts enrollments completed in the reassessment window (previous assessment → current, or 90-day lookback). |
 | **Code** | `supabase/functions/generate-trajectory-statement/`, `supabase/functions/_shared/standalonePrompts/trajectoryStatement.ts`, `supabase/functions/generate-pup-pdf/resolveTrajectoryStatement.ts`, `frontend/src/components/ResultsComparison.tsx`, `frontend/src/lib/reassessment/completeReassessment.ts` |
 
+### OVR-045 — Pre-Coaching Brief (Prompt 6): JSON storage + assigned coach email fallback
+
+| | |
+|---|---|
+| **Date** | 2026-08-10 |
+| **Overrides** | `docs/Uncloud360_AI_Prompt_Specifications.docx.md` Prompt 6 — “email the assigned coach's registered email”; store Kota's Read JSON on CoachingBooking; Pro+Premium availability for all human coach bookings |
+| **Authoritative spec** | Same Prompt 6 structure (factual + Kota's Read); interim delivery until Coach Workspace (Phase 3) |
+| **Current behavior** | Kota's Read is stored as **`kotaReadJson`** on `coachBooking` / `groupSessionBooking` (legacy `kotaRead` TEXT may remain on older rows). Email goes to **`assignedCoachEmail`** when set (Admin Coach briefs can edit it via `admin_set_coach_booking_email`); otherwise **`COACH_BRIEF_INBOX`**. Session memory for the AI call is **last 5 sessions**, ~600 tokens. Prompt 6 edge gate remains Pro+Premium; **1:1 booking itself stays Premium-only** (OVR-027) — Pro reaches Prompt 6 via **group** booking. |
+| **Code** | `supabase/migrations/20260810120000_kota_read_json_assigned_coach.sql`, `supabase/functions/generate-kota-read/`, `supabase/functions/_shared/kotaReadBrief.ts`, `kotaReadDelivery.ts`, `frontend/src/components/settings/admin/AdminCoachBookingsTab.tsx`, `frontend/src/lib/settings/admin/adminCoachBookingsApi.ts` |
+

@@ -8,6 +8,16 @@ import {
 } from "../chat/sessionMemory/commitmentFollowThrough.ts";
 import type { SessionMemoryRecord } from "../chat/sessionMemory/sessionMemoryHelpers.ts";
 
+/** Spec: last 5 sessions (or fewer). */
+export const KOTA_READ_SESSION_LIMIT = 5;
+
+/**
+ * Spec: max ~600 tokens for session_memory_compressed.
+ * Approx 4 chars/token → 2400 chars.
+ */
+export const KOTA_READ_MEMORY_MAX_CHARS = 2400;
+
+/** @deprecated Prefer KOTA_READ_SESSION_LIMIT — Prompt 6 uses last-N sessions, not a day window. */
 export const KOTA_READ_SESSION_WINDOW_DAYS = 90;
 
 export type KotaReadBrief = {
@@ -47,25 +57,40 @@ export type FactualBriefInput = {
 };
 
 export const KOTA_READ_SYSTEM_PROMPT =
-  "You are Kota — the AI coaching presence inside Uncloud360. A user has booked a session with a human PuP coach. You are generating Kota's Read — the section of the pre-session brief that gives the coach your actual observations about this person. This is not a data summary — the coach already has the data. This is what you have noticed that the data alone does not show. Tone: direct, professional, written coach-to-coach. Return JSON only.";
+  `You are Kota — the AI coaching presence inside Uncloud360. A user has booked a session with a human PuP coach. You are generating Kota's Read — the section of the pre-session brief that gives the coach your actual observations about this person. This is not a data summary — the coach already has the data. This is what you have noticed that the data alone does not show.
 
-export const KOTA_READ_JSON_INSTRUCTIONS = `Return JSON with this exact shape:
+TONE
+Direct, professional, written coach-to-coach. Not Kota's user-facing warmth — this is a professional handoff. Precise and useful.
+
+Return JSON only.`;
+
+export const KOTA_READ_JSON_INSTRUCTIONS = `WHAT YOU ARE GENERATING
+Kota's Read — 4 components. Direct, honest, written for a professional coach who needs to be prepared.
+
+COMPONENT 1 — PATTERNS I'VE OBSERVED (2–4 bullet points)
+The specific behavioral and engagement patterns you have noticed across sessions. Be precise — not "this person struggles with follow-through" but "this person commits clearly in session and disengages within 48 hours — the breakdown is in the transition out of the session, not the commitment itself." Draw from fingerprint signals, session themes, and follow-through data. If fewer than 5 sessions completed, note: "Observation period is early — these are provisional."
+
+COMPONENT 2 — WHAT I HAVEN'T BEEN ABLE TO GET TO (1–2 sentences)
+One thing that has been circling in the sessions but hasn't fully surfaced yet. This is what you've sensed is underneath what's been presented but what the user hasn't been ready to name. If you genuinely don't have enough data: "Insufficient session history to identify — this may be an area for the coach to explore."
+
+COMPONENT 3 — ONE THING TO BE CAREFUL ABOUT (1–2 sentences)
+One specific sensitivity, fingerprint signal, or pattern the coach should be aware of going in. Not a warning — a preparation. "This user [specific observation] — approach [specific thing] with [specific consideration]." If the user has a crisis_prone fingerprint signal confirmed: note this explicitly.
+
+COMPONENT 4 — WHAT I THINK IS MOST IMPORTANT RIGHT NOW (1–2 sentences)
+The single most important thing the coach should know about where this person is right now. Not a coaching plan — a read. What is true about this person in this moment that the data doesn't fully capture?
+
+WHAT THIS BRIEF IS NOT
+Not a diagnosis. Not clinical language. Not a prediction. Nothing that would feel like a violation of the trust the user placed in AI sessions. Nothing speculative without being labeled as such.
+
+OUTPUT FORMAT
+Return a JSON object with exactly this structure — no preamble, no explanation, just the JSON:
 {
   "patterns_observed": "[bullet-point formatted text — use \\n between bullets]",
   "not_yet_reached": "[1–2 sentences]",
   "be_careful_about": "[1–2 sentences]",
   "most_important_now": "[1–2 sentences]",
-  "confidence_note": "[one sentence noting the ai_confidence_level and session count context]"
-}
-
-COMPONENT 1 — PATTERNS I'VE OBSERVED (2–4 bullet points)
-Precise behavioral and engagement patterns. If fewer than 5 sessions completed, note observations are provisional.
-COMPONENT 2 — WHAT I HAVEN'T BEEN ABLE TO GET TO (1–2 sentences)
-COMPONENT 3 — ONE THING TO BE CAREFUL ABOUT (1–2 sentences)
-COMPONENT 4 — WHAT I THINK IS MOST IMPORTANT RIGHT NOW (1–2 sentences)
-
-WHAT THIS BRIEF IS NOT
-Not a diagnosis. Not clinical language. Not a prediction. Nothing speculative without being labeled as such.`;
+  "confidence_note": "[one sentence noting the ai_confidence_level and session count context — e.g. 'Kota has completed 12 sessions with this user at Direct confidence level — observations are well-established.' or 'Kota has completed 3 sessions at Exploratory level — treat observations as provisional.']"
+}`;
 
 function readString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -108,7 +133,7 @@ export function parseKotaReadBrief(raw: unknown): KotaReadBrief | null {
   };
 }
 
-/** Render Prompt 6 structured brief for coachBooking.kotaRead storage. */
+/** Render Prompt 6 structured brief for email / Admin display (not storage). */
 export function formatKotaReadBrief(brief: KotaReadBrief): string {
   return [
     "KOTA'S READ — Coach handoff brief",
@@ -128,6 +153,19 @@ export function formatKotaReadBrief(brief: KotaReadBrief): string {
     "Confidence note",
     brief.confidence_note.trim(),
   ].join("\n").trim();
+}
+
+/**
+ * Prefer kotaReadJson; fall back to legacy kotaRead TEXT for older rows.
+ */
+export function resolveKotaReadDisplayText(params: {
+  kotaReadJson?: unknown;
+  kotaRead?: string | null;
+}): string {
+  const parsed = parseKotaReadBrief(params.kotaReadJson ?? null);
+  if (parsed) return formatKotaReadBrief(parsed);
+  const legacy = typeof params.kotaRead === "string" ? params.kotaRead.trim() : "";
+  return legacy;
 }
 
 /**
@@ -241,16 +279,37 @@ export function buildScoresLine(results: Record<string, unknown> | null): string
   return `Scores — Stability ${stability.toFixed(1)}, Performance ${performance.toFixed(1)}, Alignment ${alignment.toFixed(1)}`;
 }
 
+/**
+ * Prompt 6 session memory: last N sessions by closedAt (newest last),
+ * capped to ~600 tokens for the compressed string.
+ */
 export function filterSessionMemoryForKotaRead(
   records: SessionMemoryRecord[],
-  referenceDate: Date = new Date(),
-  windowDays: number = KOTA_READ_SESSION_WINDOW_DAYS,
+  _referenceDate?: Date,
+  limit: number = KOTA_READ_SESSION_LIMIT,
 ): SessionMemoryRecord[] {
-  const cutoffMs = referenceDate.getTime() - windowDays * 24 * 60 * 60 * 1000;
-  return records.filter((record) => {
-    const closedMs = Date.parse(record.closedAt);
-    return Number.isFinite(closedMs) && closedMs >= cutoffMs;
+  const sorted = [...records].sort((a, b) => {
+    const aMs = Date.parse(a.closedAt);
+    const bMs = Date.parse(b.closedAt);
+    const aOk = Number.isFinite(aMs) ? aMs : 0;
+    const bOk = Number.isFinite(bMs) ? bMs : 0;
+    return aOk - bOk;
   });
+  if (sorted.length <= limit) return sorted;
+  return sorted.slice(-limit);
+}
+
+/** Compress session lines and enforce the ~600-token char budget. */
+export function compressSessionMemoryForKotaRead(
+  records: SessionMemoryRecord[],
+  maxChars: number = KOTA_READ_MEMORY_MAX_CHARS,
+): string {
+  const lines = sessionMemoryToLines(filterSessionMemoryForKotaRead(records));
+  let compressed = lines.join("\n");
+  if (compressed.length > maxChars) {
+    compressed = compressed.slice(0, maxChars - 1) + "…";
+  }
+  return compressed;
 }
 
 function readActiveMicroCommitment(

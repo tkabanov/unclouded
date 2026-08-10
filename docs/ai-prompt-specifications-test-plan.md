@@ -372,7 +372,7 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 |---|---|
 | **Preconditions** | Premium with credits (или Pro если group booking); book coach |
 | **Steps** | Confirm booking |
-| **Expected** | `generate-kota-read` fires; Kota's Read JSON on `coachBooking` (or group booking row): `patterns_observed`, `not_yet_reached`, `be_careful_about`, `most_important_now`, `confidence_note`. |
+| **Expected** | `generate-kota-read` fires; **`kotaReadJson`** on `coachBooking` (or group booking row) with: `patterns_observed`, `not_yet_reached`, `be_careful_about`, `most_important_now`, `confidence_note`. Formatted text is derived at email/Admin display time (not dual-written to `kotaRead`). |
 
 ### AIP-P6-002 — Full brief = factual + Kota's Read — TESTED
 
@@ -380,15 +380,15 @@ Shared parsers/prompts: `supabase/functions/_shared/standalonePrompts/`, unit: `
 |---|---|
 | **Preconditions** | Booking with stored Kota Read |
 | **Steps** | Open coach email (or log body) |
-| **Expected** | **Factual** (no AI): classification/scores, coaching mode, paths, open commitment, flags, session count/last date. **Kota's Read**: patterns (bullets; provisional if &lt;5 sessions), not-yet-reached, be-careful-about, most-important-now. Tone: professional coach-to-coach, not user-facing warmth. Not diagnosis/clinical. |
+| **Expected** | **Factual** (no AI): classification/scores, coaching mode, paths, open commitment, flags, session count/last date. **Kota's Read**: patterns (bullets; provisional if &lt;5 sessions), not-yet-reached, be-careful-about, most-important-now. Tone: professional coach-to-coach, not user-facing warmth. Not diagnosis/clinical. Session themes input: last 5 sessions, ~600 tokens. |
 
 ### AIP-P6-003 — Email delivery until Coach Workspace
 
 | | |
 |---|---|
-| **Preconditions** | `COACH_BRIEF_INBOX` / SendGrid configured |
-| **Steps** | Book session; check inbox + `coach_kota_read_brief` delivery log |
-| **Expected** | Email to assigned coach / configured inbox immediately after generation. Catalog hook `coach_kota_read_brief` reflects delivery. |
+| **Preconditions** | `assignedCoachEmail` on booking **or** `COACH_BRIEF_INBOX` / SendGrid configured |
+| **Steps** | Book session; optionally set assigned coach email in Admin → Coach briefs; check inbox + `coach_kota_read_brief` delivery log |
+| **Expected** | Email to **assigned coach** when `assignedCoachEmail` is set (`kotaReadEmailDetail` like `sent:assigned:…`); otherwise **COACH_BRIEF_INBOX** (`sent:inbox:…`). Catalog hook `coach_kota_read_brief` reflects delivery. |
 
 ### AIP-P6-004 — crisis_prone / low history
 

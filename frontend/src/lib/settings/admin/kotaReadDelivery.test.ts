@@ -3,9 +3,14 @@ import {
   buildKotaReadEmailHtml,
   buildKotaReadEmailSubject,
   escapeHtml,
+  formatKotaReadDeliveryDetail,
   parseCoachBriefInbox,
+  resolveKotaReadRecipients,
 } from "../../../../../supabase/functions/_shared/kotaReadDelivery.ts";
-import { formatCoachBookingDeliveryStatus } from "@/lib/settings/admin/adminCoachBookingsApi";
+import {
+  formatCoachBookingDeliveryStatus,
+  resolveAdminCoachBriefText,
+} from "@/lib/settings/admin/adminCoachBookingsApi";
 
 describe("kotaReadDelivery", () => {
   it("parses coach inbox env into email addresses", () => {
@@ -14,6 +19,45 @@ describe("kotaReadDelivery", () => {
       "ops@uncloud360.ai",
     ]);
     expect(parseCoachBriefInbox("")).toEqual([]);
+  });
+
+  it("prefers assigned coach email over COACH_BRIEF_INBOX", () => {
+    expect(
+      resolveKotaReadRecipients({
+        assignedCoachEmail: " assigned@pup.com ",
+        coachBriefInboxEnv: "inbox@pup.com",
+      }),
+    ).toEqual({
+      recipients: ["assigned@pup.com"],
+      source: "assigned_coach",
+    });
+
+    expect(
+      resolveKotaReadRecipients({
+        assignedCoachEmail: null,
+        coachBriefInboxEnv: "inbox@pup.com, ops@uncloud360.ai",
+      }),
+    ).toEqual({
+      recipients: ["inbox@pup.com", "ops@uncloud360.ai"],
+      source: "inbox",
+    });
+
+    expect(
+      resolveKotaReadRecipients({
+        assignedCoachEmail: "not-an-email",
+        coachBriefInboxEnv: "",
+      }),
+    ).toEqual({ recipients: [], source: "none" });
+  });
+
+  it("formats delivery detail with assigned vs inbox source", () => {
+    expect(
+      formatKotaReadDeliveryDetail("assigned_coach", ["coach@pup.com"], true, "sent"),
+    ).toBe("sent:assigned:coach@pup.com");
+    expect(
+      formatKotaReadDeliveryDetail("inbox", ["ops@uncloud360.ai"], true, "sent"),
+    ).toBe("sent:inbox:ops@uncloud360.ai");
+    expect(formatKotaReadDeliveryDetail("none", [], false, "")).toContain("smtp:skipped");
   });
 
   it("escapes HTML in brief bodies", () => {
@@ -59,50 +103,78 @@ describe("kotaReadDelivery", () => {
 });
 
 describe("formatCoachBookingDeliveryStatus", () => {
+  const base = {
+    id: "b1",
+    userId: "u1",
+    scheduledAt: null,
+    status: "pending",
+    assignedCoachEmail: null as string | null,
+    createdAt: "2026-07-20T10:00:00.000Z",
+    memberFirstName: "Alex",
+    memberEmail: "alex@example.com",
+  };
+
   it("labels emailed, skipped, and pending states honestly", () => {
     expect(
       formatCoachBookingDeliveryStatus({
-        id: "b1",
-        userId: "u1",
-        scheduledAt: null,
-        status: "pending",
+        ...base,
         kotaRead: null,
+        kotaReadJson: null,
         kotaReadEmailedAt: null,
         kotaReadEmailDetail: null,
-        createdAt: "2026-07-20T10:00:00.000Z",
-        memberFirstName: "Alex",
-        memberEmail: "alex@example.com",
       }),
     ).toBe("Generating…");
 
     expect(
       formatCoachBookingDeliveryStatus({
-        id: "b1",
-        userId: "u1",
-        scheduledAt: null,
-        status: "pending",
-        kotaRead: "Brief text",
+        ...base,
+        kotaRead: null,
+        kotaReadJson: {
+          patterns_observed: "- a",
+          not_yet_reached: "b",
+          be_careful_about: "c",
+          most_important_now: "d",
+          confidence_note: "e",
+        },
         kotaReadEmailedAt: "2026-07-20T10:01:00.000Z",
-        kotaReadEmailDetail: "sent:coach@pup.com",
-        createdAt: "2026-07-20T10:00:00.000Z",
-        memberFirstName: "Alex",
-        memberEmail: "alex@example.com",
+        kotaReadEmailDetail: "sent:assigned:coach@pup.com",
+      }),
+    ).toBe("Emailed to assigned coach");
+
+    expect(
+      formatCoachBookingDeliveryStatus({
+        ...base,
+        kotaRead: "Brief text",
+        kotaReadJson: null,
+        kotaReadEmailedAt: "2026-07-20T10:01:00.000Z",
+        kotaReadEmailDetail: "sent:inbox:coach@pup.com",
       }),
     ).toBe("Emailed to coach inbox");
 
     expect(
       formatCoachBookingDeliveryStatus({
-        id: "b1",
-        userId: "u1",
-        scheduledAt: null,
-        status: "pending",
+        ...base,
         kotaRead: "Brief text",
+        kotaReadJson: null,
         kotaReadEmailedAt: null,
-        kotaReadEmailDetail: "smtp:skipped — COACH_BRIEF_INBOX not configured",
-        createdAt: "2026-07-20T10:00:00.000Z",
-        memberFirstName: "Alex",
-        memberEmail: "alex@example.com",
+        kotaReadEmailDetail:
+          "smtp:skipped — assignedCoachEmail and COACH_BRIEF_INBOX not configured",
       }),
     ).toBe("Brief ready — email not configured");
+  });
+
+  it("resolves display text from kotaReadJson preferentially", () => {
+    expect(
+      resolveAdminCoachBriefText({
+        kotaReadJson: {
+          patterns_observed: "- json pattern",
+          not_yet_reached: "n",
+          be_careful_about: "c",
+          most_important_now: "m",
+          confidence_note: "conf",
+        },
+        kotaRead: "legacy",
+      }),
+    ).toContain("json pattern");
   });
 });

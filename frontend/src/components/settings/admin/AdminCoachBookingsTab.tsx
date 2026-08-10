@@ -2,11 +2,14 @@ import { Fragment, useEffect, useState } from "react";
 import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   ADMIN_COACH_BOOKINGS_EMPTY,
   ADMIN_COACH_BOOKINGS_NOTICE,
+  adminSetAssignedCoachEmail,
   formatCoachBookingDeliveryStatus,
   listCoachBookingsForAdmin,
+  resolveAdminCoachBriefText,
   type AdminCoachBookingRow,
 } from "@/lib/settings/admin/adminCoachBookingsApi";
 import { bubbleStyle } from "@/styles";
@@ -19,17 +22,23 @@ function formatWhen(iso: string | null): string {
   return new Date(parsed).toLocaleString();
 }
 
-function BriefPanel({ row }: { row: AdminCoachBookingRow }) {
-  const brief = row.kotaRead?.trim();
-  if (!brief) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Kota&apos;s Read is still generating for this booking.
-      </p>
-    );
-  }
+function BriefPanel({
+  row,
+  onCoachEmailSaved,
+}: {
+  row: AdminCoachBookingRow;
+  onCoachEmailSaved: (bookingId: string, email: string | null) => void;
+}) {
+  const brief = resolveAdminCoachBriefText(row);
+  const [coachEmail, setCoachEmail] = useState(row.assignedCoachEmail ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setCoachEmail(row.assignedCoachEmail ?? "");
+  }, [row.id, row.assignedCoachEmail]);
 
   const handleCopy = async () => {
+    if (!brief) return;
     try {
       await navigator.clipboard.writeText(brief);
       toast.success("Brief copied to clipboard.");
@@ -38,30 +47,76 @@ function BriefPanel({ row }: { row: AdminCoachBookingRow }) {
     }
   };
 
+  const handleSaveEmail = async () => {
+    setSaving(true);
+    const result = await adminSetAssignedCoachEmail({
+      bookingId: row.id,
+      assignedCoachEmail: coachEmail.trim(),
+    });
+    setSaving(false);
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
+    }
+    const saved = coachEmail.trim() || null;
+    onCoachEmailSaved(row.id, saved);
+    toast.success(saved ? "Assigned coach email saved." : "Assigned coach email cleared.");
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" size="sm" variant="outline" onClick={() => void handleCopy()}>
-          <Copy className="mr-2 h-4 w-4" aria-hidden />
-          Copy brief
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-muted-foreground">
+          Assigned coach email
+          <Input
+            type="email"
+            value={coachEmail}
+            onChange={(event) => setCoachEmail(event.target.value)}
+            placeholder="coach@example.com (falls back to COACH_BRIEF_INBOX)"
+            className="bg-background"
+          />
+        </label>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          disabled={saving}
+          onClick={() => void handleSaveEmail()}
+        >
+          {saving ? "Saving…" : "Save email"}
         </Button>
-        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-          <Mail className="h-3.5 w-3.5" aria-hidden />
-          {formatCoachBookingDeliveryStatus(row)}
-          {row.kotaReadEmailedAt ? ` · ${formatWhen(row.kotaReadEmailedAt)}` : null}
-        </span>
       </div>
-      {row.kotaReadEmailDetail?.trim() ? (
-        <p className="text-xs text-muted-foreground">{row.kotaReadEmailDetail}</p>
-      ) : null}
-      <pre
-        className={cn(
-          bubbleStyle("Group_card_muted_"),
-          "max-h-96 overflow-auto whitespace-pre-wrap p-4 text-sm leading-relaxed",
-        )}
-      >
-        {brief}
-      </pre>
+
+      {!brief ? (
+        <p className="text-sm text-muted-foreground">
+          Kota&apos;s Read is still generating for this booking.
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => void handleCopy()}>
+              <Copy className="mr-2 h-4 w-4" aria-hidden />
+              Copy brief
+            </Button>
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Mail className="h-3.5 w-3.5" aria-hidden />
+              {formatCoachBookingDeliveryStatus(row)}
+              {row.kotaReadEmailedAt ? ` · ${formatWhen(row.kotaReadEmailedAt)}` : null}
+            </span>
+          </div>
+          {row.kotaReadEmailDetail?.trim() ? (
+            <p className="text-xs text-muted-foreground">{row.kotaReadEmailDetail}</p>
+          ) : null}
+          <pre
+            className={cn(
+              bubbleStyle("Group_card_muted_"),
+              "max-h-96 overflow-auto whitespace-pre-wrap p-4 text-sm leading-relaxed",
+            )}
+          >
+            {brief}
+          </pre>
+        </>
+      )}
     </div>
   );
 }
@@ -97,7 +152,7 @@ export default function AdminCoachBookingsTab() {
     return <p className="text-sm text-muted-foreground">Loading coach briefs…</p>;
   }
 
-  const readyCount = rows.filter((row) => row.kotaRead?.trim()).length;
+  const readyCount = rows.filter((row) => resolveAdminCoachBriefText(row)).length;
   const emailedCount = rows.filter((row) => row.kotaReadEmailedAt).length;
 
   return (
@@ -116,7 +171,7 @@ export default function AdminCoachBookingsTab() {
           </div>
           <div>
             <p className="text-2xl font-bold tabular-nums">{emailedCount}</p>
-            <p className="text-xs text-muted-foreground">Emailed to coach inbox</p>
+            <p className="text-xs text-muted-foreground">Emailed</p>
           </div>
         </div>
       </div>
@@ -138,6 +193,7 @@ export default function AdminCoachBookingsTab() {
             <tbody>
               {rows.map((row) => {
                 const expanded = expandedId === row.id;
+                const briefReady = Boolean(resolveAdminCoachBriefText(row));
                 return (
                   <Fragment key={row.id}>
                     <tr className="border-b border-border/60">
@@ -148,6 +204,11 @@ export default function AdminCoachBookingsTab() {
                         <div className="text-xs text-muted-foreground">
                           {row.memberEmail || row.userId}
                         </div>
+                        {row.assignedCoachEmail ? (
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            Coach: {row.assignedCoachEmail}
+                          </div>
+                        ) : null}
                       </td>
                       <td className="px-4 py-3 align-top text-muted-foreground">
                         {formatWhen(row.createdAt)}
@@ -163,14 +224,25 @@ export default function AdminCoachBookingsTab() {
                           variant="ghost"
                           onClick={() => setExpandedId(expanded ? null : row.id)}
                         >
-                          {expanded ? "Hide" : row.kotaRead?.trim() ? "View" : "Waiting"}
+                          {expanded ? "Hide" : briefReady ? "View" : "Waiting"}
                         </Button>
                       </td>
                     </tr>
                     {expanded ? (
                       <tr className="border-b border-border/60 bg-muted/20">
                         <td colSpan={5} className="px-4 py-4">
-                          <BriefPanel row={row} />
+                          <BriefPanel
+                            row={row}
+                            onCoachEmailSaved={(bookingId, email) => {
+                              setRows((prev) =>
+                                prev.map((entry) =>
+                                  entry.id === bookingId
+                                    ? { ...entry, assignedCoachEmail: email }
+                                    : entry,
+                                ),
+                              );
+                            }}
+                          />
                         </td>
                       </tr>
                     ) : null}

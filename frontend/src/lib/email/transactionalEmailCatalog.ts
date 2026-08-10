@@ -290,7 +290,7 @@ export const TRANSACTIONAL_EMAIL_CATALOG: readonly TransactionalEmailDefinition[
   {
     id: "coach_kota_read_brief",
     name: "Kota's Read — coach pre-session brief",
-    trigger: "Premium member books human coach; generate-kota-read edge fn",
+    trigger: "Pro/Premium member books human coach; generate-kota-read → assignedCoachEmail or COACH_BRIEF_INBOX",
     subject: "Kota's Read — pre-session brief for [member]",
     priority: "high",
     channel: "edge_smtp",

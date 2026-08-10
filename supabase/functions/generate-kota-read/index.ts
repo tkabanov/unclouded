@@ -5,18 +5,18 @@ import {
   buildKotaReadUserPrompt,
   buildPathsLine,
   buildScoresLine,
-  filterSessionMemoryForKotaRead,
+  compressSessionMemoryForKotaRead,
   formatFactualBriefFromContext,
   formatKotaReadBrief,
   KOTA_READ_SYSTEM_PROMPT,
   parseKotaReadBrief,
   resolveLastSessionDate,
   resolveOpenCommitmentLine,
-  sessionMemoryToLines,
+  type KotaReadBrief,
   type KotaReadContext,
 } from "../_shared/kotaReadBrief.ts";
 import {
-  parseCoachBriefInbox,
+  resolveKotaReadRecipients,
   sendKotaReadBriefEmail,
 } from "../_shared/kotaReadDelivery.ts";
 import { readSessionMemoryRecords } from "../chat/sessionMemory/sessionMemoryHelpers.ts";
@@ -97,11 +97,10 @@ async function buildKotaReadContext(
     profile.results && typeof profile.results === "object"
       ? (profile.results as Record<string, unknown>)
       : null;
-  const sessionRecords = filterSessionMemoryForKotaRead(
-    readSessionMemoryRecords(onboardingData),
-  );
+  const allRecords = readSessionMemoryRecords(onboardingData);
   const standalone = buildStandaloneUserContext(profile);
-  const compressed = sessionMemoryToLines(sessionRecords).join("\n").slice(0, 2400);
+  const compressed =
+    compressSessionMemoryForKotaRead(allRecords) || standalone.sessionMemoryCompressed;
 
   return {
     classification: standalone.classification,
@@ -112,24 +111,24 @@ async function buildKotaReadContext(
       standalone.sessionCount < 5
         ? "none — fewer than 5 sessions completed"
         : standalone.confirmedFingerprintSignals,
-    sessionMemoryCompressed: compressed || standalone.sessionMemoryCompressed,
+    sessionMemoryCompressed: compressed,
     activeFlags: standalone.activeFlags,
     commitmentFollowThroughRate: standalone.commitmentFollowThroughRate,
-    openCommitment: resolveOpenCommitmentLine(sessionRecords, onboardingData).replace(
+    openCommitment: resolveOpenCommitmentLine(allRecords, onboardingData).replace(
       /^Open commitment:\s*/i,
       "",
     ),
     firstName: profile.firstName?.trim() || "Member",
     scoresLine: buildScoresLine(results),
     pathsLine: await fetchPathEnrollmentLines(supabase, userId),
-    lastSessionDate: resolveLastSessionDate(sessionRecords),
+    lastSessionDate: resolveLastSessionDate(allRecords),
   };
 }
 
 async function generateKotaRead(params: {
   apiKey: string;
   context: KotaReadContext;
-}): Promise<string | null> {
+}): Promise<KotaReadBrief | null> {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -153,10 +152,7 @@ async function generateKotaRead(params: {
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) return null;
 
-  const parsed = parseKotaReadBrief(content);
-  if (!parsed) return null;
-
-  return formatKotaReadBrief(parsed);
+  return parseKotaReadBrief(content);
 }
 
 Deno.serve(async (req) => {
@@ -195,7 +191,7 @@ Deno.serve(async (req) => {
 
   const { data: booking, error: bookingError } = await auth.supabase
     .from(bookingTable)
-    .select("id, userId, scheduledAt")
+    .select("id, userId, scheduledAt, assignedCoachEmail")
     .eq("id", bookingId)
     .eq("userId", auth.user.id)
     .maybeSingle();
@@ -224,15 +220,16 @@ Deno.serve(async (req) => {
     profile ?? {},
   );
 
-  const kotaRead = await generateKotaRead({
+  const kotaReadBrief = await generateKotaRead({
     apiKey: openaiKey,
     context,
   });
 
-  if (!kotaRead) {
+  if (!kotaReadBrief) {
     return jsonResponse(502, { error: "Failed to generate Kota's Read" });
   }
 
+  const kotaReadFormatted = formatKotaReadBrief(kotaReadBrief);
   const factualSection = formatFactualBriefFromContext(context);
 
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
@@ -243,24 +240,30 @@ Deno.serve(async (req) => {
   const serviceClient = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
   const nowIso = new Date().toISOString();
   const appOrigin = canonicalAppOrigin();
-  const coachInbox = parseCoachBriefInbox(Deno.env.get("COACH_BRIEF_INBOX"));
   const memberName = profile?.firstName?.trim() || "Member";
   const memberEmail = typeof profile?.email === "string" ? profile.email : null;
   const scheduledAt =
     typeof booking.scheduledAt === "string" ? booking.scheduledAt : null;
 
+  const resolved = resolveKotaReadRecipients({
+    assignedCoachEmail:
+      typeof booking.assignedCoachEmail === "string" ? booking.assignedCoachEmail : null,
+    coachBriefInboxEnv: Deno.env.get("COACH_BRIEF_INBOX"),
+  });
+
   const delivery = await sendKotaReadBriefEmail({
-    to: coachInbox,
+    to: resolved.recipients,
+    deliverySource: resolved.source,
     memberName,
     memberEmail,
     scheduledAt,
     factualSection,
-    kotaRead,
+    kotaRead: kotaReadFormatted,
     adminConsoleUrl: `${appOrigin}/settings?tab=admin`,
   });
 
   const updatePayload: Record<string, unknown> = {
-    kotaRead,
+    kotaReadJson: kotaReadBrief,
     kotaReadEmailedAt: delivery.ok ? nowIso : null,
     kotaReadEmailDetail: delivery.detail,
   };
@@ -278,10 +281,12 @@ Deno.serve(async (req) => {
   return jsonResponse(200, {
     ok: true,
     bookingId,
-    kotaRead,
+    kotaReadJson: kotaReadBrief,
+    kotaRead: kotaReadFormatted,
     delivery: {
       status: delivery.ok ? "sent" : "skipped",
       detail: delivery.detail,
+      source: resolved.source,
     },
   });
 });

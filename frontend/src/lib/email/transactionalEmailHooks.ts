@@ -109,7 +109,7 @@ export async function requestTransactionalEmail(
     case "coach_kota_read_brief":
       return placeholderResult(
         emailId,
-        "Delivered when a Premium member books a coach — generate-kota-read edge fn emails COACH_BRIEF_INBOX via SendGrid and logs delivery on coachBooking.",
+        "Delivered when a Pro/Premium member books a coach — generate-kota-read emails assignedCoachEmail (fallback COACH_BRIEF_INBOX) via SendGrid and stores kotaReadJson on the booking.",
       );
     case "notification_module_unlock": {
       const candidates = await listModuleUnlockCandidates();

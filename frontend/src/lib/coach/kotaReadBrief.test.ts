@@ -2,12 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildKotaReadUserPrompt,
+  compressSessionMemoryForKotaRead,
   filterSessionMemoryForKotaRead,
   formatFactualBriefFromContext,
   formatFactualBriefSection,
   formatFullCoachBrief,
   formatKotaReadBrief,
+  KOTA_READ_JSON_INSTRUCTIONS,
+  KOTA_READ_MEMORY_MAX_CHARS,
+  KOTA_READ_SYSTEM_PROMPT,
   parseKotaReadBrief,
+  resolveKotaReadDisplayText,
   resolveLastSessionDate,
   resolveOpenCommitmentLine,
 } from "../../../../supabase/functions/_shared/kotaReadBrief.ts";
@@ -26,7 +31,7 @@ describe("kotaReadBrief", () => {
     expect(brief?.confidence_note).toContain("Direct");
   });
 
-  it("formats Prompt 6 sections for storage", () => {
+  it("formats Prompt 6 sections for display (not storage)", () => {
     const formatted = formatKotaReadBrief({
       patterns_observed: "- intellectualize exhaustion",
       not_yet_reached: "Grief they have not fully named.",
@@ -40,6 +45,28 @@ describe("kotaReadBrief", () => {
     expect(formatted).toContain("One thing to be careful about");
     expect(formatted).toContain("What I think is most important right now");
     expect(formatted).toContain("Confidence note");
+  });
+
+  it("prefers kotaReadJson over legacy kotaRead text", () => {
+    const display = resolveKotaReadDisplayText({
+      kotaReadJson: {
+        patterns_observed: "- from json",
+        not_yet_reached: "json not yet",
+        be_careful_about: "json careful",
+        most_important_now: "json now",
+        confidence_note: "json confidence",
+      },
+      kotaRead: "LEGACY TEXT SHOULD NOT WIN",
+    });
+    expect(display).toContain("from json");
+    expect(display).not.toContain("LEGACY TEXT");
+
+    expect(
+      resolveKotaReadDisplayText({
+        kotaReadJson: null,
+        kotaRead: "legacy brief text",
+      }),
+    ).toBe("legacy brief text");
   });
 
   it("formats factual brief section without AI", () => {
@@ -120,26 +147,38 @@ describe("kotaReadBrief", () => {
     expect(prompt).toContain("Guided");
   });
 
-  it("filters session memory to the last 90 days", () => {
-    const filtered = filterSessionMemoryForKotaRead(
-      [
-        {
-          conversationId: "old",
-          closedAt: "2026-01-01T12:00:00.000Z",
-          topic: "old",
-          summaryStub: "old theme",
-        },
-        {
-          conversationId: "new",
-          closedAt: "2026-07-01T12:00:00.000Z",
-          topic: "new",
-          summaryStub: "new theme",
-        },
-      ],
-      new Date("2026-07-15T12:00:00.000Z"),
-    );
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0]?.conversationId).toBe("new");
+  it("includes full Prompt 6 guidance including crisis_prone", () => {
+    expect(KOTA_READ_SYSTEM_PROMPT).toContain("coach-to-coach");
+    expect(KOTA_READ_JSON_INSTRUCTIONS).toContain("crisis_prone");
+    expect(KOTA_READ_JSON_INSTRUCTIONS).toContain("Observation period is early");
+    expect(KOTA_READ_JSON_INSTRUCTIONS).toContain("violation of the trust");
+    expect(KOTA_READ_JSON_INSTRUCTIONS).toContain("confidence_note");
+  });
+
+  it("filters session memory to the last 5 sessions (not 90-day window)", () => {
+    const records = Array.from({ length: 7 }, (_, index) => ({
+      conversationId: `c${index}`,
+      closedAt: `2026-0${index + 1}-01T12:00:00.000Z`,
+      topic: `topic-${index}`,
+      summaryStub: `summary-${index}`,
+    }));
+    const filtered = filterSessionMemoryForKotaRead(records, new Date("2026-08-01T12:00:00.000Z"));
+    expect(filtered).toHaveLength(5);
+    expect(filtered[0]?.conversationId).toBe("c2");
+    expect(filtered[4]?.conversationId).toBe("c6");
+  });
+
+  it("compresses session memory under the ~600-token char budget", () => {
+    const records = Array.from({ length: 5 }, (_, index) => ({
+      conversationId: `c${index}`,
+      closedAt: `2026-07-0${index + 1}T12:00:00.000Z`,
+      topic: "Theme ".repeat(40),
+      summaryStub: "Detail ".repeat(80),
+      keyPatternOrInsight: "Pattern ".repeat(40),
+    }));
+    const compressed = compressSessionMemoryForKotaRead(records);
+    expect(compressed.length).toBeLessThanOrEqual(KOTA_READ_MEMORY_MAX_CHARS);
+    expect(compressed.endsWith("…")).toBe(true);
   });
 
   it("resolves open commitment line from session memory", () => {

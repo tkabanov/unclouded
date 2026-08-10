@@ -51,7 +51,7 @@ Set these **Supabase Edge Function secrets** (Dashboard → Edge Functions → S
 | `SENDGRID_API_KEY` | yes (to send) | SendGrid API key with Mail Send permission |
 | `SENDGRID_FROM_EMAIL` | no | Defaults to `noreply@uncloud360.ai` |
 | `SENDGRID_FROM_NAME` | no | Defaults to `Uncloud360` |
-| `COACH_BRIEF_INBOX` | for Kota's Read | Comma-separated coach/ops inboxes |
+| `COACH_BRIEF_INBOX` | for Kota's Read fallback | Comma-separated coach/ops inboxes when `assignedCoachEmail` on booking is null |
 | `OPS_NOTIFY_EMAIL` | for Prompt 5 fail escalate | Ops inbox (falls back to `COACH_BRIEF_INBOX`) |
 
 Until `SENDGRID_API_KEY` is set, edge functions **stamp cohorts** and return `smtp:skipped — SENDGRID_API_KEY not set` (no crash).

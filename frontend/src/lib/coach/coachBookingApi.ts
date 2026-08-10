@@ -80,7 +80,7 @@ async function generateKotaRead(
       body: JSON.stringify({ bookingId, bookingTable }),
     });
     if (!response.ok) return null;
-    const payload = (await response.json()) as { kotaRead?: string };
+    const payload = (await response.json()) as { kotaRead?: string; kotaReadJson?: unknown };
     return typeof payload.kotaRead === "string" && payload.kotaRead.trim()
       ? payload.kotaRead.trim()
       : null;

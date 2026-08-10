@@ -244,5 +244,6 @@ describe("kotaReadBrief Prompt 6", () => {
     });
     expect(prompt).toContain("patterns_observed");
     expect(prompt).toContain("Exploratory");
+    expect(prompt).toContain("crisis_prone");
   });
 });
