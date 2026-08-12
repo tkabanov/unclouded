@@ -489,10 +489,10 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | | |
 |---|---|
 | **Date** | 2026-08-12 |
-| **Overrides** | Prior settings-embedded Admin tab (`/settings?tab=admin`) + AdminRouteGuard locking admins to that route only; Lovable prototype admin IA (Overview / Users / Paths / Organizations only) |
+| **Overrides** | Prior settings-embedded Admin tab (`/settings?tab=admin`) + AdminRouteGuard locking admins to that route only; Lovable prototype admin IA (Overview / Users / Paths / Organizations only); earlier simple 4-KPI Overview |
 | **Authoritative spec** | Owner request — match Lovable admin UI; keep our extra admin features |
-| **Current behavior** | Dedicated `/admin` console with Lovable-style left sidebar (Overview, Users, Paths, Organizations + More: Analytics, Resources, Insights, Plans, Outreach, Coach briefs, Reassessments, Prompt Tests). User detail at `/admin/users/:id` uses Lovable card layout while retaining flags/activity, credit ledger, About you, deactivate, etc. Admins may use the main app via **Back to app**; Settings is Profile / Security only (subscription is OVR-051). Legacy `/settings?tab=admin` redirects to `/admin`. |
-| **Code** | `frontend/src/pages/AdminConsole.tsx`, `frontend/src/components/admin/AdminLayout.tsx`, `frontend/src/components/admin/AdminSidebar.tsx`, `frontend/src/lib/settings/isSettingsAdminUser.ts`, `frontend/src/components/admin/AdminRouteGuard.tsx` |
+| **Current behavior** | Dedicated `/admin` console with Lovable-style left sidebar (Overview, Users, Paths, Organizations + More: Analytics, Resources, Insights, Plans, Outreach, Coach briefs, Reassessments, Prompt Tests). **Overview** matches Lovable preview engagement dashboard (DAU/MAU, median sessions, path completion, seat utilization, subscription pie, classification bars, crisis volume, assessment deltas) while Analytics/etc. stay under More. User detail at `/admin/users/:id` uses Lovable card layout while retaining flags/activity, credit ledger, About you, deactivate, etc. Admins may use the main app via **Back to app**; Settings is Profile / Security only (subscription is OVR-051). Legacy `/settings?tab=admin` redirects to `/admin`. |
+| **Code** | `frontend/src/pages/AdminConsole.tsx`, `frontend/src/components/admin/AdminLayout.tsx`, `frontend/src/components/admin/AdminSidebar.tsx`, `frontend/src/components/settings/admin/AdminOverviewTab.tsx`, `frontend/src/lib/settings/admin/adminOverviewApi.ts`, `frontend/src/lib/settings/isSettingsAdminUser.ts`, `frontend/src/components/admin/AdminRouteGuard.tsx` |
 
 ### OVR-049 — Restore Dashboard Coaching Insights card (pill design)
 
@@ -523,4 +523,14 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Authoritative spec** | Owner request — match Lovable sidebar **Subscription** item at `/subscription` |
 | **Current behavior** | Primary sidebar includes **Subscription** (between Paths and Settings). Plan/billing UI renders on `/subscription` with Lovable-style **Plans & subscription** header, Monthly/Yearly toggle, feature comparison matrix, and Founding Member banner. Settings tabs are Profile / Security only. Legacy `/settings?tab=subscription` and `/settings/subscription` redirect to `/subscription` (query params preserved). Stripe Checkout/Portal return URLs use `/subscription`. |
 | **Code** | `frontend/src/pages/Subscription.tsx`, `frontend/src/components/AppSidebar.tsx`, `frontend/src/lib/enums/navigation.ts`, `frontend/src/lib/subscription/routes.ts`, `frontend/src/lib/subscription/planComparisonMatrix.ts`, `frontend/src/components/subscription/SubscriptionComparisonTable.tsx`, `frontend/src/lib/router/authenticatedRoutes.tsx`, `supabase/functions/stripe-checkout/index.ts`, `supabase/functions/stripe-portal/index.ts` |
+
+### OVR-052 — Path CMS: media deferred; inline modules; Enabled/Disabled
+
+| | |
+|---|---|
+| **Date** | 2026-08-12 |
+| **Overrides** | Module 2 Path Content Management — Create Path form fields for media assets; separate sessions-only editor entry point |
+| **Authoritative spec** | Owner request — close Module 2 gaps without media upload; modules live in Create/Edit Path |
+| **Current behavior** | Admin Paths (`/admin` Paths): library by Free/Pro/Premium with quick filters for **tier** and **Enabled/Disabled**. Create/Edit Path dialog includes inline **Modules** (sessions: title, coaching text, Q1–Q3, micro-commitment, reassessment reflection) saved via `syncAdminPathSessions`. Visibility toggle is Enable/Disable (`path.isActive`) without deleting data. **Media assets** on paths/sessions are **not** implemented (no cover/upload fields). |
+| **Code** | `frontend/src/components/settings/admin/AdminPathsTab.tsx`, `frontend/src/components/settings/admin/AddPathPopup.tsx`, `frontend/src/components/settings/admin/AdminPathSessionFields.tsx`, `frontend/src/lib/settings/admin/adminPathSessionsApi.ts` |
 

@@ -11,6 +11,7 @@ import { ADMIN_SUB_TAB } from "@/lib/settings/admin/adminTabStore";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
+  BookOpen,
   Building2,
   ClipboardList,
   FileText,
@@ -18,7 +19,6 @@ import {
   LayoutDashboard,
   Library,
   Lightbulb,
-  Map,
   MessageSquareText,
   Sparkles,
   Users,
@@ -30,7 +30,7 @@ import { Link, useLocation } from "react-router-dom";
 const NAV_ICONS: Record<string, LucideIcon> = {
   [ADMIN_SUB_TAB.OVERVIEW]: LayoutDashboard,
   [ADMIN_SUB_TAB.USERS]: Users,
-  [ADMIN_SUB_TAB.PATHS]: Map,
+  [ADMIN_SUB_TAB.PATHS]: BookOpen,
   [ADMIN_SUB_TAB.WORKPLACES]: Building2,
   [ADMIN_SUB_TAB.ANALYTICS]: BarChart3,
   [ADMIN_SUB_TAB.RESOURCES]: Library,

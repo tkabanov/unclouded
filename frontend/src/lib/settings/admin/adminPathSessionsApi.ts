@@ -26,6 +26,13 @@ export interface AdminPathSessionFormState {
   questions: [string, string, string];
 }
 
+/** Draft used by Create/Edit Path form; sessionId set when editing an existing row. */
+export type AdminPathSessionDraft = AdminPathSessionFormState & {
+  sessionId?: string;
+  /** Stable client key for React lists (new modules before save). */
+  clientKey: string;
+};
+
 type PathsessionRow = {
   id?: string;
   pathId?: string;
@@ -173,6 +180,23 @@ export function adminPathSessionFormFromRecord(
   };
 }
 
+export function emptyAdminPathSessionDraft(): AdminPathSessionDraft {
+  return {
+    ...emptyAdminPathSessionForm(),
+    clientKey: crypto.randomUUID(),
+  };
+}
+
+export function adminPathSessionDraftFromRecord(
+  session: AdminPathSessionRecord,
+): AdminPathSessionDraft {
+  return {
+    ...adminPathSessionFormFromRecord(session),
+    sessionId: session.sessionId,
+    clientKey: session.sessionId,
+  };
+}
+
 async function replaceSessionQuestions(
   sessionId: string,
   questions: string[],
@@ -293,6 +317,78 @@ export async function deleteAdminPathSession(
     .eq("pathId", pathId);
 
   if (sessionError) throw sessionError;
+
+  await syncPathSessionsCount(pathId);
+}
+
+/**
+ * Replace path sessions to match drafts: delete removed, update existing, create new,
+ * reindex by array order, then refresh sessionsCount.
+ */
+export async function syncAdminPathSessions(
+  pathId: string,
+  drafts: AdminPathSessionDraft[],
+): Promise<void> {
+  for (const draft of drafts) {
+    if (!draft.title.trim()) {
+      throw new Error("Each module needs a title.");
+    }
+  }
+
+  const existing = await fetchAdminPathSessions(pathId);
+  const keepIds = new Set(
+    drafts.map((draft) => draft.sessionId).filter((id): id is string => Boolean(id)),
+  );
+
+  for (const session of existing) {
+    if (!keepIds.has(session.sessionId)) {
+      await deleteAdminPathSession(pathId, session.sessionId);
+    }
+  }
+
+  const client = supabase as unknown as UntypedSupabase;
+
+  for (let i = 0; i < drafts.length; i += 1) {
+    const draft = drafts[i];
+    const index = i + 1;
+    const title = draft.title.trim();
+    const coachingText = draft.coachingText.trim();
+    const microCommitment = draft.microCommitment.trim();
+    const reassessmentReflectionQuestion =
+      draft.reassessmentReflectionQuestion.trim() || null;
+
+    if (draft.sessionId) {
+      const { error: updateError } = await client
+        .from("pathSession")
+        .update({
+          index,
+          title,
+          coachingText,
+          microCommitment,
+          reassessmentReflectionQuestion,
+        } as never)
+        .eq("id", draft.sessionId)
+        .eq("pathId", pathId);
+
+      if (updateError) throw updateError;
+      await replaceSessionQuestions(draft.sessionId, normalizeQuestions(draft.questions));
+      continue;
+    }
+
+    const sessionId = crypto.randomUUID();
+    const { error: insertError } = await client.from("pathSession").insert({
+      id: sessionId,
+      pathId,
+      index,
+      title,
+      coachingText,
+      microCommitment,
+      reassessmentReflectionQuestion,
+    } as never);
+
+    if (insertError) throw insertError;
+    await replaceSessionQuestions(sessionId, normalizeQuestions(draft.questions));
+  }
 
   await syncPathSessionsCount(pathId);
 }
