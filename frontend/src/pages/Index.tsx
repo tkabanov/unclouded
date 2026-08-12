@@ -43,6 +43,7 @@ import { TIER } from "@/lib/enums/tier";
 import {
   LANDING_MONTHLY_PRICES,
   LANDING_PLAN_BULLETS,
+  LANDING_YEARLY_PRICES,
   planCatalogEntry,
 } from "@/lib/subscription/planCatalog";
 
@@ -549,6 +550,9 @@ const Index = () => {
                     <span className="opacity-80"> /month</span>
                   </div>
                   <p className="text-sm opacity-90">
+                    Or ${LANDING_YEARLY_PRICES.pro}/year — save 2 months
+                  </p>
+                  <p className="text-sm opacity-90">
                     Founding Member: ${LANDING_MONTHLY_PRICES.foundingPro}/mo for your first 12 months
                     (first 100 members).
                   </p>
@@ -612,6 +616,9 @@ const Index = () => {
                     </span>
                     <span className="text-muted-foreground"> /month</span>
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    Or ${LANDING_YEARLY_PRICES.premium}/year — save 2 months
+                  </p>
                   <p className="text-sm text-muted-foreground">{planCatalogEntry(TIER.PREMIUM).tagline}</p>
                   <ul className="space-y-3 pt-1">
                     {LANDING_PLAN_BULLETS[TIER.PREMIUM].map((f) => (

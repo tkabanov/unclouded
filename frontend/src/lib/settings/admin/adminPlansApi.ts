@@ -10,8 +10,7 @@ export const ADMIN_PLANS_ONBOARDING_KEY = "admin_plans" as const;
 const SEEDED_PLAN_IDS = new Set<TierSlug>([TIER.FREE, TIER.PRO, TIER.PREMIUM]);
 
 /**
- * Offline fallback only. Live monthly amounts are in `subscriptionPlanPrice`;
- * yearly amounts are deliberately absent while the client confirms them.
+ * Offline fallback only. Live amounts are in `subscriptionPlanPrice` (monthly and yearly).
  */
 const STATIC_MONTHLY_PRICES: Record<TierSlug, number> = {
   [TIER.FREE]: 0,

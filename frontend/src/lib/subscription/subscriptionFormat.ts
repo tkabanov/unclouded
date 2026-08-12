@@ -69,3 +69,40 @@ export function formatPlanPrice(price: PlanPrice | null): string {
   if (!price || price.amountCents === null) return "TBD";
   return formatMoneyFromCents(price.amountCents, price.currency) ?? "TBD";
 }
+
+/** Effective monthly rate and savings vs paying monthly for 12 months. */
+export function formatYearlySavingsNote(
+  yearlyPrice: PlanPrice | null,
+  monthlyPrice: PlanPrice | null,
+): string | null {
+  if (
+    !yearlyPrice?.amountCents ||
+    !monthlyPrice?.amountCents ||
+    yearlyPrice.billingInterval !== "year" ||
+    monthlyPrice.billingInterval !== "month"
+  ) {
+    return null;
+  }
+
+  const monthsFree = Math.round(
+    (monthlyPrice.amountCents * 12 - yearlyPrice.amountCents) / monthlyPrice.amountCents,
+  );
+  if (monthsFree <= 0) return null;
+
+  const monthlyEquivalent = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: yearlyPrice.currency.toUpperCase(),
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(yearlyPrice.amountCents / 12 / 100);
+  const annualAtMonthly = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: monthlyPrice.currency.toUpperCase(),
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format((monthlyPrice.amountCents * 12) / 100);
+  if (!monthlyEquivalent || !annualAtMonthly) return null;
+
+  const freeLabel = monthsFree === 1 ? "1 month free" : `${monthsFree} months free`;
+  return `${monthlyEquivalent}/mo — ${freeLabel} vs ${annualAtMonthly} at monthly`;
+}

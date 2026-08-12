@@ -28,8 +28,8 @@ const { createClient } = require("@supabase/supabase-js");
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "https://szkextipgpupqoppccoy.supabase.co";
 
-const PRO_CENTS = Number.parseInt(process.env.YEARLY_PRO_AMOUNT_CENTS ?? "", 10);
-const PREMIUM_CENTS = Number.parseInt(process.env.YEARLY_PREMIUM_AMOUNT_CENTS ?? "", 10);
+const PRO_CENTS = Number.parseInt(process.env.YEARLY_PRO_AMOUNT_CENTS ?? "29000", 10);
+const PREMIUM_CENTS = Number.parseInt(process.env.YEARLY_PREMIUM_AMOUNT_CENTS ?? "79000", 10);
 const PRO_PRICE_ID = process.env.YEARLY_PRO_STRIPE_PRICE_ID?.trim() || null;
 const PREMIUM_PRICE_ID = process.env.YEARLY_PREMIUM_STRIPE_PRICE_ID?.trim() || null;
 

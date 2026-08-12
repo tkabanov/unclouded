@@ -39,7 +39,7 @@ import {
   UPGRADE_PAYMENT_FAILED_MESSAGE,
 } from "@/lib/subscription/subscriptionCopy";
 import { buildCurrentPlanDetails } from "@/lib/subscription/subscriptionPlanDetails";
-import { findPlanPrice } from "@/lib/subscription/subscriptionFormat";
+import { findPlanPrice, formatYearlySavingsNote, isIntervalAvailable } from "@/lib/subscription/subscriptionFormat";
 import {
   lockedFeature,
   shouldShowUpsell,
@@ -655,5 +655,51 @@ describe("Founding Member UI (E2E SUB-FM fixes)", () => {
     ];
     expect(findPlanPrice(prices, "pro", "month", true)?.amountCents).toBe(1900);
     expect(findPlanPrice(prices, "pro", "month", false)?.amountCents).toBe(2900);
+  });
+
+  it("yearly interval is available once active yearly prices exist", () => {
+    const prices = [
+      {
+        tierSlug: "pro" as const,
+        billingInterval: "year" as const,
+        amountCents: 29000,
+        currency: "usd",
+        isFoundingRate: false,
+        isActive: true,
+      },
+      {
+        tierSlug: "premium" as const,
+        billingInterval: "year" as const,
+        amountCents: 79000,
+        currency: "usd",
+        isFoundingRate: false,
+        isActive: true,
+      },
+    ];
+    expect(isIntervalAvailable(prices, "year")).toBe(true);
+    expect(findPlanPrice(prices, "pro", "year", false)?.amountCents).toBe(29000);
+    expect(findPlanPrice(prices, "premium", "year", false)?.amountCents).toBe(79000);
+  });
+
+  it("formatYearlySavingsNote shows effective monthly rate and months free", () => {
+    const yearly = {
+      tierSlug: "pro" as const,
+      billingInterval: "year" as const,
+      amountCents: 29000,
+      currency: "usd",
+      isFoundingRate: false,
+      isActive: true,
+    };
+    const monthly = {
+      tierSlug: "pro" as const,
+      billingInterval: "month" as const,
+      amountCents: 2900,
+      currency: "usd",
+      isFoundingRate: false,
+      isActive: true,
+    };
+    expect(formatYearlySavingsNote(yearly, monthly)).toBe(
+      "$24.17/mo — 2 months free vs $348 at monthly",
+    );
   });
 });

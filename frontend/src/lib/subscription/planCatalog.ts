@@ -9,9 +9,8 @@
  * own card description says "3 Free-tier guided coaching paths". The detailed
  * card description wins here until the client confirms the path counts.
  *
- * Prices are NOT defined here — they come from `subscriptionPlanPrice` via
- * `get_my_subscription_overview`, so the yearly amounts stay TBD instead of
- * being derived from the monthly ones.
+ * Live prices come from `subscriptionPlanPrice` via `get_my_subscription_overview`.
+ * Marketing constants below are display-only; Settings and checkout use DB amounts.
  */
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 
@@ -129,12 +128,17 @@ export function planCatalogEntry(tier: TierSlug): PlanCatalogEntry {
   return entry;
 }
 
-/** Static monthly prices for marketing pages; Settings uses DB prices via overview RPC. */
+/** Static prices for marketing pages; Settings uses DB prices via overview RPC. */
 export const LANDING_MONTHLY_PRICES = {
   free: 0,
   pro: 29,
   premium: 79,
   foundingPro: 19,
+} as const;
+
+export const LANDING_YEARLY_PRICES = {
+  pro: 290,
+  premium: 790,
 } as const;
 
 /** Short feature bullets for the landing pricing section (aligned with card descriptions). */

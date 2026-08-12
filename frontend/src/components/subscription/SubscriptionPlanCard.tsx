@@ -25,6 +25,8 @@ export interface SubscriptionPlanCardProps {
   tier: TierSlug;
   price: string;
   priceSuffix: string;
+  /** Shown under the price when yearly billing saves vs monthly. */
+  priceNote?: string | null;
   state: PlanCardState;
   /** Renders the Founding Member label pair instead of the plain Pro heading. */
   showFoundingLabel?: boolean;
@@ -47,6 +49,7 @@ export default function SubscriptionPlanCard({
   tier,
   price,
   priceSuffix,
+  priceNote = null,
   state,
   showFoundingLabel = false,
   details = [],
@@ -94,6 +97,9 @@ export default function SubscriptionPlanCard({
         <div>
           <span className="text-3xl font-extrabold">{price}</span>
           {priceSuffix ? <span className="text-muted-foreground">{priceSuffix}</span> : null}
+          {priceNote ? (
+            <p className="mt-1 text-xs text-muted-foreground">{priceNote}</p>
+          ) : null}
         </div>
 
         <p className="text-sm text-muted-foreground">{catalog.tagline}</p>

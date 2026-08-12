@@ -50,6 +50,7 @@ import {
   findPlanPrice,
   formatPlanPrice,
   formatSubscriptionDate,
+  formatYearlySavingsNote,
   isIntervalAvailable,
 } from "@/lib/subscription/subscriptionFormat";
 import { resolvePlanCardState } from "@/lib/subscription/subscriptionActions";
@@ -558,6 +559,18 @@ export default function SettingsSubscriptionTab() {
                     interval,
                     tier === TIER.PRO ? presentProAsFounding : activeRecord.isFoundingMember,
                   );
+            const priceNote =
+              tier !== TIER.FREE && interval === "year"
+                ? formatYearlySavingsNote(
+                    price,
+                    findPlanPrice(
+                      prices,
+                      tier,
+                      "month",
+                      tier === TIER.PRO ? presentProAsFounding : activeRecord.isFoundingMember,
+                    ),
+                  )
+                : null;
 
             const freePlanNotice =
               tier === TIER.FREE && effectiveTier !== TIER.FREE
@@ -570,6 +583,7 @@ export default function SettingsSubscriptionTab() {
                 tier={tier}
                 price={tier === TIER.FREE ? "$0" : formatPlanPrice(price)}
                 priceSuffix={tier === TIER.FREE ? "" : BILLING_INTERVAL_SUFFIX[interval]}
+                priceNote={priceNote}
                 state={state}
                 showFoundingLabel={tier === TIER.PRO && presentProAsFounding}
                 details={state.isCurrent ? buildCurrentPlanDetails(activeRecord) : []}

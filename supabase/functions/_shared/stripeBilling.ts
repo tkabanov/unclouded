@@ -2,9 +2,8 @@
  * Stripe wiring shared by the subscription edge functions.
  *
  * Price IDs live in `subscriptionPlanPrice` rather than in env vars so the
- * Founding Member rate and the (still TBD) yearly rates can be managed without
- * a redeploy. Amounts shown to the user always come from Stripe — never
- * computed in the app.
+ * Founding Member rate and yearly rates can be managed without a redeploy.
+ * Amounts shown to the user always come from Stripe — never computed in the app.
  */
 import Stripe from "npm:stripe@17.7.0";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
