@@ -9,13 +9,12 @@ import PaymentIssueBanner from "@/components/subscription/PaymentIssueBanner";
 import PremiumCreditsCard from "@/components/subscription/PremiumCreditsCard";
 import PremiumUpgradeDialog from "@/components/subscription/PremiumUpgradeDialog";
 import ReassessmentAvailabilityCards from "@/components/settings/ReassessmentAvailabilityCards";
+import SubscriptionComparisonTable from "@/components/subscription/SubscriptionComparisonTable";
 import SubscriptionConfirmDialog from "@/components/subscription/SubscriptionConfirmDialog";
-import SubscriptionPlanCard from "@/components/subscription/SubscriptionPlanCard";
 import { Button } from "@/components/ui/button";
 import { useSubscriptionFlow } from "@/hooks/useSubscriptionFlow";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
-import { getTierSubscriptionLabel } from "@/lib/enums/subscription";
 import { useUserProfile } from "@/lib/userProfile";
 import { isFoundingEligible, capturePlanFromSearch, peekPendingSignupPlan } from "@/lib/share/planAttribution";
 import {
@@ -33,11 +32,9 @@ import {
   PAYMENT_RECOVERED_MESSAGE,
   resumeDialogCopy,
   scheduledCancelStatusLabel,
-  subscriptionSummaryForRecord,
 } from "@/lib/subscription/subscriptionCopy";
 import {
   reconcileCheckoutReturn,
-  startSuccessPlanAddonCheckout,
   syncBillingFromStripe,
 } from "@/lib/subscription/subscriptionApi";
 import {
@@ -46,6 +43,7 @@ import {
   isRecoveredSubscriptionStatus,
 } from "@/lib/subscription/paymentRecoveryNotice";
 import {
+  BILLING_INTERVAL_LABELS,
   BILLING_INTERVAL_SUFFIX,
   findPlanPrice,
   formatPlanPrice,
@@ -54,7 +52,6 @@ import {
   isIntervalAvailable,
 } from "@/lib/subscription/subscriptionFormat";
 import { resolvePlanCardState } from "@/lib/subscription/subscriptionActions";
-import { buildCurrentPlanDetails } from "@/lib/subscription/subscriptionPlanDetails";
 import {
   FREE_SUBSCRIPTION_RECORD,
   resolveCreditsExpireAt,
@@ -64,8 +61,7 @@ import {
   resolveAccessEndsAt,
   type BillingInterval,
 } from "@/lib/subscription/subscriptionState";
-import { bubbleStyle } from "@/styles";
-import { cn } from "@/lib/utils";
+import { ShieldCheck } from "lucide-react";
 
 const PLAN_TIERS: readonly TierSlug[] = [TIER.FREE, TIER.PRO, TIER.PREMIUM];
 
@@ -106,7 +102,6 @@ export default function SettingsSubscriptionTab() {
   const [checkoutSuccessNotice, setCheckoutSuccessNotice] = useState<string | null>(
     readStoredCheckoutNotice,
   );
-  const [successPlanCheckoutBusy, setSuccessPlanCheckoutBusy] = useState(false);
 
   const showCheckoutNotice = (message: string, kind: "success" | "pending") => {
     persistCheckoutNotice(message);
@@ -393,38 +388,63 @@ export default function SettingsSubscriptionTab() {
     return <div className="text-sm text-destructive">{error}</div>;
   }
 
+  const comparisonColumns = PLAN_TIERS.map((tier) => {
+    const state = resolvePlanCardState({
+      cardTier: tier,
+      record: activeRecord,
+      accountType: overview?.accountType,
+    });
+    const price =
+      tier === TIER.FREE
+        ? null
+        : findPlanPrice(prices, tier, interval, activeRecord.isFoundingMember);
+    const priceNote =
+      tier !== TIER.FREE && interval === "year"
+        ? formatYearlySavingsNote(
+            price,
+            findPlanPrice(prices, tier, "month", activeRecord.isFoundingMember),
+          )
+        : null;
+
+    return {
+      tier,
+      price: tier === TIER.FREE ? "$0" : formatPlanPrice(price),
+      priceSuffix: tier === TIER.FREE ? "/month" : BILLING_INTERVAL_SUFFIX[interval],
+      priceNote,
+      showFoundingLabel: tier === TIER.PRO && activeRecord.isFoundingMember,
+      state,
+      scheduledCancelStatus:
+        state.isCurrent && state.primary.kind === "resume" ? scheduledCancelBadgeLabel : null,
+      pendingLabel:
+        state.primary.kind === "cancel"
+          ? flow.pendingLabelFor("cancel")
+          : state.primary.kind === "resume"
+            ? flow.pendingLabelFor("resume")
+            : state.primary.kind === "downgradeToPro"
+              ? flow.pendingLabelFor("scheduleDowngrade")
+              : state.primary.kind === "keepPremium"
+                ? flow.pendingLabelFor("cancelDowngrade")
+                : state.primary.kind === "upgradeToPremium"
+                  ? flow.pendingLabelFor("upgradeToPremium")
+                  : flow.pendingLabelFor("startCheckout"),
+    };
+  });
+
+  const foundingProPrice = findPlanPrice(prices, TIER.PRO, "month", true);
+  const standardProPrice = findPlanPrice(prices, TIER.PRO, "month", false);
+
   return (
     <div className="flex flex-col gap-6">
       {showCheckoutSuccessBanner ? (
         <CheckoutSuccessBanner message={checkoutNotice} onDismiss={dismissCheckoutNotice} />
       ) : null}
 
-      <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}>
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className={bubbleStyle("Text_heading_3_")}>Your subscription</h2>
-            <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
-              Manage your plan and billing preferences.
-            </p>
-          </div>
-          <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-            {activeRecord.isFoundingMember ? planName : getTierSubscriptionLabel(effectiveTier)}
-          </span>
-        </header>
-
-        {isEnterprise ? (
-          <p className="text-sm text-muted-foreground">
-            Your employer provides Unclouded through an enterprise contract. Session limits and
-            individual checkout are disabled for your account.
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            {effectiveTier === TIER.FREE
-              ? "Upgrade to unlock unlimited coaching, premium paths, and reassessment."
-              : subscriptionSummaryForRecord(planName, activeRecord)}
-          </p>
-        )}
-      </div>
+      {isEnterprise ? (
+        <div className="rounded-xl border border-border bg-muted/30 p-5 text-sm text-muted-foreground">
+          Your employer provides Unclouded through an enterprise contract. Session limits and
+          individual checkout are disabled for your account.
+        </div>
+      ) : null}
 
       {!isEnterprise && activeRecord.status === "pastDue" ? (
         <PaymentIssueBanner
@@ -443,20 +463,6 @@ export default function SettingsSubscriptionTab() {
             {foundingPricingNotice(
               formatSubscriptionDate(activeRecord.foundingDiscountEndsAt) ?? "your renewal date",
             )}
-          </p>
-        </div>
-      ) : null}
-
-      {!isEnterprise &&
-      foundingCampaignEligible &&
-      !activeRecord.isFoundingMember &&
-      effectiveTier === TIER.FREE ? (
-        <div className="rounded-xl border border-border bg-muted/40 p-5 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">Founding Member offer</p>
-          <p className="mt-1">
-            {foundingSlotsRemaining > 0
-              ? foundingSlotsRemainingMessage(foundingSlotsRemaining)
-              : FOUNDING_SLOTS_FULL_MESSAGE}
           </p>
         </div>
       ) : null}
@@ -483,156 +489,91 @@ export default function SettingsSubscriptionTab() {
       ) : null}
 
       {!isEnterprise && (effectiveTier === TIER.PRO || effectiveTier === TIER.PREMIUM) ? (
-        <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-5")}>
-          <div className="space-y-1">
-            <h3 className={bubbleStyle("Text_heading_3_")}>Success Plan add-on</h3>
-            <p className="text-sm text-muted-foreground">
-              One-time purchase unlocks all 7 Success Plans. Self-serve access stays active while
-              you remain on Pro or Premium.
+        overview?.successPlanAddon.active ? (
+          <div className="rounded-xl border border-border bg-muted/30 p-5">
+            <h3 className="text-base font-semibold text-foreground">Success Plan access</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Your Success Plans are unlocked. You can start any of the seven Success Plans from the
+              library.
             </p>
           </div>
-          {overview?.successPlanAddon.active ? (
-            <p className="text-sm font-medium text-foreground">Add-on active</p>
-          ) : (
-            <Button
-              type="button"
-              disabled={successPlanCheckoutBusy}
-              onClick={() => {
-                void (async () => {
-                  setSuccessPlanCheckoutBusy(true);
-                  try {
-                    const result = await startSuccessPlanAddonCheckout();
-                    if (result.status === "redirect") {
-                      window.location.assign(result.url);
-                      return;
-                    }
-                    toast.error(result.message);
-                    if (result.status !== "already_purchased") return;
-                    await refreshOverview();
-                  } catch (err) {
-                    toast.error(
-                      err instanceof Error
-                        ? err.message
-                        : "Couldn't start Success Plan checkout.",
-                    );
-                  } finally {
-                    setSuccessPlanCheckoutBusy(false);
-                  }
-                })();
-              }}
-            >
-              {overview?.successPlanAddon.amountCents != null
-                ? `Purchase add-on · $${(overview.successPlanAddon.amountCents / 100).toFixed(
-                    overview.successPlanAddon.amountCents % 100 === 0 ? 0 : 2,
-                  )}`
-                : "Purchase Success Plan add-on"}
-            </Button>
-          )}
-        </div>
+        ) : null
       ) : null}
 
-      {!isEnterprise ? <BillingIntervalToggle
-        value={interval}
-        availableIntervals={availableIntervals}
-        onChange={setInterval}
-      /> : null}
+      {!isEnterprise ? (
+        <BillingIntervalToggle
+          value={interval}
+          availableIntervals={availableIntervals}
+          onChange={setInterval}
+        />
+      ) : null}
 
       {!isEnterprise ? (
-        <div
-          className={cn(
-            bubbleStyle("RepeatingGroup_list_"),
-            "grid items-start gap-4 md:grid-cols-3",
-          )}
-        >
-          {PLAN_TIERS.map((tier) => {
-            const state = resolvePlanCardState({
-              cardTier: tier,
-              record: activeRecord,
-              accountType: overview?.accountType,
-            });
-            const price =
-              tier === TIER.FREE
-                ? null
-                : findPlanPrice(
-                    prices,
-                    tier,
-                    interval,
-                    tier === TIER.PRO ? presentProAsFounding : activeRecord.isFoundingMember,
-                  );
-            const priceNote =
-              tier !== TIER.FREE && interval === "year"
-                ? formatYearlySavingsNote(
-                    price,
-                    findPlanPrice(
-                      prices,
-                      tier,
-                      "month",
-                      tier === TIER.PRO ? presentProAsFounding : activeRecord.isFoundingMember,
-                    ),
-                  )
-                : null;
+        <SubscriptionComparisonTable
+          columns={comparisonColumns}
+          disabled={!!flow.pendingAction}
+          onAction={flow.handlePlanCardAction}
+          billingIntervalLabel={BILLING_INTERVAL_LABELS[interval].toLowerCase()}
+        />
+      ) : null}
 
-            const freePlanNotice =
-              tier === TIER.FREE && effectiveTier !== TIER.FREE
-                ? "You'll move to Free automatically when your paid access ends. To end renewal sooner, cancel your current plan above."
-                : undefined;
-
-            return (
-              <SubscriptionPlanCard
-                key={tier}
-                tier={tier}
-                price={tier === TIER.FREE ? "$0" : formatPlanPrice(price)}
-                priceSuffix={tier === TIER.FREE ? "" : BILLING_INTERVAL_SUFFIX[interval]}
-                priceNote={priceNote}
-                state={state}
-                showFoundingLabel={tier === TIER.PRO && presentProAsFounding}
-                details={state.isCurrent ? buildCurrentPlanDetails(activeRecord) : []}
-                notice={freePlanNotice}
-                scheduledCancelStatus={
-                  state.isCurrent && state.primary.kind === "resume"
-                    ? scheduledCancelBadgeLabel
-                    : null
-                }
-                pendingLabel={
-                  state.primary.kind === "cancel"
-                    ? flow.pendingLabelFor("cancel")
-                    : state.primary.kind === "resume"
-                      ? flow.pendingLabelFor("resume")
-                      : state.primary.kind === "downgradeToPro"
-                        ? flow.pendingLabelFor("scheduleDowngrade")
-                        : state.primary.kind === "keepPremium"
-                          ? flow.pendingLabelFor("cancelDowngrade")
-                          : state.primary.kind === "upgradeToPremium"
-                            ? flow.pendingLabelFor("upgradeToPremium")
-                            : flow.pendingLabelFor("startCheckout")
-                }
-                disabled={!!flow.pendingAction}
-                onAction={flow.handlePlanCardAction}
-              />
-            );
-          })}
+      {!isEnterprise &&
+      foundingCampaignEligible &&
+      !activeRecord.isFoundingMember &&
+      effectiveTier === TIER.FREE ? (
+        <div className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <ShieldCheck className="h-5 w-5" aria-hidden />
+            </span>
+            <div className="space-y-1">
+              <p className="font-semibold text-foreground">
+                Founding Member — {formatPlanPrice(foundingProPrice)}
+                {BILLING_INTERVAL_SUFFIX.month}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {foundingSlotsRemaining > 0
+                  ? `Get Pro access at a discounted price for your first 12 months. Available only to the first 100 eligible users. Converts to standard Pro at ${formatPlanPrice(standardProPrice)}${BILLING_INTERVAL_SUFFIX.month} afterwards. ${foundingSlotsRemainingMessage(foundingSlotsRemaining)}`
+                  : FOUNDING_SLOTS_FULL_MESSAGE}
+              </p>
+            </div>
+          </div>
+          {foundingSlotsRemaining > 0 ? (
+            <Button
+              type="button"
+              className="shrink-0"
+              disabled={!!flow.pendingAction}
+              onClick={() =>
+                flow.handlePlanCardAction({
+                  kind: "upgrade",
+                  targetTier: TIER.PRO,
+                  label: "Become a Founding Member",
+                })
+              }
+            >
+              {flow.pendingLabelFor("startCheckout") ?? "Become a Founding Member"}
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
       {!isEnterprise && activeRecord.hasPaymentMethodOnFile ? (
-        <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-4 p-6")}>
-          <header className="space-y-1">
-            <h2 className={bubbleStyle("Text_heading_3_")}>Billing</h2>
-            <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-foreground">Billing</h2>
+            <p className="text-sm text-muted-foreground">
               Update your payment method, review invoices, and download receipts in the secure
               billing portal.
             </p>
-          </header>
-          <div>
-            <Button
-              type="button"
-              className={bubbleStyle("Button_primary_")}
-              disabled={!!flow.pendingAction}
-              onClick={flow.updatePaymentMethod}
-            >
-              {flow.pendingLabelFor("updatePaymentMethod") ?? "Manage billing"}
-            </Button>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!!flow.pendingAction}
+            onClick={flow.updatePaymentMethod}
+          >
+            {flow.pendingLabelFor("updatePaymentMethod") ?? "Manage billing"}
+          </Button>
         </div>
       ) : null}
 

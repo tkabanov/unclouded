@@ -24,5 +24,5 @@ Some features **intentionally differ** from the Bubble IR export, Lovable protot
 ## Examples
 
 - Signup is **single-step credentials** (OVR-001), not Bubble’s 3-step signup wizard.
-- Settings tabs are **Profile / Security / Subscription** only (OVR-003).
+- Settings tabs are **Profile / Security** only (OVR-003 / OVR-051); subscription is `/subscription` in the sidebar.
 - Profile **email is display-only** (OVR-002).

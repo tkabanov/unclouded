@@ -9,6 +9,7 @@ import {
   type JournalPreviewEntry,
 } from "@/lib/dashboard/journalPreviewApi";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 const MOOD_EMOJI: Record<string, string> = {
   Calm: "😌",
@@ -43,9 +44,7 @@ function JournalPreviewCell({ entry }: { entry: JournalPreviewEntry }) {
         "flex items-start justify-between gap-3 border-b border-border py-3 last:border-b-0",
       )}
     >
-      <div
-        className={cn(bubbleStyle("Group_transparent_"), "min-w-0 flex-1 space-y-1")}
-      >
+      <div className={cn(bubbleStyle("Group_transparent_"), "min-w-0 flex-1 space-y-1")}>
         <p
           data-style-ref="Text_label_"
           className={cn(bubbleStyle("Text_label_"), "truncate text-sm font-medium")}
@@ -63,7 +62,10 @@ function JournalPreviewCell({ entry }: { entry: JournalPreviewEntry }) {
       </div>
 
       <div
-        className={cn(bubbleStyle("Group_transparent_"), "flex shrink-0 flex-col items-end gap-1 text-right")}
+        className={cn(
+          bubbleStyle("Group_transparent_"),
+          "flex shrink-0 flex-col items-end gap-1 text-right",
+        )}
       >
         <p
           className={cn(
@@ -117,20 +119,14 @@ export default function DashboardJournalPreviewCard() {
       data-style-ref="Group_card_"
       className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4 p-5")}
     >
-      <div
-        className={cn(bubbleStyle("Group_transparent_"), "flex items-center justify-between gap-3")}
-      >
-        <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex min-w-0 items-center gap-2")}
-        >
-          <span className={cn(bubbleStyle("Icon_primary_"), "shrink-0")} aria-hidden>
-            <BookOpen className="h-5 w-5" />
-          </span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <BookOpen className="h-5 w-5 shrink-0 text-primary" aria-hidden />
           <p
             data-style-ref="Text_heading_3_"
             className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold")}
           >
-            Recent Journal
+            Recent journal
           </p>
         </div>
 
@@ -159,15 +155,17 @@ export default function DashboardJournalPreviewCard() {
         ) : entries.length > 0 ? (
           entries.map((entry) => <JournalPreviewCell key={entry.id} entry={entry} />)
         ) : (
-          <p
-            data-style-ref="Text_body_"
-            className={cn(
-              bubbleStyle("Text_body_"),
-              "py-2 text-center text-sm text-muted-foreground",
-            )}
-          >
-            No entries yet
-          </p>
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-4 py-6 text-center">
+            <p
+              data-style-ref="Text_body_"
+              className={cn(bubbleStyle("Text_body_"), "text-sm text-muted-foreground")}
+            >
+              No entries yet
+            </p>
+            <Button asChild type="button" variant="outline" size="sm">
+              <Link to="/journal">Write your first entry</Link>
+            </Button>
+          </div>
         )}
       </div>
     </div>

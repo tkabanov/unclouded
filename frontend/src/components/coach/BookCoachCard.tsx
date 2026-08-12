@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Crown, Sparkles } from "lucide-react";
+import { Crown, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DEFAULT_COACH_BOOKING_URL,
-} from "@/lib/coach/coachBookingConstants";
+import { DEFAULT_COACH_BOOKING_URL } from "@/lib/coach/coachBookingConstants";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
@@ -130,25 +128,30 @@ export default function BookCoachCard() {
     oneOnOne.kind === "insufficientCredits" ||
     oneOnOne.kind === "creditsUnavailable";
 
+  const oneOnOneLabel =
+    oneOnOne.kind === "locked"
+      ? "Book a 1:1 session"
+      : oneOnOne.label.replace("Session", "session").replace("Sessions", "sessions");
+
   return (
     <>
-      <Card className="border-primary/20 shadow-card">
+      <Card className="border-border/60 shadow-card">
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="h-4 w-4 text-primary" aria-hidden />
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <Users className="h-5 w-5 text-primary" aria-hidden />
             Human coaching
           </CardTitle>
-          <CardDescription className="text-xs">
+          <CardDescription className="text-sm">
             One group session a month comes with Pro. 1:1 sessions come with Premium credits.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-2 text-xs">
+        <CardContent className="space-y-2 text-sm">
           <Button
             type="button"
-            variant="outline"
+            variant={canGroup && !groupUsed ? "default" : "outline"}
             size="sm"
-            className="h-9 w-full justify-between px-3 text-xs"
+            className="h-10 w-full justify-between px-3"
             disabled={groupBusy || groupUsed}
             onClick={() => void handleGroupSession()}
           >
@@ -159,23 +162,30 @@ export default function BookCoachCard() {
                   ? "Requesting…"
                   : "Book a group session"}
             </span>
+            {!canGroup ? <Crown className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
           </Button>
 
           <div className="space-y-1">
             <Button
               type="button"
-              variant={oneOnOne.kind === "bookable" ? "cta" : "outline"}
+              variant={oneOnOne.kind === "bookable" ? "default" : "outline"}
               size="sm"
               className={cn(
-                "h-9 w-full justify-between px-3 text-xs",
+                "h-10 w-full justify-between px-3",
                 oneOnOne.kind === "bookable" && "shadow-sm",
               )}
               disabled={oneOnOneDisabled}
               onClick={() => void handleOneOnOneSession()}
             >
-              <span>{oneOnOneBusy ? "Preparing…" : oneOnOne.label}</span>
-              {oneOnOne.kind === "locked" ? (
-                <Crown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              <span>{oneOnOneBusy ? "Preparing…" : oneOnOneLabel}</span>
+              {oneOnOne.kind === "locked" || oneOnOne.kind === "bookable" ? (
+                <Crown
+                  className={cn(
+                    "h-3.5 w-3.5 shrink-0",
+                    oneOnOne.kind === "bookable" ? "text-primary-foreground" : "text-primary",
+                  )}
+                  aria-hidden
+                />
               ) : null}
             </Button>
             <p className="text-[11px] leading-snug text-muted-foreground">{oneOnOne.helper}</p>

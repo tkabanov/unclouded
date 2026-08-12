@@ -84,7 +84,7 @@ describe("kotaReadDelivery", () => {
       scheduledAt: "2026-07-20T15:00:00.000Z",
       factualSection,
       kotaRead: "KOTA'S READ — Coach handoff brief\n\nUnderneath\nSomething deeper.",
-      adminConsoleUrl: "https://uncloud360.ai/settings?tab=admin",
+      adminConsoleUrl: "https://uncloud360.ai/admin",
     });
 
     expect(subject).toContain("Alex");

@@ -5,6 +5,7 @@ import {
   MessageCircle,
   BookOpen,
   Compass,
+  CreditCard,
   Settings,
   Phone,
   MessageSquare,
@@ -36,6 +37,7 @@ const NAV_ICONS: Record<SidebarNavSlug, LucideIcon> = {
   chat: MessageCircle,
   journal: BookOpen,
   paths: Compass,
+  subscription: CreditCard,
   settings: Settings,
 };
 

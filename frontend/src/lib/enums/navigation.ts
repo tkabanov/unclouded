@@ -5,6 +5,7 @@ export const SIDEBAR_NAV = {
   CHAT: "chat",
   JOURNAL: "journal",
   PATHS: "paths",
+  SUBSCRIPTION: "subscription",
   SETTINGS: "settings",
 } as const;
 
@@ -15,6 +16,7 @@ export const SIDEBAR_NAV_LABELS: Record<SidebarNavSlug, string> = {
   chat: "Chat",
   journal: "Journal",
   paths: "Paths & Resources",
+  subscription: "Subscription",
   settings: "Settings",
 };
 
@@ -23,6 +25,7 @@ export const SIDEBAR_NAV_ROUTES: Record<SidebarNavSlug, string> = {
   chat: "/chat",
   journal: "/journal",
   paths: "/paths",
+  subscription: "/subscription",
   settings: "/settings",
 };
 
@@ -31,6 +34,7 @@ export const SIDEBAR_NAV_ORDER: readonly SidebarNavSlug[] = [
   SIDEBAR_NAV.CHAT,
   SIDEBAR_NAV.JOURNAL,
   SIDEBAR_NAV.PATHS,
+  SIDEBAR_NAV.SUBSCRIPTION,
   SIDEBAR_NAV.SETTINGS,
 ];
 

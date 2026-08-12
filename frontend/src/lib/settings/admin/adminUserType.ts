@@ -101,6 +101,10 @@ export type AdminUserDetail = {
   isActive: boolean;
   deactivatedAt: string | null;
   accountType: string;
+  /** Customer coaching / profile role label (Lovable “Role type”). */
+  customerRoleType?: string | null;
+  /** profiles.primaryPillar (Lovable “Primary pillar”). */
+  primaryPillar?: string | null;
   enterpriseTier: string | null;
   enrollmentDate: string | null;
   workplaceId: string | null;

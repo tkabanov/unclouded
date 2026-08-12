@@ -1,14 +1,35 @@
-import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, Route } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { bubbleStyle } from "@/styles";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Activity, CalendarDays, Heart, Layers, TrendingUp } from "lucide-react";
+
+import PulseSparkline from "@/components/dashboard/PulseSparkline";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchProgressSignals, type ProgressSignals } from "@/lib/dashboard/progressSignalsApi";
-import PulseSparkline from "@/components/dashboard/PulseSparkline";
+import { DASHBOARD_DAILY_CHECKIN_ID } from "@/lib/dashboard/routes";
 
-function formatSessionTrend(signals: ProgressSignals): string {
-  const { sessionsThisMonth, sessionsLastMonth } = signals;
-  return `${sessionsThisMonth} session${sessionsThisMonth === 1 ? "" : "s"} this month vs ${sessionsLastMonth} last month`;
+function MetricCard({
+  icon,
+  label,
+  value,
+  helper,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: ReactNode;
+  helper: string;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-border bg-card p-4">
+      <div className="flex items-center gap-1.5">
+        <span className="text-primary" aria-hidden>
+          {icon}
+        </span>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">{label}</p>
+      </div>
+      <div className="min-h-[2rem] text-lg font-bold leading-tight text-foreground">{value}</div>
+      <p className="text-xs text-muted-foreground">{helper}</p>
+    </div>
+  );
 }
 
 export default function DashboardProgressWidget() {
@@ -39,44 +60,79 @@ export default function DashboardProgressWidget() {
     void loadSignals();
   }, [loadSignals]);
 
+  const pulseEntries = signals?.pulseLast30Days ?? [];
+  const hasPulse = pulseEntries.length > 0;
+  const sessionsThisMonth = signals?.sessionsThisMonth ?? 0;
+  const sessionsLastMonth = signals?.sessionsLastMonth ?? 0;
+  const pathsCompleted = signals?.pathsCompletedSinceReassessment ?? 0;
+
+  const scrollToCheckIn = () => {
+    document.getElementById(DASHBOARD_DAILY_CHECKIN_ID)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
-    <div
-      data-style-ref="Group_card_"
-      className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4 p-5")}
-    >
-      <h2 className={cn(bubbleStyle("Text_heading_3_"), "text-lg")}>Your Progress</h2>
+    <div className="flex w-full flex-col gap-4 rounded-xl border border-border bg-card p-5 shadow-card md:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Activity className="h-5 w-5 text-primary" aria-hidden />
+          </span>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Your progress</h2>
+            <p className="text-sm text-muted-foreground">
+              A snapshot of your momentum since joining Unclouded.
+            </p>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="shrink-0 gap-1.5 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
+          onClick={scrollToCheckIn}
+        >
+          <TrendingUp className="h-3.5 w-3.5" aria-hidden />
+          View trends
+        </Button>
+      </div>
 
       {loading ? (
-        <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>Loading progress signals…</p>
+        <p className="text-sm text-muted-foreground">Loading progress signals…</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className={cn(bubbleStyle("Group_transparent_"), "flex flex-col gap-2 rounded-lg bg-accent/30 p-3")}>
-            <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>
-              Check-in pulse (30 days)
-            </p>
-            <PulseSparkline entries={signals?.pulseLast30Days ?? []} className="w-full max-w-[160px]" />
-          </div>
+          <MetricCard
+            icon={<Heart className="h-3.5 w-3.5" />}
+            label="Check-in pulse"
+            value={
+              hasPulse ? (
+                <PulseSparkline entries={pulseEntries} className="w-full max-w-[160px]" />
+              ) : (
+                <span aria-hidden>—</span>
+              )
+            }
+            helper={
+              hasPulse
+                ? "Last 30 days of check-ins"
+                : "Check in to start your 30-day trend"
+            }
+          />
 
-          <div className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-3 rounded-lg bg-accent/30 p-3")}>
-            <CalendarDays className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <div>
-              <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>Sessions</p>
-              <p className="text-sm font-semibold">
-                {signals ? formatSessionTrend(signals) : "0 sessions this month vs 0 last month"}
-              </p>
-            </div>
-          </div>
+          <MetricCard
+            icon={<CalendarDays className="h-3.5 w-3.5" />}
+            label="Sessions"
+            value={`${sessionsThisMonth} this month`}
+            helper={`vs ${sessionsLastMonth} last month`}
+          />
 
-          <div className={cn(bubbleStyle("Group_transparent_"), "flex items-start gap-3 rounded-lg bg-accent/30 p-3")}>
-            <Route className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <div>
-              <p className={cn(bubbleStyle("Text_label_"), "text-xs uppercase tracking-wide")}>Path momentum</p>
-              <p className="text-sm font-semibold">
-                {signals?.pathsCompletedSinceReassessment ?? 0} path
-                {(signals?.pathsCompletedSinceReassessment ?? 0) === 1 ? "" : "s"} completed since reassessment
-              </p>
-            </div>
-          </div>
+          <MetricCard
+            icon={<Layers className="h-3.5 w-3.5" />}
+            label="Path momentum"
+            value={`${pathsCompleted} completed`}
+            helper="Since your last assessment"
+          />
         </div>
       )}
     </div>

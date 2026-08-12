@@ -5,19 +5,17 @@ export function isSettingsAdminUser(roleType: string | null | undefined): boolea
   return roleType === "admin";
 }
 
-export const ADMIN_CONSOLE_ROUTE = "/settings?tab=admin" as const;
+/** Lovable-style dedicated admin console (OVR-048). */
+export const ADMIN_CONSOLE_ROUTE = "/admin" as const;
 
-export function isAdminAppLocation(pathname: string, tabParam: string | null): boolean {
-  if (pathname !== "/settings") return false;
-  if (!tabParam || tabParam === SETTINGS_TAB.ADMIN) return true;
-  return false;
+export function isAdminAppLocation(pathname: string, _tabParam?: string | null): boolean {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
 export function visibleSettingsTabs(
   roleType: string | null | undefined,
 ): SettingsTabSlug[] {
-  if (isSettingsAdminUser(roleType)) {
-    return [SETTINGS_TAB.ADMIN];
-  }
+  // Admins use `/admin` for console; Settings stays Profile / Security (OVR-051).
+  void roleType;
   return SETTINGS_TAB_ORDER.filter((tab) => tab !== SETTINGS_TAB.ADMIN);
 }

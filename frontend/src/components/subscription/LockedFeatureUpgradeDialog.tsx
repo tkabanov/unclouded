@@ -12,10 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
-import { SETTINGS_TAB } from "@/lib/settings/settingsTabStub";
-import { settingsPath } from "@/lib/settings/navigation";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { planCatalogEntry } from "@/lib/subscription/planCatalog";
+import { subscriptionPath } from "@/lib/subscription/routes";
 import {
   lockedFeature,
   upsellPlansFor,
@@ -121,7 +120,7 @@ export default function LockedFeatureUpgradeDialog({
             variant="cta"
             onClick={() => {
               onClose();
-              navigate(settingsPath(SETTINGS_TAB.SUBSCRIPTION));
+              navigate(subscriptionPath());
             }}
           >
             {plans.length === 1 && plans[0] === TIER.PREMIUM

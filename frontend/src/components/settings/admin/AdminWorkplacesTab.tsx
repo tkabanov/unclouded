@@ -185,32 +185,37 @@ export default function AdminWorkplacesTab() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div
-        className="flex flex-wrap items-center justify-between gap-3"
-      >
-        <h3 className={bubbleStyle("Text_heading_3_")}>
-          Workplaces
-        </h3>
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            Enterprise organizations
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Employees sign up with a normal account and enter their enrollment code in Settings.
+          </p>
+        </div>
         <Button
           type="button"
           className={bubbleStyle("Button_primary_")}
           onClick={() => setAddOpen(true)}
         >
-          Add workplace
+          New organization
         </Button>
-      </div>
+      </header>
 
       <AdminDataSourceNotice source={dataSource} entityLabel="workplaces" />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4">
         {workplaces.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No workplaces yet.</p>
+          <p className="text-sm text-muted-foreground">No organizations yet.</p>
         ) : (
           workplaces.map((workplace) => (
             <div
               key={workplace.workplaceId}
-              className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-3 p-4")}
+              className={cn(
+                "flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-sm",
+              )}
             >
               <div>
                 <h4 className="font-semibold">

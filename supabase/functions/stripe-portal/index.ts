@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     const session = await getStripe().billingPortal.sessions.create({
       customer: customerId,
       // `billing=portal` lets SettingsSubscriptionTab sync + show recovery copy.
-      return_url: `${origin}/settings?tab=subscription&billing=portal`,
+      return_url: `${origin}/subscription?billing=portal`,
     });
 
     return json({ status: "ok", url: session.url });

@@ -5,6 +5,7 @@ import EntryDetailPopup from "@/components/journal/EntryDetailPopup";
 import JournalEntriesTab from "@/components/journal/JournalEntriesTab";
 import JournalPageContent from "@/components/journal/JournalPageContent";
 import NewEntryPopup from "@/components/journal/NewEntryPopup";
+import SubscriptionUpgradeBannerGate from "@/components/subscription/SubscriptionUpgradeBannerGate";
 import { JOURNAL_MODULE_ID } from "@/lib/journal/routes";
 import {
   fetchJournalEntries,
@@ -99,8 +100,9 @@ export default function Journal() {
     <DashboardLayout>
       <div
         data-module-owner={JOURNAL_MODULE_ID}
-        className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:py-12"
+        className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 md:px-8 lg:py-12"
       >
+        <SubscriptionUpgradeBannerGate />
         <JournalPageContent>
           <JournalEntriesTab
             entries={entries}

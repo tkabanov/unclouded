@@ -11,10 +11,20 @@ import {
   adminUserTypeLabel,
   type AdminUserDetail,
 } from "@/lib/settings/admin/adminUserType";
-import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
 function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
@@ -31,6 +41,37 @@ function YesNo({ value }: { value: boolean }) {
   return (
     <Badge variant={value ? "secondary" : "outline"}>{value ? "Yes" : "No"}</Badge>
   );
+}
+
+function Card({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("rounded-xl border border-border bg-card p-5 shadow-sm", className)}>
+      <h3 className="mb-4 text-sm font-semibold text-foreground">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function ProfileField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="text-sm text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function scoreLabel(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "—";
+  return `${value.toFixed(1)} / 5`;
 }
 
 type Props = {
@@ -89,7 +130,7 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
       <div className="space-y-3">
         <Button type="button" variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="mr-1 h-4 w-4" />
-          Back
+          Back to users
         </Button>
         <p className="text-sm text-muted-foreground">User not found.</p>
       </div>
@@ -100,10 +141,27 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
     ([, v]) => v !== null && v !== undefined && v !== "",
   );
 
+  const currentPaths = user.paths.filter(
+    (p) => (p.status ?? "").toLowerCase() === "active" || (p.status ?? "").toLowerCase() === "in_progress",
+  );
+  const previousPaths = user.paths.filter((p) => !currentPaths.includes(p));
+
+  const initialAssessment = user.assessments.find((a) => a.isInitial) ?? null;
+  const latestReassessment =
+    user.assessments.find((a) => !a.isInitial) ?? null;
+
+  const creditsUsed = user.creditLedger
+    .filter((e) => e.delta < 0)
+    .reduce((sum, e) => sum + Math.abs(e.delta), 0);
+
+  const accountTypeLabel =
+    (user.accountType || "individual").charAt(0).toUpperCase() +
+    (user.accountType || "individual").slice(1).toLowerCase();
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+        <Button type="button" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to users
         </Button>
@@ -118,61 +176,218 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
         </Button>
       </div>
 
-      <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h3 className={bubbleStyle("Text_heading_3_")}>{user.name}</h3>
-            <p className="text-sm text-muted-foreground">{user.email ?? "—"}</p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <Badge variant="secondary">{adminUserTypeLabel(user.type)}</Badge>
-            <Badge variant={user.isActive ? "outline" : "destructive"}>{user.status}</Badge>
-          </div>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            {user.name}
+          </h1>
+          <p className="text-sm text-muted-foreground">{user.email ?? "—"}</p>
         </div>
-        <dl className="grid gap-2 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-xs text-muted-foreground">Date joined</dt>
-            <dd>{formatDate(user.dateJoined)}</dd>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="secondary">{accountTypeLabel}</Badge>
+          <Badge variant="outline">{adminUserTypeLabel(user.type)}</Badge>
+          <span
+            className={cn(
+              "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
+              user.isActive
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-destructive/10 text-destructive",
+            )}
+          >
+            {user.isActive ? "active" : "deactivated"}
+          </span>
+        </div>
+      </header>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="Profile">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ProfileField label="Name" value={user.name} />
+            <ProfileField label="Email" value={user.email ?? "—"} />
+            <ProfileField label="Role type" value={user.customerRoleType ?? "—"} />
+            <ProfileField label="Primary pillar" value={user.primaryPillar ?? "—"} />
+            <ProfileField label="Joined" value={formatDate(user.dateJoined)} />
+            <ProfileField label="Timezone" value={user.timezone ?? "—"} />
+            <ProfileField label="Enterprise tier" value={user.enterpriseTier ?? "—"} />
+            <ProfileField label="Enrollment date" value={formatDate(user.enrollmentDate)} />
+            <ProfileField
+              label="Workplace ID"
+              value={user.workplaceId ?? "—"}
+            />
           </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Account type</dt>
-            <dd>{user.accountType}</dd>
+        </Card>
+
+        <Card title="Bookings & credits">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-4 text-center">
+              <p className="text-2xl font-semibold tabular-nums">{user.bookings.group}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Group</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-4 text-center">
+              <p className="text-2xl font-semibold tabular-nums">{user.bookings.oneOnOne}</p>
+              <p className="mt-1 text-xs text-muted-foreground">1:1</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-4 text-center">
+              <p className="text-2xl font-semibold tabular-nums">{creditsUsed}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Credits used</p>
+            </div>
           </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Timezone</dt>
-            <dd>{user.timezone ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Enterprise tier</dt>
-            <dd>{user.enterpriseTier ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Enrollment date</dt>
-            <dd>{formatDate(user.enrollmentDate)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Workplace ID</dt>
-            <dd className="break-all font-mono text-xs">{user.workplaceId ?? "—"}</dd>
-          </div>
-        </dl>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Live credit balance: <strong>{user.creditsBalance}</strong>
+            {user.subscription
+              ? ` · Subscription: ${user.subscription.planTier} / ${user.subscription.status}${
+                  user.subscription.currentPeriodEnd
+                    ? ` · period end ${formatDateTime(user.subscription.currentPeriodEnd)}`
+                    : ""
+                }`
+              : " · Live credit balance is tracked in the user's subscription state."}
+          </p>
+          {user.creditLedger.length > 0 ? (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Credit ledger (latest 50)</p>
+              <ul className="max-h-40 divide-y overflow-y-auto rounded-lg border border-border text-xs">
+                {user.creditLedger.map((entry) => (
+                  <li key={entry.id} className="flex flex-col gap-0.5 px-3 py-2">
+                    <span>
+                      {entry.delta > 0 ? "+" : ""}
+                      {entry.delta} · {entry.reason}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {formatDateTime(entry.createdAt)}
+                      {entry.note ? ` · ${entry.note}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </Card>
       </div>
 
-      {aboutEntries.length > 0 ? (
-        <section className={cn(bubbleStyle("Group_card_muted_"), "space-y-2 p-6")}>
-          <h4 className="font-semibold">Settings / About you</h4>
-          <dl className="grid gap-2 text-sm sm:grid-cols-2">
-            {aboutEntries.map(([key, value]) => (
-              <div key={key}>
-                <dt className="text-xs text-muted-foreground">{key}</dt>
-                <dd>{String(value)}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      ) : null}
+      <Card title="Paths">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Current path
+            </p>
+            {currentPaths.length === 0 ? (
+              <p className="mt-1 text-sm text-foreground">None active</p>
+            ) : (
+              <ul className="mt-2 space-y-2">
+                {currentPaths.map((path) => (
+                  <li key={path.enrollmentId} className="text-sm">
+                    <span className="font-medium">{path.pathName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {" "}
+                      · {path.status ?? "—"} · sessions {path.completedSessionsCount}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Previous paths
+            </p>
+            {previousPaths.length === 0 ? (
+              <p className="mt-1 text-sm text-foreground">No completed paths yet</p>
+            ) : (
+              <ul className="mt-2 space-y-2">
+                {previousPaths.map((path) => (
+                  <li key={path.enrollmentId} className="text-sm">
+                    <span className="font-medium">{path.pathName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {" "}
+                      · {path.status ?? "—"} · enrolled {formatDate(path.createdAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </Card>
 
-      <section className={cn(bubbleStyle("Group_card_muted_"), "space-y-2 p-6")}>
-        <h4 className="font-semibold">Flags & activity</h4>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="Initial assessment">
+          {!initialAssessment ? (
+            <p className="text-sm text-muted-foreground">Not completed</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-xs text-muted-foreground">Stability</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {scoreLabel(initialAssessment.stabilityScore)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Performance</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {scoreLabel(initialAssessment.performanceScore)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Alignment</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {scoreLabel(initialAssessment.alignmentScore)}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Classification</p>
+                <p className="mt-1 text-sm font-medium">
+                  {initialAssessment.classification ?? "—"}
+                </p>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        <Card title="90-day reassessment">
+          {!latestReassessment ? (
+            <p className="text-sm text-muted-foreground">Not completed</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-xs text-muted-foreground">Stability</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {scoreLabel(latestReassessment.stabilityScore)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Performance</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {scoreLabel(latestReassessment.performanceScore)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Alignment</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {scoreLabel(latestReassessment.alignmentScore)}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Classification</p>
+                <p className="mt-1 text-sm font-medium">
+                  {latestReassessment.classification ?? "—"}
+                </p>
+              </div>
+              {latestReassessment.trajectoryType ? (
+                <p className="text-xs text-muted-foreground">
+                  Trajectory: {latestReassessment.trajectoryType}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Extra sections beyond Lovable — kept and styled consistently */}
+      <Card title="Flags & activity">
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           <div className="flex items-center justify-between gap-2">
             <dt>Crisis triggered</dt>
@@ -218,79 +433,30 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
           </div>
         </dl>
         {user.fingerprintStatus.present && user.fingerprintStatus.summary ? (
-          <p className="text-xs text-muted-foreground">{user.fingerprintStatus.summary}</p>
+          <p className="mt-3 text-xs text-muted-foreground">{user.fingerprintStatus.summary}</p>
         ) : null}
-        <p className="text-xs text-muted-foreground">
-          Last journal: {formatDate(user.activity.lastJournalAt)} · Last chat:{" "}
-          {formatDate(user.activity.lastChatSessionAt)} · Last coach booking:{" "}
-          {formatDate(user.activity.lastCoachBookingAt)}
+        <p className="mt-3 text-xs text-muted-foreground">
+          Last journal: {formatDateTime(user.activity.lastJournalAt)} · Last chat:{" "}
+          {formatDateTime(user.activity.lastChatSessionAt)} · Last coach booking:{" "}
+          {formatDateTime(user.activity.lastCoachBookingAt)}
         </p>
-      </section>
+      </Card>
 
-      <section className={cn(bubbleStyle("Group_card_muted_"), "space-y-2 p-6")}>
-        <h4 className="font-semibold">Bookings & credits</h4>
-        <p className="text-sm">
-          1:1 sessions: <strong>{user.bookings.oneOnOne}</strong>
-          <span className="mx-2 text-muted-foreground">·</span>
-          Group sessions: <strong>{user.bookings.group}</strong>
-          <span className="mx-2 text-muted-foreground">·</span>
-          Premium credits: <strong>{user.creditsBalance}</strong>
-        </p>
-        {user.subscription ? (
-          <p className="text-xs text-muted-foreground">
-            Subscription: {user.subscription.planTier} / {user.subscription.status}
-            {user.subscription.currentPeriodEnd
-              ? ` · period end ${formatDate(user.subscription.currentPeriodEnd)}`
-              : ""}
-          </p>
-        ) : null}
-        {user.creditLedger.length > 0 ? (
-          <div className="space-y-2 pt-2">
-            <p className="text-xs font-medium text-muted-foreground">Credit ledger (latest 50)</p>
-            <ul className="max-h-56 divide-y overflow-y-auto rounded-lg border border-border text-xs">
-              {user.creditLedger.map((entry) => (
-                <li key={entry.id} className="flex flex-col gap-0.5 px-3 py-2">
-                  <span>
-                    {entry.delta > 0 ? "+" : ""}
-                    {entry.delta} · {entry.reason}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {formatDate(entry.createdAt)}
-                    {entry.note ? ` · ${entry.note}` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">No credit ledger entries.</p>
-        )}
-      </section>
-
-      <section className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
-        <h4 className="font-semibold">Paths & sessions</h4>
-        {user.paths.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No path enrollments.</p>
-        ) : (
-          <ul className="divide-y rounded-lg border border-border">
-            {user.paths.map((path) => (
-              <li key={path.enrollmentId} className="flex flex-col gap-0.5 px-3 py-2 text-sm">
-                <span className="font-medium">{path.pathName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {path.status ?? "—"} · {path.tier ?? "—"} · sessions done{" "}
-                  {path.completedSessionsCount} · enrolled {formatDate(path.createdAt)}
-                </span>
-              </li>
+      {aboutEntries.length > 0 ? (
+        <Card title="Settings / About you">
+          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+            {aboutEntries.map(([key, value]) => (
+              <div key={key}>
+                <dt className="text-xs text-muted-foreground">{key}</dt>
+                <dd>{String(value)}</dd>
+              </div>
             ))}
-          </ul>
-        )}
-      </section>
+          </dl>
+        </Card>
+      ) : null}
 
-      <section className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
-        <h4 className="font-semibold">Assessment & reassessment</h4>
-        {user.assessments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No assessment history.</p>
-        ) : (
+      {user.assessments.length > 2 ? (
+        <Card title="Assessment history">
           <ul className="divide-y rounded-lg border border-border">
             {user.assessments.map((row) => (
               <li key={row.id} className="flex flex-col gap-0.5 px-3 py-2 text-sm">
@@ -299,17 +465,14 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
                   {row.classification ? ` — ${row.classification}` : ""}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {formatDate(row.assessmentDate)}
+                  {formatDateTime(row.assessmentDate)}
                   {row.trajectoryType ? ` · ${row.trajectoryType}` : ""}
-                  {row.stabilityScore != null
-                    ? ` · S${row.stabilityScore} P${row.performanceScore ?? "—"} A${row.alignmentScore ?? "—"}`
-                    : ""}
                 </span>
               </li>
             ))}
           </ul>
-        )}
-      </section>
+        </Card>
+      ) : null}
     </div>
   );
 }

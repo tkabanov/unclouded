@@ -39,7 +39,7 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Date** | 2026-07-16 |
 | **Overrides** | Bubble settings tabs: Coaching, Privacy, Workplace, Notifications (`settings_tab_os` / SET-03, SET-04, SET-06, workplace tab) |
 | **Authoritative spec** | Owner requirement |
-| **Current behavior** | User settings tabs: **Profile**, **Security**, **Subscription** only (+ Admin for admins). |
+| **Current behavior** | User settings tabs: **Profile**, **Security** only. Subscription management is a dedicated sidebar route `/subscription` (OVR-051). Admins use `/admin`. |
 | **Code** | `frontend/src/lib/enums/settingsTabs.ts`, `frontend/src/components/settings/SettingsMain.tsx` |
 
 ### OVR-004 — Account deletion in Security (not Privacy)
@@ -331,8 +331,8 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Date** | 2026-07-31 |
 | **Overrides** | Dashboard insights feed card (`DashboardInsightsCard` / personalized articles) |
 | **Authoritative spec** | Owner requirement |
-| **Current behavior** | Dashboard does not show the **Coaching Insights** article card. Admin Insights feed tooling may remain for content ops. |
-| **Code** | `frontend/src/pages/Dashboard.tsx` (component deleted) |
+| **Current behavior** | **Superseded by OVR-049** — Dashboard again shows the Coaching Insights card. (Historical: card was removed 2026-07-31; Admin Insights tooling remained.) |
+| **Code** | `frontend/src/pages/Dashboard.tsx`, `frontend/src/components/dashboard/DashboardInsightsCard.tsx` |
 
 ### OVR-033 — Settings modules section titled Coaching Insights
 
@@ -473,4 +473,54 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Authoritative spec** | Owner request — toggle reflection on the list card |
 | **Current behavior** | On `/journal` entry cards, the **AI Reflection** control toggles an inline **From Kota** block (collapsed by default). Full edit still via **View & Edit**. |
 | **Code** | `frontend/src/components/journal/JournalEntryCard.tsx` |
+
+### OVR-047 — Settings: hide Success Plan add-on purchase UI during this phase
+
+| | |
+|---|---|
+| **Date** | 2026-08-12 |
+| **Overrides** | Settings subscription tab “Success Plan add-on” purchase card |
+| **Authoritative spec** | Owner instruction for this phase: hide add-ons UI; entitlements remain enforced |
+| **Current behavior** | The “Success Plan add-on” purchase option is hidden. If the add-on was already purchased, the tab shows a simple “Success Plan access” message instead of the checkout button. |
+| **Code** | `frontend/src/components/settings/SettingsSubscriptionTab.tsx`, `frontend/src/pages/Subscription.tsx` |
+
+### OVR-048 — Admin console: Lovable sidebar shell at `/admin`
+
+| | |
+|---|---|
+| **Date** | 2026-08-12 |
+| **Overrides** | Prior settings-embedded Admin tab (`/settings?tab=admin`) + AdminRouteGuard locking admins to that route only; Lovable prototype admin IA (Overview / Users / Paths / Organizations only) |
+| **Authoritative spec** | Owner request — match Lovable admin UI; keep our extra admin features |
+| **Current behavior** | Dedicated `/admin` console with Lovable-style left sidebar (Overview, Users, Paths, Organizations + More: Analytics, Resources, Insights, Plans, Outreach, Coach briefs, Reassessments, Prompt Tests). User detail at `/admin/users/:id` uses Lovable card layout while retaining flags/activity, credit ledger, About you, deactivate, etc. Admins may use the main app via **Back to app**; Settings is Profile / Security only (subscription is OVR-051). Legacy `/settings?tab=admin` redirects to `/admin`. |
+| **Code** | `frontend/src/pages/AdminConsole.tsx`, `frontend/src/components/admin/AdminLayout.tsx`, `frontend/src/components/admin/AdminSidebar.tsx`, `frontend/src/lib/settings/isSettingsAdminUser.ts`, `frontend/src/components/admin/AdminRouteGuard.tsx` |
+
+### OVR-049 — Restore Dashboard Coaching Insights card (pill design)
+
+| | |
+|---|---|
+| **Date** | 2026-08-12 |
+| **Overrides** | OVR-032 (no Dashboard Coaching Insights card); visual treatment of Bubble / DASH-05 insights rows |
+| **Authoritative spec** | Owner request — restore previously hidden Coaching Insights feed card with updated pill-row design |
+| **Current behavior** | Dashboard shows a full-width **Coaching insights** card below the main two-column grid: three personalized articles from `get_my_daily_insight_feed` as light primary-tint rows (Lightbulb / TrendingUp / Star), with disclaimer and click-to-open article dialog. Kota Messages (OVR-042) remain separate. Grid layout for other cards is OVR-050. |
+| **Code** | `frontend/src/components/dashboard/DashboardInsightsCard.tsx`, `frontend/src/pages/Dashboard.tsx` |
+
+### OVR-050 — Dashboard main grid Lovable layout + card chrome
+
+| | |
+|---|---|
+| **Date** | 2026-08-12 |
+| **Overrides** | Prior Bubble/DASH two-column order (Human coaching + Check-In left; Current Path on right); denser Bubble check-in chrome |
+| **Authoritative spec** | Owner request — match Lovable dashboard card grid (screenshot parity) |
+| **Current behavior** | Left column: **Current path** → Human coaching → Daily check-in. Right: Know yourself deeper → Next deep-dive teaser → AI coach chat → Recent journal. Card chrome follows Lovable (metric icons + `n/10`, streak pill, chat bubble + Open chat CTA, dashed journal empty state, module progress bar). Coaching insights remain full-width below the grid (OVR-049). |
+| **Code** | `frontend/src/components/dashboard/DashboardMain.tsx`, `frontend/src/pages/Dashboard.tsx`, `DashboardCheckinCard.tsx`, `DashboardCurrentPathCard.tsx`, `DashboardModulePreviewCard.tsx`, `DashboardNextDeepDiveCard.tsx`, `DashboardChatPreviewCard.tsx`, `DashboardJournalPreviewCard.tsx`, `BookCoachCard.tsx` |
+
+### OVR-051 — Subscription management as sidebar route
+
+| | |
+|---|---|
+| **Date** | 2026-08-12 |
+| **Overrides** | OVR-003 Settings tabs including Subscription; Bubble/settings-tab subscription management at `/settings?tab=subscription` |
+| **Authoritative spec** | Owner request — match Lovable sidebar **Subscription** item at `/subscription` |
+| **Current behavior** | Primary sidebar includes **Subscription** (between Paths and Settings). Plan/billing UI renders on `/subscription` with Lovable-style **Plans & subscription** header, Monthly/Yearly toggle, feature comparison matrix, and Founding Member banner. Settings tabs are Profile / Security only. Legacy `/settings?tab=subscription` and `/settings/subscription` redirect to `/subscription` (query params preserved). Stripe Checkout/Portal return URLs use `/subscription`. |
+| **Code** | `frontend/src/pages/Subscription.tsx`, `frontend/src/components/AppSidebar.tsx`, `frontend/src/lib/enums/navigation.ts`, `frontend/src/lib/subscription/routes.ts`, `frontend/src/lib/subscription/planComparisonMatrix.ts`, `frontend/src/components/subscription/SubscriptionComparisonTable.tsx`, `frontend/src/lib/router/authenticatedRoutes.tsx`, `supabase/functions/stripe-checkout/index.ts`, `supabase/functions/stripe-portal/index.ts` |
 

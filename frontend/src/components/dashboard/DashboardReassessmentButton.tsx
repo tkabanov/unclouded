@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { Button } from "@/components/ui/button";
-import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import {
   reassessmentCtaButtonLabel,
@@ -25,27 +23,9 @@ export default function DashboardReassessmentButton() {
   };
   const cta = resolveReassessmentCtaState(dateCtx);
   const label = reassessmentCtaButtonLabel(cta);
-  const { openFeature, promptUpgrade, closeUpsell } = useLockedFeatureUpsell(tier);
 
   if (cta.kind === "upgrade") {
-    return (
-      <>
-        <Button
-          type="button"
-          variant="cta"
-          className="h-11 w-full text-sm font-semibold"
-          onClick={() => promptUpgrade("reassessment")}
-        >
-          {label}
-        </Button>
-        <LockedFeatureUpgradeDialog
-          open={openFeature === "reassessment"}
-          feature="reassessment"
-          currentTier={tier}
-          onClose={closeUpsell}
-        />
-      </>
-    );
+    return null;
   }
 
   if (cta.kind === "available") {

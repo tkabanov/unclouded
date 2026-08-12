@@ -37,8 +37,7 @@ import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/on
 import { captureReferralFromSearch } from "@/lib/share/referralAttribution";
 import { capturePlanFromSearch, FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
 import { captureUtmFromSearch } from "@/lib/share/utmAttribution";
-import { settingsPath } from "@/lib/settings/navigation";
-import { SETTINGS_TAB } from "@/lib/settings/settingsTabStub";
+import { subscriptionPath } from "@/lib/subscription/routes";
 import { TIER } from "@/lib/enums/tier";
 import {
   LANDING_MONTHLY_PRICES,
@@ -120,7 +119,7 @@ const Index = () => {
   const destination = () => resolvePostAuthRoute(profile);
 
   const goToSubscriptionManagement = () => {
-    navigate(settingsPath(SETTINGS_TAB.SUBSCRIPTION));
+    navigate(subscriptionPath());
   };
 
   const openSubscriptionFromLanding = () => {
@@ -136,7 +135,7 @@ const Index = () => {
   const openFoundingFromLanding = () => {
     capturePlanFromSearch(`?plan=${FOUNDING_SIGNUP_PLAN}`);
     if (authenticated) {
-      navigate(`${settingsPath(SETTINGS_TAB.SUBSCRIPTION)}&plan=${FOUNDING_SIGNUP_PLAN}`);
+      navigate(subscriptionPath({ plan: FOUNDING_SIGNUP_PLAN }));
       return;
     }
     pendingSubscriptionScreenRef.current = true;
@@ -194,7 +193,7 @@ const Index = () => {
     if (profileLoading) return;
     if (pendingSubscriptionScreenRef.current) {
       pendingSubscriptionScreenRef.current = false;
-      navigate(settingsPath(SETTINGS_TAB.SUBSCRIPTION), { replace: true });
+      navigate(subscriptionPath(), { replace: true });
       setPostAuthRedirect(false);
       return;
     }

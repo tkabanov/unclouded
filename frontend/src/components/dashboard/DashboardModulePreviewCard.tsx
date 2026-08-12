@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ProgressBar } from "@/components/design-system/ProgressBar";
 import { useDashboardUserContext } from "@/hooks/useDashboardUser";
 import {
   buildModuleListItems,
@@ -57,28 +58,21 @@ export default function DashboardModulePreviewCard() {
 
   const isAvailable = preview.status === "available";
   const isSensitive = preview.sensitivityTier === "high";
+  const progressPercent = Math.round((completedCount / 6) * 100);
 
   return (
     <div
       data-style-ref="Group_card_"
       className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4 p-5")}
     >
-      <div
-        className={cn(
-          bubbleStyle("Group_transparent_"),
-          "flex w-full items-center justify-between gap-3",
-        )}
-      >
-        <div className={cn(bubbleStyle("Group_transparent_"), "flex min-w-0 items-center gap-2")}>
-          <Layers
-            className={cn(bubbleStyle("Icon_primary_"), "h-5 w-5 shrink-0")}
-            aria-hidden
-          />
+      <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <Layers className="h-5 w-5 shrink-0 text-primary" aria-hidden />
           <h2
             data-style-ref="Text_heading_3_"
             className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold")}
           >
-            Know Yourself Deeper
+            Know yourself deeper
           </h2>
         </div>
 
@@ -94,7 +88,7 @@ export default function DashboardModulePreviewCard() {
         </Link>
       </div>
 
-      <div className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-3")}>
+      <div className="flex w-full flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <p
             data-style-ref="Text_label_"
@@ -123,16 +117,19 @@ export default function DashboardModulePreviewCard() {
           {preview.presentationCopy}
         </p>
 
-        <p className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
-          {completedCount}/6 completed
-        </p>
+        <div className="flex w-full flex-col gap-1.5">
+          <p className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
+            {completedCount} / 6 completed
+          </p>
+          <ProgressBar value={progressPercent} />
+        </div>
 
         {isAvailable ? (
           <Button
             asChild
             type="button"
             data-style-ref="Button_primary_"
-            className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5 sm:w-auto")}
+            className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5")}
           >
             <Link to={`/settings/know-yourself/${preview.slug}`}>
               Start
@@ -140,12 +137,7 @@ export default function DashboardModulePreviewCard() {
             </Link>
           </Button>
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            disabled
-            className="w-full sm:w-auto"
-          >
+          <Button type="button" variant="outline" disabled className="w-full">
             {formatDaysUntilUnlockLabel(preview.daysUntilUnlock)}
           </Button>
         )}

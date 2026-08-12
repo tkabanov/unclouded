@@ -8,6 +8,7 @@ import PathsLibraryCatalogPanel from "@/components/paths/PathsLibraryCatalogPane
 import ResourceDetailPopup from "@/components/paths/ResourceDetailPopup";
 import PathDetailPopup from "@/components/paths/PathDetailPopup";
 import SessionCompletionRoute from "@/components/paths/SessionCompletionRoute";
+import SubscriptionUpgradeBannerGate from "@/components/subscription/SubscriptionUpgradeBannerGate";
 import { useSessionCompletionVisible } from "@/hooks/useSessionCompletionVisible";
 import type { ResourceListItem } from "@/lib/paths/pathsResourcesApi";
 import type { PathEnrollmentListItem } from "@/lib/paths/pathsEnrollmentApi";
@@ -68,6 +69,8 @@ function PathsPageBody() {
             className="flex w-full flex-col gap-6"
           >
             <PathsPageHeader />
+
+            <SubscriptionUpgradeBannerGate />
 
             <div className="flex w-full flex-col gap-4">
               <PathsTabBar activeTab={activeTab} onSelectTab={setActiveTab} />

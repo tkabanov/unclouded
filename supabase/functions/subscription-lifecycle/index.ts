@@ -130,7 +130,7 @@ async function sendEmail(params: {
 }
 
 function subscriptionUrl(): string {
-  return `${canonicalAppOrigin()}/settings?tab=subscription`;
+  return `${canonicalAppOrigin()}/subscription`;
 }
 
 async function notifyPaymentFailure(item: LifecycleItem): Promise<string> {

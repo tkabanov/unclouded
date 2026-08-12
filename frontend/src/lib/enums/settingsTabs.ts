@@ -26,6 +26,4 @@ export const SETTINGS_TAB_LABELS: Record<SettingsTabSlug, string> = {
 export const SETTINGS_TAB_ORDER: readonly SettingsTabSlug[] = [
   SETTINGS_TAB.PROFILE,
   SETTINGS_TAB.SECURITY,
-  SETTINGS_TAB.SUBSCRIPTION,
-  SETTINGS_TAB.ADMIN,
 ];

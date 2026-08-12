@@ -20,6 +20,14 @@ export function planDisplayName(tier: TierSlug, isFoundingMember: boolean): Plan
   return isFoundingMember ? FOUNDING_MEMBER_LABEL : "Pro";
 }
 
+/** Persistent upsell banner shown to Free-tier individual accounts. */
+export const FREE_TIER_UPGRADE_BANNER = {
+  title: "Unlock the full coaching experience",
+  description:
+    "Go Pro for unlimited coaching and your 90-day reassessment — or Premium for 1:1 human coaching.",
+  ctaLabel: "View plans",
+} as const;
+
 // --- Cancellation -----------------------------------------------------------
 
 export type ConfirmCopy = {

@@ -1,30 +1,32 @@
 import { Loader2 } from "lucide-react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import {
-  ADMIN_CONSOLE_ROUTE,
   isAdminAppLocation,
   isSettingsAdminUser,
 } from "@/lib/settings/isSettingsAdminUser";
 import { useUserProfile } from "@/lib/userProfile";
 
-/** Restricts platform admins to the admin console route only. */
+/**
+ * - Non-admins cannot open `/admin/*`.
+ * - Admins may use the main app (Lovable “Back to app”) as well as the console (OVR-048).
+ */
 export default function AdminRouteGuard() {
   const location = useLocation();
   const { profile, loading } = useUserProfile();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (isSettingsAdminUser(profile?.roleType)) {
-    const tabParam = new URLSearchParams(location.search).get("tab");
-    if (!isAdminAppLocation(location.pathname, tabParam)) {
-      return <Navigate to={ADMIN_CONSOLE_ROUTE} replace />;
-    }
+  const isAdmin = isSettingsAdminUser(profile?.roleType);
+  const onAdmin = isAdminAppLocation(location.pathname);
+
+  if (onAdmin && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

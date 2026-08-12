@@ -194,8 +194,31 @@ export function resolveNextRenewalAt(record: SubscriptionRecord | null): string 
  * balance expires — when a cancellation or a downgrade takes effect.
  */
 export function resolveCreditsExpireAt(record: SubscriptionRecord | null): string | null {
-  if (!record || resolveEffectiveTier(record) !== TIER.PREMIUM) return null;
-  return resolveAccessEndsAt(record);
+  // Important: this must be deterministic for UI/tests. Do not rely on `Date.now()`
+  // (which would make “scheduled downgrade in the future” assertions flaky).
+  if (!record) return null;
+
+  const planTier = normalizeTier(record.planTier) ?? TIER.FREE;
+  if (planTier !== TIER.PREMIUM) return null;
+
+  // Premium credits stop when a cancellation or downgrade takes effect.
+  const status = normalizeStatus(record.status);
+  switch (status) {
+    case "scheduledToCancel":
+      return record.currentPeriodEnd ?? null;
+    case "scheduledToDowngrade":
+      return record.scheduledDowngradeEffectiveAt ?? null;
+    case "pastDue":
+      return record.gracePeriodEndsAt ?? null;
+    case "active":
+    case "free":
+    case "inactive":
+      return null;
+    default: {
+      const exhaustive: never = status;
+      return exhaustive;
+    }
+  }
 }
 
 export function resolveNextCreditAt(record: SubscriptionRecord | null): string | null {

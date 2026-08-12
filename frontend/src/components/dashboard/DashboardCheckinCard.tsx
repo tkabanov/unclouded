@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Flame, Heart } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Flame, Heart, Smile, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,11 +29,6 @@ export const CHECKIN_FEELING_WORD_OPTIONS = [
   "angry",
 ] as const;
 
-const moodValueClass = cn(
-  bubbleStyle("Text_label_"),
-  "text-sm font-semibold text-primary",
-);
-
 interface CheckinSliderProps {
   value: number;
   onChange: (value: number) => void;
@@ -61,11 +56,37 @@ function CheckinSlider({
         "w-full py-1",
         "[&>span:first-child]:h-2 [&>span:first-child]:bg-muted",
         "[&>span:first-child>span]:bg-primary",
-        "[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-0",
-        "[&_[role=slider]]:bg-primary",
-        "[&_[role=slider]]:shadow-none focus-visible:[&_[role=slider]]:ring-2 focus-visible:[&_[role=slider]]:ring-primary/30",
+        "[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-2",
+        "[&_[role=slider]]:border-primary [&_[role=slider]]:bg-background",
+        "[&_[role=slider]]:shadow-sm focus-visible:[&_[role=slider]]:ring-2 focus-visible:[&_[role=slider]]:ring-primary/30",
       )}
     />
+  );
+}
+
+function MetricHeader({
+  icon,
+  label,
+  value,
+  max = 10,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: number;
+  max?: number;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+        <span className="text-primary" aria-hidden>
+          {icon}
+        </span>
+        {label}
+      </div>
+      <span className="text-sm font-semibold text-primary">
+        {value}/{max}
+      </span>
+    </div>
   );
 }
 
@@ -143,70 +164,45 @@ export default function DashboardCheckinCard() {
     <div
       id={DASHBOARD_DAILY_CHECKIN_ID}
       data-style-ref="Group_card_"
-      className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4")}
+      className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-5 p-5")}
     >
-      <div
-        className={cn(
-          bubbleStyle("Group_transparent_"),
-          "flex w-full flex-row items-center justify-between gap-4",
-        )}
-      >
-        <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex items-center gap-2")}
-        >
-          <Heart
-            className={cn(bubbleStyle("Icon_primary_"), "h-5 w-5 shrink-0")}
-            aria-hidden
-          />
+      <div className="flex w-full flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Heart className="h-5 w-5 shrink-0 text-primary" aria-hidden />
           <h2
             data-style-ref="Text_heading_3_"
-            className={cn(bubbleStyle("Text_heading_3_"), "text-lg")}
+            className={cn(bubbleStyle("Text_heading_3_"), "text-lg font-semibold")}
           >
-            Daily Check-In
+            Daily check-in
           </h2>
         </div>
 
         {!loadingStreak && streak > 0 ? (
-          <div
-            data-style-ref="Group_badge_primary_"
-            className={cn(
-              bubbleStyle("Group_badge_primary_"),
-              "inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary-foreground",
-            )}
-          >
-            <Flame
-              className={cn(bubbleStyle("Icon_default_"), "h-3.5 w-3.5")}
-              aria-hidden
-            />
-            <span>
-              {streak} day streak
-            </span>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <Flame className="h-3.5 w-3.5 text-orange-500" aria-hidden />
+            <span>{streak} day streak</span>
           </div>
         ) : null}
       </div>
 
-      <div
-        className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-4")}
-      >
-        <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
-        >
-          <p className={moodValueClass}>Mood: {mood}</p>
+      <div className="flex w-full flex-col gap-5">
+        <div className="flex w-full flex-col gap-2">
+          <MetricHeader icon={<Smile className="h-4 w-4" />} label="Mood" value={mood} />
           <CheckinSlider value={mood} onChange={setMood} aria-label="Mood" />
         </div>
 
-        <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
-        >
-          <p className={moodValueClass}>
-            Energy level: {energy}
-          </p>
+        <div className="flex w-full flex-col gap-2">
+          <MetricHeader
+            icon={<Zap className="h-4 w-4" />}
+            label="Energy level"
+            value={energy}
+          />
           <CheckinSlider value={energy} onChange={setEnergy} aria-label="Energy level" />
         </div>
 
         {activeMicroCommitment ? (
           <div
-            className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
+            className="flex w-full flex-col gap-2"
             role="group"
             aria-labelledby="dashboard-checkin-commitment-label"
           >
@@ -249,7 +245,7 @@ export default function DashboardCheckinCard() {
         ) : null}
 
         <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
+          className="flex w-full flex-col gap-2"
           role="group"
           aria-labelledby="dashboard-checkin-feeling-label"
         >
@@ -257,9 +253,8 @@ export default function DashboardCheckinCard() {
             id="dashboard-checkin-feeling-label"
             className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
           >
-            Feeling word
+            Pick one word for how you feel right now.
           </p>
-          <p className="text-xs text-muted-foreground">Pick one word for how you feel right now.</p>
           <div className="flex flex-wrap gap-2">
             {CHECKIN_FEELING_WORD_OPTIONS.map((option) => {
               const selected = feelingWord === option;
@@ -279,9 +274,7 @@ export default function DashboardCheckinCard() {
           </div>
         </div>
 
-        <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-1")}
-        >
+        <div className="flex w-full flex-col gap-1.5">
           <label
             htmlFor="dashboard-checkin-reflection"
             className={cn(bubbleStyle("Text_label_"), "text-sm font-medium")}
@@ -293,9 +286,12 @@ export default function DashboardCheckinCard() {
             data-style-ref="MultiLineInput_default_"
             value={reflection}
             onChange={(event) => setReflection(event.target.value)}
-            placeholder="What's on your mind today? E.g., 'Focused morning, tough afternoon meeting...'"
+            placeholder="What's on your mind today? E.g. 'Focused morning, tough afternoon meeting.'"
             rows={3}
-            className={cn(bubbleStyle("MultiLineInput_default_"), "min-h-[96px] w-full resize-none")}
+            className={cn(
+              bubbleStyle("MultiLineInput_default_"),
+              "min-h-[96px] w-full resize-none rounded-lg border border-border bg-background",
+            )}
           />
         </div>
 
@@ -306,7 +302,7 @@ export default function DashboardCheckinCard() {
           disabled={submitting || !user}
           onClick={() => void handleSubmit()}
         >
-          Submit Check-In
+          Submit check-in
         </Button>
       </div>
     </div>

@@ -259,7 +259,7 @@ Deno.serve(async (req) => {
     const { data: profile, error: profileError } = await admin
       .from("profiles")
       .select(
-        "id, email, firstName, lastName, tier, subscribed, accountType, enterpriseTier, enrollmentDate, workplaceId, createdAt, isActive, deactivatedAt, roleType, behavioralFingerprint, results, onboardingData, timeZone, ageRange, careerStage, genderIdentity, employmentStatus, industry, companySize, workEnvironment, managesATeam, relationshipStatus, parentingStatus, stateRegion",
+        "id, email, firstName, lastName, tier, subscribed, accountType, enterpriseTier, enrollmentDate, workplaceId, createdAt, isActive, deactivatedAt, roleType, roleTypes, primaryPillar, behavioralFingerprint, results, onboardingData, timeZone, ageRange, careerStage, genderIdentity, employmentStatus, industry, companySize, workEnvironment, managesATeam, relationshipStatus, parentingStatus, stateRegion",
       )
       .eq("id", targetId)
       .maybeSingle();
@@ -402,6 +402,18 @@ Deno.serve(async (req) => {
         isActive,
         deactivatedAt: profile.deactivatedAt ?? null,
         accountType: profile.accountType ?? "individual",
+        customerRoleType: (() => {
+          const roles = Array.isArray(profile.roleTypes)
+            ? (profile.roleTypes as string[]).filter((r) => r && r !== "admin")
+            : [];
+          if (roles.length > 0) return roles.join(", ");
+          const single = typeof profile.roleType === "string" ? profile.roleType.trim() : "";
+          return single && single !== "admin" ? single : null;
+        })(),
+        primaryPillar:
+          typeof profile.primaryPillar === "string" && profile.primaryPillar.trim()
+            ? profile.primaryPillar.trim()
+            : null,
         enterpriseTier: profile.enterpriseTier ?? null,
         enrollmentDate: profile.enrollmentDate ?? null,
         workplaceId: profile.workplaceId ?? null,

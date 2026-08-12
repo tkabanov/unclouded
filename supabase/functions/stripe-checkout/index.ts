@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
 
       const stripe = getStripe();
       const origin = resolveRequestAppOrigin(req, body.returnOrigin);
-      const returnBase = `${origin}/settings?tab=subscription`;
+      const returnBase = `${origin}/subscription`;
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer: customerId,
@@ -301,7 +301,7 @@ Deno.serve(async (req) => {
     }
 
     const origin = resolveRequestAppOrigin(req, body.returnOrigin);
-    const returnBase = `${origin}/settings?tab=subscription`;
+    const returnBase = `${origin}/subscription`;
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,

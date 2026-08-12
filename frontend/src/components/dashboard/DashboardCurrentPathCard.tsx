@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Route, Star } from "lucide-react";
+import { ArrowRight, BookOpen, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
@@ -88,24 +88,14 @@ export default function DashboardCurrentPathCard() {
       data-style-ref="Group_card_"
       className={cn(bubbleStyle("Group_card_"), "flex w-full flex-col gap-4 p-5")}
     >
-      <div
-        className={cn(
-          bubbleStyle("Group_transparent_"),
-          "flex w-full items-center justify-between gap-3",
-        )}
-      >
-        <div
-          className={cn(bubbleStyle("Group_transparent_"), "flex min-w-0 items-center gap-2")}
-        >
-          <Route
-            className={cn(bubbleStyle("Icon_primary_"), "h-5 w-5 shrink-0")}
-            aria-hidden
-          />
+      <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <BookOpen className="h-5 w-5 shrink-0 text-primary" aria-hidden />
           <h2
             data-style-ref="Text_heading_3_"
             className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold")}
           >
-            Current Path
+            Current path
           </h2>
         </div>
 
@@ -122,94 +112,67 @@ export default function DashboardCurrentPathCard() {
       </div>
 
       {loading ? (
-        <div
-          data-style-ref="RepeatingGroup_list_"
-          className={cn(bubbleStyle("RepeatingGroup_list_"), "flex w-full flex-col")}
-        >
-          <div className="space-y-3">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-2 w-full" />
-            <Skeleton className="h-4 w-56" />
-          </div>
+        <div className="flex w-full flex-col space-y-3">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-2 w-full" />
+          <Skeleton className="h-4 w-56" />
         </div>
       ) : enrollment?.hasActiveEnrollment ? (
-        <div
-          data-style-ref="RepeatingGroup_list_"
-          className={cn(bubbleStyle("RepeatingGroup_list_"), "flex w-full flex-col")}
-        >
-          <div
-            className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-3")}
+        <div className="flex w-full flex-col gap-3">
+          <p
+            data-style-ref="Text_label_"
+            className={cn(bubbleStyle("Text_label_"), "text-sm font-semibold text-foreground")}
           >
-            <p
-              data-style-ref="Text_label_"
-              className={cn(bubbleStyle("Text_label_"), "text-sm font-semibold text-foreground")}
-            >
-              {enrollment.pathName}
+            {enrollment.pathName}
+          </p>
+
+          <div className="flex w-full flex-col gap-2">
+            <ProgressBar value={enrollment.progressPercent} />
+            <p className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}>
+              {enrollment.progressPercent}% complete
             </p>
-
-            <div
-              className={cn(bubbleStyle("Group_transparent_"), "flex w-full flex-col gap-2")}
-            >
-              <div className={cn(bubbleStyle("Group_transparent_"), "w-full")}>
-                <ProgressBar value={enrollment.progressPercent} />
-              </div>
-
-              <div
-                className={cn(bubbleStyle("Group_transparent_"), "flex flex-col gap-1")}
-              >
-                <p
-                  className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
-                >
-                  {enrollment.progressPercent}% complete
-                </p>
-                {enrollment.nextStepTitle ? (
-                  <p
-                    className={cn(bubbleStyle("Text_body_"), "text-sm text-foreground")}
-                  >
-                    Next: {enrollment.nextStepTitle}
-                  </p>
-                ) : null}
-                {needsUpgrade ? (
-                  <p
-                    className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
-                    data-testid="dashboard-path-upgrade-required"
-                  >
-                    Upgrade required to continue this path
-                  </p>
-                ) : null}
-              </div>
-            </div>
-
+            {enrollment.nextStepTitle ? (
+              <p className={cn(bubbleStyle("Text_body_"), "text-sm text-foreground")}>
+                Next: {enrollment.nextStepTitle}
+              </p>
+            ) : null}
             {needsUpgrade ? (
-              <Button
-                type="button"
-                data-style-ref="Button_primary_"
-                className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5 sm:w-auto")}
-                data-testid="dashboard-path-upgrade"
-                onClick={() => pathUpsell.promptUpgrade(lockedPathFeature)}
+              <p
+                className={cn(bubbleStyle("Text_small_"), "text-xs text-muted-foreground")}
+                data-testid="dashboard-path-upgrade-required"
               >
-                <Star className="h-4 w-4" aria-hidden />
-                Upgrade Plan
-              </Button>
-            ) : enrollment.currentSessionId ? (
-              <Button
-                asChild
-                type="button"
-                data-style-ref="Button_primary_"
-                className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5 sm:w-auto")}
-              >
-                <Link to={sessionCompletionHref(enrollment.currentSessionId)}>
-                  Continue
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
+                Upgrade required to continue this path
+              </p>
             ) : null}
           </div>
+
+          {needsUpgrade ? (
+            <Button
+              type="button"
+              data-style-ref="Button_primary_"
+              className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5")}
+              data-testid="dashboard-path-upgrade"
+              onClick={() => pathUpsell.promptUpgrade(lockedPathFeature)}
+            >
+              <Star className="h-4 w-4" aria-hidden />
+              Upgrade Plan
+            </Button>
+          ) : enrollment.currentSessionId ? (
+            <Button
+              asChild
+              type="button"
+              data-style-ref="Button_primary_"
+              className={cn(bubbleStyle("Button_primary_"), "w-full gap-1.5")}
+            >
+              <Link to={sessionCompletionHref(enrollment.currentSessionId)}>
+                Continue
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
+          ) : null}
         </div>
       ) : (
-        <p
-          className={cn(bubbleStyle("Text_body_muted_"), "text-sm text-muted-foreground")}
-        >
+        <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm text-muted-foreground")}>
           No active path yet
         </p>
       )}

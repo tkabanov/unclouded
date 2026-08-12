@@ -6,9 +6,11 @@ import Chat from "@/pages/Chat";
 import Journal from "@/pages/Journal";
 import Paths from "@/pages/Paths";
 import Settings from "@/pages/Settings";
+import Subscription from "@/pages/Subscription";
 import SettingsSubscriptionRedirect from "@/pages/SettingsSubscriptionRedirect";
 import EmployerPortal from "@/pages/EmployerPortal";
 import VoiceSession from "@/pages/VoiceSession";
+import AdminConsole from "@/pages/AdminConsole";
 
 export type AppRouteMeta = {
   requiresAuth: true;
@@ -26,11 +28,13 @@ export const authenticatedRouteDefs: AuthenticatedRouteDef[] = [
   { path: "/chat", element: <Chat /> },
   { path: "/coaching/voice", element: <VoiceSession /> },
   { path: "/journal", element: <Journal /> },
+  { path: "/subscription", element: <Subscription /> },
   { path: "/settings", element: <Settings /> },
   { path: "/settings/subscription", element: <SettingsSubscriptionRedirect /> },
   { path: "/settings/know-yourself/:moduleSlug", element: <ModuleWizard /> },
   { path: "/paths", element: <Paths /> },
   { path: "/employer", element: <EmployerPortal /> },
+  { path: "/admin/*", element: <AdminConsole /> },
 ];
 
 export function toAuthenticatedRouteObjects(): RouteObject[] {
