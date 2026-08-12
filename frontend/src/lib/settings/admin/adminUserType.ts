@@ -89,6 +89,14 @@ export type AdminUserPathEnrollment = {
   currentSessionId: string | null;
 };
 
+export type AdminUserSessionLog = {
+  id: string;
+  kind: "one_on_one" | "group";
+  status: string | null;
+  scheduledAt: string | null;
+  createdAt: string | null;
+};
+
 export type AdminUserDetail = {
   userId: string;
   name: string;
@@ -118,6 +126,10 @@ export type AdminUserDetail = {
   } | null;
   paths: AdminUserPathEnrollment[];
   bookings: { oneOnOne: number; group: number };
+  sessionLogs?: {
+    oneOnOne: AdminUserSessionLog[];
+    group: AdminUserSessionLog[];
+  };
   creditsBalance: number;
   creditLedger: Array<{
     id: string;

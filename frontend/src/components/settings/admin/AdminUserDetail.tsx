@@ -1,15 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Copy, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   fetchAdminUserDetail,
+  generateAdminPreCoachingBrief,
   setAdminUserActive,
 } from "@/lib/settings/admin/adminUsersApi";
 import {
   adminUserTypeLabel,
   type AdminUserDetail,
+  type AdminUserSessionLog,
 } from "@/lib/settings/admin/adminUserType";
 import { cn } from "@/lib/utils";
 
@@ -74,6 +84,36 @@ function scoreLabel(value: number | null | undefined): string {
   return `${value.toFixed(1)} / 5`;
 }
 
+function SessionLogList({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: AdminUserSessionLog[];
+}) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+      {rows.length === 0 ? (
+        <p className="mt-1 text-sm text-muted-foreground">No sessions yet</p>
+      ) : (
+        <ul className="mt-2 max-h-48 divide-y overflow-y-auto rounded-lg border border-border text-sm">
+          {rows.map((row) => (
+            <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+              <span className="text-xs text-muted-foreground">
+                {formatDateTime(row.scheduledAt ?? row.createdAt)}
+              </span>
+              <Badge variant="outline" className="capitalize">
+                {row.status ?? "—"}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 type Props = {
   userId: string;
   onBack: () => void;
@@ -84,6 +124,9 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
+  const [briefLoading, setBriefLoading] = useState(false);
+  const [briefText, setBriefText] = useState("");
 
   const reload = useCallback(async () => {
     const detail = await fetchAdminUserDetail(userId);
@@ -121,6 +164,34 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
     }
   }, [busy, onStatusChanged, reload, user]);
 
+  const handleGenerateBrief = useCallback(async () => {
+    if (!user || briefLoading) return;
+    setBriefOpen(true);
+    setBriefLoading(true);
+    setBriefText("");
+    try {
+      const brief = await generateAdminPreCoachingBrief(user.userId);
+      setBriefText(brief);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Couldn't generate pre-coaching brief.";
+      toast.error(message);
+      setBriefOpen(false);
+    } finally {
+      setBriefLoading(false);
+    }
+  }, [briefLoading, user]);
+
+  const handleCopyBrief = useCallback(async () => {
+    if (!briefText.trim()) return;
+    try {
+      await navigator.clipboard.writeText(briefText);
+      toast.success("Brief copied to clipboard.");
+    } catch {
+      toast.error("Could not copy brief.");
+    }
+  }, [briefText]);
+
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading user…</p>;
   }
@@ -154,6 +225,8 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
     .filter((e) => e.delta < 0)
     .reduce((sum, e) => sum + Math.abs(e.delta), 0);
 
+  const sessionLogs = user.sessionLogs ?? { oneOnOne: [], group: [] };
+
   const accountTypeLabel =
     (user.accountType || "individual").charAt(0).toUpperCase() +
     (user.accountType || "individual").slice(1).toLowerCase();
@@ -165,15 +238,31 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to users
         </Button>
-        <Button
-          type="button"
-          variant={user.isActive ? "destructive" : "default"}
-          size="sm"
-          disabled={busy}
-          onClick={() => void handleToggle()}
-        >
-          {user.isActive ? "Deactivate user" : "Activate user"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={briefLoading}
+            onClick={() => void handleGenerateBrief()}
+          >
+            {briefLoading ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="mr-1 h-4 w-4" />
+            )}
+            Generate Pre-Coaching Brief
+          </Button>
+          <Button
+            type="button"
+            variant={user.isActive ? "destructive" : "default"}
+            size="sm"
+            disabled={busy}
+            onClick={() => void handleToggle()}
+          >
+            {user.isActive ? "Deactivate user" : "Activate user"}
+          </Button>
+        </div>
       </div>
 
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -306,6 +395,13 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
               </ul>
             )}
           </div>
+        </div>
+      </Card>
+
+      <Card title="Session logs">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SessionLogList title="1:1 sessions" rows={sessionLogs.oneOnOne} />
+          <SessionLogList title="Group sessions" rows={sessionLogs.group} />
         </div>
       </Card>
 
@@ -473,6 +569,41 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
           </ul>
         </Card>
       ) : null}
+
+      <Dialog open={briefOpen} onOpenChange={setBriefOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Pre-Coaching Brief</DialogTitle>
+          </DialogHeader>
+          {briefLoading ? (
+            <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Generating brief from recent activity…
+            </div>
+          ) : (
+            <Textarea
+              readOnly
+              value={briefText}
+              className="min-h-[280px] font-mono text-xs"
+              aria-label="Generated pre-coaching brief"
+            />
+          )}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={briefLoading || !briefText.trim()}
+              onClick={() => void handleCopyBrief()}
+            >
+              <Copy className="mr-1 h-4 w-4" />
+              Copy
+            </Button>
+            <Button type="button" onClick={() => setBriefOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

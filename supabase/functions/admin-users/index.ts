@@ -301,11 +301,15 @@ Deno.serve(async (req) => {
       admin
         .from("coachBooking")
         .select("id, status, scheduledAt, createdAt", { count: "exact" })
-        .eq("userId", targetId),
+        .eq("userId", targetId)
+        .order("createdAt", { ascending: false })
+        .limit(50),
       admin
         .from("groupSessionBooking")
         .select("id, status, createdAt", { count: "exact" })
-        .eq("userId", targetId),
+        .eq("userId", targetId)
+        .order("createdAt", { ascending: false })
+        .limit(50),
       admin.rpc("available_premium_credits", { p_user_id: targetId }),
       admin
         .from("premiumCreditLedger")
@@ -455,6 +459,22 @@ Deno.serve(async (req) => {
         bookings: {
           oneOnOne: coachBookingsRes.count ?? coachBookingsRes.data?.length ?? 0,
           group: groupBookingsRes.count ?? groupBookingsRes.data?.length ?? 0,
+        },
+        sessionLogs: {
+          oneOnOne: (coachBookingsRes.data ?? []).map((row) => ({
+            id: row.id as string,
+            kind: "one_on_one" as const,
+            status: (row.status as string | null) ?? null,
+            scheduledAt: (row.scheduledAt as string | null) ?? null,
+            createdAt: (row.createdAt as string | null) ?? null,
+          })),
+          group: (groupBookingsRes.data ?? []).map((row) => ({
+            id: row.id as string,
+            kind: "group" as const,
+            status: (row.status as string | null) ?? null,
+            scheduledAt: null,
+            createdAt: (row.createdAt as string | null) ?? null,
+          })),
         },
         creditsBalance: typeof creditsRes.data === "number" ? creditsRes.data : 0,
         creditLedger: (creditLedgerRes.data ?? []).map((row) => ({

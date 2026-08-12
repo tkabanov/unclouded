@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import AdminUserDetailPanel from "@/components/settings/admin/AdminUserDetail";
@@ -19,15 +19,78 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
 
+type SortKey = "name" | "type" | "dateJoined" | "status";
+type SortDir = "asc" | "desc";
+
+const TYPE_ORDER: Record<AdminUserTypeSlug, number> = {
+  free: 0,
+  pro: 1,
+  premium: 2,
+  canceled: 3,
+};
+
 function formatJoined(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function compareUsers(a: AdminUserListItem, b: AdminUserListItem, key: SortKey, dir: SortDir): number {
+  const mul = dir === "asc" ? 1 : -1;
+  switch (key) {
+    case "name":
+      return mul * a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+    case "type":
+      return mul * ((TYPE_ORDER[a.type] ?? 99) - (TYPE_ORDER[b.type] ?? 99));
+    case "dateJoined": {
+      const ta = a.dateJoined ? Date.parse(a.dateJoined) : 0;
+      const tb = b.dateJoined ? Date.parse(b.dateJoined) : 0;
+      return mul * (ta - tb);
+    }
+    case "status": {
+      const sa = a.isActive ? 0 : 1;
+      const sb = b.isActive ? 0 : 1;
+      return mul * (sa - sb);
+    }
+    default:
+      return 0;
+  }
+}
+
+function SortHeader({
+  label,
+  column,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  column: SortKey;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (key: SortKey) => void;
+}) {
+  const active = sortKey === column;
+  const Icon = !active ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <th className="px-4 py-3">
+      <button
+        type="button"
+        className={cn(
+          "inline-flex items-center gap-1 font-semibold hover:text-foreground",
+          active ? "text-foreground" : "text-muted-foreground",
+        )}
+        onClick={() => onSort(column)}
+      >
+        {label}
+        <Icon className="h-3.5 w-3.5" aria-hidden />
+      </button>
+    </th>
+  );
 }
 
 export default function AdminUsersTab() {
@@ -40,6 +103,8 @@ export default function AdminUsersTab() {
   const [statusFilter, setStatusFilter] = useState<"active" | "deactivated" | "all">("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState<SortKey>("dateJoined");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const reload = useCallback(async () => {
     const rows = await fetchAdminUsersList({ search, typeFilter, statusFilter });
@@ -70,14 +135,31 @@ export default function AdminUsersTab() {
     };
   }, [reload]);
 
-  const pageCount = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const sortedUsers = useMemo(() => {
+    const copy = [...users];
+    copy.sort((a, b) => compareUsers(a, b, sortKey, sortDir));
+    return copy;
+  }, [users, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(sortedUsers.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
   const pageUsers = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
-    return users.slice(start, start + PAGE_SIZE);
-  }, [safePage, users]);
-  const rangeStart = users.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(safePage * PAGE_SIZE, users.length);
+    return sortedUsers.slice(start, start + PAGE_SIZE);
+  }, [safePage, sortedUsers]);
+  const rangeStart = sortedUsers.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, sortedUsers.length);
+
+  const handleSort = useCallback((key: SortKey) => {
+    setSortKey((prev) => {
+      if (prev === key) {
+        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+        return prev;
+      }
+      setSortDir(key === "dateJoined" ? "desc" : "asc");
+      return key;
+    });
+  }, []);
 
   const handleToggleActive = useCallback(
     async (user: AdminUserListItem, e?: MouseEvent) => {
@@ -128,7 +210,6 @@ export default function AdminUsersTab() {
         />
       </header>
 
-      {/* Kept filters — feature beyond Lovable */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground" htmlFor="admin-users-type">
@@ -174,14 +255,38 @@ export default function AdminUsersTab() {
         <>
           <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
             <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="border-b bg-muted/40 text-xs font-semibold text-muted-foreground">
+              <thead className="border-b bg-muted/40 text-xs">
                 <tr>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Joined</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Actions</th>
+                  <SortHeader
+                    label="Name"
+                    column="name"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                  />
+                  <th className="px-4 py-3 font-semibold text-muted-foreground">Email</th>
+                  <SortHeader
+                    label="Type"
+                    column="type"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                  />
+                  <SortHeader
+                    label="Joined"
+                    column="dateJoined"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                  />
+                  <SortHeader
+                    label="Status"
+                    column="status"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                  />
+                  <th className="px-4 py-3 font-semibold text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -196,7 +301,7 @@ export default function AdminUsersTab() {
                     <td className="px-4 py-3">
                       <Badge variant="secondary">{adminUserTypeLabel(user.type)}</Badge>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 tabular-nums text-muted-foreground">
                       {formatJoined(user.dateJoined)}
                     </td>
                     <td className="px-4 py-3">
@@ -230,7 +335,7 @@ export default function AdminUsersTab() {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              Showing {rangeStart}–{rangeEnd} of {users.length}
+              Showing {rangeStart}–{rangeEnd} of {sortedUsers.length}
             </p>
             <div className="flex items-center gap-2">
               <Button

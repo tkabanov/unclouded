@@ -34,6 +34,9 @@ const corsHeaders = {
 type RequestBody = {
   bookingId?: string;
   bookingTable?: "coachBooking" | "groupSessionBooking";
+  /** Admin-only: generate brief for an arbitrary user without booking/email. */
+  mode?: "adminUser";
+  userId?: string;
 };
 
 function jsonResponse(status: number, payload: Record<string, unknown>): Response {
@@ -181,6 +184,61 @@ Deno.serve(async (req) => {
     return jsonResponse(400, { error: "Invalid JSON body" });
   }
 
+  // Admin preview: generate Kota's Read for any user without booking write/email.
+  if (body.mode === "adminUser") {
+    const targetUserId = typeof body.userId === "string" ? body.userId.trim() : "";
+    if (!targetUserId) {
+      return jsonResponse(400, { error: "userId is required for adminUser mode" });
+    }
+
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
+    if (!serviceKey) {
+      return jsonResponse(500, { error: "Missing SUPABASE_SERVICE_ROLE_KEY" });
+    }
+    const serviceClient = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
+
+    const { data: adminProfile } = await serviceClient
+      .from("profiles")
+      .select("roleType")
+      .eq("id", auth.user.id)
+      .maybeSingle();
+    if (adminProfile?.roleType !== "admin") {
+      return jsonResponse(403, { error: "Admin access required" });
+    }
+
+    const { data: profile, error: profileError } = await serviceClient
+      .from("profiles")
+      .select("firstName, email, results, onboardingData, tier")
+      .eq("id", targetUserId)
+      .maybeSingle();
+
+    if (profileError) {
+      return jsonResponse(500, { error: profileError.message });
+    }
+    if (!profile) {
+      return jsonResponse(404, { error: "User not found" });
+    }
+
+    const context = await buildKotaReadContext(serviceClient, targetUserId, profile);
+    const kotaReadBrief = await generateKotaRead({
+      apiKey: openaiKey,
+      context,
+    });
+
+    if (!kotaReadBrief) {
+      return jsonResponse(502, { error: "Failed to generate Kota's Read" });
+    }
+
+    const brief = formatKotaReadBrief(kotaReadBrief);
+    return jsonResponse(200, {
+      ok: true,
+      brief,
+      kotaRead: brief,
+      kotaReadJson: kotaReadBrief,
+      userId: targetUserId,
+    });
+  }
+
   const bookingId = typeof body.bookingId === "string" ? body.bookingId : null;
   if (!bookingId) {
     return jsonResponse(400, { error: "bookingId is required" });
@@ -259,7 +317,7 @@ Deno.serve(async (req) => {
     scheduledAt,
     factualSection,
     kotaRead: kotaReadFormatted,
-    adminConsoleUrl: `${appOrigin}/settings?tab=admin`,
+    adminConsoleUrl: `${appOrigin}/admin`,
   });
 
   const updatePayload: Record<string, unknown> = {

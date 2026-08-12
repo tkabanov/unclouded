@@ -75,3 +75,28 @@ export async function setAdminUserActive(userId: string, isActive: boolean): Pro
     isActive,
   });
 }
+
+/** Admin-only Kota's Read preview for a user (no booking, no email). */
+export async function generateAdminPreCoachingBrief(userId: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke("generate-kota-read", {
+    body: { mode: "adminUser", userId },
+  });
+  const payload = (data ?? {}) as {
+    ok?: boolean;
+    brief?: string;
+    kotaRead?: string;
+    error?: string;
+  };
+
+  if (payload.ok !== true) {
+    throw new Error(
+      getEdgeFunctionErrorMessage(data, error, "Couldn't generate pre-coaching brief."),
+    );
+  }
+
+  const brief = (payload.brief ?? payload.kotaRead ?? "").trim();
+  if (!brief) {
+    throw new Error("Empty brief returned.");
+  }
+  return brief;
+}
