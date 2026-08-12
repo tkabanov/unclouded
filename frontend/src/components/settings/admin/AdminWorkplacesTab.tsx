@@ -1,68 +1,35 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AddWorkplacePopup from "@/components/settings/admin/AddWorkplacePopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
-import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
-import EmployerAssessmentBaselinePanel from "@/components/employer/EmployerAssessmentBaselinePanel";
-import ManagerTeamAggregatePanel from "@/components/employer/ManagerTeamAggregatePanel";
-import WorkplaceMembersPanel from "@/components/workplace/WorkplaceMembersPanel";
 import {
-  adminWorkplaceToForm,
   createAdminWorkplace,
-  deleteAdminWorkplace,
   fetchAdminWorkplaces,
-  updateAdminWorkplace,
+  formatBillingPeriod,
+  formatSeatUtilization,
+  formatWorkplacePrice,
   type AdminWorkplaceRecord,
 } from "@/lib/settings/admin/adminWorkplacesApi";
-import WorkplaceEnrollmentCodesPanel from "@/components/workplace/WorkplaceEnrollmentCodesPanel";
 import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
-import {
-  fetchEmployerMetrics,
-  type EmployerMetricSnapshot,
-} from "@/lib/employer/employerMetricsApi";
-import {
-  fetchManagerAggregate,
-  type ManagerAggregateSnapshot,
-} from "@/lib/employer/managerAggregateApi";
-import {
-  listWorkplaceMembers,
-  type WorkplaceMemberOption,
-} from "@/lib/employer/managerDirectReportApi";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
+function formatDate(value: string | null): string {
+  if (!value) return "—";
+  return value;
+}
+
 export default function AdminWorkplacesTab() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [workplaces, setWorkplaces] = useState<AdminWorkplaceRecord[]>([]);
   const [dataSource, setDataSource] = useState<AdminDataSource>("table");
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
-  const [editWorkplace, setEditWorkplace] = useState<AdminWorkplaceRecord | null>(null);
   const [busy, setBusy] = useState(false);
-  const [metricsById, setMetricsById] = useState<Record<string, EmployerMetricSnapshot>>({});
-  const [metricsLoadingById, setMetricsLoadingById] = useState<Record<string, boolean>>({});
-  const [managerAggregateById, setManagerAggregateById] = useState<
-    Record<string, ManagerAggregateSnapshot>
-  >({});
-  const [managerAggregateLoadingById, setManagerAggregateLoadingById] = useState<
-    Record<string, boolean>
-  >({});
-  const [managerOptionsByWorkplace, setManagerOptionsByWorkplace] = useState<
-    Record<string, WorkplaceMemberOption[]>
-  >({});
-  const [selectedManagerByWorkplace, setSelectedManagerByWorkplace] = useState<
-    Record<string, string>
-  >({});
-
-  const popupOpen = addOpen || editWorkplace !== null;
-
-  const closePopup = useCallback(() => {
-    setAddOpen(false);
-    setEditWorkplace(null);
-  }, []);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -77,7 +44,7 @@ export default function AdminWorkplacesTab() {
     setLoading(true);
     reload()
       .catch(() => {
-        if (!cancelled) toast.error("Couldn't load workplaces.");
+        if (!cancelled) toast.error("Couldn't load organizations.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -87,101 +54,26 @@ export default function AdminWorkplacesTab() {
     };
   }, [reload, user]);
 
-  const loadManagerAggregate = useCallback((workplace: AdminWorkplaceRecord) => {
-    const managerUserId = selectedManagerByWorkplace[workplace.workplaceId];
-    if (!managerUserId) {
-      toast.error("Select a manager with direct report links first.");
-      return;
-    }
-
-    setManagerAggregateLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: true }));
-    void fetchManagerAggregate({ managerUserId })
-      .then((snapshot) => {
-        setManagerAggregateById((prev) => ({ ...prev, [workplace.workplaceId]: snapshot }));
-      })
-      .catch((err) =>
-        toast.error(err instanceof Error ? err.message : "Couldn't load manager aggregate."),
-      )
-      .finally(() => {
-        setManagerAggregateLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: false }));
-      });
-  }, [selectedManagerByWorkplace]);
-
-  const loadManagerOptions = useCallback((workplaceId: string) => {
-    void listWorkplaceMembers(workplaceId)
-      .then((members) => {
-        const managers = members.filter((member) => member.managesATeam);
-        setManagerOptionsByWorkplace((prev) => ({ ...prev, [workplaceId]: managers }));
-      })
-      .catch(() => toast.error("Couldn't load workplace managers."));
-  }, []);
-
-  const loadMetrics = useCallback((workplace: AdminWorkplaceRecord) => {
-    if (!workplace.metricsReady) {
-      toast.error(
-        "Continuous metrics need a database workplace. Delete this local row and add the workplace again.",
-      );
-      return;
-    }
-    setMetricsLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: true }));
-    void fetchEmployerMetrics(workplace.workplaceId)
-      .then((snapshot) => {
-        setMetricsById((prev) => ({ ...prev, [workplace.workplaceId]: snapshot }));
-      })
-      .catch((err) =>
-        toast.error(err instanceof Error ? err.message : "Couldn't load employer metrics."),
-      )
-      .finally(() => {
-        setMetricsLoadingById((prev) => ({ ...prev, [workplace.workplaceId]: false }));
-      });
-  }, []);
-
-  const handleSave = useCallback(
+  const handleCreate = useCallback(
     async (form: Parameters<typeof createAdminWorkplace>[1]) => {
       if (!user || busy) return;
       setBusy(true);
       try {
-        if (editWorkplace) {
-          await updateAdminWorkplace(user.id, editWorkplace.workplaceId, form);
-          toast.success("Workplace updated.");
-        } else {
-          await createAdminWorkplace(user.id, form);
-          toast.success("Workplace created.");
-        }
-        await reload();
-        closePopup();
+        const created = await createAdminWorkplace(user.id, form);
+        toast.success("Organization created.");
+        setAddOpen(false);
+        navigate(`/admin/organizations/${created.workplaceId}`);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Couldn't save workplace.");
+        toast.error(err instanceof Error ? err.message : "Couldn't save organization.");
       } finally {
         setBusy(false);
       }
     },
-    [busy, closePopup, editWorkplace, reload, user],
-  );
-
-  const handleDelete = useCallback(
-    async (workplace: AdminWorkplaceRecord) => {
-      if (!user || busy) return;
-      setBusy(true);
-      try {
-        await deleteAdminWorkplace(user.id, workplace.workplaceId);
-        await reload();
-        toast.success("Workplace deleted.");
-      } catch {
-        toast.error("Couldn't delete workplace.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [busy, reload, user],
+    [busy, navigate, user],
   );
 
   if (loading) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        Loading workplaces…
-      </div>
-    );
+    return <div className="text-sm text-muted-foreground">Loading organizations…</div>;
   }
 
   return (
@@ -192,7 +84,7 @@ export default function AdminWorkplacesTab() {
             Enterprise organizations
           </h1>
           <p className="text-sm text-muted-foreground">
-            Employees sign up with a normal account and enter their enrollment code in Settings.
+            Employees sign up normally, then enter an enrollment code during onboarding.
           </p>
         </div>
         <Button
@@ -204,141 +96,71 @@ export default function AdminWorkplacesTab() {
         </Button>
       </header>
 
-      <AdminDataSourceNotice source={dataSource} entityLabel="workplaces" />
+      <AdminDataSourceNotice source={dataSource} entityLabel="organizations" />
 
-      <div className="grid gap-4">
-        {workplaces.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No organizations yet.</p>
-        ) : (
-          workplaces.map((workplace) => (
-            <div
-              key={workplace.workplaceId}
-              className={cn(
-                "flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-sm",
-              )}
-            >
-              <div>
-                <h4 className="font-semibold">
-                  {workplace.name}
-                </h4>
-                <p
-                  className="text-sm text-muted-foreground"
+      {workplaces.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No organizations yet.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+          <table className="w-full min-w-[880px] text-left text-sm">
+            <thead className="border-b bg-muted/40 text-xs">
+              <tr>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Name</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Tier</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Seats</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">End date</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Status</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Billing</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Price</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {workplaces.map((workplace) => (
+                <tr
+                  key={workplace.workplaceId}
+                  className="cursor-pointer hover:bg-muted/30"
+                  onClick={() => navigate(`/admin/organizations/${workplace.workplaceId}`)}
                 >
-                  {workplace.contactEmail}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {workplace.contractTier.toUpperCase()} · {workplace.seatCount} seats
-                  {typeof workplace.activeSeats === "number"
-                    ? ` (${workplace.activeSeats} active)`
-                    : ""}{" "}
-                  · {workplace.isActive ? "Active contract" : "Inactive"}
-                </p>
-              </div>
-              {workplace.metricsReady ? (
-                <WorkplaceEnrollmentCodesPanel workplaceId={workplace.workplaceId} disabled={busy} />
-              ) : null}
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={busy || metricsLoadingById[workplace.workplaceId]}
-                onClick={() => loadMetrics(workplace)}
-              >
-                Continuous metrics
-              </Button>
-              {workplace.metricsReady ? (
-                <WorkplaceMembersPanel workplaceId={workplace.workplaceId} disabled={busy} />
-              ) : null}
-              <div className="flex flex-col gap-2">
-                <label className="flex flex-col gap-1 text-xs">
-                  <span className="font-medium">Manager preview</span>
-                  <select
-                    className="rounded-md border border-input bg-background px-2 py-1.5"
-                    value={selectedManagerByWorkplace[workplace.workplaceId] ?? ""}
-                    disabled={busy || !workplace.metricsReady}
-                    onFocus={() => loadManagerOptions(workplace.workplaceId)}
-                    onChange={(event) =>
-                      setSelectedManagerByWorkplace((prev) => ({
-                        ...prev,
-                        [workplace.workplaceId]: event.target.value,
-                      }))
-                    }
-                  >
-                    <option value="">Select manager…</option>
-                    {(managerOptionsByWorkplace[workplace.workplaceId] ?? []).map((member) => (
-                      <option key={member.userId} value={member.userId}>
-                        {member.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={busy || managerAggregateLoadingById[workplace.workplaceId]}
-                  onClick={() => loadManagerAggregate(workplace)}
-                >
-                  Manager aggregate (REQ-11)
-                </Button>
-              </div>
-              {metricsById[workplace.workplaceId] || metricsLoadingById[workplace.workplaceId] ? (
-                <>
-                  <EmployerContinuousMetricsPanel
-                    metrics={metricsById[workplace.workplaceId] ?? null}
-                    loading={metricsLoadingById[workplace.workplaceId]}
-                  />
-                  <EmployerAssessmentBaselinePanel
-                    metrics={metricsById[workplace.workplaceId] ?? null}
-                    loading={metricsLoadingById[workplace.workplaceId]}
-                  />
-                </>
-              ) : null}
-              {managerAggregateById[workplace.workplaceId] ||
-              managerAggregateLoadingById[workplace.workplaceId] ? (
-                <ManagerTeamAggregatePanel
-                  snapshot={managerAggregateById[workplace.workplaceId] ?? null}
-                  loading={managerAggregateLoadingById[workplace.workplaceId]}
-                />
-              ) : null}
-              <div
-                className="flex justify-end gap-2"
-              >
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => setEditWorkplace(workplace)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => void handleDelete(workplace)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+                  <td className="px-4 py-3 font-medium text-foreground">{workplace.name}</td>
+                  <td className="px-4 py-3 capitalize text-muted-foreground">
+                    {workplace.contractTier}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                    {formatSeatUtilization(workplace.activeSeats, workplace.seatCount)}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                    {formatDate(workplace.contractEndDate)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
+                        workplace.isActive
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-destructive/10 text-destructive",
+                      )}
+                    >
+                      {workplace.isActive ? "active" : "inactive"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatBillingPeriod(workplace.billingPeriod)}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                    {formatWorkplacePrice(workplace.price)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <AddWorkplacePopup
-        open={popupOpen}
-        onOpenChange={(open) => {
-          if (!open) closePopup();
-        }}
-        onSubmit={handleSave}
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onSubmit={handleCreate}
         busy={busy}
-        editWorkplaceId={editWorkplace?.workplaceId ?? null}
-        initialForm={
-          editWorkplace ? adminWorkplaceToForm(editWorkplace) : null
-        }
       />
     </div>
   );

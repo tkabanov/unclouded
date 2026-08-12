@@ -10,8 +10,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  BILLING_PERIOD_LABELS,
   emptyAdminWorkplaceForm,
   type AdminWorkplaceFormState,
+  type BillingPeriod,
   type ContractTier,
 } from "@/lib/settings/admin/adminWorkplacesApi";
 import { bubbleStyle } from "@/styles";
@@ -24,6 +26,11 @@ export interface AddWorkplacePopupProps {
   editWorkplaceId?: string | null;
   initialForm?: AdminWorkplaceFormState | null;
 }
+
+const BILLING_PERIOD_OPTIONS = Object.entries(BILLING_PERIOD_LABELS) as [
+  BillingPeriod,
+  string,
+][];
 
 export default function AddWorkplacePopup({
   open,
@@ -44,14 +51,12 @@ export default function AddWorkplacePopup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit workplace" : "Add workplace"}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? "Edit organization" : "Add organization"}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="add-workplace-name">Workplace name</Label>
+            <Label htmlFor="add-workplace-name">Organization name</Label>
             <Input
               id="add-workplace-name"
               className={bubbleStyle("Input_default_")}
@@ -110,6 +115,43 @@ export default function AddWorkplacePopup({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
+              <Label htmlFor="add-workplace-billing">Billing period</Label>
+              <select
+                id="add-workplace-billing"
+                className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.billingPeriod}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    billingPeriod: event.target.value as BillingPeriod | "",
+                  }))
+                }
+              >
+                <option value="">Not set</option>
+                {BILLING_PERIOD_OPTIONS.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="add-workplace-price">Price (USD)</Label>
+              <Input
+                id="add-workplace-price"
+                type="number"
+                min={0}
+                step="0.01"
+                placeholder="Optional"
+                value={form.price}
+                onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
               <Label htmlFor="add-workplace-start">Contract start</Label>
               <Input
                 id="add-workplace-start"
@@ -160,7 +202,7 @@ export default function AddWorkplacePopup({
             disabled={busy}
             onClick={() => void onSubmit(form)}
           >
-            {busy ? "Saving…" : isEdit ? "Save changes" : "Create workplace"}
+            {busy ? "Saving…" : isEdit ? "Save changes" : "Create organization"}
           </Button>
         </DialogFooter>
       </DialogContent>

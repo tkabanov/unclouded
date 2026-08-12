@@ -40,6 +40,8 @@ export type AdminUsersListFilters = {
   search?: string;
   typeFilter?: AdminUserTypeSlug | "all";
   statusFilter?: "active" | "deactivated" | "all";
+  /** When set, only profiles linked to this workplace. */
+  workplaceId?: string;
 };
 
 export async function fetchAdminUsersList(
@@ -50,6 +52,7 @@ export async function fetchAdminUsersList(
     search: filters.search ?? "",
     typeFilter: filters.typeFilter ?? "all",
     statusFilter: filters.statusFilter ?? "all",
+    ...(filters.workplaceId ? { workplaceId: filters.workplaceId } : {}),
   })) as ListResponse;
 
   return payload.users ?? [];

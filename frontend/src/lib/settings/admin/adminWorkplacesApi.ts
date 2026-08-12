@@ -9,6 +9,18 @@ export { isValidUuid };
 
 export type ContractTier = "pro" | "premium";
 
+export type BillingPeriod = "monthly" | "quarterly" | "half_yearly" | "yearly";
+
+export const BILLING_PERIOD_LABELS: Record<BillingPeriod, string> = {
+  monthly: "Monthly",
+  quarterly: "Quarterly",
+  half_yearly: "Half-yearly",
+  yearly: "Yearly",
+};
+
+const WORKPLACE_SELECT =
+  "id, name, contactEmail, contractTier, seatCount, contractStartDate, contractEndDate, isActive, billingPeriod, price";
+
 export interface AdminWorkplaceRecord {
   workplaceId: string;
   name: string;
@@ -18,6 +30,8 @@ export interface AdminWorkplaceRecord {
   contractStartDate: string | null;
   contractEndDate: string | null;
   isActive: boolean;
+  billingPeriod: BillingPeriod | null;
+  price: number | null;
   activeSeats?: number;
   /** False for legacy onboarding-only rows with non-UUID ids — metrics need the DB table. */
   metricsReady: boolean;
@@ -31,6 +45,8 @@ export type AdminWorkplaceFormState = {
   contractStartDate: string;
   contractEndDate: string;
   isActive: boolean;
+  billingPeriod: BillingPeriod | "";
+  price: string;
 };
 
 type WorkplaceRow = {
@@ -42,6 +58,8 @@ type WorkplaceRow = {
   contractStartDate?: string | null;
   contractEndDate?: string | null;
   isActive?: boolean;
+  billingPeriod?: string | null;
+  price?: number | string | null;
 };
 
 type UntypedSupabase = {
@@ -55,6 +73,21 @@ export type AdminWorkplacesLoadResult = {
 
 function normalizeContractTier(value: string | null | undefined): ContractTier {
   return value?.trim().toLowerCase() === "premium" ? "premium" : "pro";
+}
+
+function normalizeBillingPeriod(value: string | null | undefined): BillingPeriod | null {
+  const v = value?.trim().toLowerCase();
+  if (v === "monthly" || v === "quarterly" || v === "half_yearly" || v === "yearly") {
+    return v;
+  }
+  return null;
+}
+
+function normalizePrice(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return null;
+  return n;
 }
 
 function toAdminWorkplace(row: WorkplaceRow, metricsReady: boolean): AdminWorkplaceRecord | null {
@@ -72,6 +105,8 @@ function toAdminWorkplace(row: WorkplaceRow, metricsReady: boolean): AdminWorkpl
     contractStartDate: row.contractStartDate ?? null,
     contractEndDate: row.contractEndDate ?? null,
     isActive: row.isActive !== false,
+    billingPeriod: normalizeBillingPeriod(row.billingPeriod),
+    price: normalizePrice(row.price),
     metricsReady: metricsReady && isValidUuid(workplaceId),
   };
 }
@@ -124,11 +159,25 @@ async function writeOnboardingWorkplaces(userId: string, rows: WorkplaceRow[]): 
   if (error) throw error;
 }
 
+async function attachActiveSeats(
+  workplaces: AdminWorkplaceRecord[],
+): Promise<AdminWorkplaceRecord[]> {
+  return Promise.all(
+    workplaces.map(async (workplace) => {
+      if (!workplace.metricsReady) return workplace;
+      try {
+        const activeSeats = await fetchAdminWorkplaceActiveSeats(workplace.workplaceId);
+        return { ...workplace, activeSeats };
+      } catch {
+        return workplace;
+      }
+    }),
+  );
+}
+
 async function tryFetchWorkplacesFromTable(): Promise<AdminWorkplaceRecord[] | null> {
   const client = supabase as unknown as UntypedSupabase;
-  const { data, error } = await client.from("workplace").select(
-    'id, name, contactEmail, contractTier, seatCount, contractStartDate, contractEndDate, isActive',
-  );
+  const { data, error } = await client.from("workplace").select(WORKPLACE_SELECT);
 
   if (error) {
     if (isSchemaUnavailable(error)) return null;
@@ -145,19 +194,8 @@ async function tryFetchWorkplacesFromTable(): Promise<AdminWorkplaceRecord[] | n
 export async function fetchAdminWorkplaces(userId: string): Promise<AdminWorkplacesLoadResult> {
   const fromTable = await tryFetchWorkplacesFromTable();
   if (fromTable !== null) {
-    const withSeats = await Promise.all(
-      fromTable.map(async (workplace) => {
-        if (!workplace.metricsReady) return workplace;
-        try {
-          const activeSeats = await fetchAdminWorkplaceActiveSeats(workplace.workplaceId);
-          return { ...workplace, activeSeats };
-        } catch {
-          return workplace;
-        }
-      }),
-    );
     return {
-      workplaces: withSeats,
+      workplaces: await attachActiveSeats(fromTable),
       dataSource: "table",
     };
   }
@@ -169,15 +207,53 @@ export async function fetchAdminWorkplaces(userId: string): Promise<AdminWorkpla
   };
 }
 
+export async function fetchAdminWorkplace(
+  userId: string,
+  workplaceId: string,
+): Promise<AdminWorkplaceRecord | null> {
+  const client = supabase as unknown as UntypedSupabase;
+  const { data, error } = await client
+    .from("workplace")
+    .select(WORKPLACE_SELECT)
+    .eq("id", workplaceId)
+    .maybeSingle();
+
+  if (!error && data) {
+    const workplace = toAdminWorkplace(data as WorkplaceRow, true);
+    if (!workplace) return null;
+    const [withSeats] = await attachActiveSeats([workplace]);
+    return withSeats;
+  }
+
+  if (error && !isSchemaUnavailable(error)) throw error;
+
+  const fromOnboarding = await readOnboardingWorkplaces(userId);
+  return fromOnboarding.find((w) => w.workplaceId === workplaceId) ?? null;
+}
+
+function parseFormPrice(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) {
+    throw new Error("Enter a valid price.");
+  }
+  if (n < 0) {
+    throw new Error("Price cannot be negative.");
+  }
+  return n;
+}
+
 function validateWorkplaceForm(form: AdminWorkplaceFormState): void {
-  if (!form.name.trim()) throw new Error("Workplace name is required.");
-  if (!form.contactEmail.trim()) throw new Error("Contact email is required.");
+  if (!form.name.trim()) throw new Error("Organization name is required.");
+  if (!form.contactEmail.trim()) throw new Error("HR contact email is required.");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail.trim())) {
-    throw new Error("Enter a valid contact email.");
+    throw new Error("Enter a valid HR contact email.");
   }
   if (!Number.isFinite(form.seatCount) || form.seatCount <= 0) {
     throw new Error("Seat count must be at least 1.");
   }
+  parseFormPrice(form.price);
 }
 
 function normalizeOptionalDate(value: string): string | null {
@@ -194,6 +270,8 @@ function workplaceInsertPayload(form: AdminWorkplaceFormState): Record<string, u
     contractStartDate: normalizeOptionalDate(form.contractStartDate),
     contractEndDate: normalizeOptionalDate(form.contractEndDate),
     isActive: form.isActive,
+    billingPeriod: form.billingPeriod || null,
+    price: parseFormPrice(form.price),
   };
 }
 
@@ -207,12 +285,12 @@ export async function createAdminWorkplace(
   const { data: inserted, error: tableError } = await client
     .from("workplace")
     .insert(workplaceInsertPayload(form) as never)
-    .select('id, name, contactEmail, contractTier, seatCount, contractStartDate, contractEndDate, isActive')
+    .select(WORKPLACE_SELECT)
     .maybeSingle();
 
   if (!tableError && inserted) {
     const created = toAdminWorkplace(inserted as WorkplaceRow, true);
-    if (!created) throw new Error("Failed to create workplace.");
+    if (!created) throw new Error("Failed to create organization.");
     return created;
   }
 
@@ -227,18 +305,16 @@ export async function createAdminWorkplace(
     contractStartDate: normalizeOptionalDate(form.contractStartDate),
     contractEndDate: normalizeOptionalDate(form.contractEndDate),
     isActive: form.isActive,
+    billingPeriod: form.billingPeriod || null,
+    price: parseFormPrice(form.price),
   };
 
   const existing = await readOnboardingWorkplaces(userId);
-  const stored = existing.map((workplace) => ({
-    id: workplace.workplaceId,
-    name: workplace.name,
-    contactEmail: workplace.contactEmail,
-  }));
+  const stored = existing.map((workplace) => workplaceRowFromRecord(workplace));
 
   await writeOnboardingWorkplaces(userId, [...stored, row]);
   const created = toAdminWorkplace(row, false);
-  if (!created) throw new Error("Failed to create workplace.");
+  if (!created) throw new Error("Failed to create organization.");
   return created;
 }
 
@@ -251,11 +327,7 @@ export async function deleteAdminWorkplace(userId: string, workplaceId: string):
   const existing = await readOnboardingWorkplaces(userId);
   const next = existing
     .filter((workplace) => workplace.workplaceId !== workplaceId)
-    .map((workplace) => ({
-      id: workplace.workplaceId,
-      name: workplace.name,
-      contactEmail: workplace.contactEmail,
-    }));
+    .map((workplace) => workplaceRowFromRecord(workplace));
 
   await writeOnboardingWorkplaces(userId, next);
 }
@@ -270,6 +342,8 @@ function workplaceRowFromForm(form: AdminWorkplaceFormState, workplaceId: string
     contractStartDate: normalizeOptionalDate(form.contractStartDate),
     contractEndDate: normalizeOptionalDate(form.contractEndDate),
     isActive: form.isActive,
+    billingPeriod: form.billingPeriod || null,
+    price: parseFormPrice(form.price),
   };
 }
 
@@ -283,6 +357,8 @@ function workplaceRowFromRecord(workplace: AdminWorkplaceRecord): WorkplaceRow {
     contractStartDate: workplace.contractStartDate,
     contractEndDate: workplace.contractEndDate,
     isActive: workplace.isActive,
+    billingPeriod: workplace.billingPeriod,
+    price: workplace.price,
   };
 }
 
@@ -300,12 +376,12 @@ export async function updateAdminWorkplace(
     .from("workplace")
     .update(workplaceInsertPayload(form) as never)
     .eq("id", workplaceId)
-    .select('id, name, contactEmail, contractTier, seatCount, contractStartDate, contractEndDate, isActive')
+    .select(WORKPLACE_SELECT)
     .maybeSingle();
 
   if (!tableError && updatedRow) {
     const updated = toAdminWorkplace(updatedRow as WorkplaceRow, true);
-    if (!updated) throw new Error("Failed to update workplace.");
+    if (!updated) throw new Error("Failed to update organization.");
     return updated;
   }
 
@@ -319,11 +395,11 @@ export async function updateAdminWorkplace(
     return row;
   });
 
-  if (!found) throw new Error("Workplace not found.");
+  if (!found) throw new Error("Organization not found.");
   await writeOnboardingWorkplaces(userId, next);
 
   const updated = toAdminWorkplace(row, false);
-  if (!updated) throw new Error("Failed to update workplace.");
+  if (!updated) throw new Error("Failed to update organization.");
   return updated;
 }
 
@@ -336,6 +412,8 @@ export function adminWorkplaceToForm(workplace: AdminWorkplaceRecord): AdminWork
     contractStartDate: workplace.contractStartDate ?? "",
     contractEndDate: workplace.contractEndDate ?? "",
     isActive: workplace.isActive,
+    billingPeriod: workplace.billingPeriod ?? "",
+    price: workplace.price === null || workplace.price === undefined ? "" : String(workplace.price),
   };
 }
 
@@ -356,5 +434,30 @@ export function emptyAdminWorkplaceForm(): AdminWorkplaceFormState {
     contractStartDate: "",
     contractEndDate: "",
     isActive: true,
+    billingPeriod: "",
+    price: "",
   };
+}
+
+export function formatBillingPeriod(value: BillingPeriod | null | undefined): string {
+  if (!value) return "—";
+  return BILLING_PERIOD_LABELS[value] ?? value;
+}
+
+export function formatWorkplacePrice(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "—";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+export function formatSeatUtilization(
+  activeSeats: number | undefined,
+  seatCount: number,
+): string {
+  const active = typeof activeSeats === "number" ? activeSeats : "—";
+  return `${active} / ${seatCount}`;
 }

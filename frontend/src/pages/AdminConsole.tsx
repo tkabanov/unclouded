@@ -7,6 +7,7 @@ import AdminResourcesTab from "@/components/settings/admin/AdminResourcesTab";
 import AdminInsightsTab from "@/components/settings/admin/AdminInsightsTab";
 import AdminPlansTab from "@/components/settings/admin/AdminPlansTab";
 import AdminWorkplacesTab from "@/components/settings/admin/AdminWorkplacesTab";
+import AdminOrganizationDetail from "@/components/settings/admin/AdminOrganizationDetail";
 import AdminAnalyticsTab from "@/components/settings/admin/AdminAnalyticsTab";
 import AdminOutreachTab from "@/components/settings/admin/AdminOutreachTab";
 import AdminCoachBookingsTab from "@/components/settings/admin/AdminCoachBookingsTab";
@@ -51,6 +52,14 @@ export default function AdminConsole() {
           element={
             <AdminSection>
               <AdminWorkplacesTab />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="organizations/:organizationId"
+          element={
+            <AdminSection>
+              <AdminOrganizationDetail />
             </AdminSection>
           }
         />

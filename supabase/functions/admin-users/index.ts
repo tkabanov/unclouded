@@ -9,6 +9,7 @@
  *   search?: string,
  *   typeFilter?: "free" | "pro" | "premium" | "canceled" | "all",
  *   statusFilter?: "active" | "deactivated" | "all",
+ *   workplaceId?: string,
  * }
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -21,6 +22,7 @@ type ActionBody = {
   search?: string;
   typeFilter?: "free" | "pro" | "premium" | "canceled" | "all";
   statusFilter?: "active" | "deactivated" | "all";
+  workplaceId?: string;
 };
 
 type AdminUserType = "free" | "pro" | "premium" | "canceled";
@@ -186,14 +188,25 @@ Deno.serve(async (req) => {
     }
 
     if (action === "list") {
-      const { data: profiles, error } = await admin
+      const workplaceId = body.workplaceId?.trim();
+      if (workplaceId && !isValidUuid(workplaceId)) {
+        return json({ error: "Valid workplaceId is required" }, 400);
+      }
+
+      let listQuery = admin
         .from("profiles")
         .select(
-          "id, email, firstName, lastName, tier, subscribed, accountType, enterpriseTier, createdAt, isActive, deactivatedAt, roleType",
+          "id, email, firstName, lastName, tier, subscribed, accountType, enterpriseTier, createdAt, isActive, deactivatedAt, roleType, workplaceId",
         )
         .neq("roleType", "admin")
         .order("createdAt", { ascending: false })
         .limit(500);
+
+      if (workplaceId) {
+        listQuery = listQuery.eq("workplaceId", workplaceId);
+      }
+
+      const { data: profiles, error } = await listQuery;
 
       if (error) return json({ error: error.message }, 500);
 

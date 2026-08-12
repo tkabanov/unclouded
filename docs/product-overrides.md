@@ -534,3 +534,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | Admin Paths (`/admin` Paths): library by Free/Pro/Premium with quick filters for **tier** and **Enabled/Disabled**. Create/Edit Path dialog includes inline **Modules** (sessions: title, coaching text, Q1–Q3, micro-commitment, reassessment reflection) saved via `syncAdminPathSessions`. Visibility toggle is Enable/Disable (`path.isActive`) without deleting data. **Media assets** on paths/sessions are **not** implemented (no cover/upload fields). |
 | **Code** | `frontend/src/components/settings/admin/AdminPathsTab.tsx`, `frontend/src/components/settings/admin/AddPathPopup.tsx`, `frontend/src/components/settings/admin/AdminPathSessionFields.tsx`, `frontend/src/lib/settings/admin/adminPathSessionsApi.ts` |
 
+### OVR-053 — Organization contract billing period + price (admin metadata)
+
+| | |
+|---|---|
+| **Date** | 2026-08-12 |
+| **Overrides** | `docs/Admin Account Set-Up.md` Organization table (no billing period / price); Module 3 “Manager email” and Pro/Plus tier wording |
+| **Authoritative spec** | Owner request — org detail includes Billing period (Monthly/Quarterly/Half-yearly/Yearly) + Price; tier stays Pro/Premium; no manager email column |
+| **Current behavior** | `workplace.billingPeriod` and `workplace.price` are optional admin contract fields (not Stripe). Create/Edit organization form and org detail show them. HR contact remains `contactEmail`; managers stay member roles (OVR-022). Admin Organizations list is a table with seat utilization and end date; detail at `/admin/organizations/:id` reuses the Users table UI filtered by `workplaceId`. |
+| **Code** | `supabase/migrations/20260812160000_workplace_billing_price.sql`, `frontend/src/lib/settings/admin/adminWorkplacesApi.ts`, `frontend/src/components/settings/admin/AddWorkplacePopup.tsx`, `AdminWorkplacesTab.tsx`, `AdminOrganizationDetail.tsx`, `AdminUsersTable.tsx`, `supabase/functions/admin-users/index.ts` |
+
