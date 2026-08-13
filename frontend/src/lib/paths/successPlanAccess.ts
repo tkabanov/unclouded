@@ -39,13 +39,15 @@ export type SuccessPlanAccessInput = {
   userTier: TierSlug;
   hasSuccessPlanAddon: boolean;
   hasHrAssignment: boolean;
+  /** Enterprise employees cannot self-purchase Success Plan add-ons (HR-assign only). */
+  isEnterprise?: boolean;
 };
 
 export type SuccessPlanAccessResult =
   | { allowed: true; reason: "hr_assign" | "addon" }
   | {
       allowed: false;
-      reason: "upgrade_required" | "purchase_required";
+      reason: "upgrade_required" | "purchase_required" | "hr_assign_required";
     };
 
 export function resolveSuccessPlanAccess(
@@ -53,6 +55,13 @@ export function resolveSuccessPlanAccess(
 ): SuccessPlanAccessResult {
   if (input.hasHrAssignment) {
     return { allowed: true, reason: "hr_assign" };
+  }
+
+  if (input.isEnterprise) {
+    if (input.hasSuccessPlanAddon) {
+      return { allowed: true, reason: "addon" };
+    }
+    return { allowed: false, reason: "hr_assign_required" };
   }
 
   const paid =
@@ -75,6 +84,7 @@ export function userCanAccessPathClient(input: {
   pathTier: TierSlug;
   hasSuccessPlanAddon: boolean;
   hasHrAssignment: boolean;
+  isEnterprise?: boolean;
 }): boolean {
   if (!input.isSuccessPlan) {
     return TIER_ORDER.indexOf(input.userTier) >= TIER_ORDER.indexOf(input.pathTier);
@@ -83,5 +93,6 @@ export function userCanAccessPathClient(input: {
     userTier: input.userTier,
     hasSuccessPlanAddon: input.hasSuccessPlanAddon,
     hasHrAssignment: input.hasHrAssignment,
+    isEnterprise: input.isEnterprise,
   }).allowed;
 }

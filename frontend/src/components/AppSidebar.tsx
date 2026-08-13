@@ -66,9 +66,14 @@ export function AppSidebar() {
       ? `${roleLabel} • ${classificationName}`
       : SIDEBAR_MODE_VALUE_PLACEHOLDER;
 
+  const isEnterprise =
+    (profile?.accountType ?? "individual").trim().toLowerCase() === "enterprise";
+
   const visibleNavItems = isPortalOnlyHr
     ? navItems.filter((item) => item.slug === "settings")
-    : navItems;
+    : isEnterprise
+      ? navItems.filter((item) => item.slug !== "subscription")
+      : navItems;
 
   return (
     <Sidebar

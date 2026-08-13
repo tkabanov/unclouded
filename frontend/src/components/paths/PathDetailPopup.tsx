@@ -116,6 +116,8 @@ export default function PathDetailPopup({
   const subMode = matchedEnrollment?.subMode ?? catalogPath?.subMode;
   const progressPercent = matchedEnrollment?.progressPercent ?? 0;
   const userTier = useEffectiveTier().tier;
+  const isEnterprise =
+    (profile?.accountType ?? "individual").trim().toLowerCase() === "enterprise";
   const moduleGate = useMemo(
     () =>
       resolvePathModuleGate(
@@ -133,7 +135,7 @@ export default function PathDetailPopup({
   const [addonLoading, setAddonLoading] = useState(false);
 
   useEffect(() => {
-    if (!open || !isSuccessPlan || hasHrAssignment) {
+    if (!open || !isSuccessPlan || hasHrAssignment || isEnterprise) {
       setHasSuccessPlanAddon(false);
       setAddonLoading(false);
       return;
@@ -153,13 +155,14 @@ export default function PathDetailPopup({
     return () => {
       cancelled = true;
     };
-  }, [open, isSuccessPlan, hasHrAssignment]);
+  }, [open, isSuccessPlan, hasHrAssignment, isEnterprise]);
 
   const successPlanAccess = isSuccessPlan
     ? resolveSuccessPlanAccess({
         userTier,
         hasSuccessPlanAddon,
         hasHrAssignment,
+        isEnterprise,
       })
     : null;
   const needsUpgrade = isSuccessPlan
@@ -171,12 +174,18 @@ export default function PathDetailPopup({
       !successPlanAccess.allowed &&
       successPlanAccess.reason === "purchase_required",
   );
+  const needsHrAssign = Boolean(
+    isSuccessPlan &&
+      successPlanAccess &&
+      !successPlanAccess.allowed &&
+      successPlanAccess.reason === "hr_assign_required",
+  );
   const lockedPathFeature = isSuccessPlan
     ? "successPlan"
     : pathTier === TIER.PREMIUM
       ? "premiumPath"
       : "proPath";
-  const pathUpsell = useLockedFeatureUpsell(userTier);
+  const pathUpsell = useLockedFeatureUpsell(userTier, profile?.accountType);
   const enrolled = isActiveEnrollment(matchedEnrollment);
   const accessBlocked =
     (isSuccessPlan && successPlanAccess && !successPlanAccess.allowed) ||
@@ -190,6 +199,7 @@ export default function PathDetailPopup({
   const showUnenroll = enrolled && Boolean(matchedEnrollment?.enrollmentId);
   const showUpgrade = needsUpgrade;
   const showPurchase = needsPurchase && !enrolled;
+  const showHrAssignHint = needsHrAssign && !enrolled;
   const continueSessionId = matchedEnrollment?.currentSessionId;
   // Stale enrollments after downgrade stay visible (progress read-only) but
   // Continue must not bypass the tier gate — PL-GATE-002 / PL-DOWN-001.
@@ -514,6 +524,13 @@ export default function PathDetailPopup({
               </Button>
             ) : null}
 
+            {showHrAssignHint ? (
+              <p className="text-sm text-muted-foreground">
+                Ask your HR administrator to assign this Success Plan. Individual purchase is not
+                available on enterprise accounts.
+              </p>
+            ) : null}
+
             {moduleGate?.blocked && !enrolled ? (
               <Button
                 asChild
@@ -578,6 +595,7 @@ export default function PathDetailPopup({
         open={pathUpsell.openFeature === lockedPathFeature}
         feature={lockedPathFeature}
         currentTier={userTier}
+        isEnterprise={pathUpsell.isEnterprise}
         onClose={pathUpsell.closeUpsell}
       />
     </Dialog>

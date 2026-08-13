@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
+import { useUserProfile } from "@/lib/userProfile";
 import type { PathEnrollmentListItem } from "@/lib/dashboard/pathEnrollmentApi";
 import { PATH_ENROLLMENT_STATUS, PATH_ENROLLMENT_STATUS_LABELS } from "@/lib/enums/pathEnrollment";
 import { TIER, TIER_LABELS } from "@/lib/enums/tier";
@@ -30,6 +31,9 @@ export default function PathCard({
   className,
 }: PathCardProps) {
   const userTier = useEffectiveTier().tier;
+  const { profile } = useUserProfile();
+  const isEnterprise =
+    (profile?.accountType ?? "individual").trim().toLowerCase() === "enterprise";
   const successPlan = isSuccessPlanPath(enrollment);
   const needsUpgrade = successPlan
     ? !userCanAccessPathClient({
@@ -39,6 +43,7 @@ export default function PathCard({
         // Enrolled via add-on checkout implies entitlement while tier stays paid.
         hasSuccessPlanAddon: enrollment.source === "addon",
         hasHrAssignment: isActiveHrAssignment(enrollment),
+        isEnterprise,
       })
     : !userCanAccessPathTier(userTier, enrollment.tier);
   const lockedPathFeature = successPlan
@@ -46,7 +51,7 @@ export default function PathCard({
     : enrollment.tier === TIER.PREMIUM
       ? "premiumPath"
       : "proPath";
-  const pathUpsell = useLockedFeatureUpsell(userTier);
+  const pathUpsell = useLockedFeatureUpsell(userTier, profile?.accountType);
   const statusLabel = PATH_ENROLLMENT_STATUS_LABELS[enrollment.status];
   const canContinue =
     !needsUpgrade &&
@@ -199,6 +204,7 @@ export default function PathCard({
         open={pathUpsell.openFeature === lockedPathFeature}
         feature={lockedPathFeature}
         currentTier={userTier}
+        isEnterprise={pathUpsell.isEnterprise}
         onClose={pathUpsell.closeUpsell}
       />
     </article>

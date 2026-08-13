@@ -6,6 +6,8 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { cancelIndividualStripeOnEnterpriseConvert } from "../_shared/cancelIndividualStripeOnEnterprise.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -49,7 +51,8 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!supabaseUrl || !anonKey) {
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !anonKey || !serviceKey) {
     return json({ error: "Missing Supabase env" }, 500);
   }
 
@@ -102,6 +105,18 @@ Deno.serve(async (req) => {
       },
       status,
     );
+  }
+
+  // Paid individual → enterprise: cancel Stripe immediately (Part C §31).
+  if (payload.alreadyEnrolled !== true) {
+    try {
+      const service = createClient(supabaseUrl, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      await cancelIndividualStripeOnEnterpriseConvert(service, authData.user.id);
+    } catch (err) {
+      console.error("redeem-workplace-enrollment: Stripe cancel post-step failed", err);
+    }
   }
 
   return json({

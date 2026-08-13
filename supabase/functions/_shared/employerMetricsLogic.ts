@@ -29,6 +29,15 @@ export type MonthlyActiveTrendPoint = {
   suppressed: boolean;
 };
 
+export type MonthlyScoreTrendPoint = {
+  /** YYYY-MM (UTC) */
+  month: string;
+  avgStability: number | null;
+  avgPerformance: number | null;
+  avgAlignment: number | null;
+  suppressed: boolean;
+};
+
 export type EmployerMetricSnapshot = {
   cohortSize: number;
   suppressed: boolean;
@@ -48,6 +57,8 @@ export type EmployerMetricSnapshot = {
   mau: number | null;
   mauPercent: number | null;
   monthlyActiveTrend: MonthlyActiveTrendPoint[];
+  /** Cohort mean S/P/A with month-end carry-forward (Part C §16.3). */
+  monthlyScoreTrend: MonthlyScoreTrendPoint[];
   assessmentBaseline: EmployerAssessmentBaseline;
 };
 
@@ -67,6 +78,7 @@ const EMPTY_SNAPSHOT: Omit<EmployerMetricSnapshot, "cohortSize" | "suppressed"> 
   mau: null,
   mauPercent: null,
   monthlyActiveTrend: [],
+  monthlyScoreTrend: [],
   assessmentBaseline: EMPTY_EMPLOYER_ASSESSMENT_BASELINE,
 };
 
@@ -128,6 +140,103 @@ function countDistinctInRange(
   return ids.size;
 }
 
+type AssessmentScoreRow = {
+  userId: string;
+  assessmentDate: string;
+  stabilityScore: number | null;
+  performanceScore: number | null;
+  alignmentScore: number | null;
+};
+
+function parseAssessmentScoreRows(rows: unknown[] | null): AssessmentScoreRow[] {
+  return (rows ?? [])
+    .map((row) => {
+      const record = row as Record<string, unknown>;
+      const userId = typeof record.userId === "string" ? record.userId : "";
+      const assessmentDate =
+        typeof record.assessmentDate === "string" ? record.assessmentDate : "";
+      if (!userId || !assessmentDate) return null;
+      const stability =
+        record.stabilityScore == null || record.stabilityScore === ""
+          ? null
+          : Number(record.stabilityScore);
+      const performance =
+        record.performanceScore == null || record.performanceScore === ""
+          ? null
+          : Number(record.performanceScore);
+      const alignment =
+        record.alignmentScore == null || record.alignmentScore === ""
+          ? null
+          : Number(record.alignmentScore);
+      return {
+        userId,
+        assessmentDate,
+        stabilityScore: stability != null && Number.isFinite(stability) ? stability : null,
+        performanceScore:
+          performance != null && Number.isFinite(performance) ? performance : null,
+        alignmentScore: alignment != null && Number.isFinite(alignment) ? alignment : null,
+      };
+    })
+    .filter((entry): entry is AssessmentScoreRow => entry !== null);
+}
+
+/**
+ * Per UTC month: each user's latest assessment on/before month end (carry-forward),
+ * then cohort mean Stability / Performance / Alignment. Aggregates only.
+ */
+function buildMonthlyScoreTrend(
+  assessments: AssessmentScoreRow[],
+  monthStarts: Date[],
+  cohortSize: number,
+  minCohortSize: number,
+): MonthlyScoreTrendPoint[] {
+  const sorted = [...assessments].sort((a, b) =>
+    a.assessmentDate < b.assessmentDate ? -1 : a.assessmentDate > b.assessmentDate ? 1 : 0,
+  );
+
+  return monthStarts.map((start, index) => {
+    const endExclusive =
+      index + 1 < monthStarts.length
+        ? monthStarts[index + 1]
+        : startOfUtcMonth(start.getUTCFullYear(), start.getUTCMonth() + 1);
+    const monthEndInclusiveIso = new Date(endExclusive.getTime() - 1).toISOString();
+    const monthSuppressed = cohortSize < minCohortSize;
+
+    if (monthSuppressed) {
+      return {
+        month: utcMonthKey(start.toISOString()),
+        avgStability: null,
+        avgPerformance: null,
+        avgAlignment: null,
+        suppressed: true,
+      };
+    }
+
+    const latestByUser = new Map<string, AssessmentScoreRow>();
+    for (const row of sorted) {
+      if (row.assessmentDate > monthEndInclusiveIso) continue;
+      latestByUser.set(row.userId, row);
+    }
+
+    const stability: number[] = [];
+    const performance: number[] = [];
+    const alignment: number[] = [];
+    for (const row of latestByUser.values()) {
+      if (row.stabilityScore != null) stability.push(row.stabilityScore);
+      if (row.performanceScore != null) performance.push(row.performanceScore);
+      if (row.alignmentScore != null) alignment.push(row.alignmentScore);
+    }
+
+    return {
+      month: utcMonthKey(start.toISOString()),
+      avgStability: average(stability),
+      avgPerformance: average(performance),
+      avgAlignment: average(alignment),
+      suppressed: false,
+    };
+  });
+}
+
 function suppressedSnapshot(cohortSize: number): EmployerMetricSnapshot {
   return {
     cohortSize,
@@ -174,6 +283,7 @@ export async function computeEmployerMetricsForUserIds(
     { data: pathCompletions },
     { data: journals },
     { data: assessments },
+    { data: scoreAssessments },
     { data: enrollments },
     { data: profiles },
   ] = await Promise.all([
@@ -202,6 +312,12 @@ export async function computeEmployerMetricsForUserIds(
       .select("userId, createdAt")
       .in("userId", userIds)
       .gte("createdAt", engagementCutoff),
+    client
+      .from("assessmentResult")
+      .select("userId, assessmentDate, stabilityScore, performanceScore, alignmentScore")
+      .in("userId", userIds)
+      .lte("assessmentDate", now.toISOString())
+      .order("assessmentDate", { ascending: true }),
     client.from("pathEnrollment").select("userId, status").in("userId", userIds),
     client
       .from("profiles")
@@ -300,6 +416,13 @@ export async function computeEmployerMetricsForUserIds(
     })),
   );
 
+  const monthlyScoreTrend = buildMonthlyScoreTrend(
+    parseAssessmentScoreRows(scoreAssessments),
+    monthStarts,
+    userIds.length,
+    minCohortSize,
+  );
+
   return {
     cohortSize: userIds.length,
     suppressed: false,
@@ -316,6 +439,7 @@ export async function computeEmployerMetricsForUserIds(
     mau,
     mauPercent: percentOfCohort(mau, userIds.length),
     monthlyActiveTrend,
+    monthlyScoreTrend,
     assessmentBaseline,
   };
 }

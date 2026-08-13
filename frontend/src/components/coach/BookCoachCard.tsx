@@ -9,6 +9,7 @@ import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureU
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
+import { useUserProfile } from "@/lib/userProfile";
 import {
   loadGroupSessionStatus,
   requestGroupSessionBooking,
@@ -29,7 +30,11 @@ const EXTERNAL_COACH_URL =
 export default function BookCoachCard() {
   const { overview, record, loading, refresh } = useSubscriptionOverview();
   const { tier } = useEffectiveTier();
-  const { openFeature, promptUpgrade, closeUpsell } = useLockedFeatureUpsell(tier);
+  const { profile } = useUserProfile();
+  const { openFeature, promptUpgrade, closeUpsell, isEnterprise } = useLockedFeatureUpsell(
+    tier,
+    profile?.accountType,
+  );
 
   const [groupUsed, setGroupUsed] = useState(false);
   const [groupBusy, setGroupBusy] = useState(false);
@@ -198,6 +203,7 @@ export default function BookCoachCard() {
           open
           feature={openFeature}
           currentTier={tier}
+          isEnterprise={isEnterprise}
           onClose={closeUpsell}
         />
       ) : null}

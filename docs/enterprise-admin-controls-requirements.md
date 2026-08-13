@@ -5,7 +5,7 @@
 | **Status** | Requirements (target) |
 | **Scope** | Part A — Platform Admin · Part B — Organization Manager / HR portal · Part C — Enterprise employee end-user experience |
 | **Audience** | Product, engineering, QA |
-| **Related** | Phase 2 §9, US-205–208 / US-505, `docs/Admin Account Set-Up.md`, OVR-022 / OVR-023 / OVR-024 / OVR-025 / OVR-038 / OVR-048 / OVR-051 / OVR-053 / OVR-054 / OVR-055 |
+| **Related** | Phase 2 §9, US-205–208 / US-505, `docs/Admin Account Set-Up.md`, OVR-022 / OVR-023 / OVR-024 / OVR-025 / OVR-038 / OVR-048 / OVR-051 / OVR-053 / OVR-054 / OVR-055 / OVR-056 |
 | **Out of scope** | Pure individual (non-enterprise) billing UX except where enterprise must hide or bypass it; Platform Admin org commercial invoicing details beyond what employees need for entitlement |
 
 **Document map**
@@ -437,26 +437,27 @@ The portal is **not** the Platform Admin console. Managers must never see anothe
 
 ## 14. Access Control & Privacy
 
-### 14.1 Manager / HR accounts do not take clinical product (target)
+### 14.1 Portal-only HR skips clinical product; Team Managers take assessment
 
-**Target behavior:** Organization Manager and HR administrator accounts used purely for workforce administration **must not** be required to take clinical assessments or participate in coaching paths.
+**Target behavior:** Pure **portal-only HR** accounts (primary/delegated HR without clinical enterprise enrollment — OVR-055) **must not** be required to take clinical assessments or participate in coaching paths. **Team Managers** who are enrolled enterprise members **do** take the clinical assessment like other employees.
 
 | Rule | Spec |
 |---|---|
-| **Account mode** | Portal operators are flagged as `org_admin` / non-clinical (exact field TBD) **or** hold HR/Manager role without employee clinical enrollment |
-| **Assessments** | No mandatory Uncloud360 clinical assessment / reassessment for pure manager accounts |
-| **Coaching paths** | No path participation requirement; path library / AI coach clinical flows are hidden or non-actionable for pure manager mode |
-| **Seat consumption** | Pure manager accounts **do not** consume a billable/employee seat by default (**Decided §21**) |
-| **Exception** | If the same person is both HR and an enrolled employee by explicit choice, clinical access follows enterprise employee rules (Part C) — must be an intentional dual mode, not the default |
+| **Account mode** | Portal-only HR: HR contact / delegated HR without `accountType = enterprise`. Team Managers: enterprise members with manager role (clinical product applies). |
+| **Assessments** | Portal-only HR: no mandatory Uncloud360 assessment. **Team Managers take the clinical assessment** (**Decided §21 / Part C**). |
+| **Coaching paths** | Portal-only HR: path library / AI coach clinical flows hidden. Enrolled managers/employees: full enterprise employee IA (Part C). |
+| **Seat consumption** | Pure portal-only HR accounts **do not** consume a billable/employee seat (**Decided §21**). Enrolled managers do. |
+| **Exception** | Dual-mode HR (portal + employee) requires explicit enroll — clinical access follows enterprise employee rules |
 
-**Resolved:** OVR-055 supersedes OVR-025 — primary HR is portal-only by default; dual-mode requires explicit enroll.
+**Resolved:** OVR-055 supersedes OVR-025 — primary HR is portal-only by default; dual-mode requires explicit enroll. Team Managers are clinical (not portal-only).
 
 #### Acceptance criteria — non-clinical managers
 
-- [x] Creating/designating an HR or Manager user does not force assessment onboarding.
-- [x] Pure manager login lands on Employer portal / manager aggregate, not assessment gate.
-- [x] Clinical chat, journaling, and path home are not the primary IA for pure managers (hidden or clearly secondary if dual-mode).
+- [x] Creating/designating primary HR does not force assessment onboarding (OVR-055).
+- [x] Portal-only HR login lands on Employer portal, not assessment gate.
+- [x] Clinical chat, journaling, and path home are hidden for portal-only HR.
 - [x] QA can distinguish “HR-only” vs “HR + employee” in Admin and in tests.
+- [x] Team Managers (enrolled) complete clinical assessment like other enterprise employees.
 
 ### 14.2 Strict privacy guardrail
 
@@ -615,7 +616,8 @@ Weekly sparklines may remain as a secondary “near-term utilization” view; **
 
 #### Acceptance criteria — trends
 
-- [x] Portal includes a monthly trend chart (or equivalent) for collective workforce engagement (MAU %); classification baseline remains the cohort snapshot panel.
+- [x] Portal includes a monthly trend chart for collective workforce **outcome scores** (cohort avg Stability / Performance / Alignment with month-end carry-forward).
+- [x] Portal also shows monthly engagement (MAU %) as a companion series.
 - [x] Months with insufficient cohort data are omitted or marked unavailable — not fabricated.
 - [x] No per-user time series is exposed.
 
@@ -660,7 +662,7 @@ Legal banner for manager aggregate remains env-gated per OVR-023 unless counsel 
 | View individual clinical data | Yes | **No** | **No** | Own data only |
 | Org-wide anonymized analytics | Yes | Yes | No | No |
 | Direct-report anonymized aggregate | — | Optional | Yes (opt-in cohort) | — |
-| Skip clinical assessment (pure admin mode) | N/A | **Yes (target)** | **Yes (target)** | No |
+| Skip clinical assessment (portal-only HR) | N/A | **Yes (OVR-055)** | **No** — Team Managers take assessment | No |
 
 ---
 
@@ -688,10 +690,10 @@ Legal banner for manager aggregate remains env-gated per OVR-023 unless counsel 
 | Seats `active / seat_count` | Implemented (`EmployerSeatUtilizationPanel` + codes panel); pay-per-active shows period active count | — |
 | Enrollment codes generate/copy/deactivate | Implemented | Join URL copy via `WorkplaceEnrollmentCodesPanel` (`/join/{code}`, OVR-054) |
 | Invite / add / revoke / roles | Implemented (OVR-022) | — |
-| Org-wide anonymized metrics | Implemented: DAU/WAU/MAU (UTC), weekly sparklines, monthly active trend, classification distribution + suppression | — |
+| Org-wide anonymized metrics | Implemented: DAU/WAU/MAU (UTC), weekly sparklines, monthly MAU % + monthly S/P/A score trends, classification distribution + suppression | — |
 | Manager team aggregate | Implemented in Settings | Not a full “manager portal”; HR-only `/employer` (Settings-only kept — §21) |
 | Privacy in UI + RLS | Aggregate-only panels; HR full-row profile SELECT removed; ops RPC `list_workplace_member_ops_profiles`; workplace SELECT scoped | — |
-| Managers skip clinical assessments | Implemented (OVR-055): primary HR portal-only by default; clinical sidebar hidden; `/employer` landing | Existing dual-mode members remain enrolled until revoked |
+| Managers skip clinical assessments | **Portal-only HR** skip (OVR-055). **Team Managers take assessment** (Part C locked). | Legacy dual-mode HR remain enrolled until revoked |
 
 ---
 
@@ -704,6 +706,7 @@ Legal banner for manager aggregate remains env-gated per OVR-023 unless counsel 
 5. **Team Managers on `/employer`:** **Decided:** keep Settings-only aggregate.
 6. **Success Plan assignment (OVR-038):** **Decided:** remains in portal for HR (no clinical content of assignee shown).
 7. **Minimum cohort size / small-cell thresholds:** **Decided for v1:** keep existing code constants (`EMPLOYER_MIN_COHORT_SIZE = 5`); revisit with counsel if needed.
+8. **Team Managers + clinical assessment:** **Decided:** Team Managers **do** take the clinical assessment; only portal-only HR skips (OVR-055).
 
 ---
 
@@ -787,7 +790,7 @@ Before setting enterprise fields, the system **must** validate:
 | Organization `is_active = true` | Clear error: organization not accepting enrollments |
 | Within contract dates (per Part A policy) | Clear error: contract ended |
 | **Active seat availability** | Flat-rate: reject when `active_seats >= seat_count`. Pay-per-active: follow Part A cap rules (soft target vs hard max) |
-| User not already linked to another workplace (if single-org rule) | Clear error or transfer policy (open question §31) |
+| User not already linked to another workplace | **Reject** with clear error (single-org rule — **Decided §31**) |
 
 Validation must run **server-side** (RPC / edge function). Client-only checks are insufficient.
 
@@ -820,21 +823,24 @@ Effective entitlement resolution must treat enterprise users as:
 
 #### Acceptance criteria — provisioning
 
-- [ ] After enroll, profile shows enterprise account type and correct tier.
-- [ ] Employee immediately gets Pro or Premium feature access without payment.
-- [ ] Stripe checkout for individual plans is refused or returns “enterprise covered” for this account.
-- [ ] HR portal seat count reflects the new member.
+- [x] After enroll, profile shows enterprise account type and correct tier.
+- [x] Employee immediately gets Pro or Premium feature access without payment.
+- [x] Stripe checkout for individual plans is refused or returns “enterprise covered” for this account.
+- [x] HR portal seat count reflects the new member.
+- [x] Paid individual → enterprise redeem cancels Stripe collection and marks local subscription inactive.
 
 ### 25.5 Edge cases
 
 | Case | Expected behavior |
 |---|---|
 | Existing individual Free user redeems valid code | Convert to enterprise; link org; tier from contract; stop showing paywall |
-| Existing individual Pro/Premium (Stripe) redeems code | Open question §31 — recommend: convert to enterprise, cancel/stop collecting individual Stripe per policy, or block with support message |
+| Existing individual Pro/Premium (Stripe) redeems code | **Convert to enterprise; cancel individual Stripe immediately; stop collection** (**Decided §31**) |
 | Join URL with bad code | Friendly error; allow fall through to normal individual signup without silent enterprise claim |
 | “Add a code later” promised in copy | If product keeps this promise, Settings (or Profile) must provide redeem UI; otherwise remove the copy |
 | Org tier changes after enrollment | Follow Part A sync policy (immediate vs next period) |
-| Member revoked by HR | Clear enterprise fields / membership; entitlement falls back to individual; paywall may reappear if Free |
+| Member revoked by HR | Clear enterprise fields; **restore prior personal subscription entitlement if Stripe-backed `userSubscription` still grants access; else Free** (**Decided §31** / OVR-056) |
+| Logged-in user with completed onboarding opens `/join/{code}` | Redeem **in place**; toast; route to dashboard (or `/employer` if portal-only HR) |
+| User already enterprise at another org | Reject with clear single-org error |
 
 ---
 
@@ -872,10 +878,12 @@ UI hide is not enough:
 
 #### Acceptance criteria — hide paywall
 
-- [ ] Enterprise user never sees plan prices, Monthly/Yearly toggle, or Checkout confirm in normal app use.
-- [ ] Deep-linking to `/subscription` does not expose checkout UI.
-- [ ] Upgrade banner does not appear on Dashboard, Journal, Paths, Chat, or Results.
-- [ ] Free-tier session limit never triggers for active enterprise users.
+- [x] Enterprise user never sees plan prices, Monthly/Yearly toggle, or Checkout confirm in normal app use.
+- [x] Deep-linking to `/subscription` does not expose checkout UI (status-only: “Provided by {org} · Pro|Premium”).
+- [x] Upgrade banner does not appear on Dashboard, Journal, Paths, Chat, or Results.
+- [x] Free-tier session limit never triggers for active enterprise users.
+- [x] Locked-feature dialogs for enterprise use contact-HR copy (no Stripe CTA); Success Plan self-purchase hidden (HR-assign only).
+- [x] Sidebar Subscription nav hidden for enterprise accounts.
 
 ---
 
@@ -943,31 +951,37 @@ Every client and server gate must use **effective entitlement** (`resolveUserEnt
 
 ---
 
-## 30. Current implementation snapshot (Part C baseline, not the target)
+## 30. Current implementation snapshot (Part C)
 
 | Area | Today (approx.) | Gap vs this doc |
 |---|---|---|
 | Onboarding workplace code step | Implemented | — |
-| Invite → enroll on signup | Implemented | Join URL path implemented (`/join/:code` → peek → onboarding redeem) |
-| Seat validation on redeem | Implemented | Align with pay-per-active when Part A ships |
+| Invite → enroll on signup | Implemented | — |
+| Join URL logged-in in-place redeem | Implemented (`JoinWorkplacePage` → redeem when onboarding complete) | — |
+| Seat validation on redeem | Implemented | — |
 | Auto-link + `enterpriseTier` | Implemented | — |
+| Paid → enterprise Stripe cancel | Implemented (`cancelIndividualStripeOnEnterpriseConvert` on redeem / HR assign) | Redeploy edge functions |
+| Revoke restores prior sub | Implemented (`unassign_workplace_member` + OVR-056) | Apply migration |
 | Entitlement bypass billing/session limits | Implemented in helpers | — |
 | Stripe checkout blocked / covered | Implemented | — |
-| Upgrade banners gated | Partially (banner gate returns null for enterprise) | Audit all `LockedFeatureUpgradeDialog` / upsell call sites |
-| Subscription nav + `/subscription` | Still visible; page shows enterprise notice inside plans chrome | **Hide nav + remove pricing UI entirely** (§26) |
+| Upgrade banners gated | Implemented (enterprise null + locked-feature HR copy) | — |
+| Subscription nav + `/subscription` | Hidden for enterprise; status-only page | — |
+| Success Plan for enterprise | HR-assign only (self-purchase CTA hidden) | — |
+| Monthly score trends (HR) | Implemented (`monthlyScoreTrend` + panel) | Redeploy `employer-metrics` |
+| Single-org enforcement | Implemented (409 already enrolled elsewhere) | — |
 | “Add code later” | Copy may promise; Settings redeem UI unclear/missing | Implement or remove copy |
 | Tier-parity app access | Largely via effective tier | Regression-test Pro vs Premium enterprise matrices |
 
 ---
 
-## 31. Open questions (Part C)
+## 31. Product decisions (Part C) — locked
 
-1. **Existing paid individual → enterprise code:** Auto-convert and cancel Stripe, or block until support migrates?
-2. **Multi-workplace:** Can one user belong to only one org (recommended) or multiple?
-3. **Revoke fallback:** Always Free, or preserve prior individual subscription if it still exists?
-4. **Minimal status page:** Allow “Provided by Acme · Premium” at `/subscription`, or redirect away with zero billing route?
-5. **Success Plan add-on for enterprise:** Can enterprise Pro/Premium self-purchase add-on, or HR-assign only?
-6. **Join URL + logged-in individual:** Redeem in place vs force logout/signup?
+1. **Existing paid individual → enterprise code:** **Decided** — convert to enterprise; cancel individual Stripe immediately and stop collection; mark local `userSubscription` inactive.
+2. **Multi-workplace:** **Decided** — one org per user; reject if already linked elsewhere (clear error).
+3. **Revoke fallback:** **Decided** — restore prior personal subscription entitlement if an existing Stripe-backed `userSubscription` still grants access; else Free (OVR-056). Do not invent a new Stripe subscription.
+4. **Minimal status page:** **Decided** — keep `/subscription` route as **status only**: “Provided by {org} · Pro|Premium” — no prices/checkout.
+5. **Success Plan add-on for enterprise:** **Decided** — HR-assign only; hide self-purchase CTA.
+6. **Join URL + logged-in individual:** **Decided** — redeem in place when onboarding is complete; incomplete onboarding keeps store-code → `/onboarding` auto-redeem.
 
 ---
 

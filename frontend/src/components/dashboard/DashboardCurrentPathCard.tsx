@@ -46,6 +46,8 @@ export default function DashboardCurrentPathCard() {
             source: enrollment?.source,
             status: PATH_ENROLLMENT_STATUS.ACTIVE,
           }),
+          isEnterprise:
+            (profile?.accountType ?? "individual").trim().toLowerCase() === "enterprise",
         })
       : !userCanAccessPathTier(userTier, pathTier));
   const lockedPathFeature = successPlan
@@ -53,7 +55,7 @@ export default function DashboardCurrentPathCard() {
     : pathTier === TIER.PREMIUM
       ? "premiumPath"
       : "proPath";
-  const pathUpsell = useLockedFeatureUpsell(userTier);
+  const pathUpsell = useLockedFeatureUpsell(userTier, profile?.accountType);
 
   const loadEnrollment = useCallback(async () => {
     if (!user) {
@@ -181,6 +183,7 @@ export default function DashboardCurrentPathCard() {
         open={pathUpsell.openFeature === lockedPathFeature}
         feature={lockedPathFeature}
         currentTier={userTier}
+        isEnterprise={pathUpsell.isEnterprise}
         onClose={pathUpsell.closeUpsell}
       />
     </div>

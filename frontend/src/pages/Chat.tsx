@@ -37,7 +37,10 @@ export default function Chat() {
     profile?.accountType,
     profile?.enterpriseTier,
   );
-  const { openFeature, promptUpgrade, closeUpsell } = useLockedFeatureUpsell(tier);
+  const { openFeature, promptUpgrade, closeUpsell, isEnterprise } = useLockedFeatureUpsell(
+    tier,
+    profile?.accountType,
+  );
 
   const bumpSidebar = useCallback(() => {
     setSidebarListVersion((version) => version + 1);
@@ -197,6 +200,7 @@ export default function Chat() {
         open={openFeature === "chatSessionLimit"}
         feature="chatSessionLimit"
         currentTier={tier}
+        isEnterprise={isEnterprise}
         onClose={closeUpsell}
       />
     </DashboardLayout>

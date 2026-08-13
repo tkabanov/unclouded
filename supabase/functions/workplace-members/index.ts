@@ -24,6 +24,7 @@ import {
   unassignWorkplaceMember,
   WorkplaceMemberError,
 } from "../_shared/workplaceMemberLogic.ts";
+import { cancelIndividualStripeOnEnterpriseConvert } from "../_shared/cancelIndividualStripeOnEnterprise.ts";
 import { isValidUuid } from "../_shared/uuidHelpers.ts";
 
 type ActionBody = {
@@ -65,6 +66,24 @@ async function addOrInviteMember(
       invitationId: result.invitationId,
       emailSent: inviteEmail.emailSent,
     };
+  }
+
+  // Paid individual → enterprise via HR assign: cancel Stripe (Part C §31).
+  if (!result.alreadyEnrolled) {
+    const normalized = email.trim().toLowerCase();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("id")
+      .ilike("email", normalized)
+      .maybeSingle();
+    const targetUserId = (profile as { id?: string } | null)?.id;
+    if (targetUserId) {
+      try {
+        await cancelIndividualStripeOnEnterpriseConvert(admin, targetUserId);
+      } catch (err) {
+        console.error("workplace-members: Stripe cancel post-step failed", err);
+      }
+    }
   }
 
   return {

@@ -12,6 +12,8 @@ export type UseLockedFeatureUpsell = {
   /** Opens the dialog only when the tier actually lacks the feature. */
   promptUpgrade: (feature: LockedFeatureKey) => void;
   closeUpsell: () => void;
+  /** Enterprise accounts get contact-HR copy instead of Stripe CTAs. */
+  isEnterprise: boolean;
 };
 
 /**
@@ -20,8 +22,12 @@ export type UseLockedFeatureUpsell = {
  * Callers ask to prompt; the hook decides. A user who already has the required
  * tier gets nothing, so entry points don't have to repeat the tier check.
  */
-export function useLockedFeatureUpsell(currentTier: TierSlug): UseLockedFeatureUpsell {
+export function useLockedFeatureUpsell(
+  currentTier: TierSlug,
+  accountType?: string | null,
+): UseLockedFeatureUpsell {
   const [openFeature, setOpenFeature] = useState<LockedFeatureKey | null>(null);
+  const isEnterprise = (accountType ?? "individual").trim().toLowerCase() === "enterprise";
 
   const promptUpgrade = useCallback(
     (feature: LockedFeatureKey) => {
@@ -33,5 +39,5 @@ export function useLockedFeatureUpsell(currentTier: TierSlug): UseLockedFeatureU
 
   const closeUpsell = useCallback(() => setOpenFeature(null), []);
 
-  return { openFeature, promptUpgrade, closeUpsell };
+  return { openFeature, promptUpgrade, closeUpsell, isEnterprise };
 }

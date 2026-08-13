@@ -33,6 +33,8 @@ export interface LockedFeatureUpgradeDialogProps {
   feature: LockedFeatureKey;
   currentTier: TierSlug;
   onClose: () => void;
+  /** When true, show non-purchase messaging only (no Stripe / See plans). */
+  isEnterprise?: boolean;
 }
 
 /**
@@ -40,13 +42,14 @@ export interface LockedFeatureUpgradeDialogProps {
  *
  * It names the feature, lists what the unlocking plan adds, and shows live
  * prices before handing off to the subscription screen. It never appears for a
- * user who already has the required tier.
+ * user who already has the required tier. Enterprise users get contact-HR copy.
  */
 export default function LockedFeatureUpgradeDialog({
   open,
   feature,
   currentTier,
   onClose,
+  isEnterprise = false,
 }: LockedFeatureUpgradeDialogProps) {
   const navigate = useNavigate();
   const [prices, setPrices] = useState<PlanPrice[]>([]);
@@ -56,7 +59,12 @@ export default function LockedFeatureUpgradeDialog({
   useEffect(() => {
     if (!open) return;
 
-    trackProductEvent("paywall_shown", { surface: feature });
+    trackProductEvent("paywall_shown", {
+      surface: feature,
+      enterprise: isEnterprise,
+    });
+
+    if (isEnterprise) return;
 
     let cancelled = false;
     loadSubscriptionOverview()
@@ -70,7 +78,32 @@ export default function LockedFeatureUpgradeDialog({
     return () => {
       cancelled = true;
     };
-  }, [feature, open]);
+  }, [feature, open, isEnterprise]);
+
+  if (isEnterprise) {
+    return (
+      <Dialog open={open} onOpenChange={(next) => (!next ? onClose() : undefined)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-primary" aria-hidden />
+              {details.title}
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-left">
+              This feature is not included in your organization&apos;s plan. Contact your HR
+              administrator if you need access — individual checkout is not available on enterprise
+              accounts.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="cta" onClick={onClose}>
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={(next) => (!next ? onClose() : undefined)}>

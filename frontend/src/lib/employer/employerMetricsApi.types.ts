@@ -37,6 +37,14 @@ export type MonthlyActiveTrendPoint = {
   suppressed: boolean;
 };
 
+export type MonthlyScoreTrendPoint = {
+  month: string;
+  avgStability: number | null;
+  avgPerformance: number | null;
+  avgAlignment: number | null;
+  suppressed: boolean;
+};
+
 export type EmployerMetricSnapshot = {
   cohortSize: number;
   suppressed: boolean;
@@ -53,5 +61,6 @@ export type EmployerMetricSnapshot = {
   mau: number | null;
   mauPercent: number | null;
   monthlyActiveTrend: MonthlyActiveTrendPoint[];
+  monthlyScoreTrend: MonthlyScoreTrendPoint[];
   assessmentBaseline: EmployerAssessmentBaseline;
 };

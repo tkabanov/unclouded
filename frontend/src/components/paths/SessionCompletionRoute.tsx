@@ -132,7 +132,7 @@ export default function SessionCompletionRoute({
     : pathTier === TIER.PREMIUM
       ? "premiumPath"
       : "proPath";
-  const pathUpsell = useLockedFeatureUpsell(userTier);
+  const pathUpsell = useLockedFeatureUpsell(userTier, profile?.accountType);
 
   useEffect(() => {
     if (!successPlan || isActiveHrAssignment(matchingEnrollment)) {
@@ -442,6 +442,7 @@ export default function SessionCompletionRoute({
           open={pathUpsell.openFeature === "chatSessionLimit"}
           feature="chatSessionLimit"
           currentTier={userTier}
+          isEnterprise={pathUpsell.isEnterprise}
           onClose={pathUpsell.closeUpsell}
         />
       </div>
@@ -559,6 +560,7 @@ export default function SessionCompletionRoute({
         open={pathUpsell.openFeature === lockedPathFeature}
         feature={lockedPathFeature}
         currentTier={userTier}
+        isEnterprise={pathUpsell.isEnterprise}
         onClose={pathUpsell.closeUpsell}
       />
     </div>

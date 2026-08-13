@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
+import { useUserProfile } from "@/lib/userProfile";
 import { cn } from "@/lib/utils";
 import type { ResultsData } from "@/lib/classification";
 import {
@@ -203,6 +204,7 @@ const ResultsComparison = ({
   onDownloadPdf,
   onRetryPdf,
 }: ResultsComparisonProps) => {
+  const { profile } = useUserProfile();
   const deltas = computeScoreDeltas(first, second);
   const summary = summarizeProgress(first, second, firstName);
   const trajectory = computeTrajectoryType(first, second);
@@ -227,7 +229,7 @@ const ResultsComparison = ({
   const pdfFailed = pdfState === "error";
   // Pro gets the 1-2 page summary; the full report with the behavioral
   // fingerprint is Premium-only.
-  const pdfUpsell = useLockedFeatureUpsell(tier);
+  const pdfUpsell = useLockedFeatureUpsell(tier ?? TIER.FREE, profile?.accountType);
 
   return (
     <div className="space-y-6">
@@ -468,7 +470,8 @@ const ResultsComparison = ({
       <LockedFeatureUpgradeDialog
         open={pdfUpsell.openFeature === "pupPdfReport"}
         feature="pupPdfReport"
-        currentTier={tier}
+        currentTier={tier ?? TIER.FREE}
+        isEnterprise={pdfUpsell.isEnterprise}
         onClose={pdfUpsell.closeUpsell}
       />
     </div>
