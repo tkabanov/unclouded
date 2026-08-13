@@ -1,3 +1,4 @@
+import { Navigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardGreetingCard from "@/components/dashboard/DashboardGreetingCard";
 import DashboardMain from "@/components/dashboard/DashboardMain";
@@ -21,7 +22,9 @@ import ReassessmentPdfDownloadCard from "@/components/dashboard/ReassessmentPdfD
 import WebPushRegistrationEffect from "@/components/notifications/WebPushRegistrationEffect";
 import WebPushEnableBannerGate from "@/components/notifications/WebPushEnableBannerGate";
 import { useUserProfile } from "@/lib/userProfile";
+import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import { isOnboardingComplete } from "@/lib/userProfile/onboardingStatus";
+import { EMPLOYER_PORTAL_ROUTE } from "@/lib/employer/routes";
 
 function DashboardGreetingRow() {
   return (
@@ -37,7 +40,12 @@ function DashboardGreetingRow() {
 
 const Dashboard = () => {
   const { profile } = useUserProfile();
-  const showContinueBanner = !isOnboardingComplete(profile);
+  const { isPortalOnlyHr, loading: hrLoading } = useHrWorkplaces();
+  const showContinueBanner = !isOnboardingComplete(profile, { isPortalOnlyHr });
+
+  if (!hrLoading && isPortalOnlyHr) {
+    return <Navigate to={EMPLOYER_PORTAL_ROUTE} replace />;
+  }
 
   const beforeGrid = showContinueBanner ? (
     <ContinueOnboardingBanner />

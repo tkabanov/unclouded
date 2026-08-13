@@ -6,6 +6,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import EmployerContinuousMetricsPanel from "@/components/employer/EmployerContinuousMetricsPanel";
 import EmployerAssessmentBaselinePanel from "@/components/employer/EmployerAssessmentBaselinePanel";
 import EmployerEnrollmentCodesPanel from "@/components/employer/EmployerEnrollmentCodesPanel";
+import EmployerMonthlyTrendsPanel from "@/components/employer/EmployerMonthlyTrendsPanel";
+import EmployerSeatUtilizationPanel from "@/components/employer/EmployerSeatUtilizationPanel";
 import EmployerSuccessPlanAssignPanel from "@/components/employer/EmployerSuccessPlanAssignPanel";
 import WorkplaceMembersPanel from "@/components/workplace/WorkplaceMembersPanel";
 import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
@@ -13,6 +15,11 @@ import {
   fetchEmployerMetrics,
   type EmployerMetricSnapshot,
 } from "@/lib/employer/employerMetricsApi";
+import {
+  fetchEmployerSeatUtilization,
+  type EmployerSeatUtilization,
+} from "@/lib/employer/employerSeatUtilizationApi";
+import { EMPLOYER_MIN_COHORT_SIZE } from "@/lib/employer/employerMetricsApi";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +28,8 @@ export default function EmployerPortalPage() {
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<EmployerMetricSnapshot | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(false);
+  const [seats, setSeats] = useState<EmployerSeatUtilization | null>(null);
+  const [seatsLoading, setSeatsLoading] = useState(false);
 
   useEffect(() => {
     if (workplaces.length === 0) {
@@ -33,11 +42,13 @@ export default function EmployerPortalPage() {
   useEffect(() => {
     if (!selectedWorkplaceId) {
       setMetrics(null);
+      setSeats(null);
       return;
     }
 
     let cancelled = false;
     setMetricsLoading(true);
+    setSeatsLoading(true);
 
     void fetchEmployerMetrics(selectedWorkplaceId)
       .then((snapshot) => {
@@ -51,6 +62,20 @@ export default function EmployerPortalPage() {
       })
       .finally(() => {
         if (!cancelled) setMetricsLoading(false);
+      });
+
+    void fetchEmployerSeatUtilization(selectedWorkplaceId)
+      .then((row) => {
+        if (!cancelled) setSeats(row);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSeats(null);
+          toast.error("Couldn't load seat utilization.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSeatsLoading(false);
       });
 
     return () => {
@@ -73,8 +98,9 @@ export default function EmployerPortalPage() {
           </p>
           <h1 className={bubbleStyle("Text_heading_1_")}>Workforce insights</h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Continuous utilization metrics for HR leaders — not tied to reassessment cycles. Coaching
-            content and individual entries stay private.
+            Manage seats and enrollment for your organization, then review anonymized engagement.
+            Coaching content, assessments, and individual entries stay private. Aggregate breakdowns
+            need at least {EMPLOYER_MIN_COHORT_SIZE} enrolled employees.
           </p>
         </header>
 
@@ -95,10 +121,22 @@ export default function EmployerPortalPage() {
           </label>
         ) : null}
 
+        <EmployerSeatUtilizationPanel
+          utilization={seats}
+          loading={workplacesLoading || seatsLoading}
+          className="mb-4"
+        />
+
         <EmployerContinuousMetricsPanel
           workplaceName={selectedWorkplace?.name}
           metrics={metrics}
           loading={workplacesLoading || metricsLoading}
+        />
+
+        <EmployerMonthlyTrendsPanel
+          metrics={metrics}
+          loading={workplacesLoading || metricsLoading}
+          className="mt-4"
         />
 
         <EmployerAssessmentBaselinePanel

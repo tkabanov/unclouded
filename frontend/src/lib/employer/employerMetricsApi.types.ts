@@ -30,6 +30,13 @@ export const EMPTY_EMPLOYER_ASSESSMENT_BASELINE: EmployerAssessmentBaseline = {
   hasSuppressedClassificationCells: false,
 };
 
+export type MonthlyActiveTrendPoint = {
+  month: string;
+  activeCount: number | null;
+  activePercent: number | null;
+  suppressed: boolean;
+};
+
 export type EmployerMetricSnapshot = {
   cohortSize: number;
   suppressed: boolean;
@@ -39,5 +46,12 @@ export type EmployerMetricSnapshot = {
   pathEngagementPercent: number | null;
   activeUsersPercent: number | null;
   sessionsPerUser: number | null;
+  dau: number | null;
+  dauPercent: number | null;
+  wau: number | null;
+  wauPercent: number | null;
+  mau: number | null;
+  mauPercent: number | null;
+  monthlyActiveTrend: MonthlyActiveTrendPoint[];
   assessmentBaseline: EmployerAssessmentBaseline;
 };

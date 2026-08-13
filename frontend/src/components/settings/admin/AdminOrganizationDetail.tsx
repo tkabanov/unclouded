@@ -103,7 +103,7 @@ export default function AdminOrganizationDetail() {
         toast.success("Organization updated.");
         if (contactChanged) {
           toast.message(
-            "HR contact email updated. The previous contact remains enrolled as a member — revoke separately if needed. Primary HR portal access follows the new contact email.",
+            "HR contact email updated. Portal access follows the new contact email — they are not auto-enrolled as an employee. Enroll separately from the members panel if they need clinical access.",
           );
         }
       } catch (err) {

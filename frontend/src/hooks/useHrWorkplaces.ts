@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/lib/userProfile";
+import { isPortalOnlyHrProfile } from "@/lib/userProfile/onboardingStatus";
 import { listHrWorkplaces, type HrWorkplace } from "@/lib/employer/workplaceHrPortalApi";
 
 export function useHrWorkplaces() {
@@ -37,9 +38,16 @@ export function useHrWorkplaces() {
     };
   }, [profile?.email, user?.email, user?.id]);
 
+  const isHrContact = workplaces.length > 0;
+  const isPortalOnlyHr = useMemo(
+    () => isPortalOnlyHrProfile(profile, isHrContact),
+    [profile, isHrContact],
+  );
+
   return {
     workplaces,
     loading,
-    isHrContact: workplaces.length > 0,
+    isHrContact,
+    isPortalOnlyHr,
   };
 }

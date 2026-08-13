@@ -52,7 +52,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { profile } = useUserProfile();
-  const { isHrContact } = useHrWorkplaces();
+  const { isHrContact, isPortalOnlyHr } = useHrWorkplaces();
   const [crisisOpen, setCrisisOpen] = useState(false);
 
   const classificationName = profile?.results?.classification?.name;
@@ -60,10 +60,15 @@ export function AppSidebar() {
     profile?.roleTypes?.length
       ? formatCustomerRoleTypesForDisplay(profile.roleTypes)
       : profile?.roleType || null;
-  const modeValue =
-    roleLabel && classificationName
+  const modeValue = isPortalOnlyHr
+    ? "Employer portal"
+    : roleLabel && classificationName
       ? `${roleLabel} • ${classificationName}`
       : SIDEBAR_MODE_VALUE_PLACEHOLDER;
+
+  const visibleNavItems = isPortalOnlyHr
+    ? navItems.filter((item) => item.slug === "settings")
+    : navItems;
 
   return (
     <Sidebar
@@ -97,7 +102,23 @@ export function AppSidebar() {
             className={cn("flex w-full flex-col gap-1", collapsed && "items-center")}
             aria-label="Primary"
           >
-            {navItems.flatMap((item) => {
+            {isHrContact ? (
+              <NavLink
+                to={EMPLOYER_PORTAL_ROUTE}
+                end
+                data-style-ref="Link_nav_"
+                title="Employer portal"
+                className={cn(
+                  bubbleStyle("Link_nav_"),
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+                  collapsed && "w-9 justify-center px-0",
+                )}
+              >
+                <BarChart3 className="h-4 w-4 shrink-0" aria-hidden />
+                {!collapsed && <span>Employer portal</span>}
+              </NavLink>
+            ) : null}
+            {visibleNavItems.flatMap((item) => {
               const link = (
                 <NavLink
                   key={item.slug}
@@ -116,7 +137,7 @@ export function AppSidebar() {
                 </NavLink>
               );
 
-              if (item.slug !== "chat") return [link];
+              if (isPortalOnlyHr || item.slug !== "chat") return [link];
 
               return [
                 link,
@@ -136,21 +157,6 @@ export function AppSidebar() {
                 </NavLink>,
               ];
             })}
-            {isHrContact ? (
-              <NavLink
-                to={EMPLOYER_PORTAL_ROUTE}
-                data-style-ref="Link_nav_"
-                title="Employer portal"
-                className={cn(
-                  bubbleStyle("Link_nav_"),
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-                  collapsed && "w-9 justify-center px-0",
-                )}
-              >
-                <BarChart3 className="h-4 w-4 shrink-0" aria-hidden />
-                {!collapsed && <span>Employer portal</span>}
-              </NavLink>
-            ) : null}
           </nav>
         </div>
       </SidebarHeader>

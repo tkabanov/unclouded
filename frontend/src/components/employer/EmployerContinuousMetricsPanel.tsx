@@ -10,6 +10,24 @@ type EmployerContinuousMetricsPanelProps = {
   className?: string;
 };
 
+function MetricStat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <div>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="font-medium tabular-nums text-foreground">{value}</dd>
+      <dd className="text-xs text-muted-foreground">{hint}</dd>
+    </div>
+  );
+}
+
 export default function EmployerContinuousMetricsPanel({
   workplaceName,
   metrics,
@@ -36,8 +54,9 @@ export default function EmployerContinuousMetricsPanel({
           <p className="text-sm text-muted-foreground">{workplaceName}</p>
         ) : null}
         <p className="text-xs text-muted-foreground">
-          Anonymized workforce trends — updated from live check-ins, sessions, and paths. Individual
-          data is never shown.
+          Anonymized workforce engagement (UTC). Qualifying events match Admin usage reporting:
+          chat, path sessions, journal, assessment, daily check-in. Individual data is never shown.
+          Detailed metrics need ≥ {EMPLOYER_MIN_COHORT_SIZE} enrolled employees.
         </p>
       </header>
 
@@ -48,6 +67,23 @@ export default function EmployerContinuousMetricsPanel({
         </p>
       ) : (
         <>
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">
+            <MetricStat
+              label="DAU"
+              value={`${metrics.dau ?? "n/a"} · ${metrics.dauPercent ?? "n/a"}%`}
+              hint="UTC calendar day"
+            />
+            <MetricStat
+              label="WAU"
+              value={`${metrics.wau ?? "n/a"} · ${metrics.wauPercent ?? "n/a"}%`}
+              hint="Rolling last 7 days"
+            />
+            <MetricStat
+              label="MAU"
+              value={`${metrics.mau ?? "n/a"} · ${metrics.mauPercent ?? "n/a"}%`}
+              hint="UTC calendar month"
+            />
+          </dl>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <p className="mb-1 text-sm font-medium text-foreground">Avg check-in pulse by week</p>
@@ -75,24 +111,16 @@ export default function EmployerContinuousMetricsPanel({
             </div>
           </div>
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-muted-foreground">Path engagement</dt>
-              <dd className="font-medium text-foreground">
-                {metrics.pathEngagementPercent ?? "n/a"}%
-              </dd>
-              <dd className="text-xs text-muted-foreground">
-                Enrolled employees with at least one path in progress
-              </dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">Active in last 30 days</dt>
-              <dd className="font-medium text-foreground">
-                {metrics.activeUsersPercent ?? "n/a"}%
-              </dd>
-              <dd className="text-xs text-muted-foreground">
-                Enrolled employees with at least one session
-              </dd>
-            </div>
+            <MetricStat
+              label="Path engagement"
+              value={`${metrics.pathEngagementPercent ?? "n/a"}%`}
+              hint="Enrolled employees with at least one path in progress"
+            />
+            <MetricStat
+              label="Active in last 30 days"
+              value={`${metrics.activeUsersPercent ?? "n/a"}%`}
+              hint="Enrolled employees with at least one chat session"
+            />
           </dl>
         </>
       )}

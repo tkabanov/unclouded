@@ -48,11 +48,9 @@ function memberLabel(row: {
 }
 
 export async function listWorkplaceMembers(workplaceId: string): Promise<WorkplaceMemberOption[]> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, firstName, managesATeam")
-    .eq("workplaceId", workplaceId)
-    .order("firstName", { ascending: true });
+  const { data, error } = await supabase.rpc("list_workplace_member_ops_profiles", {
+    p_workplace_id: workplaceId,
+  });
 
   if (error) {
     if (isSchemaUnavailable(error)) return [];
@@ -93,27 +91,8 @@ export async function listManagerDirectReports(
   const links = data ?? [];
   if (links.length === 0) return [];
 
-  const userIds = [
-    ...new Set(
-      links.flatMap((row) => {
-        const record = row as { managerUserId?: string; reportUserId?: string };
-        return [record.managerUserId, record.reportUserId].filter(
-          (id): id is string => typeof id === "string",
-        );
-      }),
-    ),
-  ];
-
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, email, firstName")
-    .in("id", userIds);
-
-  const labelById = new Map<string, string>();
-  for (const row of profiles ?? []) {
-    const record = row as { id?: string; email?: string | null; firstName?: string | null };
-    if (record.id) labelById.set(record.id, memberLabel(record));
-  }
+  const members = await listWorkplaceMembers(workplaceId);
+  const labelById = new Map(members.map((member) => [member.userId, member.label]));
 
   return links
     .map((row) => {

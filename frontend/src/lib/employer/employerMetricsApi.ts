@@ -41,6 +41,13 @@ export async function fetchEmployerMetrics(workplaceId: string): Promise<Employe
 
   return {
     ...payload.metrics,
+    dau: payload.metrics.dau ?? null,
+    dauPercent: payload.metrics.dauPercent ?? null,
+    wau: payload.metrics.wau ?? null,
+    wauPercent: payload.metrics.wauPercent ?? null,
+    mau: payload.metrics.mau ?? null,
+    mauPercent: payload.metrics.mauPercent ?? null,
+    monthlyActiveTrend: payload.metrics.monthlyActiveTrend ?? [],
     assessmentBaseline:
       payload.metrics.assessmentBaseline ?? EMPTY_EMPLOYER_ASSESSMENT_BASELINE,
   };

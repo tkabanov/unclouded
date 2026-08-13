@@ -40,12 +40,18 @@ import {
 } from "@/lib/onboardingWizard";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/lib/userProfile";
-import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/onboardingStatus";
+import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
+import {
+  isOnboardingComplete,
+  resolvePostAuthRoute,
+} from "@/lib/userProfile/onboardingStatus";
+import { EMPLOYER_PORTAL_ROUTE } from "@/lib/employer/routes";
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { isPortalOnlyHr, loading: hrLoading } = useHrWorkplaces();
   const {
     saveOnboarding,
     markOnboardingComplete,
@@ -218,11 +224,25 @@ const Onboarding = () => {
   }, [step]);
 
   useEffect(() => {
-    if (profileLoading || completingOnboarding || searchParams.get("reassessment") === "1") return;
+    if (profileLoading || hrLoading || completingOnboarding || searchParams.get("reassessment") === "1") {
+      return;
+    }
+    if (isPortalOnlyHr) {
+      navigate(EMPLOYER_PORTAL_ROUTE, { replace: true });
+      return;
+    }
     if (isOnboardingComplete(profile)) {
       navigate(resolvePostAuthRoute(profile), { replace: true });
     }
-  }, [profile, profileLoading, completingOnboarding, navigate, searchParams]);
+  }, [
+    profile,
+    profileLoading,
+    hrLoading,
+    isPortalOnlyHr,
+    completingOnboarding,
+    navigate,
+    searchParams,
+  ]);
 
   useEffect(() => {
     if (step !== ONBOARDING_STEP.RESULTS || !user) return;

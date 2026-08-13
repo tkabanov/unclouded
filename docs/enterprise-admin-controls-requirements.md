@@ -5,7 +5,7 @@
 | **Status** | Requirements (target) |
 | **Scope** | Part A — Platform Admin · Part B — Organization Manager / HR portal · Part C — Enterprise employee end-user experience |
 | **Audience** | Product, engineering, QA |
-| **Related** | Phase 2 §9, US-205–208 / US-505, `docs/Admin Account Set-Up.md`, OVR-022 / OVR-023 / OVR-024 / OVR-025 / OVR-038 / OVR-048 / OVR-051 / OVR-053 / OVR-054 |
+| **Related** | Phase 2 §9, US-205–208 / US-505, `docs/Admin Account Set-Up.md`, OVR-022 / OVR-023 / OVR-024 / OVR-025 / OVR-038 / OVR-048 / OVR-051 / OVR-053 / OVR-054 / OVR-055 |
 | **Out of scope** | Pure individual (non-enterprise) billing UX except where enterprise must hide or bypass it; Platform Admin org commercial invoicing details beyond what employees need for entitlement |
 
 **Document map**
@@ -61,7 +61,7 @@ Platform Admin can create an enterprise organization from Admin → Organization
 | Field | Type | Rules | Notes |
 |---|---|---|---|
 | **Organization name** | Text | Required, trimmed, unique enough for ops (display name; soft uniqueness recommended) | Shown in lists and HR portal |
-| **Manager / primary contact email** | Email | Required, valid email | Primary org contact. Product language in UI may say “HR contact email” (OVR-053). This is the key contact for enrollment reports and primary HR access. On create/update, if a matching user account exists, enroll per OVR-025. |
+| **Manager / primary contact email** | Email | Required, valid email | Primary org contact. Product language in UI may say “HR contact email” (OVR-053). Key contact for portal access. **Does not** auto-enroll clinically (OVR-055 supersedes OVR-025). |
 | **Contract tier** | Enum | Required: `pro` \| `premium` | Copied onto enrolled employees as `enterpriseTier` |
 | **Billing model** | Enum | Required: see §4 | Determines seat semantics |
 | **Seat count / target seats** | Integer ≥ 1 | Required | Meaning depends on billing model (§4) |
@@ -83,7 +83,7 @@ Platform Admin can create an enterprise organization from Admin → Organization
 - [ ] Admin can create an org with all required fields; invalid email / missing name / end &lt; start are blocked with clear errors.
 - [ ] On success, org appears in Organizations list with name, tier, seats utilization, end date, active state.
 - [ ] Creating an org does **not** charge Stripe for individual seats; it only stores contract configuration.
-- [ ] If contact email matches an existing profile, that profile is auto-enrolled into the workplace (OVR-025) when the org is active and seats allow it.
+- [x] If contact email matches an existing profile, that profile gains **portal access** when they sign in (OVR-055); clinical enrollment is **not** automatic — use members panel for dual-mode.
 
 ### 3.2 Contract tier
 
@@ -147,7 +147,7 @@ In addition to the enrollment code, each **active enrollment code** (or each org
 Admin can edit all configuration fields from org detail / Edit organization:
 
 - Name, contact email, tier, billing model, seats/target, payment term, payment method, price, notes, contract dates, active flag.
-- Changing contact email updates primary HR linkage and enrollment sync rules (OVR-025).
+- Changing contact email updates primary HR portal linkage (OVR-055); clinical enrollment is opt-in via members panel.
 
 ---
 
@@ -428,10 +428,10 @@ The portal is **not** the Platform Admin console. Managers must never see anothe
 
 #### Acceptance criteria — access
 
-- [ ] Non-HR users cannot open `/employer` (redirect to app home).
-- [ ] HR only sees workplaces they are primary contact for or have delegated HR role on.
-- [ ] Team Managers without HR cannot access org-wide enrollment code creation or full roster revoke tools.
-- [ ] Platform Admin changes in Part A (deactivate org, seat caps) are reflected in the portal within a normal refresh/session.
+- [x] Non-HR users cannot open `/employer` (redirect to app home).
+- [x] HR only sees workplaces they are primary contact for or have delegated HR role on.
+- [x] Team Managers without HR cannot access org-wide enrollment code creation or full roster revoke tools.
+- [x] Platform Admin changes in Part A (deactivate org, seat caps) are reflected in the portal within a normal refresh/session.
 
 ---
 
@@ -446,17 +446,17 @@ The portal is **not** the Platform Admin console. Managers must never see anothe
 | **Account mode** | Portal operators are flagged as `org_admin` / non-clinical (exact field TBD) **or** hold HR/Manager role without employee clinical enrollment |
 | **Assessments** | No mandatory Uncloud360 clinical assessment / reassessment for pure manager accounts |
 | **Coaching paths** | No path participation requirement; path library / AI coach clinical flows are hidden or non-actionable for pure manager mode |
-| **Seat consumption** | Pure manager accounts **should not** consume a billable/employee seat by default (open question §21) |
+| **Seat consumption** | Pure manager accounts **do not** consume a billable/employee seat by default (**Decided §21**) |
 | **Exception** | If the same person is both HR and an enrolled employee by explicit choice, clinical access follows enterprise employee rules (Part C) — must be an intentional dual mode, not the default |
 
-**Conflict with current product:** OVR-025 auto-enrolls the primary HR contact as an enterprise employee with full clinical entitlement. **This Part B requirement supersedes that default for new work** unless product explicitly re-affirms OVR-025 (see §21). Until decided, implementers must not silently keep auto-clinical enrollment if building “manager-only” accounts.
+**Resolved:** OVR-055 supersedes OVR-025 — primary HR is portal-only by default; dual-mode requires explicit enroll.
 
 #### Acceptance criteria — non-clinical managers
 
-- [ ] Creating/designating an HR or Manager user does not force assessment onboarding.
-- [ ] Pure manager login lands on Employer portal / manager aggregate, not assessment gate.
-- [ ] Clinical chat, journaling, and path home are not the primary IA for pure managers (hidden or clearly secondary if dual-mode).
-- [ ] QA can distinguish “HR-only” vs “HR + employee” in Admin and in tests.
+- [x] Creating/designating an HR or Manager user does not force assessment onboarding.
+- [x] Pure manager login lands on Employer portal / manager aggregate, not assessment gate.
+- [x] Clinical chat, journaling, and path home are not the primary IA for pure managers (hidden or clearly secondary if dual-mode).
+- [x] QA can distinguish “HR-only” vs “HR + employee” in Admin and in tests.
 
 ### 14.2 Strict privacy guardrail
 
@@ -479,19 +479,19 @@ Managers and HR **must not** view, export, or infer from UI/API:
 
 #### Enforcement requirements (not UI-only)
 
-- [ ] APIs that power `/employer` and manager aggregate **must not** return forbidden fields for HR/Manager callers.
-- [ ] RLS / edge function authorization must deny profile clinical columns to HR even if someone crafts a direct query (fix any overly broad “HR selects workplace member profiles” policies).
-- [ ] Aggregates apply **small-cell suppression** and **minimum cohort size** before showing breakdowns (reuse existing employer/manager cohort constants; document thresholds in UI copy).
-- [ ] Classification breakdown shows distribution buckets only; no user ids, names, or drill-down to individuals.
-- [ ] UI copy states that individual coaching content and entries stay private.
+- [x] APIs that power `/employer` and manager aggregate **must not** return forbidden fields for HR/Manager callers.
+- [x] RLS / edge function authorization must deny profile clinical columns to HR even if someone crafts a direct query (fix any overly broad “HR selects workplace member profiles” policies).
+- [x] Aggregates apply **small-cell suppression** and **minimum cohort size** before showing breakdowns (reuse existing employer/manager cohort constants; document thresholds in UI copy).
+- [x] Classification breakdown shows distribution buckets only; no user ids, names, or drill-down to individuals.
+- [x] UI copy states that individual coaching content and entries stay private.
 
 #### Acceptance criteria — privacy
 
-- [ ] HR UI has no link to individual Admin-style user clinical detail.
-- [ ] Network responses for employer metrics contain no per-user clinical payloads.
-- [ ] Classification cells below suppression threshold are hidden or rolled into “Other / suppressed”.
-- [ ] Manager team view only includes direct reports and only opted-in members in aggregate math (existing opt-in field).
-- [ ] Attempting to open `/admin/users/:id` as a non–Platform Admin fails.
+- [x] HR UI has no link to individual Admin-style user clinical detail.
+- [x] Network responses for employer metrics contain no per-user clinical payloads.
+- [x] Classification cells below suppression threshold are hidden or rolled into “Other / suppressed”.
+- [x] Manager team view only includes direct reports and only opted-in members in aggregate math (existing opt-in field).
+- [x] Attempting to open `/admin/users/:id` as a non–Platform Admin fails.
 
 ---
 
@@ -513,9 +513,9 @@ Definitions:
 
 #### Acceptance criteria — seats
 
-- [ ] Portal shows live utilization for the selected workplace.
-- [ ] When flat-rate seats are full, invite/enroll actions fail with a clear “no seats available” message.
-- [ ] HR cannot edit `seat_count`, contract tier, price, or payment terms (Part A only).
+- [x] Portal shows live utilization for the selected workplace.
+- [x] When flat-rate seats are full, invite/enroll actions fail with a clear “no seats available” message.
+- [x] HR cannot edit `seat_count`, contract tier, price, or payment terms (Part A only).
 
 ### 15.2 Enrollment codes & join links
 
@@ -533,9 +533,9 @@ HR must **not** change org-wide billing or contract dates via this panel.
 
 #### Acceptance criteria — codes / links
 
-- [ ] HR can generate, copy code, copy join link, and deactivate codes for their workplace only.
-- [ ] Codes from Workplace A are invisible/unusable in Workplace B’s portal.
-- [ ] Join link uses the same validation path as employee onboarding (active org, active code, seats).
+- [x] HR can generate, copy code, copy join link, and deactivate codes for their workplace only.
+- [x] Codes from Workplace A are invisible/unusable in Workplace B’s portal.
+- [x] Join link uses the same validation path as employee onboarding (active org, active code, seats).
 
 ### 15.3 Add / invite / revoke employees
 
@@ -548,10 +548,10 @@ HR must **not** change org-wide billing or contract dates via this panel.
 
 #### Acceptance criteria — membership
 
-- [ ] Invite sends email; accepting user lands in enterprise enrollment for that org.
-- [ ] Revoke immediately decrements `active_seats` and blocks further enterprise entitlement from that org.
-- [ ] Roster shows name, email, roles, enrollment/invite status — **not** classification or activity detail.
-- [ ] Cannot invite when org inactive or seats full (flat-rate).
+- [x] Invite sends email; accepting user lands in enterprise enrollment for that org.
+- [x] Revoke immediately decrements `active_seats` and blocks further enterprise entitlement from that org.
+- [x] Roster shows name, email, roles, enrollment/invite status — **not** classification or activity detail.
+- [x] Cannot invite when org inactive or seats full (flat-rate).
 
 ---
 
@@ -565,9 +565,9 @@ Show how many enrolled employees are engaging with the app.
 
 | Cadence | Metric | Definition (normative intent) |
 |---|---|---|
-| **Daily** | DAU (enterprise cohort) | Distinct enrolled users with ≥1 qualifying engagement event in the last 24 hours (or calendar day in org timezone — pick one and document) |
-| **Weekly** | WAU | Distinct enrolled users with ≥1 qualifying event in the last 7 days |
-| **Monthly** | MAU | Distinct enrolled users with ≥1 qualifying event in the current calendar month (or rolling 30 days — pick one and document; align with Part A pay-per-active when possible) |
+| **Daily** | DAU (enterprise cohort) | Distinct enrolled users with ≥1 qualifying engagement event on the **UTC calendar day** (**Decided §21**) |
+| **Weekly** | WAU | Distinct enrolled users with ≥1 qualifying event in the last **7 days** (UTC) |
+| **Monthly** | MAU | Distinct enrolled users with ≥1 qualifying event in the **UTC calendar month** (**Decided §21**; aligns with Part A pay-per-active) |
 
 **Qualifying engagement events** (align with Part A active-user definition where possible): login/session, check-in/pulse, chat message, path progress, journal entry, assessment activity.
 
@@ -579,9 +579,9 @@ Show how many enrolled employees are engaging with the app.
 
 #### Acceptance criteria — engagement
 
-- [ ] Portal shows daily, weekly, and monthly active engagement for the selected workplace.
-- [ ] Metrics update from live usage (not only reassessment cycles).
-- [ ] No user-level engagement list is available to HR/Manager.
+- [x] Portal shows daily, weekly, and monthly active engagement for the selected workplace.
+- [x] Metrics update from live usage (not only reassessment cycles).
+- [x] No user-level engagement list is available to HR/Manager.
 
 ### 16.2 Workforce Classification Breakdown
 
@@ -596,9 +596,9 @@ Aggregated distribution of workforce scores/classifications **without individual
 
 #### Acceptance criteria — classification
 
-- [ ] HR sees anonymized classification distribution only.
-- [ ] Small-cell and min-cohort rules are enforced server-side.
-- [ ] Copy clarifies data is aggregated and non-identifying.
+- [x] HR sees anonymized classification distribution only.
+- [x] Small-cell and min-cohort rules are enforced server-side.
+- [x] Copy clarifies data is aggregated and non-identifying.
 
 ### 16.3 Progress Tracking Over Time
 
@@ -615,9 +615,9 @@ Weekly sparklines may remain as a secondary “near-term utilization” view; **
 
 #### Acceptance criteria — trends
 
-- [ ] Portal includes a monthly trend chart (or equivalent) for collective workforce scores.
-- [ ] Months with insufficient cohort data are omitted or marked unavailable — not fabricated.
-- [ ] No per-user time series is exposed.
+- [x] Portal includes a monthly trend chart (or equivalent) for collective workforce engagement (MAU %); classification baseline remains the cohort snapshot panel.
+- [x] Months with insufficient cohort data are omitted or marked unavailable — not fabricated.
+- [x] No per-user time series is exposed.
 
 ### 16.4 Manager-scoped aggregate (Team Managers)
 
@@ -673,7 +673,7 @@ Legal banner for manager aggregate remains env-gated per OVR-023 unless counsel 
 | HR roster / roles | OVR-022; `WorkplaceMembersPanel`, `workplace-members` |
 | Manager aggregate + legal banner | OVR-023; `ManagerTeamAggregatePanel` |
 | Aggregate opt-in | OVR-024 |
-| HR auto-enroll as employee | OVR-025 — **conflicts with §14.1; resolve in §21** |
+| HR auto-enroll as employee | **OVR-055** supersedes OVR-025 — portal-only by default; dual-mode via explicit enroll |
 | Success Plan HR assign | OVR-038 |
 | Employer metrics UI | `EmployerPortal.tsx`, `employer-metrics`, continuous + assessment baseline panels |
 | Privacy / Phase 2 | Phase 2 §9 — aggregate data to HR only; individual never shared with employers |
@@ -685,25 +685,25 @@ Legal banner for manager aggregate remains env-gated per OVR-023 unless counsel 
 | Area | Today (approx.) | Gap vs this doc |
 |---|---|---|
 | Employer portal `/employer` for HR | Implemented | — |
-| Seats `active / seat_count` | Implemented in enrollment panel | Pay-per-active HR display still TBD with Part A |
-| Enrollment codes generate/copy/deactivate | Implemented | Join URL copy available via shared `WorkplaceEnrollmentCodesPanel` (`/join/{code}`, OVR-054) |
+| Seats `active / seat_count` | Implemented (`EmployerSeatUtilizationPanel` + codes panel); pay-per-active shows period active count | — |
+| Enrollment codes generate/copy/deactivate | Implemented | Join URL copy via `WorkplaceEnrollmentCodesPanel` (`/join/{code}`, OVR-054) |
 | Invite / add / revoke / roles | Implemented (OVR-022) | — |
-| Org-wide anonymized metrics | Implemented (weekly pulse, 30-day active %, classification distribution + suppression) | **Daily + monthly** engagement cadences incomplete; **monthly** score trends incomplete (weekly-oriented today) |
-| Manager team aggregate | Implemented in Settings | Not a full “manager portal”; HR-only `/employer` |
-| Privacy in UI | Aggregate-only panels | Harden API/RLS so HR cannot SELECT clinical profile fields |
-| Managers skip clinical assessments | **Not met** — OVR-025 enrolls primary HR as clinical enterprise user; managers are normal users with roles | Need non-clinical org-admin mode (§14.1) |
+| Org-wide anonymized metrics | Implemented: DAU/WAU/MAU (UTC), weekly sparklines, monthly active trend, classification distribution + suppression | — |
+| Manager team aggregate | Implemented in Settings | Not a full “manager portal”; HR-only `/employer` (Settings-only kept — §21) |
+| Privacy in UI + RLS | Aggregate-only panels; HR full-row profile SELECT removed; ops RPC `list_workplace_member_ops_profiles`; workplace SELECT scoped | — |
+| Managers skip clinical assessments | Implemented (OVR-055): primary HR portal-only by default; clinical sidebar hidden; `/employer` landing | Existing dual-mode members remain enrolled until revoked |
 
 ---
 
 ## 21. Open questions (Part B)
 
-1. **OVR-025 vs non-clinical managers:** Stop auto-enrolling primary HR into clinical enterprise seats, or keep dual-mode (HR + employee) as today?
-2. **Do pure HR/Manager accounts consume seats?** Recommendation: no.
-3. **Timezone for DAU:** UTC vs organization locale?
-4. **MAU window:** Calendar month vs rolling 30 days (align with Part A billing active-user definition)?
-5. **Team Managers on `/employer`:** Keep Settings-only aggregate, or give Managers a reduced portal tab?
-6. **Success Plan assignment (OVR-038):** Remains in portal for HR under this privacy model? (Allowed if no clinical content of the assignee is shown.)
-7. **Minimum cohort size / small-cell thresholds:** Confirm production numbers with counsel/privacy (existing code constants vs policy).
+1. **OVR-025 vs non-clinical managers:** **Decided (OVR-055):** stop auto-enrolling primary HR; dual-mode via explicit enroll only.
+2. **Do pure HR/Manager accounts consume seats?** **Decided:** no (only `accountType = enterprise` counts).
+3. **Timezone for DAU:** **Decided:** UTC calendar day.
+4. **MAU window:** **Decided:** UTC calendar month (aligns with Part A US-208 / pay-per-active).
+5. **Team Managers on `/employer`:** **Decided:** keep Settings-only aggregate.
+6. **Success Plan assignment (OVR-038):** **Decided:** remains in portal for HR (no clinical content of assignee shown).
+7. **Minimum cohort size / small-cell thresholds:** **Decided for v1:** keep existing code constants (`EMPLOYER_MIN_COHORT_SIZE = 5`); revisit with counsel if needed.
 
 ---
 

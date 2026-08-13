@@ -109,7 +109,7 @@ export async function listWorkplaceMemberRecords(
   ] = await Promise.all([
     admin
       .from("profiles")
-      .select("id, email, firstName, lastName, managesATeam, enrollmentDate")
+      .select("id, email, firstName, lastName, managesATeam, enrollmentDate, accountType")
       .eq("workplaceId", workplaceId)
       .order("firstName", { ascending: true }),
     admin
@@ -148,8 +148,10 @@ export async function listWorkplaceMemberRecords(
         lastName?: string | null;
         managesATeam?: boolean | null;
         enrollmentDate?: string | null;
+        accountType?: string | null;
       };
       if (!record.id) return null;
+      if ((record.accountType ?? "").toLowerCase() !== "enterprise") return null;
 
       const isPrimaryHr = primaryHrEmail !== "" && normalizeEmail(record.email) === primaryHrEmail;
       const isHrDelegate = hrDelegates.has(record.id);

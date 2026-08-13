@@ -38,7 +38,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/lib/bubbleStyles";
 import { useUserProfile } from "@/lib/userProfile";
 import { isSettingsAdminUser } from "@/lib/settings/isSettingsAdminUser";
-import { isOnboardingComplete, resolvePostAuthRoute } from "@/lib/userProfile/onboardingStatus";
+import { isOnboardingComplete, resolvePostAuthRouteForUser } from "@/lib/userProfile/onboardingStatus";
+import { EMPLOYER_PORTAL_ROUTE } from "@/lib/employer/routes";
+import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import { captureReferralFromSearch } from "@/lib/share/referralAttribution";
 import { capturePlanFromSearch, FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
 import { captureUtmFromSearch } from "@/lib/share/utmAttribution";
@@ -116,12 +118,11 @@ const Index = () => {
   const { user } = useAuth();
   const authenticated = Boolean(user);
   const { profile, loading: profileLoading } = useUserProfile();
+  const { isPortalOnlyHr, loading: hrLoading } = useHrWorkplaces();
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [postAuthRedirect, setPostAuthRedirect] = useState<false | "login" | "signup">(false);
   const pendingSubscriptionScreenRef = useRef(false);
-
-  const destination = () => resolvePostAuthRoute(profile);
 
   const goToSubscriptionManagement = () => {
     navigate(subscriptionPath());
@@ -150,18 +151,29 @@ const Index = () => {
 
   const appEntryLabel = isSettingsAdminUser(profile?.roleType)
     ? "Go to Admin Console"
-    : isOnboardingComplete(profile)
-      ? "Go to Dashboard"
-      : "Continue Onboarding";
+    : isPortalOnlyHr
+      ? "Go to Employer Portal"
+      : isOnboardingComplete(profile)
+        ? "Go to Dashboard"
+        : "Continue Onboarding";
+
+  const navigatePostAuth = async () => {
+    const route = await resolvePostAuthRouteForUser({
+      profile,
+      userId: user?.id ?? null,
+      email: profile?.email ?? user?.email ?? null,
+    });
+    navigate(route, { replace: true });
+  };
 
   const goToApp = () => {
-    if (profileLoading) return;
-    navigate(destination());
+    if (profileLoading || hrLoading) return;
+    void navigatePostAuth();
   };
 
   const start = (mode: "signin" | "signup" = "signup") => {
     if (user) {
-      navigate(resolvePostAuthRoute(profile));
+      void navigatePostAuth();
       return;
     }
     if (mode === "signin") {
@@ -185,16 +197,9 @@ const Index = () => {
     setPostAuthRedirect("signup");
   };
 
-  // Sign-up always starts onboarding; sign-in waits for profile to pick dashboard vs onboarding.
+  // Sign-in / sign-up: portal-only HR → /employer; others dashboard vs onboarding.
   useEffect(() => {
     if (!postAuthRedirect || !user) return;
-
-    if (postAuthRedirect === "signup") {
-      navigate("/onboarding", { replace: true });
-      setPostAuthRedirect(false);
-      return;
-    }
-
     if (profileLoading) return;
     if (pendingSubscriptionScreenRef.current) {
       pendingSubscriptionScreenRef.current = false;
@@ -202,8 +207,26 @@ const Index = () => {
       setPostAuthRedirect(false);
       return;
     }
-    navigate(resolvePostAuthRoute(profile), { replace: true });
-    setPostAuthRedirect(false);
+
+    let cancelled = false;
+    void resolvePostAuthRouteForUser({
+      profile,
+      userId: user.id,
+      email: profile?.email ?? user.email ?? null,
+    }).then((route) => {
+      if (cancelled) return;
+      // Signup still starts onboarding unless portal-only HR.
+      if (postAuthRedirect === "signup" && route !== EMPLOYER_PORTAL_ROUTE) {
+        navigate("/onboarding", { replace: true });
+      } else {
+        navigate(route, { replace: true });
+      }
+      setPostAuthRedirect(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [postAuthRedirect, user, profileLoading, profile, navigate]);
 
   // Referral and marketing links land on /signup?ref=… — open the signup popup.
