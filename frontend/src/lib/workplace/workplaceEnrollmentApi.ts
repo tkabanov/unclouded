@@ -15,6 +15,8 @@ export type WorkplaceEnrollmentSummary = {
   name: string;
   seatCount: number;
   activeSeats: number;
+  billingModel?: string | null;
+  maxSeats?: number | null;
 };
 
 type EnrollmentCodesResponse = {
@@ -97,8 +99,11 @@ export async function fetchWorkplaceEnrollmentCodes(workplaceId: string): Promis
 
 export async function createWorkplaceEnrollmentCode(
   workplaceId: string,
+  code?: string,
 ): Promise<WorkplaceEnrollmentCode> {
-  const payload = await invokeEnrollmentCodes({ workplaceId, action: "create" });
+  const body: Record<string, string> = { workplaceId, action: "create" };
+  if (code?.trim()) body.code = code.trim();
+  const payload = await invokeEnrollmentCodes(body);
   if (!payload.code) {
     throw new Error("Invalid create code response.");
   }

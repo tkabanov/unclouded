@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Copy, Loader2, RefreshCw } from "lucide-react";
+import { Copy, Link2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  buildWorkplaceJoinUrl,
+  isValidEnrollmentCodeFormat,
+  normalizeEnrollmentCode,
+} from "@/lib/workplace/enrollmentCodeFormat";
 import {
   createWorkplaceEnrollmentCode,
   deactivateWorkplaceEnrollmentCode,
@@ -9,6 +15,7 @@ import {
   type WorkplaceEnrollmentCode,
   type WorkplaceEnrollmentSummary,
 } from "@/lib/workplace/workplaceEnrollmentApi";
+import { formatEnrollmentSeatLine } from "@/lib/workplace/workplaceSeatLimits";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +24,10 @@ type WorkplaceEnrollmentCodesPanelProps = {
   disabled?: boolean;
   compact?: boolean;
   className?: string;
+  /** Optional overrides when parent already loaded org contract fields. */
+  billingModel?: string | null;
+  maxSeats?: number | null;
+  seatCount?: number | null;
 };
 
 function formatCodeDate(value: string | null): string {
@@ -29,11 +40,16 @@ export default function WorkplaceEnrollmentCodesPanel({
   disabled = false,
   compact = false,
   className,
+  billingModel: billingModelProp = null,
+  maxSeats: maxSeatsProp = null,
+  seatCount: seatCountProp = null,
 }: WorkplaceEnrollmentCodesPanelProps) {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [workplace, setWorkplace] = useState<WorkplaceEnrollmentSummary | null>(null);
   const [codes, setCodes] = useState<WorkplaceEnrollmentCode[]>([]);
+  const [customCode, setCustomCode] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -52,11 +68,13 @@ export default function WorkplaceEnrollmentCodesPanel({
     void reload();
   }, [reload]);
 
-  const handleCreate = async () => {
+  const handleCreate = async (code?: string) => {
     if (disabled || busy) return;
     setBusy(true);
     try {
-      await createWorkplaceEnrollmentCode(workplaceId);
+      await createWorkplaceEnrollmentCode(workplaceId, code);
+      setCustomCode("");
+      setShowCustom(false);
       await reload();
       toast.success("New enrollment code created.");
     } catch (err) {
@@ -64,6 +82,15 @@ export default function WorkplaceEnrollmentCodesPanel({
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleAssignCustom = async () => {
+    const normalized = normalizeEnrollmentCode(customCode);
+    if (!isValidEnrollmentCodeFormat(normalized)) {
+      toast.error("Custom codes must be 6–8 characters (A–Z, 0–9, optional single hyphen).");
+      return;
+    }
+    await handleCreate(normalized);
   };
 
   const handleDeactivate = async (codeId: string) => {
@@ -81,16 +108,17 @@ export default function WorkplaceEnrollmentCodesPanel({
     }
   };
 
-  const handleCopy = async (code: string) => {
+  const handleCopy = async (value: string, label: string) => {
     try {
-      await navigator.clipboard.writeText(code);
-      toast.success("Code copied.");
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} copied.`);
     } catch {
-      toast.error("Couldn't copy code.");
+      toast.error(`Couldn't copy ${label.toLowerCase()}.`);
     }
   };
 
-  const activeCode = codes.find((row) => row.isActive);
+  const activeCodes = codes.filter((row) => row.isActive);
+  const primaryActive = activeCodes[0];
 
   return (
     <div
@@ -106,13 +134,31 @@ export default function WorkplaceEnrollmentCodesPanel({
           <h4 className="text-sm font-semibold">Enrollment codes</h4>
           {workplace ? (
             <p className="text-xs text-muted-foreground">
-              Seats: {workplace.activeSeats} / {workplace.seatCount} used
+              {formatEnrollmentSeatLine({
+                billingModel: billingModelProp ?? workplace.billingModel,
+                seatCount:
+                  typeof seatCountProp === "number" ? seatCountProp : workplace.seatCount,
+                maxSeats:
+                  maxSeatsProp !== undefined && maxSeatsProp !== null
+                    ? maxSeatsProp
+                    : workplace.maxSeats ?? null,
+                activeSeats: workplace.activeSeats,
+              })}
             </p>
           ) : null}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" variant="outline" disabled={disabled || loading} onClick={() => void reload()}>
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={disabled || busy}
+            onClick={() => setShowCustom((v) => !v)}
+          >
+            Assign code
           </Button>
           <Button
             type="button"
@@ -121,23 +167,67 @@ export default function WorkplaceEnrollmentCodesPanel({
             disabled={disabled || busy}
             onClick={() => void handleCreate()}
           >
-            {busy ? "Creating…" : "New code"}
+            {busy ? "Creating…" : "Generate code"}
           </Button>
         </div>
       </div>
 
-      {activeCode ? (
-        <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Active code</p>
-              <p className="font-mono font-semibold">{activeCode.code}</p>
-            </div>
-            <Button type="button" size="sm" variant="outline" onClick={() => void handleCopy(activeCode.code)}>
-              <Copy className="mr-1 h-3.5 w-3.5" />
-              Copy
-            </Button>
+      {showCustom ? (
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="grid min-w-[12rem] flex-1 gap-1">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="custom-enroll-code">
+              Custom code (6–8 chars)
+            </label>
+            <Input
+              id="custom-enroll-code"
+              className="font-mono uppercase"
+              value={customCode}
+              placeholder="ACME26"
+              onChange={(event) => setCustomCode(event.target.value)}
+            />
           </div>
+          <Button type="button" size="sm" disabled={disabled || busy} onClick={() => void handleAssignCustom()}>
+            Save code
+          </Button>
+        </div>
+      ) : null}
+
+      {primaryActive ? (
+        <div className="space-y-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
+          {activeCodes.map((activeCode) => {
+            const joinUrl = buildWorkplaceJoinUrl(window.location.origin, activeCode.code);
+            return (
+              <div key={activeCode.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-primary/10 py-2 last:border-0 last:pb-0 first:pt-0">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Active code
+                  </p>
+                  <p className="font-mono font-semibold">{activeCode.code}</p>
+                  <p className="mt-1 break-all text-xs text-muted-foreground">{joinUrl}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void handleCopy(activeCode.code, "Code")}
+                  >
+                    <Copy className="mr-1 h-3.5 w-3.5" />
+                    Copy code
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void handleCopy(joinUrl, "Join link")}
+                  >
+                    <Link2 className="mr-1 h-3.5 w-3.5" />
+                    Copy join link
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">No active code — create one for employees to redeem.</p>
@@ -145,7 +235,7 @@ export default function WorkplaceEnrollmentCodesPanel({
 
       {codes.length > 0 ? (
         <ul className="divide-y rounded-md border text-xs">
-          {codes.slice(0, compact ? 4 : 8).map((row) => (
+          {codes.slice(0, compact ? 4 : 12).map((row) => (
             <li key={row.id} className="flex items-center justify-between gap-2 px-3 py-2">
               <div>
                 <span className="font-mono">{row.code}</span>

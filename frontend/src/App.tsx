@@ -12,6 +12,7 @@ import { authenticatedRouteDefs } from "@/lib/router/authenticatedRoutes";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import JoinWorkplacePage from "./pages/JoinWorkplacePage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/signup" element={<Index />} />
+              <Route path="/join/:code" element={<JoinWorkplacePage />} />
               <Route path="/reset_pw" element={<ResetPassword />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<AdminRouteGuard />}>

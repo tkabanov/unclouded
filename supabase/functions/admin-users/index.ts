@@ -196,14 +196,15 @@ Deno.serve(async (req) => {
       let listQuery = admin
         .from("profiles")
         .select(
-          "id, email, firstName, lastName, tier, subscribed, accountType, enterpriseTier, createdAt, isActive, deactivatedAt, roleType, workplaceId",
+          "id, email, firstName, lastName, tier, subscribed, accountType, enterpriseTier, enrollmentDate, createdAt, isActive, deactivatedAt, roleType, workplaceId",
         )
         .neq("roleType", "admin")
         .order("createdAt", { ascending: false })
         .limit(500);
 
       if (workplaceId) {
-        listQuery = listQuery.eq("workplaceId", workplaceId);
+        // Match count_workplace_active_seats: enrolled enterprise members only.
+        listQuery = listQuery.eq("workplaceId", workplaceId).eq("accountType", "enterprise");
       }
 
       const { data: profiles, error } = await listQuery;
@@ -211,13 +212,32 @@ Deno.serve(async (req) => {
       if (error) return json({ error: error.message }, 500);
 
       const ids = (profiles ?? []).map((p) => p.id as string);
-      const { data: subs } = ids.length
-        ? await admin.from("userSubscription").select("userId, planTier, status").in("userId", ids)
-        : { data: [] };
+      const [{ data: subs }, { data: memberRoles }] = await Promise.all([
+        ids.length
+          ? admin.from("userSubscription").select("userId, planTier, status").in("userId", ids)
+          : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+        workplaceId && ids.length
+          ? admin
+              .from("workplaceMemberRole")
+              .select("userId, role")
+              .eq("workplaceId", workplaceId)
+              .in("userId", ids)
+          : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+      ]);
 
       const subByUser = new Map(
         (subs ?? []).map((s) => [s.userId as string, s]),
       );
+
+      const rolesByUser = new Map<string, string[]>();
+      for (const row of memberRoles ?? []) {
+        const uid = String((row as { userId?: string }).userId ?? "");
+        const role = String((row as { role?: string }).role ?? "");
+        if (!uid || !role) continue;
+        const list = rolesByUser.get(uid) ?? [];
+        list.push(role);
+        rolesByUser.set(uid, list);
+      }
 
       const search = (body.search ?? "").trim().toLowerCase();
       const typeFilter = body.typeFilter ?? "all";
@@ -235,6 +255,7 @@ Deno.serve(async (req) => {
             subscriptionPlanTier: sub?.planTier as string | null,
           });
           const isActive = p.isActive !== false;
+          const roles = rolesByUser.get(p.id as string) ?? [];
           return {
             userId: p.id as string,
             name: displayName(
@@ -247,6 +268,9 @@ Deno.serve(async (req) => {
             dateJoined: (p.createdAt as string | null) ?? null,
             status: isActive ? ("Active" as const) : ("Deactivated" as const),
             isActive,
+            enterpriseTier: (p.enterpriseTier as string | null) ?? null,
+            enrollmentDate: (p.enrollmentDate as string | null) ?? null,
+            workplaceRoles: roles,
           };
         })
         .filter((u) => {

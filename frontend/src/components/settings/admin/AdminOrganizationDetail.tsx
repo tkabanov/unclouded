@@ -14,9 +14,14 @@ import {
   adminWorkplaceToForm,
   deleteAdminWorkplace,
   fetchAdminWorkplace,
+  formatBillingModel,
   formatBillingPeriod,
+  formatInvoiceStatus,
+  formatPayPerActiveUtilization,
+  formatPaymentMethod,
   formatSeatUtilization,
   formatWorkplacePrice,
+  payPerActiveOverTargetMessage,
   updateAdminWorkplace,
   type AdminWorkplaceRecord,
 } from "@/lib/settings/admin/adminWorkplacesApi";
@@ -86,10 +91,21 @@ export default function AdminOrganizationDetail() {
       if (!user || !workplace || busy) return;
       setBusy(true);
       try {
-        const updated = await updateAdminWorkplace(user.id, workplace.workplaceId, form);
+        const previousContact = workplace.contactEmail.trim().toLowerCase();
+        const nextContact = form.contactEmail.trim().toLowerCase();
+        const contactChanged = previousContact !== nextContact;
+
+        const updated = await updateAdminWorkplace(user.id, workplace.workplaceId, form, {
+          activeSeats: workplace.activeSeats,
+        });
         setWorkplace(updated);
         setEditOpen(false);
         toast.success("Organization updated.");
+        if (contactChanged) {
+          toast.message(
+            "HR contact email updated. The previous contact remains enrolled as a member — revoke separately if needed. Primary HR portal access follows the new contact email.",
+          );
+        }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Couldn't save organization.");
       } finally {
@@ -170,6 +186,12 @@ export default function AdminOrganizationDetail() {
     );
   }
 
+  const overTargetWarning = payPerActiveOverTargetMessage(
+    workplace.billingModel,
+    workplace.activeSeats,
+    workplace.seatCount,
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -215,26 +237,45 @@ export default function AdminOrganizationDetail() {
           <InfoRow label="Organization name" value={workplace.name} />
           <InfoRow label="HR contact email" value={workplace.contactEmail} />
           <InfoRow label="Contract tier" value={workplace.contractTier === "premium" ? "Premium" : "Pro"} />
+          <InfoRow label="Billing model" value={formatBillingModel(workplace.billingModel)} />
           <InfoRow
             label="Seats"
-            value={formatSeatUtilization(workplace.activeSeats, workplace.seatCount)}
+            value={
+              workplace.billingModel === "pay_per_active"
+                ? formatPayPerActiveUtilization(workplace)
+                : formatSeatUtilization(workplace.activeSeats, workplace.seatCount)
+            }
           />
+          {overTargetWarning ? (
+            <p className="text-xs text-amber-700">{overTargetWarning}</p>
+          ) : null}
           <InfoRow label="Start date" value={workplace.contractStartDate ?? "—"} />
           <InfoRow label="End date" value={workplace.contractEndDate ?? "—"} />
-          <InfoRow label="Billing period" value={formatBillingPeriod(workplace.billingPeriod)} />
+          <InfoRow label="Payment term" value={formatBillingPeriod(workplace.billingPeriod)} />
+          <InfoRow label="Payment collection" value={formatPaymentMethod(workplace.paymentMethod)} />
+          <InfoRow label="Invoice status" value={formatInvoiceStatus(workplace.invoiceStatus)} />
           <InfoRow label="Price" value={formatWorkplacePrice(workplace.price)} />
+          <InfoRow label="Billing notes" value={workplace.billingNotes?.trim() || "—"} />
           <InfoRow
             label="Status"
             value={workplace.isActive ? "Active" : "Inactive"}
           />
         </dl>
         <p className="mt-3 text-xs text-muted-foreground">
-          Managers are assigned via member roles below (not a separate manager email field).
+          Contract end date and inactive status block new enrollments only; existing members keep
+          access until revoked. Tier changes update enrolled members immediately. Managers are
+          assigned via member roles below (not a separate manager email field).
         </p>
       </section>
 
       {workplace.metricsReady ? (
-        <WorkplaceEnrollmentCodesPanel workplaceId={workplace.workplaceId} disabled={busy} />
+        <WorkplaceEnrollmentCodesPanel
+          workplaceId={workplace.workplaceId}
+          disabled={busy}
+          billingModel={workplace.billingModel}
+          maxSeats={workplace.maxSeats}
+          seatCount={workplace.seatCount}
+        />
       ) : null}
 
       <AdminUsersTable
@@ -310,6 +351,7 @@ export default function AdminOrganizationDetail() {
         busy={busy}
         editWorkplaceId={workplace.workplaceId}
         initialForm={adminWorkplaceToForm(workplace)}
+        activeSeats={workplace.activeSeats}
       />
     </div>
   );

@@ -279,19 +279,26 @@ export default function AdminUsersTable({
                   />
                   <th className="px-4 py-3 font-semibold text-muted-foreground">Email</th>
                   <SortHeader
-                    label="Type"
+                    label={workplaceId ? "Tier" : "Type"}
                     column="type"
                     sortKey={sortKey}
                     sortDir={sortDir}
                     onSort={handleSort}
                   />
-                  <SortHeader
-                    label="Joined"
-                    column="dateJoined"
-                    sortKey={sortKey}
-                    sortDir={sortDir}
-                    onSort={handleSort}
-                  />
+                  {workplaceId ? (
+                    <>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground">Roles</th>
+                      <th className="px-4 py-3 font-semibold text-muted-foreground">Enrolled</th>
+                    </>
+                  ) : (
+                    <SortHeader
+                      label="Joined"
+                      column="dateJoined"
+                      sortKey={sortKey}
+                      sortDir={sortDir}
+                      onSort={handleSort}
+                    />
+                  )}
                   <SortHeader
                     label="Status"
                     column="status"
@@ -312,11 +319,30 @@ export default function AdminUsersTable({
                     <td className="px-4 py-3 font-medium text-foreground">{user.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{user.email ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <Badge variant="secondary">{adminUserTypeLabel(user.type)}</Badge>
+                      <Badge variant="secondary">
+                        {workplaceId
+                          ? (user.enterpriseTier ?? user.type ?? "pro").toString()
+                          : adminUserTypeLabel(user.type)}
+                      </Badge>
                     </td>
-                    <td className="px-4 py-3 tabular-nums text-muted-foreground">
-                      {formatJoined(user.dateJoined)}
-                    </td>
+                    {workplaceId ? (
+                      <>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {(user.workplaceRoles ?? []).length > 0
+                            ? (user.workplaceRoles ?? [])
+                                .map((role) => role.replace(/_/g, " "))
+                                .join(", ")
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                          {formatJoined(user.enrollmentDate ?? user.dateJoined)}
+                        </td>
+                      </>
+                    ) : (
+                      <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                        {formatJoined(user.dateJoined)}
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <span
                         className={cn(

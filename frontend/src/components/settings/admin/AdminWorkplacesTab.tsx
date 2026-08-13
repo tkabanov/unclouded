@@ -7,10 +7,11 @@ import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNo
 import {
   createAdminWorkplace,
   fetchAdminWorkplaces,
+  formatBillingModel,
   formatBillingPeriod,
+  formatPayPerActiveUtilization,
   formatSeatUtilization,
   formatWorkplacePrice,
-  type AdminWorkplaceRecord,
 } from "@/lib/settings/admin/adminWorkplacesApi";
 import type { AdminDataSource } from "@/lib/settings/admin/adminDataSource";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,7 +26,9 @@ function formatDate(value: string | null): string {
 export default function AdminWorkplacesTab() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [workplaces, setWorkplaces] = useState<AdminWorkplaceRecord[]>([]);
+  const [workplaces, setWorkplaces] = useState<
+    Awaited<ReturnType<typeof fetchAdminWorkplaces>>["workplaces"]
+  >([]);
   const [dataSource, setDataSource] = useState<AdminDataSource>("table");
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
@@ -59,10 +62,21 @@ export default function AdminWorkplacesTab() {
       if (!user || busy) return;
       setBusy(true);
       try {
-        const created = await createAdminWorkplace(user.id, form);
-        toast.success("Organization created.");
+        const { workplace, mintError, duplicateName } = await createAdminWorkplace(user.id, form);
+        if (duplicateName) {
+          toast.warning(
+            `Organization created. Name is similar to an existing org (“${form.name.trim()}”).`,
+          );
+        } else {
+          toast.success("Organization created.");
+        }
+        if (mintError) {
+          toast.warning(
+            `Enrollment code was not created automatically (${mintError}). Generate or assign a code on this page.`,
+          );
+        }
         setAddOpen(false);
-        navigate(`/admin/organizations/${created.workplaceId}`);
+        navigate(`/admin/organizations/${workplace.workplaceId}`);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Couldn't save organization.");
       } finally {
@@ -84,16 +98,25 @@ export default function AdminWorkplacesTab() {
             Enterprise organizations
           </h1>
           <p className="text-sm text-muted-foreground">
-            Employees sign up normally, then enter an enrollment code during onboarding.
+            Employees join via enrollment code or join link during signup / onboarding.
           </p>
         </div>
-        <Button
-          type="button"
-          className={bubbleStyle("Button_primary_")}
-          onClick={() => setAddOpen(true)}
-        >
-          New organization
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/admin/organizations/usage")}
+          >
+            Monthly active users
+          </Button>
+          <Button
+            type="button"
+            className={bubbleStyle("Button_primary_")}
+            onClick={() => setAddOpen(true)}
+          >
+            Add organization
+          </Button>
+        </div>
       </header>
 
       <AdminDataSourceNotice source={dataSource} entityLabel="organizations" />
@@ -107,10 +130,11 @@ export default function AdminWorkplacesTab() {
               <tr>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">Name</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">Tier</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Model</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">Seats</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">End date</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">Status</th>
-                <th className="px-4 py-3 font-semibold text-muted-foreground">Billing</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">Term</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">Price</th>
               </tr>
             </thead>
@@ -125,8 +149,13 @@ export default function AdminWorkplacesTab() {
                   <td className="px-4 py-3 capitalize text-muted-foreground">
                     {workplace.contractTier}
                   </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatBillingModel(workplace.billingModel)}
+                  </td>
                   <td className="px-4 py-3 tabular-nums text-muted-foreground">
-                    {formatSeatUtilization(workplace.activeSeats, workplace.seatCount)}
+                    {workplace.billingModel === "pay_per_active"
+                      ? formatPayPerActiveUtilization(workplace)
+                      : formatSeatUtilization(workplace.activeSeats, workplace.seatCount)}
                   </td>
                   <td className="px-4 py-3 tabular-nums text-muted-foreground">
                     {formatDate(workplace.contractEndDate)}

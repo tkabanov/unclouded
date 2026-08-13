@@ -2,7 +2,10 @@
  * Phase 2 §9 / US-206 — HR + admin enrollment code management.
  *
  * POST /functions/v1/employer-enrollment-codes
- * Body: { "workplaceId": "<uuid>", "action": "list" | "create" | "deactivate", "codeId"?: "<uuid>" }
+ * Body: {
+ *   workplaceId, action: list|create|deactivate,
+ *   codeId?, code? (custom 6–8 char code on create)
+ * }
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -13,12 +16,16 @@ import {
   deactivateWorkplaceEnrollmentCode,
   listWorkplaceEnrollmentCodes,
 } from "../_shared/workplaceEnrollmentLogic.ts";
+import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
+import { buildWorkplaceJoinUrl } from "../_shared/workplaceEnrollmentHelpers.ts";
 import { isValidUuid } from "../_shared/uuidHelpers.ts";
 
 type ActionBody = {
   workplaceId?: string;
   action?: "list" | "create" | "deactivate";
   codeId?: string;
+  /** Optional custom enrollment code on create (6–8 chars). */
+  code?: string;
 };
 
 const corsHeaders = {
@@ -90,7 +97,7 @@ Deno.serve(async (req) => {
       .maybeSingle(),
     admin
       .from("workplace")
-      .select('id, name, "contactEmail", "seatCount"')
+      .select('id, name, "contactEmail", "seatCount", "billingModel", "maxSeats"')
       .eq("id", workplaceId)
       .maybeSingle(),
   ]);
@@ -127,6 +134,8 @@ Deno.serve(async (req) => {
           name: workplace.name,
           seatCount: workplace.seatCount ?? 0,
           activeSeats,
+          billingModel: workplace.billingModel ?? "flat_rate",
+          maxSeats: workplace.maxSeats ?? null,
         },
         codes,
       });
@@ -136,11 +145,14 @@ Deno.serve(async (req) => {
       const created = await createWorkplaceEnrollmentCode(admin, {
         workplaceId,
         createdByUserId: authData.user.id,
+        code: body.code?.trim() || undefined,
       });
       const activeSeats = await countActiveSeats(admin, workplaceId);
+      const appOrigin = canonicalAppOrigin();
       return json({
         ok: true,
         code: created,
+        joinUrl: buildWorkplaceJoinUrl(appOrigin, created.code),
         activeSeats,
         seatCount: workplace.seatCount ?? 0,
       });
@@ -150,11 +162,29 @@ Deno.serve(async (req) => {
     if (!codeId || !isValidUuid(codeId)) {
       return json({ error: "codeId is required for deactivate" }, 400);
     }
-    await deactivateWorkplaceEnrollmentCode(admin, codeId, workplaceId);
+    try {
+      await deactivateWorkplaceEnrollmentCode(
+        admin,
+        codeId,
+        workplaceId,
+        authData.user.id,
+      );
+    } catch (deactivateError) {
+      const message =
+        deactivateError instanceof Error ? deactivateError.message : "Request failed";
+      const status = message.includes("last active") ? 400 : 500;
+      return json({ error: message }, status);
+    }
     const codes = await listWorkplaceEnrollmentCodes(admin, workplaceId);
     return json({ ok: true, codes });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Request failed";
-    return json({ error: message }, 500);
+    const status =
+      message.includes("6–8") ||
+      message.includes("already in use") ||
+      message.includes("last active")
+        ? 400
+        : 500;
+    return json({ error: message }, status);
   }
 });

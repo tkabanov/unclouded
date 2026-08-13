@@ -60,6 +60,10 @@ verify_jwt = true
 [functions.redeem-workplace-enrollment]
 verify_jwt = true
 
+# Public /join/:code peek (rate-limited); authenticity not JWT-based.
+[functions.peek-workplace-enrollment]
+verify_jwt = false
+
 # Phase 2 §9 / US-206 — HR enrollment code management.
 [functions.employer-enrollment-codes]
 verify_jwt = true

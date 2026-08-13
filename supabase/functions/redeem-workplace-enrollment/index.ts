@@ -2,7 +2,7 @@
  * Phase 2 §9 — redeem workplace enrollment code (employee onboarding / settings).
  *
  * POST /functions/v1/redeem-workplace-enrollment
- * Body: { "code": "ACME-2026-ABCD" }
+ * Body: { "code": "ACME26" }
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -12,11 +12,28 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+/** Simple per-user redeem attempt window (edge isolate memory). */
+const redeemAttempts = new Map<string, { count: number; windowStart: number }>();
+const REDEEM_WINDOW_MS = 60_000;
+const REDEEM_MAX_ATTEMPTS = 12;
+
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function allowRedeemAttempt(userId: string): boolean {
+  const now = Date.now();
+  const entry = redeemAttempts.get(userId);
+  if (!entry || now - entry.windowStart > REDEEM_WINDOW_MS) {
+    redeemAttempts.set(userId, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= REDEEM_MAX_ATTEMPTS) return false;
+  entry.count += 1;
+  return true;
 }
 
 type RedeemBody = { code?: string };
@@ -57,6 +74,15 @@ Deno.serve(async (req) => {
   const userClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
+
+  const { data: authData, error: authError } = await userClient.auth.getUser();
+  if (authError || !authData.user) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+
+  if (!allowRedeemAttempt(authData.user.id)) {
+    return json({ error: "Too many enrollment attempts. Try again shortly." }, 429);
+  }
 
   const { data, error } = await userClient.rpc("redeem_workplace_enrollment_code", {
     p_code: code,

@@ -28,6 +28,11 @@ import BrandLogo from "@/components/BrandLogo";
 import CrisisBar from "@/components/CrisisBar";
 import AuthDialog from "@/components/AuthDialog";
 import SignupPopup from "@/components/shell/SignupPopup";
+import {
+  isValidEnrollmentCodeFormat,
+  normalizeEnrollmentCode,
+  storeJoinCode,
+} from "@/lib/workplace/enrollmentCodeFormat";
 import HeaderLogoutButton from "@/components/shell/HeaderLogoutButton";
 import { useAuth } from "@/hooks/useAuth";
 import { bubbleStyle } from "@/lib/bubbleStyles";
@@ -206,6 +211,13 @@ const Index = () => {
     captureReferralFromSearch(location.search);
     captureUtmFromSearch(location.search);
     capturePlanFromSearch(location.search);
+    const enterpriseCode = new URLSearchParams(location.search).get("enterpriseCode");
+    if (enterpriseCode) {
+      const normalized = normalizeEnrollmentCode(enterpriseCode);
+      if (isValidEnrollmentCodeFormat(normalized)) {
+        storeJoinCode(normalized);
+      }
+    }
   }, [location.search]);
 
   useEffect(() => {

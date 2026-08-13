@@ -76,6 +76,10 @@ export type AdminUserListItem = {
   dateJoined: string | null;
   status: "Active" | "Deactivated";
   isActive: boolean;
+  /** Present when listing org-scoped users. */
+  enterpriseTier?: string | null;
+  enrollmentDate?: string | null;
+  workplaceRoles?: string[];
 };
 
 export type AdminUserPathEnrollment = {

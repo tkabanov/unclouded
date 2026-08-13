@@ -69,6 +69,31 @@ export async function listWorkplaceEnrollmentCodes(
   });
 }
 
+async function writeCodeAudit(
+  client: SupabaseClient,
+  params: {
+    actorUserId: string;
+    workplaceId: string;
+    action: string;
+    field?: string;
+    oldValue?: string | null;
+    newValue?: string | null;
+  },
+): Promise<void> {
+  try {
+    await client.rpc("write_admin_org_audit", {
+      p_actor_user_id: params.actorUserId,
+      p_workplace_id: params.workplaceId,
+      p_action: params.action,
+      p_field: params.field ?? null,
+      p_old_value: params.oldValue ?? null,
+      p_new_value: params.newValue ?? null,
+    });
+  } catch {
+    // Audit must not block enrollment-code ops
+  }
+}
+
 export async function createWorkplaceEnrollmentCode(
   client: SupabaseClient,
   params: {
@@ -77,19 +102,35 @@ export async function createWorkplaceEnrollmentCode(
     code?: string;
   },
 ): Promise<WorkplaceEnrollmentCodeRow> {
-  const normalized = params.code ? normalizeEnrollmentCode(params.code) : "";
-  const code =
-    normalized && isValidEnrollmentCodeFormat(normalized)
-      ? normalized
-      : generateEnrollmentCode("ORG");
-
-  const now = new Date().toISOString();
-
-  await client
-    .from("workplaceEnrollmentCode")
-    .update({ isActive: false, deactivatedAt: now } as never)
-    .eq("workplaceId", params.workplaceId)
-    .eq("isActive", true);
+  let code = "";
+  if (params.code?.trim()) {
+    const normalized = normalizeEnrollmentCode(params.code);
+    if (!isValidEnrollmentCodeFormat(normalized)) {
+      throw new Error(
+        "Custom codes must be 6–8 characters (A–Z, 0–9, optional single hyphen).",
+      );
+    }
+    code = normalized;
+  } else {
+    // Retry generation on rare collisions with active codes
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidate = generateEnrollmentCode("ORG");
+      if (!isValidEnrollmentCodeFormat(candidate)) continue;
+      const { data: existing } = await client
+        .from("workplaceEnrollmentCode")
+        .select("id")
+        .eq("isActive", true)
+        .ilike("code", candidate)
+        .maybeSingle();
+      if (!existing) {
+        code = candidate;
+        break;
+      }
+    }
+    if (!code) {
+      code = generateEnrollmentCode("ORG");
+    }
+  }
 
   const { data, error } = await client
     .from("workplaceEnrollmentCode")
@@ -102,10 +143,16 @@ export async function createWorkplaceEnrollmentCode(
     .select("id, workplaceId, code, isActive, createdAt, deactivatedAt")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (String(error.message ?? "").toLowerCase().includes("duplicate") ||
+      error.code === "23505") {
+      throw new Error("That enrollment code is already in use.");
+    }
+    throw error;
+  }
 
   const record = data as Record<string, unknown>;
-  return {
+  const created: WorkplaceEnrollmentCodeRow = {
     id: String(record.id),
     workplaceId: String(record.workplaceId),
     code: String(record.code),
@@ -113,13 +160,45 @@ export async function createWorkplaceEnrollmentCode(
     createdAt: String(record.createdAt ?? ""),
     deactivatedAt: null,
   };
+
+  await writeCodeAudit(client, {
+    actorUserId: params.createdByUserId,
+    workplaceId: params.workplaceId,
+    action: "enrollment_code_create",
+    field: "code",
+    newValue: created.code,
+  });
+
+  return created;
 }
 
 export async function deactivateWorkplaceEnrollmentCode(
   client: SupabaseClient,
   codeId: string,
   workplaceId: string,
+  actorUserId?: string,
 ): Promise<void> {
+  const activeCodes = await listWorkplaceEnrollmentCodes(client, workplaceId);
+  const active = activeCodes.filter((row) => row.isActive);
+  const target = active.find((row) => row.id === codeId);
+
+  if (!target) {
+    throw new Error("Active enrollment code not found.");
+  }
+
+  const { data: workplace } = await client
+    .from("workplace")
+    .select("isActive")
+    .eq("id", workplaceId)
+    .maybeSingle();
+
+  const orgActive = (workplace as { isActive?: boolean } | null)?.isActive !== false;
+  if (orgActive && active.length <= 1) {
+    throw new Error(
+      "Cannot deactivate the last active enrollment code while the organization is active. Create another code first.",
+    );
+  }
+
   const { error } = await client
     .from("workplaceEnrollmentCode")
     .update({
@@ -131,4 +210,15 @@ export async function deactivateWorkplaceEnrollmentCode(
     .eq("isActive", true);
 
   if (error) throw error;
+
+  if (actorUserId) {
+    await writeCodeAudit(client, {
+      actorUserId,
+      workplaceId,
+      action: "enrollment_code_deactivate",
+      field: "code",
+      oldValue: target.code,
+      newValue: null,
+    });
+  }
 }
