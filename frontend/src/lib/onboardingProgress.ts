@@ -1,10 +1,11 @@
 import type { CustomerRoleSlug } from "@/lib/enums/customerProfile";
 import { syncLegacyRoleType } from "@/lib/enums/customerRoleTypes";
-import type { OnboardingStepSlug } from "@/lib/enums/onboardingSteps";
+import { ONBOARDING_STEP, type OnboardingStepSlug } from "@/lib/enums/onboardingSteps";
 import {
   buildLoadSignalCustomStates,
   type HealthFlagsPayload,
 } from "@/lib/enums/onboardingQuestions";
+import { isEnterpriseAccountType } from "@/lib/userProfile/onboardingStatus";
 import type { OnboardingDraftPayload, UserProfile } from "@/lib/userProfile";
 
 export const ONBOARDING_PROGRESS_STEP_KEY = "onboardingStep" as const;
@@ -146,4 +147,19 @@ export function readOnboardingFormStateFromProfile(profile: UserProfile): {
     resumeStep:
       (onboardingData[ONBOARDING_PROGRESS_STEP_KEY] as OnboardingStepSlug | undefined) ?? null,
   };
+}
+
+/** Skip the workplace-code step after skip or successful enterprise redeem. */
+export function resumeStepAfterWorkplaceCodeGate(
+  resumeStep: OnboardingStepSlug | null,
+  options: {
+    workplaceCodeSkipped?: boolean;
+    accountType?: string | null;
+  },
+): OnboardingStepSlug | null {
+  if (resumeStep !== ONBOARDING_STEP.WORKPLACE_CODE) return resumeStep;
+  if (options.workplaceCodeSkipped || isEnterpriseAccountType(options.accountType)) {
+    return ONBOARDING_STEP.NAME;
+  }
+  return resumeStep;
 }

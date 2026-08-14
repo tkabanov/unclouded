@@ -14,7 +14,9 @@ export default function AdminRouteGuard() {
   const location = useLocation();
   const { profile, loading } = useUserProfile();
 
-  if (loading) {
+  // Keep the current route mounted while a profile already exists. A full-screen
+  // spinner on every refresh unmounts onboarding and resets wizard step state.
+  if (loading && !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />

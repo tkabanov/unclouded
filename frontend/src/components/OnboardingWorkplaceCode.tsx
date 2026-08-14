@@ -44,8 +44,8 @@ const OnboardingWorkplaceCode = ({
         await redeemWorkplaceEnrollmentCode(prefilled);
         clearStoredJoinCode();
         if (cancelled) return;
-        await onEnrolled?.();
         onNext();
+        void Promise.resolve(onEnrolled?.()).catch(() => undefined);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Couldn't redeem that code.");
@@ -68,8 +68,8 @@ const OnboardingWorkplaceCode = ({
     try {
       await redeemWorkplaceEnrollmentCode(normalizedCode);
       clearStoredJoinCode();
-      await onEnrolled?.();
       onNext();
+      void Promise.resolve(onEnrolled?.()).catch(() => undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't redeem that code.");
     } finally {

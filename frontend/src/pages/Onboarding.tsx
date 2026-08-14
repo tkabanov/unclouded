@@ -27,6 +27,7 @@ import {
   buildOnboardingDraftPayload,
   mergeOnboardingFormState,
   readOnboardingFormStateFromProfile,
+  resumeStepAfterWorkplaceCodeGate,
   type OnboardingFormState,
 } from "@/lib/onboardingProgress";
 import { ONBOARDING_STEP, type OnboardingStepSlug } from "@/lib/enums/onboardingSteps";
@@ -139,14 +140,16 @@ const Onboarding = () => {
     async (completedStep: OnboardingStepSlug, patch: Partial<OnboardingFormState> = {}) => {
       const nextStep = advanceStep(completedStep);
       if (!nextStep) return;
+      const merged = mergeOnboardingFormState(getFormState(), patch);
+      applyFormPatch(patch);
+      setStep(nextStep);
       try {
-        await persistProgress(nextStep, patch);
-        setStep(nextStep);
+        await persistOnboardingDraft(buildOnboardingDraftPayload(merged, nextStep));
       } catch (err) {
         console.error("Failed to persist onboarding step", err);
       }
     },
-    [persistProgress],
+    [applyFormPatch, getFormState, persistOnboardingDraft],
   );
 
   const handleSaveAndContinueLater = useCallback(
@@ -207,12 +210,11 @@ const Onboarding = () => {
     applyFormPatch(form);
     if (resumeStep) {
       const onboardingData = profile.onboardingData ?? {};
-      const skippedWorkplaceCode =
-        onboardingData[ONBOARDING_WORKPLACE_CODE_SKIPPED_KEY] === true;
       setStep(
-        resumeStep === ONBOARDING_STEP.WORKPLACE_CODE && skippedWorkplaceCode
-          ? ONBOARDING_STEP.NAME
-          : resumeStep,
+        resumeStepAfterWorkplaceCodeGate(resumeStep, {
+          workplaceCodeSkipped: onboardingData[ONBOARDING_WORKPLACE_CODE_SKIPPED_KEY] === true,
+          accountType: profile.accountType,
+        }) ?? resumeStep,
       );
     }
   }, [applyFormPatch, profile, profileLoading]);
@@ -264,6 +266,7 @@ const Onboarding = () => {
   const skipWorkplaceCode = useCallback(async () => {
     const nextStep = advanceStep(ONBOARDING_STEP.WORKPLACE_CODE);
     if (!nextStep) return;
+    setStep(nextStep);
     try {
       await persistOnboardingDraft({
         onboardingData: {
@@ -272,7 +275,6 @@ const Onboarding = () => {
           onboardingStep: nextStep,
         },
       });
-      setStep(nextStep);
     } catch (err) {
       console.error("Failed to skip workplace code step", err);
     }
@@ -333,7 +335,7 @@ const Onboarding = () => {
           <OnboardingWorkplaceCode
             onNext={() => void completeStep(ONBOARDING_STEP.WORKPLACE_CODE)}
             onSkip={() => void skipWorkplaceCode()}
-            onEnrolled={() => refresh()}
+            onEnrolled={() => void refresh({ silent: true })}
             savingLater={savingLater}
           />
         );
