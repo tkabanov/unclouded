@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import SettingsAboutYouSection from "@/components/settings/SettingsAboutYouSection";
+import SettingsEnrollmentCodeSection from "@/components/settings/SettingsEnrollmentCodeSection";
 import SettingsKnowYourselfSection from "@/components/settings/SettingsKnowYourselfSection";
 import SettingsReferralStatsSection from "@/components/settings/SettingsReferralStatsSection";
 import {
@@ -190,6 +191,8 @@ export default function SettingsProfileTab() {
           </section>
         ) : null}
       </div>
+
+      <SettingsEnrollmentCodeSection />
 
       <SettingsReferralStatsSection />
 

@@ -89,7 +89,7 @@ const OnboardingWorkplaceCode = ({
           <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-md mx-auto">
             {locked
               ? "Your join link included an enrollment code. We’re applying organization-covered access."
-              : "If your employer provides Uncloud360, enter the code from HR to unlock organization-covered access. You can skip this step and add a code later."}
+              : "If your employer provides Uncloud360, enter the code from HR to unlock organization-covered access. You can skip this step and add a code later in Settings → Profile."}
           </p>
         </div>
 

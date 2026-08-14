@@ -836,7 +836,7 @@ Effective entitlement resolution must treat enterprise users as:
 | Existing individual Free user redeems valid code | Convert to enterprise; link org; tier from contract; stop showing paywall |
 | Existing individual Pro/Premium (Stripe) redeems code | **Convert to enterprise; cancel individual Stripe immediately; stop collection** (**Decided §31**) |
 | Join URL with bad code | Friendly error; allow fall through to normal individual signup without silent enterprise claim |
-| “Add a code later” promised in copy | If product keeps this promise, Settings (or Profile) must provide redeem UI; otherwise remove the copy |
+| “Add a code later” promised in copy | **Settings → Profile** has redeem UI (`SettingsEnrollmentCodeSection`). Onboarding skip copy points there. Portal-only HR does not see the form (dual-mode via members/invite, OVR-055). Join URL `/join/{code}` still works. |
 | Org tier changes after enrollment | Follow Part A sync policy (immediate vs next period) |
 | Member revoked by HR | Clear enterprise fields; **restore prior personal subscription entitlement if Stripe-backed `userSubscription` still grants access; else Free** (**Decided §31** / OVR-056) |
 | Logged-in user with completed onboarding opens `/join/{code}` | Redeem **in place**; toast; route to dashboard (or `/employer` if portal-only HR) |
@@ -969,7 +969,7 @@ Every client and server gate must use **effective entitlement** (`resolveUserEnt
 | Success Plan for enterprise | HR-assign only (self-purchase CTA hidden) | — |
 | Monthly score trends (HR) | Implemented (`monthlyScoreTrend` + panel) | Redeploy `employer-metrics` |
 | Single-org enforcement | Implemented (409 already enrolled elsewhere) | — |
-| “Add code later” | Copy may promise; Settings redeem UI unclear/missing | Implement or remove copy |
+| “Add code later” | Implemented: Settings → Profile redeem (`SettingsEnrollmentCodeSection`); onboarding copy points there | — |
 | Tier-parity app access | Largely via effective tier | Regression-test Pro vs Premium enterprise matrices |
 
 ---
