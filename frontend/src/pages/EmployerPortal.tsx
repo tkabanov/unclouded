@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -22,6 +22,7 @@ import {
 import { EMPLOYER_MIN_COHORT_SIZE } from "@/lib/employer/employerMetricsApi";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
+import { isWorkplaceEnrollmentLocked } from "@/lib/workplace/workplaceEnrollmentLock";
 
 export default function EmployerPortalPage() {
   const { workplaces, loading: workplacesLoading, isHrContact } = useHrWorkplaces();
@@ -30,6 +31,7 @@ export default function EmployerPortalPage() {
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [seats, setSeats] = useState<EmployerSeatUtilization | null>(null);
   const [seatsLoading, setSeatsLoading] = useState(false);
+  const [rosterRevision, setRosterRevision] = useState(0);
 
   useEffect(() => {
     if (workplaces.length === 0) {
@@ -83,11 +85,40 @@ export default function EmployerPortalPage() {
     };
   }, [selectedWorkplaceId]);
 
+  useEffect(() => {
+    if (!selectedWorkplaceId || rosterRevision === 0) return;
+
+    let cancelled = false;
+    setSeatsLoading(true);
+    void fetchEmployerSeatUtilization(selectedWorkplaceId)
+      .then((row) => {
+        if (!cancelled) setSeats(row);
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("Couldn't refresh seat utilization.");
+      })
+      .finally(() => {
+        if (!cancelled) setSeatsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rosterRevision, selectedWorkplaceId]);
+
+  const handleMembershipChange = useCallback(() => {
+    setRosterRevision((n) => n + 1);
+  }, []);
+
   if (!workplacesLoading && !isHrContact) {
     return <Navigate to="/dashboard" replace />;
   }
 
   const selectedWorkplace = workplaces.find((workplace) => workplace.id === selectedWorkplaceId);
+  const enrollmentLocked =
+    isWorkplaceEnrollmentLocked(selectedWorkplace) ||
+    (seats?.workplaceId === selectedWorkplaceId && isWorkplaceEnrollmentLocked(seats));
+  const actionsDisabled = workplacesLoading || metricsLoading;
 
   return (
     <DashboardLayout>
@@ -115,6 +146,7 @@ export default function EmployerPortalPage() {
               {workplaces.map((workplace) => (
                 <option key={workplace.id} value={workplace.id}>
                   {workplace.name}
+                  {isWorkplaceEnrollmentLocked(workplace) ? " (Inactive)" : ""}
                 </option>
               ))}
             </select>
@@ -149,17 +181,21 @@ export default function EmployerPortalPage() {
           <>
             <WorkplaceMembersPanel
               workplaceId={selectedWorkplaceId}
-              disabled={workplacesLoading || metricsLoading}
+              disabled={actionsDisabled}
+              enrollmentLocked={enrollmentLocked}
               compact
               className="mt-4"
+              onMembershipChange={handleMembershipChange}
             />
             <EmployerSuccessPlanAssignPanel
               workplaceId={selectedWorkplaceId}
-              disabled={workplacesLoading || metricsLoading}
+              disabled={actionsDisabled}
             />
             <EmployerEnrollmentCodesPanel
               workplaceId={selectedWorkplaceId}
-              disabled={workplacesLoading || metricsLoading}
+              disabled={actionsDisabled}
+              enrollmentLocked={enrollmentLocked}
+              refreshToken={rosterRevision}
             />
           </>
         ) : null}

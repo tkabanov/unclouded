@@ -38,6 +38,7 @@ import {
   type WorkplaceMemberOption,
 } from "@/lib/employer/managerDirectReportApi";
 import { useAuth } from "@/hooks/useAuth";
+import { isWorkplaceEnrollmentLocked } from "@/lib/workplace/workplaceEnrollmentLock";
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -57,6 +58,7 @@ export default function AdminOrganizationDetail() {
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [rosterRevision, setRosterRevision] = useState(0);
   const [metrics, setMetrics] = useState<EmployerMetricSnapshot | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [managerAggregate, setManagerAggregate] = useState<ManagerAggregateSnapshot | null>(null);
@@ -69,6 +71,11 @@ export default function AdminOrganizationDetail() {
     const row = await fetchAdminWorkplace(user.id, organizationId);
     setWorkplace(row);
   }, [organizationId, user]);
+
+  const handleMembershipChange = useCallback(() => {
+    setRosterRevision((n) => n + 1);
+    void reload().catch(() => toast.error("Couldn't refresh seat utilization."));
+  }, [reload]);
 
   useEffect(() => {
     if (!user || !organizationId) return;
@@ -191,6 +198,7 @@ export default function AdminOrganizationDetail() {
     workplace.activeSeats,
     workplace.seatCount,
   );
+  const enrollmentLocked = isWorkplaceEnrollmentLocked(workplace);
 
   return (
     <div className="flex flex-col gap-8">
@@ -272,9 +280,11 @@ export default function AdminOrganizationDetail() {
         <WorkplaceEnrollmentCodesPanel
           workplaceId={workplace.workplaceId}
           disabled={busy}
+          enrollmentLocked={enrollmentLocked}
           billingModel={workplace.billingModel}
           maxSeats={workplace.maxSeats}
           seatCount={workplace.seatCount}
+          refreshToken={rosterRevision}
         />
       ) : null}
 
@@ -283,11 +293,17 @@ export default function AdminOrganizationDetail() {
         workplaceId={workplace.workplaceId}
         title="Organization users"
         emptyMessage="No users enrolled in this organization yet."
+        refreshToken={rosterRevision}
         onUserNavigate={(userId) => navigate(`/admin/users/${userId}`)}
       />
 
       {workplace.metricsReady ? (
-        <WorkplaceMembersPanel workplaceId={workplace.workplaceId} disabled={busy} />
+        <WorkplaceMembersPanel
+          workplaceId={workplace.workplaceId}
+          disabled={busy}
+          enrollmentLocked={enrollmentLocked}
+          onMembershipChange={handleMembershipChange}
+        />
       ) : null}
 
       <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-sm">

@@ -1,4 +1,8 @@
 import { formatEnrollmentSeatLine } from "@/lib/workplace/workplaceSeatLimits";
+import {
+  isWorkplaceEnrollmentLocked,
+  WORKPLACE_ENROLLMENT_INACTIVE_BANNER,
+} from "@/lib/workplace/workplaceEnrollmentLock";
 import type { EmployerSeatUtilization } from "@/lib/employer/employerSeatUtilizationApi";
 import { EMPLOYER_MIN_COHORT_SIZE } from "@/lib/employer/employerMetricsApi";
 import { bubbleStyle } from "@/styles";
@@ -31,6 +35,7 @@ export default function EmployerSeatUtilizationPanel({
     maxSeats: utilization.maxSeats,
     activeSeats: utilization.activeSeats,
   });
+  const enrollmentLocked = isWorkplaceEnrollmentLocked(utilization);
 
   return (
     <div className={cn(bubbleStyle("Group_card_muted_"), "flex flex-col gap-2 p-4", className)}>
@@ -43,6 +48,15 @@ export default function EmployerSeatUtilizationPanel({
         </p>
       </header>
       <p className="text-lg font-semibold tabular-nums text-foreground">{seatLine}</p>
+      <p className="text-sm text-muted-foreground">
+        Status:{" "}
+        <span className="font-medium text-foreground">
+          {enrollmentLocked ? "Inactive" : "Active"}
+        </span>
+      </p>
+      {enrollmentLocked ? (
+        <p className="text-sm text-amber-800">{WORKPLACE_ENROLLMENT_INACTIVE_BANNER}</p>
+      ) : null}
       {utilization.billingModel === "pay_per_active" && utilization.periodActiveUsers != null ? (
         <p className="text-sm text-muted-foreground">
           Active this UTC calendar month:{" "}

@@ -3,10 +3,17 @@
  *
  * POST /functions/v1/redeem-workplace-enrollment
  * Body: { "code": "ACME26" }
+ *
+ * Rate limit is Postgres-backed (consume_edge_rate_limit) so it holds across Edge isolates.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 import { cancelIndividualStripeOnEnterpriseConvert } from "../_shared/cancelIndividualStripeOnEnterprise.ts";
+import {
+  consumeEdgeRateLimit,
+  EDGE_RATE_LIMIT_MAX_ATTEMPTS,
+  EDGE_RATE_LIMIT_WINDOW_SECONDS,
+} from "../_shared/edgeRateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,28 +21,11 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-/** Simple per-user redeem attempt window (edge isolate memory). */
-const redeemAttempts = new Map<string, { count: number; windowStart: number }>();
-const REDEEM_WINDOW_MS = 60_000;
-const REDEEM_MAX_ATTEMPTS = 12;
-
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
-
-function allowRedeemAttempt(userId: string): boolean {
-  const now = Date.now();
-  const entry = redeemAttempts.get(userId);
-  if (!entry || now - entry.windowStart > REDEEM_WINDOW_MS) {
-    redeemAttempts.set(userId, { count: 1, windowStart: now });
-    return true;
-  }
-  if (entry.count >= REDEEM_MAX_ATTEMPTS) return false;
-  entry.count += 1;
-  return true;
 }
 
 type RedeemBody = { code?: string };
@@ -83,8 +73,22 @@ Deno.serve(async (req) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
-  if (!allowRedeemAttempt(authData.user.id)) {
-    return json({ error: "Too many enrollment attempts. Try again shortly." }, 429);
+  const admin = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  try {
+    const allowed = await consumeEdgeRateLimit(
+      admin,
+      `redeem:user:${authData.user.id}`,
+      EDGE_RATE_LIMIT_MAX_ATTEMPTS,
+      EDGE_RATE_LIMIT_WINDOW_SECONDS,
+    );
+    if (!allowed) {
+      return json({ error: "Too many enrollment attempts. Try again shortly." }, 429);
+    }
+  } catch {
+    return json({ error: "Unable to process enrollment right now." }, 500);
   }
 
   const { data, error } = await userClient.rpc("redeem_workplace_enrollment_code", {
@@ -92,7 +96,7 @@ Deno.serve(async (req) => {
   });
 
   if (error) {
-    return json({ error: error.message }, 500);
+    return json({ error: "Unable to process enrollment right now." }, 500);
   }
 
   const payload = data as Record<string, unknown> | null;
@@ -110,10 +114,7 @@ Deno.serve(async (req) => {
   // Paid individual → enterprise: cancel Stripe immediately (Part C §31).
   if (payload.alreadyEnrolled !== true) {
     try {
-      const service = createClient(supabaseUrl, serviceKey, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
-      await cancelIndividualStripeOnEnterpriseConvert(service, authData.user.id);
+      await cancelIndividualStripeOnEnterpriseConvert(admin, authData.user.id);
     } catch (err) {
       console.error("redeem-workplace-enrollment: Stripe cancel post-step failed", err);
     }

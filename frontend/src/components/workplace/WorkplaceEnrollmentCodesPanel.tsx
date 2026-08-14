@@ -18,16 +18,24 @@ import {
 import { formatEnrollmentSeatLine } from "@/lib/workplace/workplaceSeatLimits";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
+import {
+  isWorkplaceEnrollmentLocked,
+  WORKPLACE_ENROLLMENT_INACTIVE_BANNER,
+} from "@/lib/workplace/workplaceEnrollmentLock";
 
 type WorkplaceEnrollmentCodesPanelProps = {
   workplaceId: string;
   disabled?: boolean;
+  /** Blocks generate/assign when the org contract is inactive (Part A override). */
+  enrollmentLocked?: boolean;
   compact?: boolean;
   className?: string;
   /** Optional overrides when parent already loaded org contract fields. */
   billingModel?: string | null;
   maxSeats?: number | null;
   seatCount?: number | null;
+  /** Bump after roster changes so `activeSeats` refreshes without a full page reload. */
+  refreshToken?: number | string;
 };
 
 function formatCodeDate(value: string | null): string {
@@ -38,11 +46,13 @@ function formatCodeDate(value: string | null): string {
 export default function WorkplaceEnrollmentCodesPanel({
   workplaceId,
   disabled = false,
+  enrollmentLocked = false,
   compact = false,
   className,
   billingModel: billingModelProp = null,
   maxSeats: maxSeatsProp = null,
   seatCount: seatCountProp = null,
+  refreshToken = 0,
 }: WorkplaceEnrollmentCodesPanelProps) {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -66,10 +76,10 @@ export default function WorkplaceEnrollmentCodesPanel({
 
   useEffect(() => {
     void reload();
-  }, [reload]);
+  }, [reload, refreshToken]);
 
   const handleCreate = async (code?: string) => {
-    if (disabled || busy) return;
+    if (disabled || enrollmentLocked || busy) return;
     setBusy(true);
     try {
       await createWorkplaceEnrollmentCode(workplaceId, code);
@@ -119,6 +129,9 @@ export default function WorkplaceEnrollmentCodesPanel({
 
   const activeCodes = codes.filter((row) => row.isActive);
   const primaryActive = activeCodes[0];
+  const orgEnrollmentLocked =
+    enrollmentLocked || isWorkplaceEnrollmentLocked(workplace);
+  const createDisabled = disabled || busy || orgEnrollmentLocked;
 
   return (
     <div
@@ -155,7 +168,7 @@ export default function WorkplaceEnrollmentCodesPanel({
             type="button"
             size="sm"
             variant="outline"
-            disabled={disabled || busy}
+            disabled={createDisabled}
             onClick={() => setShowCustom((v) => !v)}
           >
             Assign code
@@ -164,7 +177,7 @@ export default function WorkplaceEnrollmentCodesPanel({
             type="button"
             size="sm"
             className={bubbleStyle("Button_primary_")}
-            disabled={disabled || busy}
+            disabled={createDisabled}
             onClick={() => void handleCreate()}
           >
             {busy ? "Creating…" : "Generate code"}
@@ -172,7 +185,11 @@ export default function WorkplaceEnrollmentCodesPanel({
         </div>
       </div>
 
-      {showCustom ? (
+      {orgEnrollmentLocked ? (
+        <p className="text-sm text-amber-800">{WORKPLACE_ENROLLMENT_INACTIVE_BANNER}</p>
+      ) : null}
+
+      {showCustom && !orgEnrollmentLocked ? (
         <div className="flex flex-wrap items-end gap-2">
           <div className="grid min-w-[12rem] flex-1 gap-1">
             <label className="text-xs font-medium text-muted-foreground" htmlFor="custom-enroll-code">
@@ -183,10 +200,11 @@ export default function WorkplaceEnrollmentCodesPanel({
               className="font-mono uppercase"
               value={customCode}
               placeholder="ACME26"
+              disabled={createDisabled}
               onChange={(event) => setCustomCode(event.target.value)}
             />
           </div>
-          <Button type="button" size="sm" disabled={disabled || busy} onClick={() => void handleAssignCustom()}>
+          <Button type="button" size="sm" disabled={createDisabled} onClick={() => void handleAssignCustom()}>
             Save code
           </Button>
         </div>

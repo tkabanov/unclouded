@@ -4,9 +4,16 @@
  * POST /functions/v1/peek-workplace-enrollment
  * Body: { "code": "ACME26" }
  * Auth: none (verify_jwt = false); uses service role for RPC after revoke of anon grants.
+ *
+ * Rate limit is Postgres-backed (consume_edge_rate_limit) so it holds across Edge isolates.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import {
+  consumeEdgeRateLimit,
+  EDGE_RATE_LIMIT_MAX_ATTEMPTS,
+  EDGE_RATE_LIMIT_WINDOW_SECONDS,
+} from "../_shared/edgeRateLimit.ts";
 import {
   isValidEnrollmentCodeFormat,
   normalizeEnrollmentCode,
@@ -17,11 +24,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-/** Simple per-bucket peek attempt window (edge isolate memory). */
-const peekAttempts = new Map<string, { count: number; windowStart: number }>();
-const PEEK_WINDOW_MS = 60_000;
-const PEEK_MAX_ATTEMPTS = 12;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -41,18 +43,6 @@ function clientIp(req: Request): string {
     req.headers.get("x-real-ip")?.trim() ||
     "unknown"
   );
-}
-
-function allowPeekAttempt(bucket: string): boolean {
-  const now = Date.now();
-  const entry = peekAttempts.get(bucket);
-  if (!entry || now - entry.windowStart > PEEK_WINDOW_MS) {
-    peekAttempts.set(bucket, { count: 1, windowStart: now });
-    return true;
-  }
-  if (entry.count >= PEEK_MAX_ATTEMPTS) return false;
-  entry.count += 1;
-  return true;
 }
 
 type PeekBody = { code?: string };
@@ -88,20 +78,38 @@ Deno.serve(async (req) => {
     });
   }
 
+  const admin = createClient(supabaseUrl, serviceKey);
   const ip = clientIp(req);
-  const ipOk = allowPeekAttempt(`ip:${ip}`);
-  const codeOk = allowPeekAttempt(`code:${code}`);
-  if (!ipOk || !codeOk) {
-    return json({ error: "Too many enrollment lookups. Try again shortly." }, 429);
+
+  try {
+    const ipOk = await consumeEdgeRateLimit(
+      admin,
+      `peek:ip:${ip}`,
+      EDGE_RATE_LIMIT_MAX_ATTEMPTS,
+      EDGE_RATE_LIMIT_WINDOW_SECONDS,
+    );
+    if (!ipOk) {
+      return json({ error: "Too many enrollment lookups. Try again shortly." }, 429);
+    }
+    const codeOk = await consumeEdgeRateLimit(
+      admin,
+      `peek:code:${code}`,
+      EDGE_RATE_LIMIT_MAX_ATTEMPTS,
+      EDGE_RATE_LIMIT_WINDOW_SECONDS,
+    );
+    if (!codeOk) {
+      return json({ error: "Too many enrollment lookups. Try again shortly." }, 429);
+    }
+  } catch {
+    return json({ error: "Unable to validate enrollment code right now." }, 500);
   }
 
-  const admin = createClient(supabaseUrl, serviceKey);
   const { data, error } = await admin.rpc("peek_workplace_enrollment_code", {
     p_code: code,
   });
 
   if (error) {
-    return json({ error: error.message }, 500);
+    return json({ error: "Unable to validate enrollment code right now." }, 500);
   }
 
   return json(data ?? { ok: false, error: "Invalid or inactive enrollment code." });

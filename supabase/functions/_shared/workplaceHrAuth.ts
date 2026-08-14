@@ -17,6 +17,9 @@ export type WorkplaceRecord = {
   id: string;
   name: string;
   contactEmail: string;
+  isActive?: boolean;
+  contractStartDate?: string | null;
+  contractEndDate?: string | null;
 };
 
 export function filterWorkplacesForHrContact(

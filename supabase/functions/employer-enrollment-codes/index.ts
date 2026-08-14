@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
       .maybeSingle(),
     admin
       .from("workplace")
-      .select('id, name, "contactEmail", "seatCount", "billingModel", "maxSeats"')
+      .select('id, name, "contactEmail", "seatCount", "billingModel", "maxSeats", "isActive", "contractStartDate", "contractEndDate"')
       .eq("id", workplaceId)
       .maybeSingle(),
   ]);
@@ -136,6 +136,9 @@ Deno.serve(async (req) => {
           activeSeats,
           billingModel: workplace.billingModel ?? "flat_rate",
           maxSeats: workplace.maxSeats ?? null,
+          isActive: workplace.isActive !== false,
+          contractStartDate: workplace.contractStartDate ?? null,
+          contractEndDate: workplace.contractEndDate ?? null,
         },
         codes,
       });
@@ -182,7 +185,8 @@ Deno.serve(async (req) => {
     const status =
       message.includes("6–8") ||
       message.includes("already in use") ||
-      message.includes("last active")
+      message.includes("last active") ||
+      message.includes("enrollment is not active")
         ? 400
         : 500;
     return json({ error: message }, status);

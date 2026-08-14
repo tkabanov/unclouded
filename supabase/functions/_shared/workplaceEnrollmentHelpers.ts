@@ -1,6 +1,9 @@
 export const SEATS_FULL_MESSAGE =
   "Your organization's seats are full. Contact your HR team.";
 
+export const WORKPLACE_ENROLLMENT_INACTIVE_MESSAGE =
+  "This organization's enrollment is not active.";
+
 export const WORKPLACE_JOIN_CODE_STORAGE_KEY = "unclouded_workplace_join_code";
 
 export type WorkplaceContractRow = {

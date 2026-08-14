@@ -14,6 +14,9 @@ function mapWorkplaceRow(row: {
   id?: string;
   name?: string;
   contactEmail?: string;
+  isActive?: boolean | null;
+  contractStartDate?: string | null;
+  contractEndDate?: string | null;
 }): HrWorkplace | null {
   if (!row.id || !row.name || !row.contactEmail) return null;
   if (!isValidUuid(row.id)) return null;
@@ -21,6 +24,9 @@ function mapWorkplaceRow(row: {
     id: row.id,
     name: row.name,
     contactEmail: row.contactEmail,
+    isActive: row.isActive !== false,
+    contractStartDate: typeof row.contractStartDate === "string" ? row.contractStartDate : null,
+    contractEndDate: typeof row.contractEndDate === "string" ? row.contractEndDate : null,
   };
 }
 
@@ -32,7 +38,7 @@ export async function listHrWorkplaces(
 
   const { data: allWorkplaces, error: workplaceError } = await supabase
     .from("workplace")
-    .select("id, name, contactEmail");
+    .select("id, name, contactEmail, isActive, contractStartDate, contractEndDate");
 
   if (workplaceError) {
     if (isSchemaUnavailable(workplaceError)) return [];
@@ -40,7 +46,18 @@ export async function listHrWorkplaces(
   }
 
   const workplaces = (allWorkplaces ?? [])
-    .map((row) => mapWorkplaceRow(row as { id?: string; name?: string; contactEmail?: string }))
+    .map((row) =>
+      mapWorkplaceRow(
+        row as {
+          id?: string;
+          name?: string;
+          contactEmail?: string;
+          isActive?: boolean | null;
+          contractStartDate?: string | null;
+          contractEndDate?: string | null;
+        },
+      ),
+    )
     .filter((workplace): workplace is HrWorkplace => workplace !== null);
 
   for (const workplace of filterWorkplacesForHrContact(workplaces, userEmail)) {

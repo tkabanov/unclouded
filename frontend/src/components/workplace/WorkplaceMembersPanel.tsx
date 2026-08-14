@@ -17,23 +17,32 @@ import {
   workplaceMemberRowKey,
   type WorkplaceMemberRecord,
 } from "@/lib/workplace/workplaceMembersApi";
+import {
+  WORKPLACE_ENROLLMENT_INACTIVE_BANNER,
+} from "@/lib/workplace/workplaceEnrollmentLock";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
 type WorkplaceMembersPanelProps = {
   workplaceId: string;
   disabled?: boolean;
+  /** Blocks add/invite when the org contract is inactive (Part A override). */
+  enrollmentLocked?: boolean;
   compact?: boolean;
   showDirectReports?: boolean;
   className?: string;
+  /** Fired after add / invite / revoke / cancel so parents can refresh seat utilization. */
+  onMembershipChange?: () => void;
 };
 
 export default function WorkplaceMembersPanel({
   workplaceId,
   disabled = false,
+  enrollmentLocked = false,
   compact = false,
   showDirectReports = true,
   className,
+  onMembershipChange,
 }: WorkplaceMembersPanelProps) {
   const [members, setMembers] = useState<WorkplaceMemberRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,13 +67,14 @@ export default function WorkplaceMembersPanel({
 
   const handleAddOrInvite = async () => {
     const trimmed = email.trim();
-    if (!trimmed || disabled || busy) return;
+    if (!trimmed || disabled || enrollmentLocked || busy) return;
 
     setBusy(true);
     try {
       const result = await addOrInviteWorkplaceMemberByEmail(workplaceId, trimmed);
       setMembers(result.members);
       setEmail("");
+      onMembershipChange?.();
 
       if (result.mode === "invited") {
         toast.success(
@@ -91,6 +101,7 @@ export default function WorkplaceMembersPanel({
     try {
       const rows = await cancelWorkplaceInvitation(workplaceId, member.invitationId);
       setMembers(rows);
+      onMembershipChange?.();
       toast.success("Invitation cancelled.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't cancel invitation.");
@@ -110,6 +121,7 @@ export default function WorkplaceMembersPanel({
     try {
       const rows = await unassignWorkplaceMember(workplaceId, member.userId);
       setMembers(rows);
+      onMembershipChange?.();
       toast.success("Member removed from the workplace.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't remove member.");
@@ -157,6 +169,9 @@ export default function WorkplaceMembersPanel({
           Add an existing account or send an email invitation. When invitees sign up, they are
           enrolled automatically. Primary HR remains the workplace contact email (admin editable).
         </p>
+        {enrollmentLocked ? (
+          <p className="text-sm text-amber-800">{WORKPLACE_ENROLLMENT_INACTIVE_BANNER}</p>
+        ) : null}
       </header>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -167,7 +182,7 @@ export default function WorkplaceMembersPanel({
             type="email"
             placeholder="employee@company.com"
             value={email}
-            disabled={disabled || busy}
+            disabled={disabled || enrollmentLocked || busy}
             onChange={(event) => setEmail(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -180,7 +195,7 @@ export default function WorkplaceMembersPanel({
         <Button
           type="button"
           size="sm"
-          disabled={disabled || busy || !email.trim()}
+          disabled={disabled || enrollmentLocked || busy || !email.trim()}
           onClick={() => void handleAddOrInvite()}
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}

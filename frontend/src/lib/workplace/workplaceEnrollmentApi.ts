@@ -17,6 +17,9 @@ export type WorkplaceEnrollmentSummary = {
   activeSeats: number;
   billingModel?: string | null;
   maxSeats?: number | null;
+  isActive?: boolean;
+  contractStartDate?: string | null;
+  contractEndDate?: string | null;
 };
 
 type EnrollmentCodesResponse = {

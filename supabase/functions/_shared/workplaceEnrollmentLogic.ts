@@ -3,7 +3,9 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
   generateEnrollmentCode,
   isValidEnrollmentCodeFormat,
+  isWorkplaceContractActive,
   normalizeEnrollmentCode,
+  WORKPLACE_ENROLLMENT_INACTIVE_MESSAGE,
 } from "./workplaceEnrollmentHelpers.ts";
 
 export type WorkplaceEnrollmentCodeRow = {
@@ -102,6 +104,27 @@ export async function createWorkplaceEnrollmentCode(
     code?: string;
   },
 ): Promise<WorkplaceEnrollmentCodeRow> {
+  const { data: workplaceRow, error: workplaceError } = await client
+    .from("workplace")
+    .select("id, isActive, contractStartDate, contractEndDate")
+    .eq("id", params.workplaceId)
+    .maybeSingle();
+
+  if (workplaceError) throw workplaceError;
+  if (
+    !workplaceRow ||
+    !isWorkplaceContractActive({
+      id: params.workplaceId,
+      isActive: (workplaceRow as { isActive?: boolean | null }).isActive,
+      contractStartDate: (workplaceRow as { contractStartDate?: string | null })
+        .contractStartDate,
+      contractEndDate: (workplaceRow as { contractEndDate?: string | null })
+        .contractEndDate,
+    })
+  ) {
+    throw new Error(WORKPLACE_ENROLLMENT_INACTIVE_MESSAGE);
+  }
+
   let code = "";
   if (params.code?.trim()) {
     const normalized = normalizeEnrollmentCode(params.code);

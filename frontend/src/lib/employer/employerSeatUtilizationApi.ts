@@ -10,6 +10,9 @@ export type EmployerSeatUtilization = {
   maxSeats: number | null;
   activeSeats: number;
   periodActiveUsers: number | null;
+  isActive: boolean;
+  contractStartDate: string | null;
+  contractEndDate: string | null;
 };
 
 function normalizeBillingModel(value: string | null | undefined): "flat_rate" | "pay_per_active" {
@@ -28,7 +31,7 @@ export async function fetchEmployerSeatUtilization(
 
   const { data: workplace, error: workplaceError } = await supabase
     .from("workplace")
-    .select("id, name, seatCount, maxSeats, billingModel")
+    .select("id, name, seatCount, maxSeats, billingModel, isActive, contractStartDate, contractEndDate")
     .eq("id", workplaceId)
     .maybeSingle();
 
@@ -70,5 +73,14 @@ export async function fetchEmployerSeatUtilization(
     activeSeats: Number(activeSeatsRaw ?? 0),
     periodActiveUsers:
       billingModel === "pay_per_active" ? Number(periodResult.data ?? 0) : null,
+    isActive: (workplace as { isActive?: boolean | null }).isActive !== false,
+    contractStartDate:
+      typeof (workplace as { contractStartDate?: string | null }).contractStartDate === "string"
+        ? (workplace as { contractStartDate: string }).contractStartDate
+        : null,
+    contractEndDate:
+      typeof (workplace as { contractEndDate?: string | null }).contractEndDate === "string"
+        ? (workplace as { contractEndDate: string }).contractEndDate
+        : null,
   };
 }

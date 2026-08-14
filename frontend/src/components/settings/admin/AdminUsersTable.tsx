@@ -98,6 +98,8 @@ export type AdminUsersTableProps = {
   embedded?: boolean;
   title?: string;
   emptyMessage?: string;
+  /** Bump after org roster mutations so the embedded list stays in sync. */
+  refreshToken?: number | string;
 };
 
 export default function AdminUsersTable({
@@ -106,6 +108,7 @@ export default function AdminUsersTable({
   embedded = false,
   title = "Users",
   emptyMessage = "No users match these filters.",
+  refreshToken = 0,
 }: AdminUsersTableProps) {
   const idPrefix = useId();
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
@@ -150,7 +153,7 @@ export default function AdminUsersTable({
     return () => {
       cancelled = true;
     };
-  }, [reload]);
+  }, [reload, refreshToken]);
 
   const sortedUsers = useMemo(() => {
     const copy = [...users];
