@@ -30,7 +30,7 @@ async function invokeAdminUsers(body: Record<string, unknown>): Promise<Record<s
   const payload = (data ?? {}) as Record<string, unknown>;
 
   if (payload.ok !== true) {
-    throw new Error(getEdgeFunctionErrorMessage(data, error, "Couldn't load admin users."));
+    throw new Error(await getEdgeFunctionErrorMessage(data, error, "Couldn't load admin users."));
   }
 
   return payload;
@@ -93,7 +93,7 @@ export async function generateAdminPreCoachingBrief(userId: string): Promise<str
 
   if (payload.ok !== true) {
     throw new Error(
-      getEdgeFunctionErrorMessage(data, error, "Couldn't generate pre-coaching brief."),
+      await getEdgeFunctionErrorMessage(data, error, "Couldn't generate pre-coaching brief."),
     );
   }
 

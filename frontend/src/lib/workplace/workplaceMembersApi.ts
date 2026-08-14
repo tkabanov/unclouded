@@ -34,7 +34,7 @@ async function invokeWorkplaceMembers(body: Record<string, unknown>): Promise<Me
 
   if (!payload?.ok) {
     throw new Error(
-      getEdgeFunctionErrorMessage(data, error, "Couldn't manage workplace members."),
+      await getEdgeFunctionErrorMessage(data, error, "Couldn't manage workplace members."),
     );
   }
 

@@ -38,7 +38,7 @@ export async function listWorkplaceSuccessPlanAssignments(
 
   if (error || !data || (data as { ok?: boolean }).ok !== true) {
     throw new Error(
-      getEdgeFunctionErrorMessage(data, error, "Couldn't load Success Plan assignments."),
+      await getEdgeFunctionErrorMessage(data, error, "Couldn't load Success Plan assignments."),
     );
   }
 
@@ -74,7 +74,7 @@ export async function assignWorkplaceSuccessPlan(input: {
 
   if (error || !data || (data as { ok?: boolean }).ok !== true) {
     throw new Error(
-      getEdgeFunctionErrorMessage(data, error, "Couldn't assign Success Plan."),
+      await getEdgeFunctionErrorMessage(data, error, "Couldn't assign Success Plan."),
     );
   }
 }
@@ -96,7 +96,7 @@ export async function unassignWorkplaceSuccessPlan(input: {
 
   if (error || !data || (data as { ok?: boolean }).ok !== true) {
     throw new Error(
-      getEdgeFunctionErrorMessage(data, error, "Couldn't remove Success Plan assignment."),
+      await getEdgeFunctionErrorMessage(data, error, "Couldn't remove Success Plan assignment."),
     );
   }
 }

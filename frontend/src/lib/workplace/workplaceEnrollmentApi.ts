@@ -54,7 +54,7 @@ export async function redeemWorkplaceEnrollmentCode(code: string): Promise<{
   const payload = data as RedeemResponse | null;
   if (!payload?.ok) {
     throw new Error(
-      getEdgeFunctionErrorMessage(
+      await getEdgeFunctionErrorMessage(
         data,
         error,
         "Invalid or inactive enrollment code.",
@@ -79,7 +79,7 @@ async function invokeEnrollmentCodes(
 
   const payload = data as EnrollmentCodesResponse | null;
   if (!payload?.ok) {
-    throw new Error(getEdgeFunctionErrorMessage(data, error, "Request failed."));
+    throw new Error(await getEdgeFunctionErrorMessage(data, error, "Request failed."));
   }
 
   return payload;

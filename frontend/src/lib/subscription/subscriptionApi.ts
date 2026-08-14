@@ -245,7 +245,7 @@ export async function syncBillingFromStripe(): Promise<SubscriptionOverview> {
   if (payload?.status === "ok" && payload.overview) {
     return parseSubscriptionOverview(payload.overview);
   }
-  throw new Error(getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.generic));
+  throw new Error(await getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.generic));
 }
 
 const CHECKOUT_RECONCILE_DELAYS_MS = [0, 1200, 2500, 4000] as const;
@@ -319,7 +319,7 @@ export async function startCheckout(
   if (payload?.status === "already_subscribed") {
     return {
       status: "already_subscribed",
-      message: getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.checkout),
+      message: await getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.checkout),
       overview: payload.overview ? parseSubscriptionOverview(payload.overview) : null,
     };
   }
@@ -335,7 +335,7 @@ export async function startCheckout(
 
   return {
     status: "blocked",
-    message: getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.checkout),
+    message: await getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.checkout),
   };
 }
 
@@ -377,7 +377,7 @@ export async function startSuccessPlanAddonCheckout(): Promise<CheckoutResult> {
 
   return {
     status: "blocked",
-    message: getEdgeFunctionErrorMessage(
+    message: await getEdgeFunctionErrorMessage(
       data,
       error,
       "Couldn't start Success Plan checkout.",
@@ -392,7 +392,7 @@ export async function openBillingPortal(): Promise<string> {
   const payload = data as { status?: string; url?: string } | null;
 
   if (payload?.status !== "ok" || !payload.url) {
-    throw new Error(getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.portal));
+    throw new Error(await getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.portal));
   }
   return payload.url;
 }
@@ -422,7 +422,7 @@ async function invokeSubscriptionAction(
 
   const payload = (data ?? {}) as Record<string, unknown>;
   if (payload.status !== "ok") {
-    throw new Error(getEdgeFunctionErrorMessage(data, error, fallbackMessage));
+    throw new Error(await getEdgeFunctionErrorMessage(data, error, fallbackMessage));
   }
   return { payload };
 }
