@@ -38,18 +38,33 @@ export default function JoinWorkplacePage() {
   const [error, setError] = useState<string | null>(null);
   const [failureKind, setFailureKind] = useState<JoinFailureKind | null>(null);
   const [workplaceName, setWorkplaceName] = useState<string | null>(null);
+  const [peekOk, setPeekOk] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [retryNonce, setRetryNonce] = useState(0);
   const redeemStartedRef = useRef(false);
+  const profileRef = useRef(profile);
+  const userRef = useRef(user);
+  profileRef.current = profile;
+  userRef.current = user;
 
+  const code = normalizeEnrollmentCode(decodeURIComponent(rawCode ?? ""));
+  const userId = user?.id ?? null;
+  const onboardingDone = isOnboardingComplete(profile);
+
+  // Peek once per code (or explicit retry). Must not depend on profile — after
+  // redeem, refresh() used to re-invoke peek, burn the 12/min limit, and cancel
+  // toast + dashboard navigation (EAC-C-EDGE-006).
   useEffect(() => {
     redeemStartedRef.current = false;
-  }, [rawCode]);
-
-  useEffect(() => {
     let cancelled = false;
 
-    async function run() {
-      const code = normalizeEnrollmentCode(decodeURIComponent(rawCode ?? ""));
+    async function peek() {
+      setPeekOk(false);
+      setWorkplaceName(null);
+      setError(null);
+      setFailureKind(null);
+      setChecking(true);
+
       if (!isValidEnrollmentCodeFormat(code)) {
         if (!cancelled) {
           setFailureKind("invalid");
@@ -126,83 +141,7 @@ export default function JoinWorkplacePage() {
         setWorkplaceName(
           typeof payload.workplaceName === "string" ? payload.workplaceName : null,
         );
-
-        if (authLoading || (user && profileLoading)) {
-          return;
-        }
-
-        if (!user) {
-          storeJoinCode(code);
-          setChecking(false);
-          navigate(`/signup?enterpriseCode=${encodeURIComponent(code)}`, { replace: true });
-          return;
-        }
-
-        const onboardingDone = isOnboardingComplete(profile);
-        if (!onboardingDone) {
-          storeJoinCode(code);
-          setChecking(false);
-          navigate("/onboarding", { replace: true });
-          return;
-        }
-
-        if (redeemStartedRef.current) return;
-        redeemStartedRef.current = true;
-
-        // Authenticated + onboarding complete → redeem in place (Part C §31).
-        try {
-          const result = await redeemWorkplaceEnrollmentCode(code);
-          if (cancelled) {
-            redeemStartedRef.current = false;
-            return;
-          }
-          clearStoredJoinCode();
-          await refresh().catch(() => undefined);
-          toast.success(
-            result.alreadyEnrolled
-              ? `You're already enrolled with ${result.workplaceName || "your organization"}.`
-              : `Joined ${result.workplaceName || "your organization"}.`,
-          );
-          const dest = await resolvePostAuthRouteForUser({
-            profile: profile
-              ? {
-                  ...profile,
-                  accountType: "enterprise",
-                  enterpriseTier: result.enterpriseTier || profile.enterpriseTier,
-                }
-              : profile,
-            userId: user.id,
-            email: user.email,
-          });
-          if (cancelled) {
-            redeemStartedRef.current = false;
-            return;
-          }
-          navigate(dest, { replace: true });
-        } catch (redeemErr) {
-          if (cancelled) {
-            redeemStartedRef.current = false;
-            return;
-          }
-          redeemStartedRef.current = false;
-          const message =
-            redeemErr instanceof Error
-              ? redeemErr.message
-              : "Couldn't complete workplace enrollment.";
-          if (/already enrolled with another organization/i.test(message)) {
-            setFailureKind("already_other_org");
-            setError(
-              "You're already linked to another organization. Contact support if you need to transfer.",
-            );
-          } else if (/seats are full/i.test(message)) {
-            setFailureKind("seats_full");
-            setError(message);
-          } else {
-            setFailureKind("network");
-            setError(message);
-          }
-          setChecking(false);
-        }
+        setPeekOk(true);
       } catch {
         if (!cancelled) {
           setFailureKind("network");
@@ -212,11 +151,89 @@ export default function JoinWorkplacePage() {
       }
     }
 
-    void run();
+    void peek();
     return () => {
       cancelled = true;
     };
-  }, [rawCode, user, authLoading, profile, profileLoading, navigate, refresh]);
+  }, [code, retryNonce]);
+
+  useEffect(() => {
+    if (!peekOk || error) return;
+    if (authLoading || (userId && profileLoading)) return;
+    if (redeemStartedRef.current) return;
+
+    if (!userId) {
+      storeJoinCode(code);
+      setChecking(false);
+      navigate(`/signup?enterpriseCode=${encodeURIComponent(code)}`, { replace: true });
+      return;
+    }
+
+    if (!onboardingDone) {
+      storeJoinCode(code);
+      setChecking(false);
+      navigate("/onboarding", { replace: true });
+      return;
+    }
+
+    redeemStartedRef.current = true;
+    const currentUser = userRef.current;
+    const currentProfile = profileRef.current;
+
+    void (async () => {
+      try {
+        const result = await redeemWorkplaceEnrollmentCode(code);
+        clearStoredJoinCode();
+        toast.success(
+          result.alreadyEnrolled
+            ? `You're already enrolled with ${result.workplaceName || "your organization"}.`
+            : `Joined ${result.workplaceName || "your organization"}.`,
+        );
+        const dest = await resolvePostAuthRouteForUser({
+          profile: currentProfile
+            ? {
+                ...currentProfile,
+                accountType: "enterprise",
+                enterpriseTier: result.enterpriseTier || currentProfile.enterpriseTier,
+              }
+            : currentProfile,
+          userId,
+          email: currentUser?.email,
+        });
+        await refresh({ silent: true }).catch(() => undefined);
+        navigate(dest, { replace: true });
+      } catch (redeemErr) {
+        redeemStartedRef.current = false;
+        const message =
+          redeemErr instanceof Error
+            ? redeemErr.message
+            : "Couldn't complete workplace enrollment.";
+        if (/already enrolled with another organization/i.test(message)) {
+          setFailureKind("already_other_org");
+          setError(
+            "You're already linked to another organization. Contact support if you need to transfer.",
+          );
+        } else if (/seats are full/i.test(message)) {
+          setFailureKind("seats_full");
+          setError(message);
+        } else {
+          setFailureKind("network");
+          setError(message);
+        }
+        setChecking(false);
+      }
+    })();
+  }, [
+    peekOk,
+    error,
+    authLoading,
+    profileLoading,
+    userId,
+    onboardingDone,
+    code,
+    navigate,
+    refresh,
+  ]);
 
   if (checking || authLoading || (user && profileLoading)) {
     return (
@@ -244,12 +261,8 @@ export default function JoinWorkplacePage() {
           <p className="text-sm text-muted-foreground">{error}</p>
           <div className="flex justify-center gap-2">
             {failureKind === "network" ? (
-              <Button asChild variant="outline">
-                <Link
-                  to={`/join/${encodeURIComponent(normalizeEnrollmentCode(decodeURIComponent(rawCode ?? "")))}`}
-                >
-                  Try again
-                </Link>
+              <Button type="button" variant="outline" onClick={() => setRetryNonce((n) => n + 1)}>
+                Try again
               </Button>
             ) : null}
             <Button asChild>
