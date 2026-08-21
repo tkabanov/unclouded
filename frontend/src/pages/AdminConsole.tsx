@@ -12,6 +12,8 @@ import AdminOrganizationUsageReport from "@/components/settings/admin/AdminOrgan
 import AdminAnalyticsTab from "@/components/settings/admin/AdminAnalyticsTab";
 import AdminOutreachTab from "@/components/settings/admin/AdminOutreachTab";
 import AdminCoachBookingsTab from "@/components/settings/admin/AdminCoachBookingsTab";
+import AdminSpecialistsTab from "@/components/settings/admin/AdminSpecialistsTab";
+import AdminSchedulingTab from "@/components/settings/admin/AdminSchedulingTab";
 import AdminReassessmentsTab from "@/components/settings/admin/AdminReassessmentsTab";
 import AdminPromptTestSuite from "@/components/settings/admin/AdminPromptTestSuite";
 
@@ -110,6 +112,22 @@ export default function AdminConsole() {
           element={
             <AdminSection>
               <AdminOutreachTab />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="specialists"
+          element={
+            <AdminSection>
+              <AdminSpecialistsTab />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="scheduling"
+          element={
+            <AdminSection>
+              <AdminSchedulingTab />
             </AdminSection>
           }
         />
