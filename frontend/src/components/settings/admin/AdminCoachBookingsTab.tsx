@@ -4,14 +4,27 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ADMIN_COACH_BOOKINGS_EMPTY,
   ADMIN_COACH_BOOKINGS_NOTICE,
+  adminReassignCoachBookingSpecialist,
   adminSetAssignedCoachEmail,
   formatCoachBookingDeliveryStatus,
   listCoachBookingsForAdmin,
   resolveAdminCoachBriefText,
   type AdminCoachBookingRow,
 } from "@/lib/settings/admin/adminCoachBookingsApi";
+import {
+  fetchAdminSpecialists,
+  type AdminSpecialistRecord,
+} from "@/lib/settings/admin/adminSpecialistsApi";
+import { formatCoachBookingStatusLabel } from "@/lib/coach/coachBookingApi";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -24,18 +37,30 @@ function formatWhen(iso: string | null): string {
 
 function BriefPanel({
   row,
+  specialists,
   onCoachEmailSaved,
+  onSpecialistReassigned,
 }: {
   row: AdminCoachBookingRow;
+  specialists: AdminSpecialistRecord[];
   onCoachEmailSaved: (bookingId: string, email: string | null) => void;
+  onSpecialistReassigned: (
+    bookingId: string,
+    specialistId: string,
+    specialistName: string | null,
+    assignedCoachEmail: string | null,
+  ) => void;
 }) {
   const brief = resolveAdminCoachBriefText(row);
   const [coachEmail, setCoachEmail] = useState(row.assignedCoachEmail ?? "");
+  const [specialistId, setSpecialistId] = useState(row.specialistId ?? "");
   const [saving, setSaving] = useState(false);
+  const [reassigning, setReassigning] = useState(false);
 
   useEffect(() => {
     setCoachEmail(row.assignedCoachEmail ?? "");
-  }, [row.id, row.assignedCoachEmail]);
+    setSpecialistId(row.specialistId ?? "");
+  }, [row.id, row.assignedCoachEmail, row.specialistId]);
 
   const handleCopy = async () => {
     if (!brief) return;
@@ -63,29 +88,106 @@ function BriefPanel({
     toast.success(saved ? "Assigned coach email saved." : "Assigned coach email cleared.");
   };
 
+  const handleReassign = async () => {
+    if (!specialistId) {
+      toast.error("Select a specialist.");
+      return;
+    }
+    setReassigning(true);
+    const result = await adminReassignCoachBookingSpecialist({
+      bookingId: row.id,
+      specialistId,
+    });
+    setReassigning(false);
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
+    }
+    const specialist = specialists.find((entry) => entry.specialistId === specialistId);
+    onSpecialistReassigned(
+      row.id,
+      specialistId,
+      specialist?.name ?? null,
+      result.assignedCoachEmail,
+    );
+    if (result.assignedCoachEmail) setCoachEmail(result.assignedCoachEmail);
+    toast.success("Specialist reassigned.");
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-muted-foreground">
-          Assigned coach email
-          <Input
-            type="email"
-            value={coachEmail}
-            onChange={(event) => setCoachEmail(event.target.value)}
-            placeholder="coach@example.com (falls back to COACH_BRIEF_INBOX)"
-            className="bg-background"
-          />
-        </label>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          disabled={saving}
-          onClick={() => void handleSaveEmail()}
-        >
-          {saving ? "Saving…" : "Save email"}
-        </Button>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-muted-foreground">
+            Assigned specialist
+            <Select value={specialistId || undefined} onValueChange={setSpecialistId}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Select specialist" />
+              </SelectTrigger>
+              <SelectContent>
+                {specialists.map((specialist) => (
+                  <SelectItem key={specialist.specialistId} value={specialist.specialistId}>
+                    {specialist.name}
+                    {!specialist.isActive ? " (inactive)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={reassigning || !specialistId}
+            onClick={() => void handleReassign()}
+          >
+            {reassigning ? "Saving…" : "Reassign"}
+          </Button>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-muted-foreground">
+            Assigned coach email
+            <Input
+              type="email"
+              value={coachEmail}
+              onChange={(event) => setCoachEmail(event.target.value)}
+              placeholder="coach@example.com (falls back to COACH_BRIEF_INBOX)"
+              className="bg-background"
+            />
+          </label>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={saving}
+            onClick={() => void handleSaveEmail()}
+          >
+            {saving ? "Saving…" : "Save email"}
+          </Button>
+        </div>
       </div>
+
+      {row.scheduledAt ? (
+        <p className="text-xs text-muted-foreground">
+          Session: {formatWhen(row.scheduledAt)}
+          {row.durationMinutes ? ` · ${row.durationMinutes} min` : null}
+          {row.specialistName ? ` · ${row.specialistName}` : null}
+        </p>
+      ) : null}
+
+      {row.meetLink ? (
+        <a
+          href={row.meetLink}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-primary underline-offset-2 hover:underline"
+        >
+          Open Google Meet
+        </a>
+      ) : (
+        <p className="text-xs text-muted-foreground">No Meet link yet.</p>
+      )}
 
       {!brief ? (
         <p className="text-sm text-muted-foreground">
@@ -124,16 +226,18 @@ function BriefPanel({
 /** Block 3.35 — Kota's Read delivery queue for PuP coaches / admins. */
 export default function AdminCoachBookingsTab() {
   const [rows, setRows] = useState<AdminCoachBookingRow[]>([]);
+  const [specialists, setSpecialists] = useState<AdminSpecialistRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    listCoachBookingsForAdmin()
-      .then((bookings) => {
+    Promise.all([listCoachBookingsForAdmin(), fetchAdminSpecialists("all")])
+      .then(([bookings, specialistRows]) => {
         if (!cancelled) {
           setRows(bookings);
+          setSpecialists(specialistRows);
           if (bookings.length > 0) setExpandedId(bookings[0].id);
         }
       })
@@ -180,11 +284,12 @@ export default function AdminCoachBookingsTab() {
         <p className="text-sm text-muted-foreground">{ADMIN_COACH_BOOKINGS_EMPTY}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full min-w-[760px] text-sm">
+          <table className="w-full min-w-[860px] text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40 text-left text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Member</th>
-                <th className="px-4 py-3 font-medium">Booked</th>
+                <th className="px-4 py-3 font-medium">Session</th>
+                <th className="px-4 py-3 font-medium">Specialist</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Delivery</th>
                 <th className="px-4 py-3 font-medium">Brief</th>
@@ -204,16 +309,26 @@ export default function AdminCoachBookingsTab() {
                         <div className="text-xs text-muted-foreground">
                           {row.memberEmail || row.userId}
                         </div>
-                        {row.assignedCoachEmail ? (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Coach: {row.assignedCoachEmail}
-                          </div>
+                      </td>
+                      <td className="px-4 py-3 align-top text-muted-foreground">
+                        <div>{formatWhen(row.scheduledAt ?? row.createdAt)}</div>
+                        {row.meetLink ? (
+                          <a
+                            href={row.meetLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-primary underline-offset-2 hover:underline"
+                          >
+                            Meet
+                          </a>
                         ) : null}
                       </td>
                       <td className="px-4 py-3 align-top text-muted-foreground">
-                        {formatWhen(row.createdAt)}
+                        {row.specialistName || row.assignedCoachEmail || "—"}
                       </td>
-                      <td className="px-4 py-3 align-top capitalize">{row.status || "pending"}</td>
+                      <td className="px-4 py-3 align-top">
+                        {formatCoachBookingStatusLabel(row.status)}
+                      </td>
                       <td className="px-4 py-3 align-top text-muted-foreground">
                         {formatCoachBookingDeliveryStatus(row)}
                       </td>
@@ -230,14 +345,34 @@ export default function AdminCoachBookingsTab() {
                     </tr>
                     {expanded ? (
                       <tr className="border-b border-border/60 bg-muted/20">
-                        <td colSpan={5} className="px-4 py-4">
+                        <td colSpan={6} className="px-4 py-4">
                           <BriefPanel
                             row={row}
+                            specialists={specialists}
                             onCoachEmailSaved={(bookingId, email) => {
                               setRows((prev) =>
                                 prev.map((entry) =>
                                   entry.id === bookingId
                                     ? { ...entry, assignedCoachEmail: email }
+                                    : entry,
+                                ),
+                              );
+                            }}
+                            onSpecialistReassigned={(
+                              bookingId,
+                              nextSpecialistId,
+                              specialistName,
+                              assignedCoachEmail,
+                            ) => {
+                              setRows((prev) =>
+                                prev.map((entry) =>
+                                  entry.id === bookingId
+                                    ? {
+                                        ...entry,
+                                        specialistId: nextSpecialistId,
+                                        specialistName,
+                                        assignedCoachEmail,
+                                      }
                                     : entry,
                                 ),
                               );

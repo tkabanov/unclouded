@@ -24,7 +24,7 @@ The system should allow administrators to manage specialists and available sessi
 
 ## Scope & Requirements
 
-### 1. Admin Panel — Specialist Management
+### 1. Admin Panel — Specialist Management - done
 
 Add a dedicated **Specialists Management** section in the Admin Panel.
 
@@ -47,7 +47,7 @@ Specialists **do not need platform accounts or login credentials**. Their intera
 
 ---
 
-### 2. Admin Panel — Scheduling & Availability
+### 2. Admin Panel — Scheduling & Availability - done
 
 Provide an administrative scheduling interface where admins can configure when specialists are available for coaching sessions.
 
@@ -69,7 +69,7 @@ Users should **not see the specialist/coach name when selecting a one-on-one ses
 
 ---
 
-### 3. User Flow — One-on-One Booking
+### 3. User Flow — One-on-One Booking - done
 
 1. User opens the coaching booking section.
 2. User views available dates and time slots.

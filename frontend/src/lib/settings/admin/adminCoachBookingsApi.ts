@@ -20,11 +20,15 @@ export type AdminCoachBookingRow = {
   kotaRead: string | null;
   kotaReadJson: KotaReadBrief | Record<string, unknown> | null;
   assignedCoachEmail: string | null;
+  specialistId: string | null;
+  meetLink: string | null;
+  durationMinutes: number | null;
   kotaReadEmailedAt: string | null;
   kotaReadEmailDetail: string | null;
   createdAt: string;
   memberFirstName: string | null;
   memberEmail: string | null;
+  specialistName: string | null;
 };
 
 type CoachBookingRecord = {
@@ -35,6 +39,9 @@ type CoachBookingRecord = {
   kotaRead: string | null;
   kotaReadJson: unknown;
   assignedCoachEmail: string | null;
+  specialistId: string | null;
+  meetLink: string | null;
+  durationMinutes: number | null;
   kotaReadEmailedAt: string | null;
   kotaReadEmailDetail: string | null;
   createdAt: string;
@@ -79,20 +86,47 @@ export async function listCoachBookingsForAdmin(): Promise<AdminCoachBookingRow[
   const { data: bookings, error } = await supabase
     .from("coachBooking")
     .select(
-      "id, userId, scheduledAt, status, kotaRead, kotaReadJson, assignedCoachEmail, kotaReadEmailedAt, kotaReadEmailDetail, createdAt",
+      "id, userId, scheduledAt, status, kotaRead, kotaReadJson, assignedCoachEmail, specialistId, meetLink, durationMinutes, kotaReadEmailedAt, kotaReadEmailDetail, createdAt",
     )
     .order("createdAt", { ascending: false })
     .limit(50);
 
   if (error) {
-    if (isSchemaUnavailable(error)) return [];
+    if (isSchemaUnavailable(error)) {
+      const legacy = await supabase
+        .from("coachBooking")
+        .select(
+          "id, userId, scheduledAt, status, kotaRead, kotaReadJson, assignedCoachEmail, kotaReadEmailedAt, kotaReadEmailDetail, createdAt",
+        )
+        .order("createdAt", { ascending: false })
+        .limit(50);
+      if (legacy.error) {
+        if (isSchemaUnavailable(legacy.error)) return [];
+        throw legacy.error;
+      }
+      const legacyRows = (legacy.data ?? []) as CoachBookingRecord[];
+      return mapAdminCoachBookings(legacyRows);
+    }
     throw error;
   }
 
-  const rows = (bookings ?? []) as CoachBookingRecord[];
+  return mapAdminCoachBookings((bookings ?? []) as CoachBookingRecord[]);
+}
+
+async function mapAdminCoachBookings(
+  rows: CoachBookingRecord[],
+): Promise<AdminCoachBookingRow[]> {
   if (rows.length === 0) return [];
 
   const userIds = [...new Set(rows.map((row) => row.userId))];
+  const specialistIds = [
+    ...new Set(
+      rows
+        .map((row) => row.specialistId)
+        .filter((id): id is string => typeof id === "string" && Boolean(id)),
+    ),
+  ];
+
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
     .select("id, firstName, email")
@@ -104,6 +138,19 @@ export async function listCoachBookingsForAdmin(): Promise<AdminCoachBookingRow[
     ((profiles ?? []) as MemberProfileRow[]).map((profile) => [profile.id, profile]),
   );
 
+  const specialistNameById = new Map<string, string>();
+  if (specialistIds.length > 0) {
+    const { data: specialists, error: specialistsError } = await supabase
+      .from("specialist")
+      .select("id, name")
+      .in("id", specialistIds);
+    if (!specialistsError && Array.isArray(specialists)) {
+      for (const row of specialists as { id?: string; name?: string }[]) {
+        if (row.id && row.name) specialistNameById.set(row.id, row.name);
+      }
+    }
+  }
+
   return rows.map((row) => {
     const profile = profileById.get(row.userId);
     const kotaReadJson =
@@ -112,11 +159,17 @@ export async function listCoachBookingsForAdmin(): Promise<AdminCoachBookingRow[
         : null;
     return {
       ...row,
+      specialistId: typeof row.specialistId === "string" ? row.specialistId : null,
+      meetLink: typeof row.meetLink === "string" ? row.meetLink : null,
+      durationMinutes: typeof row.durationMinutes === "number" ? row.durationMinutes : null,
       kotaReadJson,
       assignedCoachEmail:
         typeof row.assignedCoachEmail === "string" ? row.assignedCoachEmail : null,
       memberFirstName: profile?.firstName ?? null,
       memberEmail: profile?.email ?? null,
+      specialistName: row.specialistId
+        ? specialistNameById.get(row.specialistId) ?? null
+        : null,
     };
   });
 }
@@ -136,4 +189,37 @@ export async function adminSetAssignedCoachEmail(params: {
     return { ok: false, message: error.message || "Could not save coach email." };
   }
   return { ok: true };
+}
+
+export async function adminReassignCoachBookingSpecialist(params: {
+  bookingId: string;
+  specialistId: string;
+}): Promise<
+  | { ok: true; assignedCoachEmail: string | null }
+  | { ok: false; message: string }
+> {
+  const { data, error } = await callRpc("admin_reassign_coach_booking_specialist", {
+    p_booking_id: params.bookingId,
+    p_specialist_id: params.specialistId,
+  });
+
+  if (error || !data || typeof data !== "object") {
+    return { ok: false, message: error?.message || "Could not reassign specialist." };
+  }
+
+  const row = data as Record<string, unknown>;
+  if (row.ok !== true) {
+    return {
+      ok: false,
+      message:
+        (typeof row.error === "string" && row.error) ||
+        "Could not reassign specialist.",
+    };
+  }
+
+  return {
+    ok: true,
+    assignedCoachEmail:
+      typeof row.assignedCoachEmail === "string" ? row.assignedCoachEmail : null,
+  };
 }

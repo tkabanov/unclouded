@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DEFAULT_COACH_BOOKING_URL } from "@/lib/coach/coachBookingConstants";
+import OneOnOneBookingPanel from "@/components/coach/OneOnOneBookingPanel";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
@@ -13,7 +13,6 @@ import { useUserProfile } from "@/lib/userProfile";
 import {
   loadGroupSessionStatus,
   requestGroupSessionBooking,
-  requestOneOnOneBooking,
 } from "@/lib/coach/coachBookingApi";
 import {
   canBookGroupCoachSession,
@@ -22,10 +21,6 @@ import {
 } from "@/lib/coach/coachBookingEntitlements";
 import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
 import { resolveCreditsExpireAt } from "@/lib/subscription/subscriptionState";
-import { cn } from "@/lib/utils";
-
-const EXTERNAL_COACH_URL =
-  import.meta.env.VITE_COACH_BOOKING_URL ?? DEFAULT_COACH_BOOKING_URL;
 
 export default function BookCoachCard() {
   const { overview, record, loading, refresh } = useSubscriptionOverview();
@@ -91,52 +86,8 @@ export default function BookCoachCard() {
     requiredCredits: overview?.credits.requiredPerSession,
   });
 
-  const handleOneOnOneSession = useCallback(async () => {
-    if (oneOnOne.kind === "locked") {
-      promptUpgrade("oneOnOneSession");
-      return;
-    }
-    if (oneOnOne.kind !== "bookable") return;
-
-    setOneOnOneBusy(true);
-    try {
-      const result = await requestOneOnOneBooking({
-        externalCalendarUrl: EXTERNAL_COACH_URL,
-      });
-
-      if (result.status === "blocked") {
-        if (result.code === "premium_required") {
-          promptUpgrade("oneOnOneSession");
-        } else {
-          toast.error(result.message);
-        }
-        await refresh();
-        return;
-      }
-
-      toast.success(
-        result.kotaRead
-          ? "Booking created — Kota's Read was sent to your coach team."
-          : "Booking created — we'll email you a link to schedule your session.",
-      );
-      await refresh();
-    } finally {
-      setOneOnOneBusy(false);
-    }
-  }, [oneOnOne.kind, promptUpgrade, refresh]);
-
   if (loading && !overview) return null;
   if (!shouldShowHumanCoachingCard(tier)) return null;
-
-  const oneOnOneDisabled =
-    oneOnOneBusy ||
-    oneOnOne.kind === "insufficientCredits" ||
-    oneOnOne.kind === "creditsUnavailable";
-
-  const oneOnOneLabel =
-    oneOnOne.kind === "locked"
-      ? "Book a 1:1 session"
-      : oneOnOne.label.replace("Session", "session").replace("Sessions", "sessions");
 
   return (
     <>
@@ -151,7 +102,7 @@ export default function BookCoachCard() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-2 text-sm">
+        <CardContent className="space-y-3 text-sm">
           <Button
             type="button"
             variant={canGroup && !groupUsed ? "default" : "outline"}
@@ -170,31 +121,15 @@ export default function BookCoachCard() {
             {!canGroup ? <Crown className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
           </Button>
 
-          <div className="space-y-1">
-            <Button
-              type="button"
-              variant={oneOnOne.kind === "bookable" ? "default" : "outline"}
-              size="sm"
-              className={cn(
-                "h-10 w-full justify-between px-3",
-                oneOnOne.kind === "bookable" && "shadow-sm",
-              )}
-              disabled={oneOnOneDisabled}
-              onClick={() => void handleOneOnOneSession()}
-            >
-              <span>{oneOnOneBusy ? "Preparing…" : oneOnOneLabel}</span>
-              {oneOnOne.kind === "locked" || oneOnOne.kind === "bookable" ? (
-                <Crown
-                  className={cn(
-                    "h-3.5 w-3.5 shrink-0",
-                    oneOnOne.kind === "bookable" ? "text-primary-foreground" : "text-primary",
-                  )}
-                  aria-hidden
-                />
-              ) : null}
-            </Button>
-            <p className="text-[11px] leading-snug text-muted-foreground">{oneOnOne.helper}</p>
-          </div>
+          <OneOnOneBookingPanel
+            bookable={oneOnOne.kind === "bookable"}
+            locked={oneOnOne.kind === "locked"}
+            busy={oneOnOneBusy}
+            onBusyChange={setOneOnOneBusy}
+            onBooked={refresh}
+            onPremiumRequired={() => promptUpgrade("oneOnOneSession")}
+            helperText={oneOnOne.helper}
+          />
         </CardContent>
       </Card>
 

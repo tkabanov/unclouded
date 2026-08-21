@@ -82,6 +82,10 @@ verify_jwt = true
 [functions.generate-kota-read]
 verify_jwt = true
 
+# NCLDD-31 §3 — Meet + confirmation emails after internal 1:1 confirm.
+[functions.finalize-coach-booking]
+verify_jwt = true
+
 # Standalone Kota prompts (AI Prompt Specifications).
 [functions.generate-journal-reflection]
 verify_jwt = true
