@@ -7,11 +7,12 @@ import {
   formatCustomerRoleTypesForDisplay,
   parseCustomerRoleTypesFromProfile,
 } from "@/lib/enums/customerRoleTypes";
-import { createConversation } from "@/lib/chat/chatConversationsApi";
+import { createConversation, fetchLatestUnfinishedVoiceConversation } from "@/lib/chat/chatConversationsApi";
 import {
   canStartNewChatSession,
   FREE_TIER_UPSELL_MESSAGE,
 } from "@/lib/chat/chatSessionLimit";
+import { stopKotaSpeech } from "@/hooks/useVoiceSessionRecorder";
 import { useUserProfile } from "@/lib/userProfile";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,6 +23,7 @@ export default function VoiceSession() {
   const [searchParams, setSearchParams] = useSearchParams();
   const creatingRef = useRef(false);
   const [bootstrapping, setBootstrapping] = useState(true);
+  const [startingNewSession, setStartingNewSession] = useState(false);
 
   const conversationId = searchParams.get("id");
 
@@ -66,37 +68,49 @@ export default function VoiceSession() {
 
     if (creatingRef.current) return;
 
-    if (
-      !canStartNewChatSession({
-        tier: profile?.tier ?? null,
-        subscribed: profile?.subscribed ?? false,
-        accountType: profile?.accountType ?? null,
-        enterpriseTier: profile?.enterpriseTier ?? null,
-        onboardingData: profile?.onboardingData ?? null,
-      })
-    ) {
-      toast.error(FREE_TIER_UPSELL_MESSAGE);
-      navigate("/dashboard", { replace: true });
-      setBootstrapping(false);
-      return;
-    }
-
     creatingRef.current = true;
-    void createConversation(user.id, profile?.onboardingData ?? null, "Voice session", "voice")
-      .then((created) => {
+    void (async () => {
+      try {
+        const unfinished = await fetchLatestUnfinishedVoiceConversation(user.id);
+        if (unfinished) {
+          setSearchParams({ id: unfinished.id }, { replace: true });
+          return;
+        }
+
+        if (
+          !canStartNewChatSession({
+            tier: profile?.tier ?? null,
+            subscribed: profile?.subscribed ?? false,
+            accountType: profile?.accountType ?? null,
+            enterpriseTier: profile?.enterpriseTier ?? null,
+            onboardingData: profile?.onboardingData ?? null,
+          })
+        ) {
+          toast.error(FREE_TIER_UPSELL_MESSAGE);
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+
+        const created = await createConversation(
+          user.id,
+          profile?.onboardingData ?? null,
+          "Voice session",
+          "voice",
+        );
         setSearchParams({ id: created.id }, { replace: true });
-      })
-      .catch(() => {
+      } catch {
         toast.error("Couldn't start a voice session. Please try again.");
         navigate("/dashboard", { replace: true });
-      })
-      .finally(() => {
+      } finally {
         creatingRef.current = false;
         setBootstrapping(false);
-      });
+      }
+    })();
   }, [
     conversationId,
     navigate,
+    profile?.accountType,
+    profile?.enterpriseTier,
     profile?.onboardingData,
     profile?.subscribed,
     profile?.tier,
@@ -107,6 +121,51 @@ export default function VoiceSession() {
   const handleSessionClosed = useCallback(() => {
     void refreshProfile();
   }, [refreshProfile]);
+
+  const handleNewSession = useCallback(async () => {
+    if (!user?.id || creatingRef.current || startingNewSession) return;
+
+    if (
+      !canStartNewChatSession({
+        tier: profile?.tier ?? null,
+        subscribed: profile?.subscribed ?? false,
+        accountType: profile?.accountType ?? null,
+        enterpriseTier: profile?.enterpriseTier ?? null,
+        onboardingData: profile?.onboardingData ?? null,
+      })
+    ) {
+      toast.error(FREE_TIER_UPSELL_MESSAGE);
+      return;
+    }
+
+    creatingRef.current = true;
+    setStartingNewSession(true);
+    stopKotaSpeech();
+
+    try {
+      const created = await createConversation(
+        user.id,
+        profile?.onboardingData ?? null,
+        "Voice session",
+        "voice",
+      );
+      setSearchParams({ id: created.id }, { replace: true });
+    } catch {
+      toast.error("Couldn't start a new voice session. Please try again.");
+    } finally {
+      creatingRef.current = false;
+      setStartingNewSession(false);
+    }
+  }, [
+    profile?.accountType,
+    profile?.enterpriseTier,
+    profile?.onboardingData,
+    profile?.subscribed,
+    profile?.tier,
+    setSearchParams,
+    startingNewSession,
+    user?.id,
+  ]);
 
   return (
     <DashboardLayout>
@@ -124,6 +183,8 @@ export default function VoiceSession() {
             context={context}
             profileData={profileData}
             onSessionClosed={handleSessionClosed}
+            onNewSession={() => void handleNewSession()}
+            newSessionDisabled={startingNewSession}
             className="flex-1 min-h-0 rounded-xl border border-border bg-card"
           />
         )}

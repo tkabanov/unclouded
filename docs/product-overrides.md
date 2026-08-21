@@ -574,3 +574,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | On HR revoke, enterprise fields are cleared. If an existing `userSubscription` row still grants Pro/Premium via `subscription_effective_tier` (e.g. active Stripe sub that was not canceled, or canceled-but-period-valid), restore `profiles.subscribed` / `profiles.tier` from that entitlement. Otherwise Free. Does **not** create a new Stripe subscription. Paid→enterprise redeem cancels Stripe immediately (separate path). |
 | **Code** | `supabase/migrations/20260813180000_unassign_restore_prior_subscription.sql`, `supabase/functions/_shared/cancelIndividualStripeOnEnterprise.ts`, `redeem-workplace-enrollment`, `workplace-members` |
 
+### OVR-057 — Voice sessions: resume unfinished, reveal text after TTS, stop audio on leave
+
+| | |
+|---|---|
+| **Date** | 2026-08-21 |
+| **Overrides** | Prior `/coaching/voice` always created a new `chatConversation`; assistant text shown in the thread before TTS finished (with Thinking… still visible); TTS `Audio` kept playing after navigating away |
+| **Authoritative spec** | Owner request — resume last unfinished voice session; Thinking… until spoken; stop speech on leave; New session control |
+| **Current behavior** | Entering `/coaching/voice` without `?id=` opens the latest voice conversation with `finalizedAt IS NULL` (by `updatedAt`), or creates a new one if none (free-tier create limit still applies only to create). **New session** in the voice header (next to End voice session) always creates a fresh voice conversation (same free-tier create gate) and switches to it, stopping any in-flight TTS. Kota’s reply is persisted first but shown in the message list only after TTS playback ends (or fails); Thinking… stays until then. Leaving the voice panel (or changing conversation) calls `stopKotaSpeech()` so playback stops. |
+| **Code** | `frontend/src/pages/VoiceSession.tsx`, `frontend/src/lib/chat/chatConversationsApi.ts` (`fetchLatestUnfinishedVoiceConversation`), `frontend/src/components/voice/VoiceSessionPanel.tsx`, `frontend/src/components/chat/ChatHeader.tsx`, `frontend/src/hooks/useVoiceSessionRecorder.ts` (`playKotaSpeech` / `stopKotaSpeech`) |
+

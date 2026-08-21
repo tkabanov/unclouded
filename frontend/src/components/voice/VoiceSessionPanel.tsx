@@ -31,7 +31,7 @@ import { resolveCommitmentPromptMessageId } from "@/lib/chat/commitmentPromptHel
 import { readPreferredCoachingMode } from "@/lib/dashboard/coachingModeApi";
 import { formatChatModeBadgeText } from "@/lib/enums/coachingMode";
 import { playVoiceCloseRitualSilence, synthesizeKotaSpeech } from "@/lib/chat/voiceSessionApi";
-import { playKotaSpeech, useVoiceSessionRecorder } from "@/hooks/useVoiceSessionRecorder";
+import { playKotaSpeech, stopKotaSpeech, useVoiceSessionRecorder } from "@/hooks/useVoiceSessionRecorder";
 import { cn } from "@/lib/utils";
 
 export interface VoiceSessionPanelProps {
@@ -42,6 +42,8 @@ export interface VoiceSessionPanelProps {
   profileData?: ChatAiProfileData;
   onThreadUpdated?: () => void;
   onSessionClosed?: () => void;
+  onNewSession?: () => void;
+  newSessionDisabled?: boolean;
   className?: string;
 }
 
@@ -54,6 +56,8 @@ export default function VoiceSessionPanel({
   profileData,
   onThreadUpdated,
   onSessionClosed,
+  onNewSession,
+  newSessionDisabled = false,
   className,
 }: VoiceSessionPanelProps) {
   const [conversationMeta, setConversationMeta] = useState<ConversationListItem | null>(null);
@@ -66,6 +70,9 @@ export default function VoiceSessionPanel({
   const [sessionLimitBlocked, setSessionLimitBlocked] = useState(false);
   const openerSentForConversation = useRef<string | null>(null);
   const sessionLimitToastShown = useRef(false);
+  const mountedRef = useRef(true);
+  const conversationIdRef = useRef(conversationId);
+  conversationIdRef.current = conversationId;
 
   const modeBadgeText = useMemo(
     () => formatChatModeBadgeText(readPreferredCoachingMode(onboardingData)),
@@ -105,7 +112,16 @@ export default function VoiceSessionPanel({
     setSessionLimitBlocked(false);
     openerSentForConversation.current = null;
     sessionLimitToastShown.current = false;
+    stopKotaSpeech();
   }, [conversationId]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      stopKotaSpeech();
+    };
+  }, []);
 
   const sendAssistantMessage = useCallback(
     async (assistantText: string, threadSnapshot: ChatMessage[]) => {
@@ -116,15 +132,24 @@ export default function VoiceSessionPanel({
         onboardingData,
       });
       const nextThread = [...threadSnapshot, assistantMessage];
-      setMessages(nextThread);
       await touchConversationAfterMessage(userId, conversationId, assistantText);
       onThreadUpdated?.();
 
+      // Persist first; keep Thinking… until TTS finishes, then reveal text.
       try {
         const audio = await synthesizeKotaSpeech(assistantText);
+        if (!mountedRef.current || conversationIdRef.current !== conversationId) {
+          return { assistantMessage, nextThread };
+        }
         await playKotaSpeech(audio);
       } catch {
-        toast.error("Couldn't play Kota's voice reply.");
+        if (mountedRef.current && conversationIdRef.current === conversationId) {
+          toast.error("Couldn't play Kota's voice reply.");
+        }
+      }
+
+      if (mountedRef.current && conversationIdRef.current === conversationId) {
+        setMessages(nextThread);
       }
 
       return { assistantMessage, nextThread };
@@ -377,6 +402,9 @@ export default function VoiceSessionPanel({
 
       <ChatHeader
         conversation={conversation}
+        onNewSession={onNewSession}
+        newSessionDisabled={newSessionDisabled || awaitingAssistantReply}
+        newSessionLabel="New session"
         onEndSession={sessionClosed ? undefined : () => void handleEndSession()}
         endSessionDisabled={awaitingAssistantReply || messages.length === 0}
         endSessionLabel={awaitingCommitment ? "Waiting for commitment…" : "End voice session"}

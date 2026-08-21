@@ -224,16 +224,79 @@ export function useVoiceSessionRecorder({
   };
 }
 
+type KotaSpeechPlayback = {
+  audio: HTMLAudioElement;
+  url: string;
+  settle: () => void;
+};
+
+let activeKotaSpeech: KotaSpeechPlayback | null = null;
+
+/** Stop any in-flight Kota TTS playback (e.g. leaving the voice session page). */
+export function stopKotaSpeech(): void {
+  const active = activeKotaSpeech;
+  if (!active) return;
+  activeKotaSpeech = null;
+  // Settle before tearing down src so a sync `error` from load() cannot reject the waiter.
+  active.settle();
+  try {
+    active.audio.pause();
+    active.audio.removeAttribute("src");
+    active.audio.load();
+  } catch {
+    // ignore teardown errors
+  }
+}
+
 export async function playKotaSpeech(blob: Blob): Promise<void> {
+  stopKotaSpeech();
+
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
-  try {
-    await audio.play();
-    await new Promise<void>((resolve, reject) => {
-      audio.addEventListener("ended", () => resolve(), { once: true });
-      audio.addEventListener("error", () => reject(new Error("Playback failed")), { once: true });
+
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      if (activeKotaSpeech?.audio === audio) {
+        activeKotaSpeech = null;
+      }
+      URL.revokeObjectURL(url);
+      resolve();
+    };
+
+    activeKotaSpeech = { audio, url, settle };
+
+    audio.addEventListener(
+      "ended",
+      () => {
+        settle();
+      },
+      { once: true },
+    );
+    audio.addEventListener(
+      "error",
+      () => {
+        if (settled) return;
+        settled = true;
+        if (activeKotaSpeech?.audio === audio) {
+          activeKotaSpeech = null;
+        }
+        URL.revokeObjectURL(url);
+        reject(new Error("Playback failed"));
+      },
+      { once: true },
+    );
+
+    void audio.play().catch(() => {
+      if (settled) return;
+      settled = true;
+      if (activeKotaSpeech?.audio === audio) {
+        activeKotaSpeech = null;
+      }
+      URL.revokeObjectURL(url);
+      reject(new Error("Playback failed"));
     });
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+  });
 }

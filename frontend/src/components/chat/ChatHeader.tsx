@@ -11,6 +11,9 @@ export type ChatHeaderProps = {
   onEndSession?: () => void;
   endSessionDisabled?: boolean;
   endSessionLabel?: string;
+  onNewSession?: () => void;
+  newSessionDisabled?: boolean;
+  newSessionLabel?: string;
   className?: string;
 };
 
@@ -22,10 +25,15 @@ export function ChatHeader({
   onEndSession,
   endSessionDisabled = false,
   endSessionLabel = "End session",
+  onNewSession,
+  newSessionDisabled = false,
+  newSessionLabel = "New session",
   className,
 }: ChatHeaderProps) {
   const modeBadge =
     conversation.modeBadgeText || CHAT_CONVERSATION_DEFAULTS.modeBadgeText;
+
+  const showActions = Boolean(onEndSession || onNewSession);
 
   return (
     <header
@@ -36,17 +44,31 @@ export function ChatHeader({
     >
       <p className="min-w-0 truncate text-xs text-muted-foreground">{modeBadge}</p>
 
-      {onEndSession ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onEndSession}
-          disabled={endSessionDisabled}
-          className="shrink-0"
-        >
-          {endSessionLabel}
-        </Button>
+      {showActions ? (
+        <div className="flex shrink-0 items-center gap-2">
+          {onNewSession ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onNewSession}
+              disabled={newSessionDisabled}
+            >
+              {newSessionLabel}
+            </Button>
+          ) : null}
+          {onEndSession ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onEndSession}
+              disabled={endSessionDisabled}
+            >
+              {endSessionLabel}
+            </Button>
+          ) : null}
+        </div>
       ) : null}
     </header>
   );

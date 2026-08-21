@@ -220,6 +220,34 @@ export async function fetchConversations(
   return readOnboardingConversations(onboardingData);
 }
 
+/**
+ * Most recently updated voice conversation that has not been finalized (End session).
+ * Returns null when none exist or the conversation table is unavailable.
+ */
+export async function fetchLatestUnfinishedVoiceConversation(
+  userId: string,
+): Promise<ConversationListItem | null> {
+  const client = supabase as unknown as UntypedSupabase;
+
+  const { data, error } = await client
+    .from("chatConversation")
+    .select("id, title, updatedAt, sessionType")
+    .eq("userId", userId)
+    .eq("sessionType", "voice")
+    .is("finalizedAt", null)
+    .order("updatedAt", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return null;
+    throw error;
+  }
+
+  if (!data) return null;
+  return mapConversationRow(data as ConversationRow);
+}
+
 async function tryCreateInConversationTable(
   userId: string,
   title: string,
