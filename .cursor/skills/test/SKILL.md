@@ -30,7 +30,7 @@ Turn `$ARGUMENTS` into a concrete test plan:
 |-------|--------|
 | **Goal** | One sentence — what "pass" means |
 | **Base URL** | User-provided, else `http://localhost:3000` (see `frontend/README.md`) |
-| **Auth** | User-provided credentials, else **individual subscription QA:** `sub-free@test.com`, `sub-pro@test.com`, `sub-premium@test.com` (password `qwerty123`, seed: `scripts/seed_individual_subscription_test_users.mjs`). Employer codes: `code2@test.com` … `code5@test.com` (enterprise Pro — not individual billing). |
+| **Auth** | User-provided credentials, else **individual subscription QA:** `sub-free@test.com`, `sub-pro@test.com`, `sub-premium@test.com` (password `qwerty123`, seed: `scripts/seed_individual_subscription_test_users.mjs`). Employer codes: `code2@test.com` … `code5@test.com` (enterprise Pro — not individual billing). **Platform admin:** `admin-qa@test.com` / `qwerty123` → `/admin` (seed: `scripts/seed_platform_admin_test_user.mjs`). |
 | **Start path** | Route or entry screen (e.g. `/`, `/employer`, `/settings`) |
 | **Steps** | Ordered actions: navigate → click → fill → wait → assert |
 | **Assertions** | Visible text/elements, URL, network responses, console errors |
