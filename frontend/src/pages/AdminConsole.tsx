@@ -16,6 +16,9 @@ import AdminSchedulingTab from "@/components/settings/admin/AdminSchedulingTab";
 import AdminBookingsTab from "@/components/settings/admin/AdminBookingsTab";
 import AdminReassessmentsTab from "@/components/settings/admin/AdminReassessmentsTab";
 import AdminPromptTestSuite from "@/components/settings/admin/AdminPromptTestSuite";
+import AdminReferralPartnersTab from "@/components/settings/admin/AdminReferralPartnersTab";
+import AdminReferralPartnerDetail from "@/components/settings/admin/AdminReferralPartnerDetail";
+import AdminReferralDashboard from "@/components/settings/admin/AdminReferralDashboard";
 
 function AdminSection({ children }: { children: React.ReactNode }) {
   return <div className="mx-auto w-full max-w-5xl p-6 md:p-8">{children}</div>;
@@ -154,6 +157,30 @@ export default function AdminConsole() {
           element={
             <AdminSection>
               <AdminPromptTestSuite />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="referral-partners"
+          element={
+            <AdminSection>
+              <AdminReferralPartnersTab />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="referral-partners/dashboard"
+          element={
+            <AdminSection>
+              <AdminReferralDashboard />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="referral-partners/:partnerId"
+          element={
+            <AdminSection>
+              <AdminReferralPartnerDetail />
             </AdminSection>
           }
         />

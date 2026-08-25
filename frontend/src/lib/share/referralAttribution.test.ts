@@ -33,6 +33,12 @@ describe("referralAttribution", () => {
     expect(peekPendingReferralCode()).toBe("K8234V9B");
   });
 
+  it("keeps first-touch code when a later ref arrives", () => {
+    captureReferralFromSearch("?ref=K8234V9B");
+    captureReferralFromSearch("?ref=ABC23456");
+    expect(peekPendingReferralCode()).toBe("K8234V9B");
+  });
+
   it("builds signup auth metadata", () => {
     expect(buildSignupReferralMetadata("K8234V9B")).toEqual({
       [REFERRAL_CODE_AUTH_METADATA_KEY]: "K8234V9B",

@@ -15,6 +15,7 @@ export const ADMIN_PRIMARY_NAV = [
 /** Extra ops sections kept beyond Lovable — shown under “More”. */
 export const ADMIN_MORE_NAV = [
   ADMIN_SUB_TAB.ANALYTICS,
+  ADMIN_SUB_TAB.REFERRAL_PARTNERS,
   ADMIN_SUB_TAB.RESOURCES,
   ADMIN_SUB_TAB.INSIGHTS,
   ADMIN_SUB_TAB.PLANS,
@@ -32,6 +33,7 @@ export const ADMIN_NAV_PATH: Record<AdminSubTabSlug, string> = {
   paths: "/admin/paths",
   workplaces: "/admin/organizations",
   analytics: "/admin/analytics",
+  referral_partners: "/admin/referral-partners",
   resources: "/admin/resources",
   insights: "/admin/insights",
   plans: "/admin/plans",
@@ -60,6 +62,7 @@ export function resolveAdminSubTab(pathname: string): AdminSubTabSlug {
     return ADMIN_SUB_TAB.WORKPLACES;
   }
   if (pathname.startsWith("/admin/analytics")) return ADMIN_SUB_TAB.ANALYTICS;
+  if (pathname.startsWith("/admin/referral-partners")) return ADMIN_SUB_TAB.REFERRAL_PARTNERS;
   if (pathname.startsWith("/admin/resources")) return ADMIN_SUB_TAB.RESOURCES;
   if (pathname.startsWith("/admin/insights")) return ADMIN_SUB_TAB.INSIGHTS;
   if (pathname.startsWith("/admin/plans")) return ADMIN_SUB_TAB.PLANS;

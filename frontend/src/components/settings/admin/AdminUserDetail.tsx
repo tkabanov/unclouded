@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ArrowLeft, Copy, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,20 @@ import {
   generateAdminPreCoachingBrief,
   setAdminUserActive,
 } from "@/lib/settings/admin/adminUsersApi";
+import {
+  adminSetUserReferralPartner,
+  fetchAdminReferralPartners,
+  fetchUserReferralAttribution,
+  type AdminReferralPartnerRecord,
+  type UserReferralAttribution,
+} from "@/lib/settings/admin/referralPartnersApi";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   adminUserTypeLabel,
   type AdminUserDetail,
@@ -132,10 +147,22 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
   const [creditAmount, setCreditAmount] = useState("1");
   const [creditNote, setCreditNote] = useState("");
   const [creditBusy, setCreditBusy] = useState(false);
+  const [referral, setReferral] = useState<UserReferralAttribution | null>(null);
+  const [partners, setPartners] = useState<AdminReferralPartnerRecord[]>([]);
+  const [referralBusy, setReferralBusy] = useState(false);
 
   const reload = useCallback(async () => {
     const detail = await fetchAdminUserDetail(userId);
     setUser(detail);
+  }, [userId]);
+
+  const reloadReferral = useCallback(async () => {
+    const [attr, partnerList] = await Promise.all([
+      fetchUserReferralAttribution(userId),
+      fetchAdminReferralPartners("all"),
+    ]);
+    setReferral(attr);
+    setPartners(partnerList);
   }, [userId]);
 
   useEffect(() => {
@@ -152,6 +179,36 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
       cancelled = true;
     };
   }, [reload]);
+
+  useEffect(() => {
+    let cancelled = false;
+    reloadReferral().catch(() => {
+      if (!cancelled) {
+        /* schema may be unavailable before migration */
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadReferral]);
+
+  const handleReferralPartnerChange = useCallback(
+    async (value: string) => {
+      if (referralBusy) return;
+      setReferralBusy(true);
+      try {
+        const partnerId = value === "__none__" ? null : value;
+        await adminSetUserReferralPartner(userId, partnerId);
+        await reloadReferral();
+        toast.success("Referral attribution updated.");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Couldn't update referral.");
+      } finally {
+        setReferralBusy(false);
+      }
+    },
+    [referralBusy, reloadReferral, userId],
+  );
 
   const handleToggle = useCallback(async () => {
     if (!user || busy) return;
@@ -344,6 +401,81 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
               label="Workplace ID"
               value={user.workplaceId ?? "—"}
             />
+          </div>
+        </Card>
+
+        <Card title="Referral">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ProfileField
+              label="Referred by (partner)"
+              value={
+                referral?.partnerName
+                  ? referral.partnerName
+                  : referral?.referralPartnerId
+                    ? "Partner"
+                    : "Not referred"
+              }
+            />
+            <ProfileField
+              label="Partner code"
+              value={referral?.referralPartnerCode ?? "—"}
+            />
+            <ProfileField
+              label="Referral date"
+              value={formatDate(referral?.referredAt)}
+            />
+            <ProfileField
+              label="Current subscription"
+              value={
+                user.subscription
+                  ? `${user.subscription.planTier ?? "—"} / ${user.subscription.status ?? "—"}`
+                  : "—"
+              }
+            />
+            <ProfileField
+              label="Organic referrer"
+              value={
+                referral?.referredByUserId
+                  ? `${referral.referredByReferralCode ?? referral.referredByUserId}`
+                  : "—"
+              }
+            />
+            <ProfileField
+              label="First paid (partner)"
+              value={formatDate(referral?.referralFirstPaidAt)}
+            />
+          </div>
+          {referral?.partnerName && referral.referralPartnerId ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              <Link
+                className="underline-offset-2 hover:underline"
+                to={`/admin/referral-partners/${referral.referralPartnerId}`}
+              >
+                Open partner profile
+              </Link>
+            </p>
+          ) : null}
+          <div className="mt-4 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">
+              Correct partner attribution
+            </p>
+            <Select
+              value={referral?.referralPartnerId ?? "__none__"}
+              onValueChange={(v) => void handleReferralPartnerChange(v)}
+              disabled={referralBusy}
+            >
+              <SelectTrigger className="max-w-sm">
+                <SelectValue placeholder="Select partner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Not referred (clear partner)</SelectItem>
+                {partners.map((p) => (
+                  <SelectItem key={p.partnerId} value={p.partnerId}>
+                    {p.name} ({p.referralCode})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </Card>
 

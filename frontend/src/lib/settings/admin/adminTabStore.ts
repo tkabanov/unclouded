@@ -17,6 +17,7 @@ export const ADMIN_SUB_TAB = {
   GROUP_SESSIONS: "group_sessions",
   REASSESSMENTS: "reassessments",
   PROMPT_TESTS: "prompt_tests",
+  REFERRAL_PARTNERS: "referral_partners",
 } as const;
 
 export type AdminSubTabSlug = (typeof ADMIN_SUB_TAB)[keyof typeof ADMIN_SUB_TAB];
@@ -36,6 +37,7 @@ export const ADMIN_SUB_TAB_ORDER: readonly AdminSubTabSlug[] = [
   ADMIN_SUB_TAB.BOOKINGS,
   ADMIN_SUB_TAB.REASSESSMENTS,
   ADMIN_SUB_TAB.PROMPT_TESTS,
+  ADMIN_SUB_TAB.REFERRAL_PARTNERS,
 ];
 
 export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
@@ -55,4 +57,5 @@ export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
   group_sessions: "Bookings",
   reassessments: "Reassessments",
   prompt_tests: "Prompt Tests",
+  referral_partners: "Referral Partners",
 };

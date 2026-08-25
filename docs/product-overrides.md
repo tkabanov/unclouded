@@ -220,7 +220,7 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Overrides** | Bubble `ReferralPartner` data type (US-902 AC: “ReferralPartner data type exists”); separate B2B partner portal |
 | **Authoritative spec** | US-902 (unique referral links); US-903 (admin partner effectiveness) |
 | **Current behavior** | **Organic model:** each user gets `profiles.referralCode` (share card / REQ-09). Inbound attribution via `profiles.referredByUserId` (FK to referrer) with `profiles.referredByReferralCode` as signup URL snapshot. Admin aggregates sign-ups + paid conversions per referrer. Users see own referral count via `count_my_referral_signups()`. Optional static admin labels map known B2B codes to display names — no DB entity. |
-| **Deferred** | `referralPartner` table, partner login portal, commission tracking |
+| **Deferred** | Partner login portal, commission tracking / payouts (see **OVR-058** for Admin Referral Partners entity now in scope) |
 | **Code** | `frontend/src/lib/share/referralCodeApi.ts`, `frontend/src/lib/share/referralAttribution.ts`, `frontend/src/lib/settings/admin/referralSignUpAnalytics.ts`, `frontend/src/lib/share/referralStatsApi.ts`, `frontend/src/lib/settings/admin/referralPartnerLabels.ts` |
 
 ### OVR-022 — Workplace roster: admin + HR member and role management
@@ -583,4 +583,14 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Authoritative spec** | Owner request — resume last unfinished voice session; Thinking… until spoken; stop speech on leave; New session control |
 | **Current behavior** | Entering `/coaching/voice` without `?id=` opens the latest voice conversation with `finalizedAt IS NULL` (by `updatedAt`), or creates a new one if none (free-tier create limit still applies only to create). **New session** in the voice header (next to End voice session) always creates a fresh voice conversation (same free-tier create gate) and switches to it, stopping any in-flight TTS. Kota’s reply is persisted first but shown in the message list only after TTS playback ends (or fails); Thinking… stays until then. Leaving the voice panel (or changing conversation) calls `stopKotaSpeech()` so playback stops. |
 | **Code** | `frontend/src/pages/VoiceSession.tsx`, `frontend/src/lib/chat/chatConversationsApi.ts` (`fetchLatestUnfinishedVoiceConversation`), `frontend/src/components/voice/VoiceSessionPanel.tsx`, `frontend/src/components/chat/ChatHeader.tsx`, `frontend/src/hooks/useVoiceSessionRecorder.ts` (`playKotaSpeech` / `stopKotaSpeech`) |
+
+### OVR-058 — Referral Partners (B2B) alongside organic user referrals
+
+| | |
+|---|---|
+| **Date** | 2026-08-25 |
+| **Overrides** | OVR-021 deferred `referralPartner` table / “organic-only”; Bubble partner portal remains deferred |
+| **Authoritative spec** | `docs/referral-program-requirements.md`; locked decisions in `docs/referral-program-agent-tasks.md` REF-00 |
+| **Current behavior** | **Both channels.** Admin manages `referral_partners` (CRUD, activate/deactivate, unique codes, copyable `/signup?ref={CODE}` links) plus Referral Dashboard and partner referred-user stats under `/admin/referral-partners`. Signup resolves `?ref=` **partner-first** (active partner only) else organic `profiles.referralCode` → `referredByUserId`. Partner attribution on `profiles`: `referralPartnerId`, `referralPartnerCode`, `referredAt` (+ optional correction audit). Inactive partner: no new attribution; history kept; signup soft-fails. Session first-touch via existing `sessionStorage`. Organic share cards and Analytics “Referral sign-ups” unchanged. Commissions, partner self-serve portal, and payouts remain out of scope. |
+| **Code** | `supabase/migrations/*_referral_partners.sql`, `frontend/src/lib/settings/admin/referralPartnersApi.ts`, `frontend/src/lib/settings/admin/referralPartnerStats.ts`, `frontend/src/components/settings/admin/AdminReferralPartnersTab.tsx`, `AdminReferralPartnerDetail.tsx`, `AdminReferralDashboard.tsx`, `AddReferralPartnerPopup.tsx`, `AdminUserDetail.tsx`, `frontend/src/lib/share/referralAttribution.ts` |
 

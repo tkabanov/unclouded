@@ -43,8 +43,13 @@ export function clearPendingReferralCode(): void {
   }
 }
 
-/** Read `?ref=` from the URL and persist it for the upcoming signup. */
+/**
+ * Read `?ref=` from the URL and persist it for the upcoming signup.
+ * First-touch: do not overwrite an already-stored valid code in this session.
+ */
 export function captureReferralFromSearch(search: string): string | null {
+  const existing = peekPendingReferralCode();
+  if (existing) return existing;
   const code = readReferralCodeFromSearch(search);
   if (code) persistPendingReferralCode(code);
   return code;

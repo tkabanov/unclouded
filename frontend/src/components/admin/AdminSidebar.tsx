@@ -25,6 +25,7 @@ import {
   Users,
   UserCog,
   BarChart3,
+  Handshake,
   type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -35,6 +36,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   [ADMIN_SUB_TAB.PATHS]: BookOpen,
   [ADMIN_SUB_TAB.WORKPLACES]: Building2,
   [ADMIN_SUB_TAB.ANALYTICS]: BarChart3,
+  [ADMIN_SUB_TAB.REFERRAL_PARTNERS]: Handshake,
   [ADMIN_SUB_TAB.RESOURCES]: Library,
   [ADMIN_SUB_TAB.INSIGHTS]: Lightbulb,
   [ADMIN_SUB_TAB.PLANS]: ClipboardList,

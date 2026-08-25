@@ -71,4 +71,13 @@ describe("adminNav specialists/scheduling", () => {
     expect(resolveAdminSubTab("/admin/specialists")).toBe(ADMIN_SUB_TAB.SPECIALISTS);
     expect(resolveAdminSubTab("/admin/scheduling")).toBe(ADMIN_SUB_TAB.SCHEDULING);
   });
+
+  it("resolves referral partners paths", () => {
+    expect(resolveAdminSubTab("/admin/referral-partners")).toBe(
+      ADMIN_SUB_TAB.REFERRAL_PARTNERS,
+    );
+    expect(resolveAdminSubTab("/admin/referral-partners/dashboard")).toBe(
+      ADMIN_SUB_TAB.REFERRAL_PARTNERS,
+    );
+  });
 });
