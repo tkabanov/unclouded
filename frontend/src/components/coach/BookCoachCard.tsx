@@ -1,19 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { Crown, Users } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from "react";
+import { Users } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import OneOnOneBookingPanel from "@/components/coach/OneOnOneBookingPanel";
+import GroupCoachingPanel from "@/components/coach/GroupCoachingPanel";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import { useUserProfile } from "@/lib/userProfile";
-import {
-  loadGroupSessionStatus,
-  requestGroupSessionBooking,
-} from "@/lib/coach/coachBookingApi";
 import {
   canBookGroupCoachSession,
   resolveOneOnOneButtonState,
@@ -31,51 +26,9 @@ export default function BookCoachCard() {
     profile?.accountType,
   );
 
-  const [groupUsed, setGroupUsed] = useState(false);
-  const [groupBusy, setGroupBusy] = useState(false);
   const [oneOnOneBusy, setOneOnOneBusy] = useState(false);
 
   const canGroup = canBookGroupCoachSession(tier);
-
-  useEffect(() => {
-    if (!canGroup) return;
-    let cancelled = false;
-    loadGroupSessionStatus()
-      .then((status) => {
-        if (!cancelled) setGroupUsed(status.used);
-      })
-      .catch(() => {
-        // The server enforces the monthly cap regardless of what we render.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [canGroup]);
-
-  const handleGroupSession = useCallback(async () => {
-    if (!canGroup) {
-      promptUpgrade("groupSession");
-      return;
-    }
-
-    setGroupBusy(true);
-    try {
-      const result = await requestGroupSessionBooking();
-      if (result.status === "blocked") {
-        if (result.code === "monthly_limit_reached") setGroupUsed(true);
-        if (result.code === "upgrade_required") {
-          promptUpgrade("groupSession");
-          return;
-        }
-        toast.error(result.message);
-        return;
-      }
-      setGroupUsed(true);
-      toast.success("Your group session request has been sent. We'll email you the details.");
-    } finally {
-      setGroupBusy(false);
-    }
-  }, [canGroup, promptUpgrade]);
 
   const oneOnOne = resolveOneOnOneButtonState({
     effectiveTier: tier,
@@ -103,23 +56,11 @@ export default function BookCoachCard() {
         </CardHeader>
 
         <CardContent className="space-y-3 text-sm">
-          <Button
-            type="button"
-            variant={canGroup && !groupUsed ? "default" : "outline"}
-            size="sm"
-            className="h-10 w-full justify-between px-3"
-            disabled={groupBusy || groupUsed}
-            onClick={() => void handleGroupSession()}
-          >
-            <span>
-              {groupUsed
-                ? "Group session booked this month"
-                : groupBusy
-                  ? "Requesting…"
-                  : "Book a group session"}
-            </span>
-            {!canGroup ? <Crown className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
-          </Button>
+          <GroupCoachingPanel
+            canJoin={canGroup}
+            locked={!canGroup}
+            onPremiumRequired={() => promptUpgrade("groupSession")}
+          />
 
           <OneOnOneBookingPanel
             bookable={oneOnOne.kind === "bookable"}

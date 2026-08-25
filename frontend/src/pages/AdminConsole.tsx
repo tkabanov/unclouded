@@ -14,6 +14,7 @@ import AdminOutreachTab from "@/components/settings/admin/AdminOutreachTab";
 import AdminCoachBookingsTab from "@/components/settings/admin/AdminCoachBookingsTab";
 import AdminSpecialistsTab from "@/components/settings/admin/AdminSpecialistsTab";
 import AdminSchedulingTab from "@/components/settings/admin/AdminSchedulingTab";
+import AdminGroupSessionsTab from "@/components/settings/admin/AdminGroupSessionsTab";
 import AdminReassessmentsTab from "@/components/settings/admin/AdminReassessmentsTab";
 import AdminPromptTestSuite from "@/components/settings/admin/AdminPromptTestSuite";
 
@@ -136,6 +137,14 @@ export default function AdminConsole() {
           element={
             <AdminSection>
               <AdminCoachBookingsTab />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="group-sessions"
+          element={
+            <AdminSection>
+              <AdminGroupSessionsTab />
             </AdminSection>
           }
         />

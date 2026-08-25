@@ -98,6 +98,14 @@ verify_jwt = false
 [functions.coach-post-session]
 verify_jwt = false
 
+# NCLDD-31 §9 — Group waitlist expire/promote + claim emails.
+[functions.group-coaching-waitlist]
+verify_jwt = false
+
+# NCLDD-31 §8 — Best-effort Meet links after admin creates group sessions.
+[functions.finalize-group-sessions]
+verify_jwt = true
+
 # Standalone Kota prompts (AI Prompt Specifications).
 [functions.generate-journal-reflection]
 verify_jwt = true

@@ -22,6 +22,7 @@ export const ADMIN_MORE_NAV = [
   ADMIN_SUB_TAB.SPECIALISTS,
   ADMIN_SUB_TAB.SCHEDULING,
   ADMIN_SUB_TAB.COACH_BOOKINGS,
+  ADMIN_SUB_TAB.GROUP_SESSIONS,
   ADMIN_SUB_TAB.REASSESSMENTS,
   ADMIN_SUB_TAB.PROMPT_TESTS,
 ] as const satisfies readonly AdminSubTabSlug[];
@@ -39,6 +40,7 @@ export const ADMIN_NAV_PATH: Record<AdminSubTabSlug, string> = {
   specialists: "/admin/specialists",
   scheduling: "/admin/scheduling",
   coach_bookings: "/admin/coach-bookings",
+  group_sessions: "/admin/group-sessions",
   reassessments: "/admin/reassessments",
   prompt_tests: "/admin/prompt-tests",
 };
@@ -65,6 +67,7 @@ export function resolveAdminSubTab(pathname: string): AdminSubTabSlug {
   if (pathname.startsWith("/admin/specialists")) return ADMIN_SUB_TAB.SPECIALISTS;
   if (pathname.startsWith("/admin/scheduling")) return ADMIN_SUB_TAB.SCHEDULING;
   if (pathname.startsWith("/admin/coach-bookings")) return ADMIN_SUB_TAB.COACH_BOOKINGS;
+  if (pathname.startsWith("/admin/group-sessions")) return ADMIN_SUB_TAB.GROUP_SESSIONS;
   if (pathname.startsWith("/admin/reassessments")) return ADMIN_SUB_TAB.REASSESSMENTS;
   if (pathname.startsWith("/admin/prompt-tests")) return ADMIN_SUB_TAB.PROMPT_TESTS;
   return ADMIN_SUB_TAB.OVERVIEW;

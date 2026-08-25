@@ -190,42 +190,42 @@ Admins should have the ability to manually:
 
 ---
 
-### 8. Group Coaching
+### 8. Group Coaching — done
 
 The system should also support recurring **group coaching sessions**.
 
 **Admins should be able to:**
 
-- Create group coaching sessions
-- Configure recurring schedules
-- Set session date/time and duration
-- Add a session title and description
-- Define a maximum participant capacity
-- View registered participants
-- Manage/cancel sessions when necessary
+- [done] Create group coaching sessions
+- [done] Configure recurring schedules
+- [done] Set session date/time and duration
+- [done] Add a session title and description
+- [done] Define a maximum participant capacity
+- [done] View registered participants
+- [done] Manage/cancel sessions when necessary
 
 **Users should be able to:**
 
-- View available group coaching sessions
-- View the session title, description, date, time, and available capacity
-- Join a group session if seats are available
-- Join a waitlist when the session has reached its participant limit
-- View their registered group sessions in their session history
+- [done] View available group coaching sessions
+- [done] View the session title, description, date, time, and available capacity
+- [done] Join a group session if seats are available
+- [done] Join a waitlist when the session has reached its participant limit
+- [done] View their registered group sessions in their session history
 
 ---
 
-### 9. Group Coaching Waitlist
+### 9. Group Coaching Waitlist — done
 
 When a group session reaches its participant limit:
 
-- The **Join Session** option should no longer be available
-- Users should be able to join a waitlist
-- The system should maintain the waitlist in the order users joined
-- When a participant cancels and a spot becomes available, the system should notify the next eligible waitlisted user
-- The user should be able to claim the available spot through the platform
-- The system should prevent multiple users from claiming the same newly available spot
+- [done] The **Join Session** option should no longer be available
+- [done] Users should be able to join a waitlist
+- [done] The system should maintain the waitlist in the order users joined
+- [done] When a participant cancels and a spot becomes available, the system should notify the next eligible waitlisted user
+- [done] The user should be able to claim the available spot through the platform
+- [done] The system should prevent multiple users from claiming the same newly available spot
 
-The business rule for the duration a waitlisted user has to claim an available spot should be configurable or confirmed before implementation.
+[done] Waitlist claim-window duration: **24 hours** after promotion.
 
 ---
 
@@ -280,16 +280,16 @@ The status should be updated automatically where possible based on system events
 5. [done] Google Meet / Calendar events must remain synchronized with booking status.
 6. [done] Specialists should not require platform accounts.
 7. [done] Users should not be exposed to specialist names during one-on-one booking.
-8. Group sessions must enforce participant capacity.
-9. Waitlisted users must be notified when capacity becomes available.
+8. [done] Group sessions must enforce participant capacity.
+9. [done] Waitlisted users must be notified when capacity becomes available.
 10. [done] All completed sessions and coach notes should be reflected in the user's session history and available to authorized admins.
 
 ---
 
 ## Open Decisions
 
-- Waitlist claim-window duration (configurable or confirm before implementation).
+- Waitlist claim-window duration: **confirmed at 24 hours** (NCLDD-31 §9).
 
 ---
 
-*Source: stakeholder requirements for NCLDD-31, updated 2026-08-24.*
+*Source: stakeholder requirements for NCLDD-31, updated 2026-08-25.*

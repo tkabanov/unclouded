@@ -158,6 +158,16 @@ Edge function: `supabase/functions/coach-post-session`.
 - Rate-limited per client IP via `consume_edge_rate_limit`.
 - Specialist emails from **finalize-coach-booking** and **coach-booking-reminders** include a “Submit session notes” link when `postSessionToken` is set.
 
+### Group coaching waitlist offers (NCLDD-31 §9)
+
+Edge function: `supabase/functions/group-coaching-waitlist`.
+
+- Runs `process_group_coaching_waitlist` (expire stale 24h offers, promote next FIFO waitlisted user to `offered`).
+- Emails users with open offers (`offerNotifiedAt` null) via SendGrid when configured; deep link to `{APP_ORIGIN}/dashboard`.
+- Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or `x-cron-secret: <GROUP_COACHING_WAITLIST_CRON_SECRET>`.
+
+**Schedule:** `pg_cron` job `every-5m-group-coaching-waitlist` every **5 minutes**. Migration: `20260825160000_group_coaching_sessions.sql`.
+
 ### Onboarding drop-off (US-905)
 
 Edge function: `supabase/functions/onboarding-dropoff`.
