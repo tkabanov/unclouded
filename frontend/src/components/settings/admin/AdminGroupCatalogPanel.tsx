@@ -26,7 +26,8 @@ function toLocalInputValue(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function AdminGroupSessionsTab() {
+/** Embedded group session catalog (create / list / cancel) for Admin Bookings hub. */
+export default function AdminGroupCatalogPanel() {
   const [rows, setRows] = useState<AdminGroupSessionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -130,13 +131,13 @@ export default function AdminGroupSessionsTab() {
   };
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading group sessions…</p>;
+    return <p className="text-sm text-muted-foreground">Loading group catalog…</p>;
   }
 
   return (
     <div className="flex flex-col gap-4">
       <div className={cn(bubbleStyle("Group_card_muted_"), "space-y-3 p-6")}>
-        <h3 className={bubbleStyle("Text_heading_3_")}>Group coaching sessions</h3>
+        <h3 className={bubbleStyle("Text_heading_3_")}>Group catalog</h3>
         <p className={cn(bubbleStyle("Text_body_muted_"), "text-sm")}>
           Create catalog sessions with capacity. Users join or waitlist; offers expire after 24
           hours.

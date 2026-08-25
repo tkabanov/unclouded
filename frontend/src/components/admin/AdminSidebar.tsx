@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   BookOpen,
   Building2,
+  Calendar,
   ClipboardList,
   FileText,
   Flag,
@@ -22,6 +23,7 @@ import {
   MessageSquareText,
   Sparkles,
   Users,
+  UserCog,
   BarChart3,
   type LucideIcon,
 } from "lucide-react";
@@ -37,7 +39,9 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   [ADMIN_SUB_TAB.INSIGHTS]: Lightbulb,
   [ADMIN_SUB_TAB.PLANS]: ClipboardList,
   [ADMIN_SUB_TAB.OUTREACH]: Flag,
-  [ADMIN_SUB_TAB.COACH_BOOKINGS]: MessageSquareText,
+  [ADMIN_SUB_TAB.SPECIALISTS]: UserCog,
+  [ADMIN_SUB_TAB.SCHEDULING]: Calendar,
+  [ADMIN_SUB_TAB.BOOKINGS]: MessageSquareText,
   [ADMIN_SUB_TAB.REASSESSMENTS]: FileText,
   [ADMIN_SUB_TAB.PROMPT_TESTS]: Sparkles,
 };

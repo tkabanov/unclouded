@@ -229,32 +229,32 @@ When a group session reaches its participant limit:
 
 ---
 
-### 10. Admin Booking Management
+### 10. Admin Booking Management — done
 
 Admins should have a centralized view of all coaching bookings.
 
 The booking management screen should provide:
 
-- User name
-- Session type (One-on-One / Group)
-- Specialist, where applicable
-- Date and time
-- Duration
-- Booking status
-- Credit/refund status
-- Google Meet link
-- Notes/session history
-- Participant information for group sessions
+- [done] User name
+- [done] Session type (One-on-One / Group)
+- [done] Specialist, where applicable
+- [done] Date and time
+- [done] Duration
+- [done] Booking status
+- [done] Credit/refund status
+- [done] Google Meet link
+- [done] Notes/session history
+- [done] Participant information for group sessions
 
 Admins should be able to filter and search bookings by relevant criteria such as:
 
-- Date
-- User
-- Specialist
-- Session type
-- Status
+- [done] Date
+- [done] User
+- [done] Specialist
+- [done] Session type
+- [done] Status
 
-Admins should also be able to manually manage exceptional cases, including credit adjustments and booking corrections.
+[done] Admins should also be able to manually manage exceptional cases, including credit adjustments and booking corrections (via existing cancel / reassign / User Detail credit adjust flows from the Bookings expand panel).
 
 #### Booking Statuses
 
@@ -262,12 +262,12 @@ The system should support clear booking statuses, such as:
 
 | Status | Notes |
 | --- | --- |
-| **Scheduled** | Confirmed upcoming booking |
+| **Scheduled** | Display label for confirmed/pending 1:1 and registered/offered group enrollments |
 | **Completed** | Session finished (e.g. after post-session form) |
 | **Canceled** | Booking canceled |
 | **Waitlisted** | Group coaching only |
 
-The status should be updated automatically where possible based on system events.
+[done] The status should be updated automatically where possible based on system events. UI labels map over existing DB values (`confirmed` → Scheduled, etc.).
 
 ---
 
