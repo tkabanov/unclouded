@@ -182,19 +182,8 @@ async function syncSubscription(admin, userId, tier) {
       throw new Error(`clear free subscription ${userId}: ${clearError.message}`);
     }
 
-    const { error: profileError } = await admin
-      .from("profiles")
-      .update({
-        subscribed: false,
-        tier: "free",
-        accountType: "individual",
-        enterpriseTier: null,
-      })
-      .eq("id", userId);
-    if (profileError) {
-      throw new Error(`clear free profile ${userId}: ${profileError.message}`);
-    }
-
+    // Entitlement columns are already cleared by service_reset_to_individual_free;
+    // userSubscription update above syncs profiles.tier via trigger.
     return end;
   }
 
@@ -250,17 +239,17 @@ async function ensurePremiumCreditsForQa(admin, userId, targetBalance = 2) {
 }
 
 async function clearEnterpriseEntitlement(admin, userId) {
-  const { error } = await admin
-    .from("profiles")
-    .update({
-      accountType: "individual",
-      enterpriseTier: null,
-      subscribed: false,
-      tier: "free",
-    })
-    .eq("id", userId);
-
-  if (error) throw error;
+  // Direct profile updates of accountType / enterpriseTier are silently reverted
+  // by profiles_protect_entitlement_columns — must go through SECURITY DEFINER RPC.
+  const { data, error } = await admin.rpc("service_reset_to_individual_free", {
+    p_user_id: userId,
+  });
+  if (error) {
+    throw new Error(`service_reset_to_individual_free ${userId}: ${error.message}`);
+  }
+  if (data && data.ok !== true) {
+    throw new Error(`service_reset_to_individual_free ${userId}: unexpected ${JSON.stringify(data)}`);
+  }
 }
 
 async function applyLifecycle(admin, userId, spec, periodEndIso) {
