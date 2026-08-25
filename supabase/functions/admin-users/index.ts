@@ -3,9 +3,11 @@
  *
  * POST /functions/v1/admin-users
  * Body: {
- *   action: "list" | "get" | "setActive",
+ *   action: "list" | "get" | "setActive" | "adjustCredits",
  *   userId?: string,
  *   isActive?: boolean,
+ *   delta?: number,
+ *   note?: string,
  *   search?: string,
  *   typeFilter?: "free" | "pro" | "premium" | "canceled" | "all",
  *   statusFilter?: "active" | "deactivated" | "all",
@@ -16,9 +18,11 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { isValidUuid } from "../_shared/uuidHelpers.ts";
 
 type ActionBody = {
-  action?: "list" | "get" | "setActive";
+  action?: "list" | "get" | "setActive" | "adjustCredits";
   userId?: string;
   isActive?: boolean;
+  delta?: number;
+  note?: string;
   search?: string;
   typeFilter?: "free" | "pro" | "premium" | "canceled" | "all";
   statusFilter?: "active" | "deactivated" | "all";
@@ -127,7 +131,12 @@ Deno.serve(async (req) => {
   }
 
   const action = body.action;
-  if (action !== "list" && action !== "get" && action !== "setActive") {
+  if (
+    action !== "list" &&
+    action !== "get" &&
+    action !== "setActive" &&
+    action !== "adjustCredits"
+  ) {
     return json({ error: "Invalid action" }, 400);
   }
 
@@ -185,6 +194,47 @@ Deno.serve(async (req) => {
       }
 
       return json({ ok: true, userId: targetId, isActive: body.isActive });
+    }
+
+    if (action === "adjustCredits") {
+      const targetId = body.userId?.trim();
+      if (!targetId || !isValidUuid(targetId)) {
+        return json({ error: "Valid userId is required" }, 400);
+      }
+      if (typeof body.delta !== "number" || !Number.isInteger(body.delta) || body.delta === 0) {
+        return json({ error: "delta must be a non-zero integer" }, 400);
+      }
+      const note = typeof body.note === "string" ? body.note.trim() : "";
+      if (!note) {
+        return json({ error: "note is required" }, 400);
+      }
+
+      const { data, error: rpcError } = await userClient.rpc("admin_adjust_premium_credits", {
+        p_user_id: targetId,
+        p_delta: body.delta,
+        p_note: note,
+      });
+      if (rpcError) {
+        return json({ error: rpcError.message || "Couldn't adjust credits" }, 400);
+      }
+
+      const row = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
+      if (row.ok !== true) {
+        return json({
+          ok: false,
+          code: row.code ?? "adjust_failed",
+          error: (typeof row.error === "string" && row.error) || "Couldn't adjust credits",
+          balance: row.balance,
+        }, 400);
+      }
+
+      return json({
+        ok: true,
+        userId: targetId,
+        delta: body.delta,
+        balance: row.balance,
+        ledgerId: row.ledgerId,
+      });
     }
 
     if (action === "list") {

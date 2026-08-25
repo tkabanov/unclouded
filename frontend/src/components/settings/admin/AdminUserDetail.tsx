@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  adjustAdminUserCredits,
   fetchAdminUserDetail,
   generateAdminPreCoachingBrief,
   setAdminUserActive,
@@ -22,6 +23,7 @@ import {
   type AdminUserSessionLog,
 } from "@/lib/settings/admin/adminUserType";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -127,6 +129,9 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
   const [briefOpen, setBriefOpen] = useState(false);
   const [briefLoading, setBriefLoading] = useState(false);
   const [briefText, setBriefText] = useState("");
+  const [creditAmount, setCreditAmount] = useState("1");
+  const [creditNote, setCreditNote] = useState("");
+  const [creditBusy, setCreditBusy] = useState(false);
 
   const reload = useCallback(async () => {
     const detail = await fetchAdminUserDetail(userId);
@@ -163,6 +168,42 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
       setBusy(false);
     }
   }, [busy, onStatusChanged, reload, user]);
+
+  const handleAdjustCredits = useCallback(
+    async (sign: 1 | -1) => {
+      if (!user || creditBusy) return;
+      const amount = Number.parseInt(creditAmount, 10);
+      if (!Number.isInteger(amount) || amount <= 0) {
+        toast.error("Enter a positive whole number of credits.");
+        return;
+      }
+      const note = creditNote.trim();
+      if (!note) {
+        toast.error("Add a note explaining the adjustment.");
+        return;
+      }
+      setCreditBusy(true);
+      try {
+        const result = await adjustAdminUserCredits({
+          userId: user.userId,
+          delta: sign * amount,
+          note,
+        });
+        toast.success(
+          sign > 0
+            ? `Added ${amount} credit${amount === 1 ? "" : "s"}. Balance: ${result.balance}.`
+            : `Removed ${amount} credit${amount === 1 ? "" : "s"}. Balance: ${result.balance}.`,
+        );
+        setCreditNote("");
+        await reload();
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Couldn't adjust credits.");
+      } finally {
+        setCreditBusy(false);
+      }
+    },
+    [creditAmount, creditBusy, creditNote, reload, user],
+  );
 
   const handleGenerateBrief = useCallback(async () => {
     if (!user || briefLoading) return;
@@ -331,6 +372,57 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
                 }`
               : " · Live credit balance is tracked in the user's subscription state."}
           </p>
+
+          <div className="mt-4 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+            <p className="text-xs font-medium text-muted-foreground">
+              Manual credit adjustment (corrections / exceptional refunds)
+            </p>
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="flex w-24 flex-col gap-1 text-xs text-muted-foreground">
+                Amount
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  step={1}
+                  value={creditAmount}
+                  onChange={(event) => setCreditAmount(event.target.value)}
+                  className="bg-background"
+                  disabled={creditBusy}
+                />
+              </label>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={creditBusy}
+                onClick={() => void handleAdjustCredits(1)}
+              >
+                {creditBusy ? "Saving…" : "Add"}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={creditBusy}
+                onClick={() => void handleAdjustCredits(-1)}
+              >
+                Remove
+              </Button>
+            </div>
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              Note (required)
+              <Input
+                value={creditNote}
+                onChange={(event) => setCreditNote(event.target.value)}
+                placeholder="e.g. Exceptional refund after late cancel"
+                maxLength={500}
+                className="bg-background"
+                disabled={creditBusy}
+              />
+            </label>
+          </div>
+
           {user.creditLedger.length > 0 ? (
             <div className="mt-3 space-y-2">
               <p className="text-xs font-medium text-muted-foreground">Credit ledger (latest 50)</p>

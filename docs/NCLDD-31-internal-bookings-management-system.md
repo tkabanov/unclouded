@@ -161,7 +161,7 @@ Once submitted:
 
 ---
 
-### 7. Cancellations & Credit Refunds
+### 7. Cancellations & Credit Refunds — done
 
 [done] Users should be able to cancel their upcoming bookings directly from the platform.
 
@@ -181,12 +181,12 @@ When a booking is canceled:
 
 Admins should have the ability to manually:
 
-- Add credits to a user
-- Remove credits from a user
-- Correct/refund credits
-- Resolve exceptional booking or cancellation cases
+- [done] Add credits to a user
+- [done] Remove credits from a user
+- [done] Correct/refund credits
+- [done] Resolve exceptional booking or cancellation cases
 
-All manual credit adjustments should be recorded in an appropriate transaction/history log where applicable.
+[done] All manual credit adjustments should be recorded in an appropriate transaction/history log where applicable.
 
 ---
 

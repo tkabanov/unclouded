@@ -79,6 +79,32 @@ export async function setAdminUserActive(userId: string, isActive: boolean): Pro
   });
 }
 
+export type AdjustAdminUserCreditsResult = {
+  balance: number;
+  delta: number;
+  ledgerId?: string;
+};
+
+/** Admin add/remove Premium credits (ledger reason adminAdjustment). */
+export async function adjustAdminUserCredits(params: {
+  userId: string;
+  delta: number;
+  note: string;
+}): Promise<AdjustAdminUserCreditsResult> {
+  const payload = await invokeAdminUsers({
+    action: "adjustCredits",
+    userId: params.userId,
+    delta: params.delta,
+    note: params.note,
+  });
+
+  return {
+    balance: typeof payload.balance === "number" ? payload.balance : 0,
+    delta: typeof payload.delta === "number" ? payload.delta : params.delta,
+    ledgerId: typeof payload.ledgerId === "string" ? payload.ledgerId : undefined,
+  };
+}
+
 /** Admin-only Kota's Read preview for a user (no booking, no email). */
 export async function generateAdminPreCoachingBrief(userId: string): Promise<string> {
   const { data, error } = await supabase.functions.invoke("generate-kota-read", {

@@ -24,7 +24,7 @@ import {
   fetchAdminSpecialists,
   type AdminSpecialistRecord,
 } from "@/lib/settings/admin/adminSpecialistsApi";
-import { formatCoachBookingStatusLabel } from "@/lib/coach/coachBookingApi";
+import { formatCoachBookingStatusLabel, cancelOneOnOneBooking } from "@/lib/coach/coachBookingApi";
 import { coachPostSessionFormUrl } from "@/lib/coach/coachPostSessionApi";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
@@ -36,11 +36,17 @@ function formatWhen(iso: string | null): string {
   return new Date(parsed).toLocaleString();
 }
 
+function isUpcomingConfirmed(row: AdminCoachBookingRow): boolean {
+  if (row.status !== "confirmed" || !row.scheduledAt) return false;
+  return new Date(row.scheduledAt).getTime() > Date.now();
+}
+
 function BriefPanel({
   row,
   specialists,
   onCoachEmailSaved,
   onSpecialistReassigned,
+  onCancelled,
 }: {
   row: AdminCoachBookingRow;
   specialists: AdminSpecialistRecord[];
@@ -51,12 +57,14 @@ function BriefPanel({
     specialistName: string | null,
     assignedCoachEmail: string | null,
   ) => void;
+  onCancelled: (bookingId: string) => void;
 }) {
   const brief = resolveAdminCoachBriefText(row);
   const [coachEmail, setCoachEmail] = useState(row.assignedCoachEmail ?? "");
   const [specialistId, setSpecialistId] = useState(row.specialistId ?? "");
   const [saving, setSaving] = useState(false);
   const [reassigning, setReassigning] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     setCoachEmail(row.assignedCoachEmail ?? "");
@@ -126,6 +134,26 @@ function BriefPanel({
     );
     if (result.assignedCoachEmail) setCoachEmail(result.assignedCoachEmail);
     toast.success("Specialist reassigned.");
+  };
+
+  const handleCancel = async () => {
+    if (cancelling) return;
+    setCancelling(true);
+    try {
+      const result = await cancelOneOnOneBooking(row.id);
+      if (result.status === "blocked") {
+        toast.error(result.message);
+        return;
+      }
+      onCancelled(row.id);
+      toast.success(
+        result.refunded
+          ? "Session canceled — credits were refunded (24+ hours before session)."
+          : "Session canceled. No auto-refund within 24 hours — use User Detail to adjust credits if needed.",
+      );
+    } finally {
+      setCancelling(false);
+    }
   };
 
   return (
@@ -202,6 +230,25 @@ function BriefPanel({
       ) : (
         <p className="text-xs text-muted-foreground">No Meet link yet.</p>
       )}
+
+      {isUpcomingConfirmed(row) ? (
+        <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 p-3">
+          <p className="text-xs text-muted-foreground">
+            Exceptional cancel: late cancels (&lt;24h) do not auto-refund. Use User Detail → Manual
+            credit adjustment for corrections.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="text-destructive hover:text-destructive"
+            disabled={cancelling}
+            onClick={() => void handleCancel()}
+          >
+            {cancelling ? "Canceling…" : "Cancel session"}
+          </Button>
+        </div>
+      ) : null}
 
       <div className="space-y-2 border-t border-border/60 pt-3">
         <p className="text-xs font-medium text-muted-foreground">Post-session notes</p>
@@ -415,6 +462,15 @@ export default function AdminCoachBookingsTab() {
                                         specialistName,
                                         assignedCoachEmail,
                                       }
+                                    : entry,
+                                ),
+                              );
+                            }}
+                            onCancelled={(bookingId) => {
+                              setRows((prev) =>
+                                prev.map((entry) =>
+                                  entry.id === bookingId
+                                    ? { ...entry, status: "cancelled" }
                                     : entry,
                                 ),
                               );
