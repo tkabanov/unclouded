@@ -13,6 +13,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import JoinWorkplacePage from "./pages/JoinWorkplacePage.tsx";
+import CoachPostSessionPage from "./pages/CoachPostSessionPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/signup" element={<Index />} />
               <Route path="/join/:code" element={<JoinWorkplacePage />} />
+              <Route path="/coach-session/:token" element={<CoachPostSessionPage />} />
               <Route path="/reset_pw" element={<ResetPassword />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<AdminRouteGuard />}>

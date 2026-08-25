@@ -26,6 +26,10 @@ export type AdminCoachBookingRow = {
   kotaReadEmailedAt: string | null;
   kotaReadEmailDetail: string | null;
   createdAt: string;
+  coachSessionNotes: string | null;
+  postSessionSubmittedAt: string | null;
+  completedAt: string | null;
+  postSessionToken: string | null;
   memberFirstName: string | null;
   memberEmail: string | null;
   specialistName: string | null;
@@ -45,6 +49,10 @@ type CoachBookingRecord = {
   kotaReadEmailedAt: string | null;
   kotaReadEmailDetail: string | null;
   createdAt: string;
+  coachSessionNotes: string | null;
+  postSessionSubmittedAt: string | null;
+  completedAt: string | null;
+  postSessionToken: string | null;
 };
 
 type MemberProfileRow = {
@@ -86,7 +94,7 @@ export async function listCoachBookingsForAdmin(): Promise<AdminCoachBookingRow[
   const { data: bookings, error } = await supabase
     .from("coachBooking")
     .select(
-      "id, userId, scheduledAt, status, kotaRead, kotaReadJson, assignedCoachEmail, specialistId, meetLink, durationMinutes, kotaReadEmailedAt, kotaReadEmailDetail, createdAt",
+      "id, userId, scheduledAt, status, kotaRead, kotaReadJson, assignedCoachEmail, specialistId, meetLink, durationMinutes, kotaReadEmailedAt, kotaReadEmailDetail, createdAt, coachSessionNotes, postSessionSubmittedAt, completedAt, postSessionToken",
     )
     .order("createdAt", { ascending: false })
     .limit(50);

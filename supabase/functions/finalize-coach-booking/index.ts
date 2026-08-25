@@ -10,6 +10,8 @@
  * Auth: user JWT; booking must belong to caller (or admin).
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { createGoogleMeetEvent } from "../_shared/googleCalendar.ts";
+import { coachPostSessionFormUrl } from "../_shared/appOrigin.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
   isSendGridConfigured,
@@ -55,174 +57,6 @@ function formatSessionWhen(iso: string, durationMinutes: number): string {
   })} (${durationMinutes} min)`;
 }
 
-async function createGoogleMeetEvent(params: {
-  summary: string;
-  description: string;
-  startsAt: string;
-  durationMinutes: number;
-  attendeeEmails: string[];
-}): Promise<{ meetLink: string | null; eventId: string | null; detail: string }> {
-  const rawJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON")?.trim();
-  const calendarId = Deno.env.get("GOOGLE_CALENDAR_ID")?.trim();
-  if (!rawJson || !calendarId) {
-    return {
-      meetLink: null,
-      eventId: null,
-      detail: "google:skipped — GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_CALENDAR_ID not set",
-    };
-  }
-
-  let sa: {
-    client_email?: string;
-    private_key?: string;
-    token_uri?: string;
-  };
-  try {
-    sa = JSON.parse(rawJson) as typeof sa;
-  } catch {
-    return { meetLink: null, eventId: null, detail: "google:invalid_service_account_json" };
-  }
-
-  if (!sa.client_email || !sa.private_key) {
-    return { meetLink: null, eventId: null, detail: "google:incomplete_service_account" };
-  }
-
-  try {
-    const accessToken = await googleServiceAccountAccessToken(sa);
-    const start = new Date(params.startsAt);
-    const end = new Date(start.getTime() + params.durationMinutes * 60_000);
-    const requestId = crypto.randomUUID();
-
-    const body = {
-      summary: params.summary,
-      description: params.description,
-      start: { dateTime: start.toISOString() },
-      end: { dateTime: end.toISOString() },
-      attendees: params.attendeeEmails
-        .filter((email) => email.includes("@"))
-        .map((email) => ({ email })),
-      conferenceData: {
-        createRequest: {
-          requestId,
-          conferenceSolutionKey: { type: "hangoutsMeet" },
-        },
-      },
-    };
-
-    const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?conferenceDataVersion=1`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      },
-    );
-
-    if (!res.ok) {
-      const text = await res.text();
-      return {
-        meetLink: null,
-        eventId: null,
-        detail: `google_error: ${res.status} ${text.slice(0, 400)}`,
-      };
-    }
-
-    const event = (await res.json()) as {
-      id?: string;
-      hangoutLink?: string;
-      conferenceData?: { entryPoints?: Array<{ entryPointType?: string; uri?: string }> };
-    };
-
-    const meetFromEntry = event.conferenceData?.entryPoints?.find(
-      (entry) => entry.entryPointType === "video",
-    )?.uri;
-    const meetLink = event.hangoutLink?.trim() || meetFromEntry?.trim() || null;
-
-    return {
-      meetLink,
-      eventId: typeof event.id === "string" ? event.id : null,
-      detail: meetLink ? "google:created" : "google:created_without_meet_link",
-    };
-  } catch (err) {
-    return {
-      meetLink: null,
-      eventId: null,
-      detail: `google_error: ${err instanceof Error ? err.message : "unknown"}`,
-    };
-  }
-}
-
-async function googleServiceAccountAccessToken(sa: {
-  client_email?: string;
-  private_key?: string;
-  token_uri?: string;
-}): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: "RS256", typ: "JWT" };
-  const claim = {
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/calendar",
-    aud: sa.token_uri || "https://oauth2.googleapis.com/token",
-    iat: now,
-    exp: now + 3600,
-  };
-
-  const encode = (value: unknown) =>
-    btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value))))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-
-  const unsigned = `${encode(header)}.${encode(claim)}`;
-  const key = await crypto.subtle.importKey(
-    "pkcs8",
-    pemToArrayBuffer(sa.private_key!),
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    key,
-    new TextEncoder().encode(unsigned),
-  );
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-  const jwt = `${unsigned}.${sigB64}`;
-  const tokenRes = await fetch(sa.token_uri || "https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: jwt,
-    }),
-  });
-
-  if (!tokenRes.ok) {
-    throw new Error(`token_exchange_${tokenRes.status}`);
-  }
-  const tokenJson = (await tokenRes.json()) as { access_token?: string };
-  if (!tokenJson.access_token) throw new Error("token_missing");
-  return tokenJson.access_token;
-}
-
-function pemToArrayBuffer(pem: string): ArrayBuffer {
-  const cleaned = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/g, "")
-    .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/\s+/g, "");
-  const binary = atob(cleaned);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes.buffer;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -249,7 +83,7 @@ Deno.serve(async (req) => {
   const { data: booking, error: bookingError } = await admin
     .from("coachBooking")
     .select(
-      "id, userId, scheduledAt, status, specialistId, assignedCoachEmail, durationMinutes, meetLink, googleEventId",
+      "id, userId, scheduledAt, status, specialistId, assignedCoachEmail, durationMinutes, meetLink, googleEventId, postSessionToken",
     )
     .eq("id", bookingId)
     .maybeSingle();
@@ -331,6 +165,19 @@ Deno.serve(async (req) => {
   const meetLine = meetLink
     ? `Google Meet: ${meetLink}`
     : "Google Meet link will follow shortly.";
+  const postSessionToken =
+    typeof booking.postSessionToken === "string" && booking.postSessionToken.trim()
+      ? booking.postSessionToken.trim()
+      : null;
+  const postSessionUrl = postSessionToken
+    ? coachPostSessionFormUrl(postSessionToken)
+    : null;
+  const postSessionLine = postSessionUrl
+    ? `Submit session notes: ${postSessionUrl}`
+    : "";
+  const postSessionHtml = postSessionUrl
+    ? `<p><a href="${postSessionUrl}">Submit session notes</a> (after the session)</p>`
+    : "";
 
   const sendgrid = readSendGridEnv();
   const emailResults: Record<string, string> = {};
@@ -359,12 +206,12 @@ Deno.serve(async (req) => {
       const coachMail = await sendTransactionalEmail({
         to: specialistEmail,
         subject: `1:1 session confirmed with ${memberName}`,
-        text: `A 1:1 coaching session is confirmed.\n\nMember: ${memberName}\nWhen: ${whenLabel}\n${meetLine}\n`,
+        text: `A 1:1 coaching session is confirmed.\n\nMember: ${memberName}\nWhen: ${whenLabel}\n${meetLine}\n${postSessionLine ? `${postSessionLine}\n` : ""}`,
         html: `<p>A 1:1 coaching session is confirmed.</p><p><strong>Member:</strong> ${memberName}</p><p><strong>When:</strong> ${whenLabel}</p><p>${
           meetLink
             ? `<a href="${meetLink}">Join Google Meet</a>`
             : "Google Meet link will follow shortly."
-        }</p>`,
+        }</p>${postSessionHtml}`,
       });
       emailResults.specialist = coachMail.detail;
     } else {

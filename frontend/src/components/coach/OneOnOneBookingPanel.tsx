@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  cancelOneOnOneBooking,
   confirmOneOnOneBooking,
   fetchMyCoachBookings,
   formatCoachBookingStatusLabel,
@@ -15,6 +16,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const SLOT_LOOKAHEAD_DAYS = 14;
+
+function isUpcomingConfirmed(row: CoachBookingRow): boolean {
+  if (row.status !== "confirmed" || !row.scheduledAt) return false;
+  return new Date(row.scheduledAt).getTime() > Date.now();
+}
 
 type OneOnOneBookingPanelProps = {
   bookable: boolean;
@@ -137,6 +143,29 @@ export default function OneOnOneBookingPanel({
     selectedSlot,
   ]);
 
+  const handleCancel = useCallback(
+    async (bookingId: string) => {
+      if (busy) return;
+      onBusyChange(true);
+      try {
+        const result = await cancelOneOnOneBooking(bookingId);
+        if (result.status === "blocked") {
+          toast.error(result.message);
+          return;
+        }
+        toast.success(
+          result.refunded
+            ? "Session canceled — your credits were returned."
+            : "Session canceled. Credits are not refunded within 24 hours of the session.",
+        );
+        await Promise.all([reloadSlots(), reloadHistory(), onBooked()]);
+      } finally {
+        onBusyChange(false);
+      }
+    },
+    [busy, onBooked, onBusyChange, reloadHistory, reloadSlots],
+  );
+
   return (
     <div className="space-y-3 rounded-lg border border-border/60 p-3">
       <div>
@@ -253,6 +282,24 @@ export default function OneOnOneBookingPanel({
                   >
                     Join Meet
                   </a>
+                ) : null}
+                {row.status === "completed" && row.coachSessionNotes?.trim() ? (
+                  <p className="whitespace-pre-wrap text-muted-foreground">
+                    <span className="font-medium text-foreground">Coach notes: </span>
+                    {row.coachSessionNotes.trim()}
+                  </p>
+                ) : null}
+                {isUpcomingConfirmed(row) ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 self-start px-2 text-xs text-muted-foreground hover:text-destructive"
+                    disabled={busy}
+                    onClick={() => void handleCancel(row.id)}
+                  >
+                    Cancel
+                  </Button>
                 ) : null}
               </li>
             ))}

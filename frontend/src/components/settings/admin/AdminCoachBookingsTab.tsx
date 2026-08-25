@@ -25,6 +25,7 @@ import {
   type AdminSpecialistRecord,
 } from "@/lib/settings/admin/adminSpecialistsApi";
 import { formatCoachBookingStatusLabel } from "@/lib/coach/coachBookingApi";
+import { coachPostSessionFormUrl } from "@/lib/coach/coachPostSessionApi";
 import { bubbleStyle } from "@/styles";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,19 @@ function BriefPanel({
       toast.success("Brief copied to clipboard.");
     } catch {
       toast.error("Could not copy brief.");
+    }
+  };
+
+  const handleCopyFormLink = async () => {
+    if (!row.postSessionToken) {
+      toast.error("No post-session form link for this booking.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(coachPostSessionFormUrl(row.postSessionToken));
+      toast.success("Post-session form link copied.");
+    } catch {
+      toast.error("Could not copy form link.");
     }
   };
 
@@ -188,6 +202,34 @@ function BriefPanel({
       ) : (
         <p className="text-xs text-muted-foreground">No Meet link yet.</p>
       )}
+
+      <div className="space-y-2 border-t border-border/60 pt-3">
+        <p className="text-xs font-medium text-muted-foreground">Post-session notes</p>
+        {row.coachSessionNotes?.trim() ? (
+          <pre
+            className={cn(
+              bubbleStyle("Group_card_muted_"),
+              "max-h-48 overflow-auto whitespace-pre-wrap p-3 text-sm leading-relaxed",
+            )}
+          >
+            {row.coachSessionNotes.trim()}
+          </pre>
+        ) : (
+          <p className="text-sm text-muted-foreground">No notes submitted yet.</p>
+        )}
+        {row.postSessionSubmittedAt ? (
+          <p className="text-xs text-muted-foreground">
+            Submitted {formatWhen(row.postSessionSubmittedAt)}
+            {row.completedAt ? ` · Completed ${formatWhen(row.completedAt)}` : null}
+          </p>
+        ) : null}
+        {row.postSessionToken ? (
+          <Button type="button" size="sm" variant="outline" onClick={() => void handleCopyFormLink()}>
+            <Copy className="mr-2 h-4 w-4" aria-hidden />
+            Copy post-session form link
+          </Button>
+        ) : null}
+      </div>
 
       {!brief ? (
         <p className="text-sm text-muted-foreground">

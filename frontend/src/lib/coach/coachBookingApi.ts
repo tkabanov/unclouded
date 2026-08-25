@@ -22,6 +22,7 @@ export { listBookableOneOnOneSlots, type BookableOneOnOneSlot };
 
 const KOTA_READ_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-kota-read`;
 const FINALIZE_BOOKING_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/finalize-coach-booking`;
+const CANCEL_BOOKING_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-coach-booking`;
 
 export type CoachBookingRow = {
   id: string;
@@ -32,6 +33,7 @@ export type CoachBookingRow = {
   createdAt: string;
   meetLink?: string | null;
   durationMinutes?: number | null;
+  coachSessionNotes?: string | null;
 };
 
 export type OneOnOneBookingResult =
@@ -135,6 +137,68 @@ export async function finalizeCoachBooking(bookingId: string): Promise<void> {
     });
   } catch {
     // Booking is already confirmed; Meet/email can be retried later.
+  }
+}
+
+export type CancelOneOnOneBookingResult =
+  | {
+      status: "ok";
+      bookingId: string;
+      refunded: boolean;
+      refundedAmount?: number;
+      balance?: number;
+    }
+  | { status: "blocked"; code: string; message: string };
+
+/** Cancel a confirmed upcoming 1:1; refunds credits when 24+ hours before session. */
+export async function cancelOneOnOneBooking(
+  bookingId: string,
+): Promise<CancelOneOnOneBookingResult> {
+  const headers = await authHeaders();
+  if (!headers) {
+    return {
+      status: "blocked",
+      code: "unauthorized",
+      message: "Please sign in again to cancel.",
+    };
+  }
+
+  try {
+    const response = await fetch(CANCEL_BOOKING_ENDPOINT, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ bookingId }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+
+    if (!response.ok || payload.ok !== true) {
+      return {
+        status: "blocked",
+        code:
+          (typeof payload.code === "string" && payload.code) ||
+          (typeof payload.error === "string" && payload.error) ||
+          "cancel_failed",
+        message:
+          (typeof payload.error === "string" && payload.error) ||
+          "Could not cancel this session. Please try again.",
+      };
+    }
+
+    return {
+      status: "ok",
+      bookingId:
+        (typeof payload.bookingId === "string" && payload.bookingId) || bookingId,
+      refunded: payload.refunded === true,
+      refundedAmount:
+        typeof payload.refundedAmount === "number" ? payload.refundedAmount : undefined,
+      balance: typeof payload.balance === "number" ? payload.balance : undefined,
+    };
+  } catch {
+    return {
+      status: "blocked",
+      code: "request_failed",
+      message: "Could not cancel this session. Please try again.",
+    };
   }
 }
 
@@ -346,7 +410,7 @@ export async function fetchMyCoachBookings(limit = 20): Promise<CoachBookingRow[
 
   const { data, error } = await supabase
     .from("coachBooking")
-    .select("id, userId, scheduledAt, status, kotaRead, createdAt, meetLink, durationMinutes")
+    .select("id, userId, scheduledAt, status, kotaRead, createdAt, meetLink, durationMinutes, coachSessionNotes")
     .eq("userId", user.id)
     .order("scheduledAt", { ascending: false, nullsFirst: false })
     .limit(limit);

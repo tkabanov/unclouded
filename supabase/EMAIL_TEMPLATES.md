@@ -130,6 +130,34 @@ Edge function: `supabase/functions/reassessment-due`.
 
 **Schedule (live):** `pg_cron` job `daily-reassessment-due` at **15:00 UTC** → `invoke_scheduled_edge_function('reassessment-due')`. Frontend hooks may also invoke the same function for dry-run/cohort checks.
 
+### 1:1 coaching session reminders (NCLDD-31 §5)
+
+Edge function: `supabase/functions/coach-booking-reminders`.
+
+- Selects **confirmed** `coachBooking` rows in a 24h window (`scheduledAt` in now+23h…now+25h, `reminder24hSentAt` null) or 1h window (now+50m…now+70m, `reminder1hSentAt` null).
+- Sends reminder emails to the member (`profiles.email`) and assigned specialist (`assignedCoachEmail`) via SendGrid when configured; otherwise stamps with smtp skip detail.
+- Stamps `reminder24hSentAt` / `reminder1hSentAt` (+ detail columns) after each attempt so retries do not double-send.
+- Canceled sessions are excluded by `status = 'confirmed'`.
+- Auth: `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` or header `x-cron-secret: <COACH_BOOKING_REMINDERS_CRON_SECRET>`.
+
+**Schedule:** `pg_cron` job `every-5m-coach-booking-reminders` every **5 minutes** → `invoke_scheduled_edge_function('coach-booking-reminders')` (vault: `project_url`, `edge_cron_service_role_key`, optional `coach_booking_reminders_cron_secret`). Migration: `20260825130000_coach_booking_reminders.sql`.
+
+Manual smoke:
+```sql
+SELECT public.invoke_scheduled_edge_function('coach-booking-reminders');
+-- then: SELECT id, status_code, content FROM net._http_response ORDER BY id DESC LIMIT 1;
+```
+
+### Post-session coach notes form (NCLDD-31 §6)
+
+Edge function: `supabase/functions/coach-post-session`.
+
+- Public form at `{APP_ORIGIN}/coach-session/:token` — no login; token is `coachBooking.postSessionToken` (UUID issued at internal 1:1 confirm).
+- **Peek:** POST `{ token, action: "peek" }` → minimal session info (when, member first name, already submitted).
+- **Submit:** POST `{ token, action: "submit", notes }` → stores `coachSessionNotes`, marks booking `completed`.
+- Rate-limited per client IP via `consume_edge_rate_limit`.
+- Specialist emails from **finalize-coach-booking** and **coach-booking-reminders** include a “Submit session notes” link when `postSessionToken` is set.
+
 ### Onboarding drop-off (US-905)
 
 Edge function: `supabase/functions/onboarding-dropoff`.

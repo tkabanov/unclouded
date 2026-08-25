@@ -126,3 +126,10 @@ export function resolveRequestAppOrigin(
 export function appOrigin(): string {
   return canonicalAppOrigin();
 }
+
+/** Public post-session notes form URL for a booking token (NCLDD-31 §6). */
+export function coachPostSessionFormUrl(token: string): string {
+  const trimmed = token.trim();
+  if (!trimmed) return canonicalAppOrigin();
+  return `${canonicalAppOrigin()}/coach-session/${encodeURIComponent(trimmed)}`;
+}

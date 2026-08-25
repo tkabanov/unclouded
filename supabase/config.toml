@@ -86,6 +86,18 @@ verify_jwt = true
 [functions.finalize-coach-booking]
 verify_jwt = true
 
+# NCLDD-31 §4 / §7 — Cancel confirmed 1:1 + delete Google Calendar event.
+[functions.cancel-coach-booking]
+verify_jwt = true
+
+# NCLDD-31 §5 — 24h / 1h reminders for confirmed 1:1 (pg_cron).
+[functions.coach-booking-reminders]
+verify_jwt = false
+
+# NCLDD-31 §6 — Public post-session coach notes form (tokenized).
+[functions.coach-post-session]
+verify_jwt = false
+
 # Standalone Kota prompts (AI Prompt Specifications).
 [functions.generate-journal-reflection]
 verify_jwt = true
