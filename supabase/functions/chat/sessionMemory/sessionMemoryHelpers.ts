@@ -154,6 +154,35 @@ export function buildSessionMemoryOnboardingPatch(
   return patch;
 }
 
+/** CL-7: append/replace a human-coach 1:1 notes record in chat_session_memory. */
+export function buildHumanCoachSessionMemoryRecord(
+  bookingId: string,
+  notes: string,
+  closedAt = new Date().toISOString(),
+): SessionMemoryRecord {
+  return {
+    conversationId: `human-coach:${bookingId}`,
+    closedAt,
+    topic: "1:1 live coaching",
+    summaryStub: truncateToMaxWords(notes.trim(), MAX_SESSION_SUMMARY_WORDS),
+    coachingModeUsed: "human_coach_1on1",
+  };
+}
+
+export function appendOrReplaceSessionMemoryRecord(
+  onboardingData: Record<string, unknown>,
+  record: SessionMemoryRecord,
+): Record<string, unknown> {
+  const prior = readSessionMemoryRecords(onboardingData).filter(
+    (entry) => entry.conversationId !== record.conversationId,
+  );
+  return {
+    ...onboardingData,
+    [LAST_SESSION_TOPIC_KEY]: record.topic,
+    [CHAT_SESSION_MEMORY_KEY]: [...prior, record].slice(-MAX_SESSION_MEMORY_RECORDS),
+  };
+}
+
 function formatField(label: string, value: string | null | undefined): string {
   if (value?.trim()) return `${label}=${sanitizePromptField(value, 400)}`;
   return `${label}=not recorded`;

@@ -124,7 +124,11 @@ export async function adminCreateGroupSessions(params: {
   durationMinutes: number;
   capacity: number;
   recurrenceWeeks: number;
-}): Promise<{ sessionIds: string[] }> {
+}): Promise<{
+  sessionIds: string[];
+  meetFinalize: "ok" | "failed" | "skipped";
+  meetDetail?: string;
+}> {
   const { data, error } = await callRpc("admin_create_group_coaching_sessions", {
     p_title: params.title,
     p_description: params.description,
@@ -149,23 +153,40 @@ export async function adminCreateGroupSessions(params: {
     : [];
 
   if (sessionIds.length > 0) {
-    void supabase.functions.invoke("finalize-group-sessions", {
-      body: { sessionIds },
-    });
+    const { data: finalizeData, error: finalizeError } = await supabase.functions.invoke(
+      "finalize-group-sessions",
+      { body: { sessionIds } },
+    );
+    if (finalizeError) {
+      return {
+        sessionIds,
+        meetFinalize: "failed" as const,
+        meetDetail: finalizeError.message || "Meet/Calendar finalize failed.",
+      };
+    }
+    const detail =
+      finalizeData && typeof finalizeData === "object"
+        ? JSON.stringify(finalizeData).slice(0, 200)
+        : undefined;
+    return { sessionIds, meetFinalize: "ok" as const, meetDetail: detail };
   }
 
-  return { sessionIds };
+  return { sessionIds, meetFinalize: "skipped" as const };
 }
 
 export async function adminCancelGroupSession(sessionId: string): Promise<void> {
-  const { data, error } = await callRpc("admin_cancel_group_coaching_session", {
-    p_session_id: sessionId,
+  const { data, error } = await supabase.functions.invoke("cancel-group-coaching-session", {
+    body: { sessionId },
   });
-  if (error || !data || typeof data !== "object" || (data as { ok?: boolean }).ok !== true) {
-    const message =
-      data && typeof data === "object" && typeof (data as { error?: string }).error === "string"
-        ? (data as { error: string }).error
-        : "Couldn't cancel session.";
-    throw new Error(message);
+
+  if (error) {
+    throw new Error(error.message || "Couldn't cancel session.");
+  }
+
+  const row = data && typeof data === "object" ? (data as Record<string, unknown>) : null;
+  if (!row || row.ok !== true) {
+    throw new Error(
+      (row && typeof row.error === "string" && row.error) || "Couldn't cancel session.",
+    );
   }
 }

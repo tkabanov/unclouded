@@ -44,6 +44,7 @@ export type AdminBookingRow = {
   kotaReadEmailDetail: string | null;
   postSessionToken: string | null;
   postSessionSubmittedAt: string | null;
+  postSessionFormStatus: "pending" | "submitted" | "n/a" | string;
   completedAt: string | null;
   createdAt: string;
   cancelledAt: string | null;
@@ -106,6 +107,7 @@ function mapRow(raw: Record<string, unknown>): AdminBookingRow | null {
     kotaReadEmailDetail: asString(raw.kotaReadEmailDetail),
     postSessionToken: asString(raw.postSessionToken),
     postSessionSubmittedAt: asString(raw.postSessionSubmittedAt),
+    postSessionFormStatus: asString(raw.postSessionFormStatus) ?? "n/a",
     completedAt: asString(raw.completedAt),
     createdAt: asString(raw.createdAt) ?? new Date(0).toISOString(),
     cancelledAt: asString(raw.cancelledAt),
@@ -157,6 +159,21 @@ export function formatAdminDisplayStatus(status: string | null | undefined): str
       return "Waitlisted";
     default:
       return status ? status.charAt(0).toUpperCase() + status.slice(1) : "—";
+  }
+}
+
+export function formatAdminPostSessionFormStatus(
+  status: string | null | undefined,
+): string {
+  switch (status) {
+    case "pending":
+      return "Pending";
+    case "submitted":
+      return "Submitted";
+    case "n/a":
+      return "N/A";
+    default:
+      return status ?? "—";
   }
 }
 

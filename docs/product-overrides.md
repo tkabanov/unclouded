@@ -289,9 +289,8 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 |---|---|
 | **Date** | 2026-07-27 |
 | **Overrides** | Phase 2 §7 — 1:1 coaching "included with Premium membership", **50 minutes**, priced $0 in Wix |
-| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session) |
-| **Current behavior** | Premium accrues **one credit per paid month**; **two credits** book one **30-minute** session. Requesting a session places a **hold** on the credits so the same credits cannot be booked twice, the hold becomes a redemption once the session is confirmed, and it is released — by cancellation or by the daily sweep after 14 days — if the session never happens. Unused credits expire when Premium access ends or a downgrade takes effect. |
-| **Open question** | Session length is 30 minutes per the new doc; Phase 2 §7 says 50. Confirm with the client before the coaching team publishes availability. |
+| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session); refined 2026-08-27 by OVR-059 / `docs/NCLDD-31-internal-bookings-management-system.md` CL-1 |
+| **Current behavior** | **Premium only** for 1:1. **Two coaching credits** book one **30-minute** session. See **OVR-059** for signup grant, calendar-month accrual, balance cap, and Free-tier block. Hold → redeem / release mechanics from the original credits migration remain unless replaced by the OVR-059 implementation. Unused credits still expire when Premium access ends or a downgrade takes effect. Credits never apply to group sessions. |
 | **Code** | `supabase/migrations/20260727120000_premium_credits_and_bookings.sql`, `frontend/src/lib/coach/coachBookingApi.ts`, `frontend/src/lib/coach/coachBookingEntitlements.ts`, `frontend/src/components/coach/BookCoachCard.tsx` |
 
 ### OVR-028 — One group session a month is included in Pro (no $97 add-on)
@@ -300,8 +299,8 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 |---|---|
 | **Date** | 2026-07-27 |
 | **Overrides** | Phase 2 §1 — group coaching sold as a **$97/month add-on** |
-| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session) |
-| **Current behavior** | Pro and Premium include **one group session per calendar month**. The cap is enforced server-side by `request_group_session_booking` plus a partial unique index on `(userId, periodMonth)`, replacing the previous toast that recorded nothing. |
+| **Authoritative spec** | `docs/Unclouded _ Individual Subscription Management Flow.md` (owner confirmed in session); refined 2026-08-27 by OVR-060 / `docs/NCLDD-31-internal-bookings-management-system.md` CL-1 / CL-6 |
+| **Current behavior** | Pro and Premium include **one group session per calendar month** (no credit wallet). Free users cannot book. See **OVR-060** for `group_sessions_used_this_month`, monthly reset, cancel/admin counter rules, and blocked copy. Prior enforcement via `request_group_session_booking` + `(userId, periodMonth)` unique index is the interim implementation until OVR-060 lands. |
 | **Code** | `supabase/migrations/20260727120000_premium_credits_and_bookings.sql`, `frontend/src/components/coach/BookCoachCard.tsx` |
 
 ### OVR-029 — Returning to Free happens only through cancellation
@@ -593,4 +592,57 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Authoritative spec** | `docs/referral-program-requirements.md`; locked decisions in `docs/referral-program-agent-tasks.md` REF-00 |
 | **Current behavior** | **Both channels.** Admin manages `referral_partners` (CRUD, activate/deactivate, unique codes, copyable `/signup?ref={CODE}` links) plus Referral Dashboard and partner referred-user stats under `/admin/referral-partners`. Signup resolves `?ref=` **partner-first** (active partner only) else organic `profiles.referralCode` → `referredByUserId`. Partner attribution on `profiles`: `referralPartnerId`, `referralPartnerCode`, `referredAt` (+ optional correction audit). Inactive partner: no new attribution; history kept; signup soft-fails. Session first-touch via existing `sessionStorage`. Organic share cards and Analytics “Referral sign-ups” unchanged. Commissions, partner self-serve portal, and payouts remain out of scope. |
 | **Code** | `supabase/migrations/*_referral_partners.sql`, `frontend/src/lib/settings/admin/referralPartnersApi.ts`, `frontend/src/lib/settings/admin/referralPartnerStats.ts`, `frontend/src/components/settings/admin/AdminReferralPartnersTab.tsx`, `AdminReferralPartnerDetail.tsx`, `AdminReferralDashboard.tsx`, `AddReferralPartnerPopup.tsx`, `AdminUserDetail.tsx`, `frontend/src/lib/share/referralAttribution.ts` |
+
+### OVR-059 — Coaching credits: signup 2, +1 on the 1st, cap 6
+
+| | |
+|---|---|
+| **Date** | 2026-08-27 |
+| **Overrides** | OVR-027 “one credit per paid month” accrual wording; Phase 2 / Wix “included session” framing |
+| **Authoritative spec** | `docs/NCLDD-31-internal-bookings-management-system.md` CL-1 (client 2026-08-27) |
+| **Current behavior** | Wallet via `premiumCreditLedger` / `available_premium_credits` (not a separate `coaching_credits` column). Premium sign-up pre-loads **2** credits once (`signup_grant`). On the **1st of each month** (UTC), Premium users receive **+1** (`monthly_accrual`) if balance is below the cap. Credits **roll over**. Maximum balance **6**; accrual and cancel refunds stop at the cap. Cost remains **2** credits per 1:1 session (OVR-027). Invoice.paid no longer grants +1 per cycle. Free users cannot book 1:1. |
+| **Open question** | — (G4/G5 resolved) |
+| **Code** | `supabase/migrations/20260827160000_premium_credit_cap_signup_monthly.sql`; `premiumCreditGrant.ts`; monthly run from `subscription-lifecycle` |
+
+### OVR-060 — Group monthly gate via `group_sessions_used_this_month`
+
+| | |
+|---|---|
+| **Date** | 2026-08-27 |
+| **Overrides** | OVR-028 period-unique index framing as the sole gate; any credit-wallet treatment of group seats |
+| **Authoritative spec** | `docs/NCLDD-31-internal-bookings-management-system.md` CL-1 / CL-6 |
+| **Current behavior** | User field `profiles.groupSessionsUsedThisMonth` (0/1 monthly gate, not a wallet; docs alias `group_sessions_used_this_month`). Reset to **0** on the **1st** UTC via `subscription-lifecycle`. Book only if counter is **0**, then set to **1** on **registered** (waitlist does not consume). Blocked copy: `You've used your included group session for this month. Your next session is available on [date].` User cancel ≥24h → reset to **0**; cancel under 24h → stays **1** (spot still frees; waitlist still promotes). Admin cancels entire session → reset to **0** for registered/offered + email all enrolled. Free cannot book. Waitlist promote **skips** counter=1 (G6). |
+| **Open question** | **G6 resolved:** skip. |
+| **Code** | `20260827200000_group_sessions_used_this_month.sql`; `cancel-group-coaching-session` edge; `reset_group_sessions_used_this_month` from `subscription-lifecycle` / `premiumCreditGrant.ts`. Period-month unique index retained as secondary defense. |
+
+### OVR-061 — Users choose 1:1 coaches (roster + book again)
+
+| | |
+|---|---|
+| **Date** | 2026-08-27 |
+| **Overrides** | NCLDD-31 earlier rule “users should not see specialist names”; anonymized consolidated calendar + post-confirm auto-assign as the only path |
+| **Authoritative spec** | `docs/NCLDD-31-internal-bookings-management-system.md` CL-9 |
+| **Current behavior** | Users see and **select** coaches for 1:1. Returning users: most recent coach first with **“Book again with [Coach Name]”** and that coach’s slots prominent. First-time: full roster (name, photo, ~2-line bio) with slots. Browse-all coaches always available. Confirmation email and session history show **coach name**. |
+| **Code** | `supabase/migrations/20260827150000_one_on_one_coach_choice.sql`; `OneOnOneBookingPanel` / `coachBookingApi`; user confirmation coach name in `finalize-coach-booking` |
+
+### OVR-062 — Coach load-based auto-assign, reassignment, deactivation guard
+
+| | |
+|---|---|
+| **Date** | 2026-08-27 |
+| **Overrides** | Simple “any available specialist” assignment; silent reassignment; deactivate coach with future bookings |
+| **Authoritative spec** | `docs/NCLDD-31-internal-bookings-management-system.md` CL-2 / CL-3 / CL-10 |
+| **Current behavior** | Where the system still auto-assigns (non–user-selected paths): prefer coach with **lowest session load this calendar month**; ties → **random**. Admin may override any assignment anytime. On reassignment: update Google Calendar event; notify previous coach (removed); invite + notify new coach; notify user; **resend** Pre-Coaching Brief (OVR-045 / Kota's Read) to the new coach. Deactivation **blocked** while the coach has upcoming sessions — warning `This coach has [X] upcoming sessions. Please reassign or cancel them before deactivating.` No auto-reassign/auto-cancel. |
+| **Code** | Deactivation guard: `admin_set_specialist_active` + `20260827140000_specialist_timezone_and_deactivation_guard.sql`. CL-2: `pick_specialist_for_one_on_one_slot` in `20260827150000_one_on_one_coach_choice.sql`. Reassignment: `20260827170000_admin_reassign_coach_side_effects.sql` + `reassign-coach-booking` edge + `updateGoogleCalendarEventAttendees` |
+
+### OVR-063 — Bookings runtime: multi-TZ, Meet for group, Complete at end, waitlist 2h
+
+| | |
+|---|---|
+| **Date** | 2026-08-27 |
+| **Overrides** | EST/hardcoded TZ assumptions; Meet only for 1:1; Completed gated on post-session form; waitlist claim window **24 hours** (prior NCLDD-31 / test plan) |
+| **Authoritative spec** | `docs/NCLDD-31-internal-bookings-management-system.md` CL-4 / CL-5 / CL-7 / CL-8 |
+| **Current behavior** | Slots UI in **device-local** TZ. User emails in **user** TZ; coach emails in **coach** TZ. 24h cancel rule computed in **UTC**, shown in user TZ. Unique Google Meet at creation for **both** 1:1 and group. Status → **Completed** automatically when scheduled **end time** passes (`complete_ended_coach_bookings`); coach post-session form tracked separately via `postSessionSubmittedAt` (pending/submitted) and feeds **Kota** by appending into `chat_session_memory`. **5-minute** warning to the user before session end (**email only**, G3). Waitlist claim window **2 hours**; on expiry auto-offer next in FIFO until claimed or exhausted. |
+| **Open question** | **G3/G9 resolved.** **G1/G2 resolved:** coach TZ = `specialist.timezone`; user TZ = `profiles.timeZone` (empty → UTC). |
+| **Code** | Coach + user TZ mailers: `sessionWhenLabel.ts`, finalize/reminders/cancel/reassign/cancel-group. Waitlist offer mail: `group-coaching-waitlist` uses member `profiles.timeZone`. Group Meet: `finalize-group-sessions`. 5-min end warning + Complete-at-end: `coach-booking-reminders` / `complete_ended_coach_bookings`. Form/Kota: `coach-post-session`. Waitlist claim **2h**: `20260827210000_group_waitlist_claim_window_2h.sql`. |
 

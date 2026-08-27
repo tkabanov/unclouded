@@ -11,6 +11,7 @@ export interface AdminSpecialistRecord {
   email: string;
   imageUrl: string | null;
   bio: string;
+  timezone: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -20,6 +21,7 @@ export type AdminSpecialistFormState = {
   name: string;
   email: string;
   bio: string;
+  timezone: string;
   isActive: boolean;
   imageUrl: string | null;
 };
@@ -30,6 +32,7 @@ type SpecialistRow = {
   email?: string;
   imageUrl?: string | null;
   bio?: string | null;
+  timezone?: string | null;
   isActive?: boolean | null;
   createdAt?: string;
   updatedAt?: string;
@@ -37,7 +40,14 @@ type SpecialistRow = {
 
 type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
+  rpc: (
+    fn: string,
+    args?: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: { message?: string; code?: string } | null }>;
 };
+
+const SPECIALIST_SELECT =
+  "id, name, email, imageUrl, bio, timezone, isActive, createdAt, updatedAt" as const;
 
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
@@ -45,6 +55,11 @@ function normalizeEmail(value: string): string {
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function normalizeTimezone(value: string | null | undefined): string | null {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed || null;
 }
 
 function toAdminSpecialist(row: SpecialistRow): AdminSpecialistRecord | null {
@@ -59,6 +74,7 @@ function toAdminSpecialist(row: SpecialistRow): AdminSpecialistRecord | null {
     email,
     imageUrl: row.imageUrl?.trim() || null,
     bio: row.bio?.trim() ?? "",
+    timezone: normalizeTimezone(row.timezone),
     isActive: row.isActive ?? true,
     createdAt: row.createdAt ?? "",
     updatedAt: row.updatedAt ?? "",
@@ -70,6 +86,7 @@ export function emptyAdminSpecialistForm(): AdminSpecialistFormState {
     name: "",
     email: "",
     bio: "",
+    timezone: "",
     isActive: true,
     imageUrl: null,
   };
@@ -82,6 +99,7 @@ export function adminSpecialistToForm(
     name: specialist.name,
     email: specialist.email,
     bio: specialist.bio,
+    timezone: specialist.timezone ?? "",
     isActive: specialist.isActive,
     imageUrl: specialist.imageUrl,
   };
@@ -91,6 +109,7 @@ function validateForm(form: AdminSpecialistFormState): {
   name: string;
   email: string;
   bio: string;
+  timezone: string | null;
   isActive: boolean;
 } {
   const name = form.name.trim();
@@ -102,6 +121,7 @@ function validateForm(form: AdminSpecialistFormState): {
     name,
     email,
     bio: form.bio.trim(),
+    timezone: normalizeTimezone(form.timezone),
     isActive: form.isActive,
   };
 }
@@ -118,13 +138,19 @@ function uniqueEmailError(error: { code?: string; message?: string }): Error {
   return new Error(error.message || "Couldn't save specialist.");
 }
 
+function activeToggleError(error: { message?: string }): Error {
+  const message = error.message?.trim();
+  if (message) return new Error(message);
+  return new Error("Couldn't update specialist status.");
+}
+
 export async function fetchAdminSpecialists(
   activeFilter: SpecialistActiveFilter = "all",
 ): Promise<AdminSpecialistRecord[]> {
   const client = supabase as unknown as UntypedSupabase;
   let query = client
     .from("specialist")
-    .select("id, name, email, imageUrl, bio, isActive, createdAt, updatedAt")
+    .select(SPECIALIST_SELECT)
     .order("name", { ascending: true });
 
   if (activeFilter === "active") {
@@ -158,10 +184,11 @@ export async function createAdminSpecialist(
       name: validated.name,
       email: validated.email,
       bio: validated.bio,
+      timezone: validated.timezone,
       isActive: validated.isActive,
       imageUrl: form.imageUrl,
     } as never)
-    .select("id, name, email, imageUrl, bio, isActive, createdAt, updatedAt")
+    .select(SPECIALIST_SELECT)
     .single();
 
   if (error) throw uniqueEmailError(error);
@@ -176,18 +203,22 @@ export async function updateAdminSpecialist(
 ): Promise<void> {
   const validated = validateForm(form);
   const client = supabase as unknown as UntypedSupabase;
+
+  // Persist profile fields without isActive; CL-10 guard goes through RPC.
   const { error } = await client
     .from("specialist")
     .update({
       name: validated.name,
       email: validated.email,
       bio: validated.bio,
-      isActive: validated.isActive,
+      timezone: validated.timezone,
       imageUrl: form.imageUrl,
     } as never)
     .eq("id", specialistId);
 
   if (error) throw uniqueEmailError(error);
+
+  await setSpecialistActive(specialistId, validated.isActive);
 }
 
 export async function setSpecialistActive(
@@ -195,11 +226,20 @@ export async function setSpecialistActive(
   isActive: boolean,
 ): Promise<void> {
   const client = supabase as unknown as UntypedSupabase;
-  const { error } = await client
-    .from("specialist")
-    .update({ isActive } as never)
-    .eq("id", specialistId);
-  if (error) throw error;
+  const { data, error } = await client.rpc("admin_set_specialist_active", {
+    p_specialist_id: specialistId,
+    p_is_active: isActive,
+  });
+
+  if (error) throw activeToggleError(error);
+
+  const row = (data && typeof data === "object" ? data : {}) as {
+    ok?: boolean;
+    error?: string;
+  };
+  if (row.ok === false) {
+    throw new Error(row.error || "Couldn't update specialist status.");
+  }
 }
 
 export async function deleteAdminSpecialist(specialistId: string): Promise<void> {

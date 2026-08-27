@@ -32,6 +32,7 @@ import {
   sendGridSmtpLabel,
   sendTransactionalEmail,
 } from "../_shared/sendgridMail.ts";
+import { runMonthlyPremiumCreditAccrual, runMonthlyGroupSessionsCounterReset } from "../_shared/premiumCreditGrant.ts";
 
 const LIFECYCLE_KINDS = [
   "expireCancellation",
@@ -279,6 +280,26 @@ Deno.serve(async (req) => {
 
   const service = getServiceClient();
 
+  let monthlyAccrual: unknown = null;
+  let groupCounterReset: unknown = null;
+  try {
+    monthlyAccrual = await runMonthlyPremiumCreditAccrual(service);
+  } catch (err) {
+    console.error("monthly premium credit accrual failed", err);
+    monthlyAccrual = {
+      error: err instanceof Error ? err.message : "unknown error",
+    };
+  }
+
+  try {
+    groupCounterReset = await runMonthlyGroupSessionsCounterReset(service);
+  } catch (err) {
+    console.error("monthly group sessions counter reset failed", err);
+    groupCounterReset = {
+      error: err instanceof Error ? err.message : "unknown error",
+    };
+  }
+
   const { data, error } = await service.rpc("billing_list_lifecycle_due");
   if (error) return json({ error: error.message }, 500);
 
@@ -314,6 +335,8 @@ Deno.serve(async (req) => {
     processed: items.length,
     applied: outcomes,
     failed: failures,
+    monthlyAccrual,
+    groupCounterReset,
     staleHolds: releaseError ? { error: releaseError.message } : releaseData,
     smtp: sendGridSmtpLabel(),
   });

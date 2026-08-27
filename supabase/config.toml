@@ -106,6 +106,10 @@ verify_jwt = false
 [functions.finalize-group-sessions]
 verify_jwt = true
 
+# NCLDD-31 §8 / CL-6 — Admin cancel group session + member notify emails.
+[functions.cancel-group-coaching-session]
+verify_jwt = true
+
 # Standalone Kota prompts (AI Prompt Specifications).
 [functions.generate-journal-reflection]
 verify_jwt = true

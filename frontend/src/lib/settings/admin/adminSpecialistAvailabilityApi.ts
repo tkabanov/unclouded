@@ -223,10 +223,14 @@ export async function deleteSpecialistAvailability(availabilityId: string): Prom
 export async function listBookableOneOnOneSlots(
   rangeFrom: Date,
   rangeTo: Date,
+  specialistId: string,
 ): Promise<BookableOneOnOneSlot[]> {
+  if (!specialistId) return [];
+
   const { data, error } = await callRpc("list_bookable_one_on_one_slots", {
     p_from: rangeFrom.toISOString(),
     p_to: rangeTo.toISOString(),
+    p_specialist_id: specialistId,
   });
 
   if (error) {

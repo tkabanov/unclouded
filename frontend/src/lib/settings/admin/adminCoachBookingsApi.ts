@@ -203,7 +203,12 @@ export async function adminReassignCoachBookingSpecialist(params: {
   bookingId: string;
   specialistId: string;
 }): Promise<
-  | { ok: true; assignedCoachEmail: string | null }
+  | {
+      ok: true;
+      assignedCoachEmail: string | null;
+      previousAssignedCoachEmail: string | null;
+      sideEffects?: { ok: boolean; detail?: string };
+    }
   | { ok: false; message: string }
 > {
   const { data, error } = await callRpc("admin_reassign_coach_booking_specialist", {
@@ -225,9 +230,46 @@ export async function adminReassignCoachBookingSpecialist(params: {
     };
   }
 
+  const previousAssignedCoachEmail =
+    typeof row.previousAssignedCoachEmail === "string"
+      ? row.previousAssignedCoachEmail
+      : null;
+  const assignedCoachEmail =
+    typeof row.assignedCoachEmail === "string" ? row.assignedCoachEmail : null;
+
+  let sideEffects: { ok: boolean; detail?: string } | undefined;
+  try {
+    const { data: edgeData, error: edgeError } = await supabase.functions.invoke(
+      "reassign-coach-booking",
+      {
+        body: {
+          bookingId: params.bookingId,
+          previousAssignedCoachEmail,
+        },
+      },
+    );
+    if (edgeError) {
+      sideEffects = { ok: false, detail: edgeError.message };
+    } else {
+      sideEffects = {
+        ok: true,
+        detail:
+          edgeData && typeof edgeData === "object"
+            ? JSON.stringify(edgeData).slice(0, 240)
+            : undefined,
+      };
+    }
+  } catch (err) {
+    sideEffects = {
+      ok: false,
+      detail: err instanceof Error ? err.message : "Side effects failed.",
+    };
+  }
+
   return {
     ok: true,
-    assignedCoachEmail:
-      typeof row.assignedCoachEmail === "string" ? row.assignedCoachEmail : null,
+    assignedCoachEmail,
+    previousAssignedCoachEmail,
+    sideEffects,
   };
 }

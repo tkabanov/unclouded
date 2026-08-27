@@ -12,6 +12,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createGoogleMeetEvent } from "../_shared/googleCalendar.ts";
 import { coachPostSessionFormUrl } from "../_shared/appOrigin.ts";
+import { formatSessionWhen } from "../_shared/sessionWhenLabel.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
   isSendGridConfigured,
@@ -43,18 +44,6 @@ function serviceRoleClient() {
   return createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-
-function formatSessionWhen(iso: string, durationMinutes: number): string {
-  const start = new Date(iso);
-  const end = new Date(start.getTime() + durationMinutes * 60_000);
-  const opts: Intl.DateTimeFormatOptions = {
-    dateStyle: "full",
-    timeStyle: "short",
-  };
-  return `${start.toLocaleString(undefined, opts)} – ${end.toLocaleTimeString(undefined, {
-    timeStyle: "short",
-  })} (${durationMinutes} min)`;
 }
 
 Deno.serve(async (req) => {
@@ -114,7 +103,7 @@ Deno.serve(async (req) => {
 
   const { data: member } = await admin
     .from("profiles")
-    .select("firstName, email")
+    .select("firstName, email, timeZone")
     .eq("id", booking.userId)
     .maybeSingle();
 
@@ -124,10 +113,30 @@ Deno.serve(async (req) => {
     (typeof member?.email === "string" && member.email.trim()) ||
     auth.user.email ||
     "";
+  const userTimeZone =
+    typeof member?.timeZone === "string" && member.timeZone.trim()
+      ? member.timeZone.trim()
+      : null;
   const specialistEmail =
     typeof booking.assignedCoachEmail === "string"
       ? booking.assignedCoachEmail.trim()
       : "";
+
+  let coachTimeZone: string | null = null;
+  let coachName: string | null = null;
+  if (typeof booking.specialistId === "string" && booking.specialistId) {
+    const { data: specialist } = await admin
+      .from("specialist")
+      .select("timezone, name")
+      .eq("id", booking.specialistId)
+      .maybeSingle();
+    coachTimeZone =
+      typeof specialist?.timezone === "string" ? specialist.timezone : null;
+    coachName =
+      typeof specialist?.name === "string" && specialist.name.trim()
+        ? specialist.name.trim()
+        : null;
+  }
 
   let meetLink =
     typeof booking.meetLink === "string" && booking.meetLink.trim()
@@ -161,7 +170,16 @@ Deno.serve(async (req) => {
     }
   }
 
-  const whenLabel = formatSessionWhen(booking.scheduledAt, durationMinutes);
+  const whenLabelUser = formatSessionWhen(
+    booking.scheduledAt,
+    durationMinutes,
+    userTimeZone,
+  );
+  const whenLabelCoach = formatSessionWhen(
+    booking.scheduledAt,
+    durationMinutes,
+    coachTimeZone,
+  );
   const meetLine = meetLink
     ? `Google Meet: ${meetLink}`
     : "Google Meet link will follow shortly.";
@@ -187,11 +205,15 @@ Deno.serve(async (req) => {
     emailResults.specialist = "smtp:skipped";
   } else {
     if (memberEmail.includes("@")) {
+      const coachLine = coachName ? `Coach: ${coachName}\n` : "";
+      const coachHtml = coachName
+        ? `<p><strong>Coach:</strong> ${coachName}</p>`
+        : "";
       const userMail = await sendTransactionalEmail({
         to: memberEmail,
         subject: "Your Uncloud360 1:1 session is confirmed",
-        text: `Your coaching session is confirmed.\n\nWhen: ${whenLabel}\n${meetLine}\n`,
-        html: `<p>Your coaching session is confirmed.</p><p><strong>When:</strong> ${whenLabel}</p><p>${
+        text: `Your coaching session is confirmed.\n\n${coachLine}When: ${whenLabelUser}\n${meetLine}\n`,
+        html: `<p>Your coaching session is confirmed.</p>${coachHtml}<p><strong>When:</strong> ${whenLabelUser}</p><p>${
           meetLink
             ? `<a href="${meetLink}">Join Google Meet</a>`
             : "Google Meet link will follow shortly."
@@ -206,8 +228,8 @@ Deno.serve(async (req) => {
       const coachMail = await sendTransactionalEmail({
         to: specialistEmail,
         subject: `1:1 session confirmed with ${memberName}`,
-        text: `A 1:1 coaching session is confirmed.\n\nMember: ${memberName}\nWhen: ${whenLabel}\n${meetLine}\n${postSessionLine ? `${postSessionLine}\n` : ""}`,
-        html: `<p>A 1:1 coaching session is confirmed.</p><p><strong>Member:</strong> ${memberName}</p><p><strong>When:</strong> ${whenLabel}</p><p>${
+        text: `A 1:1 coaching session is confirmed.\n\nMember: ${memberName}\nWhen: ${whenLabelCoach}\n${meetLine}\n${postSessionLine ? `${postSessionLine}\n` : ""}`,
+        html: `<p>A 1:1 coaching session is confirmed.</p><p><strong>Member:</strong> ${memberName}</p><p><strong>When:</strong> ${whenLabelCoach}</p><p>${
           meetLink
             ? `<a href="${meetLink}">Join Google Meet</a>`
             : "Google Meet link will follow shortly."

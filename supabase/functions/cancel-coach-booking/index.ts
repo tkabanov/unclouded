@@ -10,6 +10,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { deleteGoogleCalendarEvent } from "../_shared/googleCalendar.ts";
+import { formatSessionWhen } from "../_shared/sessionWhenLabel.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import {
   isSendGridConfigured,
@@ -43,18 +44,6 @@ function serviceRoleClient() {
   });
 }
 
-function formatSessionWhen(iso: string, durationMinutes: number): string {
-  const start = new Date(iso);
-  const end = new Date(start.getTime() + durationMinutes * 60_000);
-  const opts: Intl.DateTimeFormatOptions = {
-    dateStyle: "full",
-    timeStyle: "short",
-  };
-  return `${start.toLocaleString(undefined, opts)} – ${end.toLocaleTimeString(undefined, {
-    timeStyle: "short",
-  })} (${durationMinutes} min)`;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -75,6 +64,26 @@ Deno.serve(async (req) => {
 
   const bookingId = body.bookingId?.trim();
   if (!bookingId) return jsonResponse(400, { error: "booking_id_required" });
+
+  const admin = serviceRoleClient();
+  const { data: bookingBefore } = await admin
+    .from("coachBooking")
+    .select("specialistId")
+    .eq("id", bookingId)
+    .maybeSingle();
+
+  let coachTimeZone: string | null = null;
+  const specialistIdBefore =
+    typeof bookingBefore?.specialistId === "string" ? bookingBefore.specialistId : null;
+  if (specialistIdBefore) {
+    const { data: specialist } = await admin
+      .from("specialist")
+      .select("timezone")
+      .eq("id", specialistIdBefore)
+      .maybeSingle();
+    coachTimeZone =
+      typeof specialist?.timezone === "string" ? specialist.timezone : null;
+  }
 
   const { data, error } = await auth.supabase.rpc("cancel_one_on_one_booking", {
     p_booking_id: bookingId,
@@ -120,11 +129,10 @@ Deno.serve(async (req) => {
   const refundedAmount =
     typeof row.refundedAmount === "number" ? row.refundedAmount : 0;
 
-  const admin = serviceRoleClient();
   const userId = typeof row.userId === "string" ? row.userId : auth.user.id;
   const { data: member } = await admin
     .from("profiles")
-    .select("firstName, email")
+    .select("firstName, email, timeZone")
     .eq("id", userId)
     .maybeSingle();
 
@@ -134,10 +142,17 @@ Deno.serve(async (req) => {
     (typeof member?.email === "string" && member.email.trim()) ||
     auth.user.email ||
     "";
+  const userTimeZone =
+    typeof member?.timeZone === "string" && member.timeZone.trim()
+      ? member.timeZone.trim()
+      : null;
 
-  const whenLabel = scheduledAt
-    ? formatSessionWhen(scheduledAt, durationMinutes)
+  const whenLabelUser = scheduledAt
+    ? formatSessionWhen(scheduledAt, durationMinutes, userTimeZone)
     : "your scheduled time";
+  const whenLabelCoach = scheduledAt
+    ? formatSessionWhen(scheduledAt, durationMinutes, coachTimeZone)
+    : "the scheduled time";
   const refundLine = refunded
     ? `Your session credits (${refundedAmount || "full"}) have been returned.`
     : "This cancellation is within 24 hours of the session, so credits are not refunded.";
@@ -153,8 +168,8 @@ Deno.serve(async (req) => {
       const userMail = await sendTransactionalEmail({
         to: memberEmail,
         subject: "Your Uncloud360 1:1 session was canceled",
-        text: `Your coaching session has been canceled.\n\nWhen: ${whenLabel}\n${refundLine}\n`,
-        html: `<p>Your coaching session has been canceled.</p><p><strong>When:</strong> ${whenLabel}</p><p>${refundLine}</p>`,
+        text: `Your coaching session has been canceled.\n\nWhen: ${whenLabelUser}\n${refundLine}\n`,
+        html: `<p>Your coaching session has been canceled.</p><p><strong>When:</strong> ${whenLabelUser}</p><p>${refundLine}</p>`,
       });
       emailResults.user = userMail.detail;
     } else {
@@ -165,8 +180,8 @@ Deno.serve(async (req) => {
       const coachMail = await sendTransactionalEmail({
         to: specialistEmail,
         subject: `1:1 session canceled — ${memberName}`,
-        text: `A 1:1 coaching session was canceled.\n\nMember: ${memberName}\nWhen: ${whenLabel}\n`,
-        html: `<p>A 1:1 coaching session was canceled.</p><p><strong>Member:</strong> ${memberName}</p><p><strong>When:</strong> ${whenLabel}</p>`,
+        text: `A 1:1 coaching session was canceled.\n\nMember: ${memberName}\nWhen: ${whenLabelCoach}\n`,
+        html: `<p>A 1:1 coaching session was canceled.</p><p><strong>Member:</strong> ${memberName}</p><p><strong>When:</strong> ${whenLabelCoach}</p>`,
       });
       emailResults.specialist = coachMail.detail;
     } else {

@@ -2,7 +2,7 @@
 
 **Спека:** [`docs/NCLDD-31-internal-bookings-management-system.md`](./NCLDD-31-internal-bookings-management-system.md)  
 **Jira:** [NCLDD-31](https://rapiddevelopers.atlassian.net/browse/NCLDD-31)  
-**Overrides:** OVR-027 (Premium 1:1 credits, 2 credits = 30 min), OVR-028 (1 group session / month для Pro+Premium), OVR-045 (Pre-Coaching Brief / Kota's Read) — `docs/product-overrides.md`  
+**Overrides:** OVR-027 / **OVR-059** (Premium 1:1 credits: cost 2, signup +2, monthly +1 on 1st UTC, cap 6), **OVR-060** (`groupSessionsUsedThisMonth`), OVR-045 (Pre-Coaching Brief), **OVR-061** (coach choice), **OVR-062** (reassign / deactivate), **OVR-063** (TZ / Meet / Complete-at-end / waitlist 2h) — `docs/product-overrides.md`  
 **Код (ориентиры):**
 
 | Область | UI / API |
@@ -14,9 +14,9 @@
 | User 1:1 booking | Dashboard / coaching booking UI, `OneOnOneBookingPanel`, `coachBookingApi` |
 | User group booking | Group coaching UI, `groupCoachingApi` |
 | Post-session form | `/coach-session/:token`, `CoachPostSessionPage`, `coach-post-session` edge |
-| Credits | OVR-027 ledger / hold→redeem; Admin user detail credit adjust |
-| Google Meet / Calendar | booking confirmation pipeline (event + Meet link on booking) |
-| Emails | confirmation, Pre-Coaching Brief, 24h / 1h reminders |
+| Credits | OVR-059 ledger / hold→redeem; Admin user detail credit adjust |
+| Google Meet / Calendar | finalize-coach-booking / finalize-group-sessions; reassign Calendar PATCH |
+| Emails | confirmation, Pre-Coaching Brief, 24h / 1h / end5m reminders; waitlist offer; cancel/reassign |
 
 ## How to run
 
@@ -24,7 +24,11 @@
 - Actor Admin: Platform Admin (`isAdmin`) — Specialists / Scheduling / Bookings
 - Actor User: Premium (1:1 + group), Pro (group only), Free (negatives)
 - Email / Meet checks: тестовый inbox специалиста + user; Google Calendar тестового аккаунта интеграции
-- Time-based: reminders / waitlist 24h claim — clock skew, scheduled jobs, или ручной invoke cron / edge с подставленным `now`
+- Time-based: reminders / waitlist **2h** claim / Complete-at-end — clock skew, scheduled jobs, или ручной invoke cron / edge
+
+### Deploy before QA
+
+Apply migrations `20260827140000` … `20260827210000`, then deploy edges: `coach-booking-reminders`, `coach-post-session`, `reassign-coach-booking`, `cancel-group-coaching-session`, `group-coaching-waitlist`, `subscription-lifecycle`, `finalize-group-sessions`.
 
 ---
 
@@ -32,25 +36,25 @@
 
 ### 1.1 Цели
 
-Проверить внутреннюю систему бронирования one-on-one и group coaching: admin-управление специалистами и слотами, пользовательский booking без раскрытия имени специалиста (1:1), кредиты, Google Meet/Calendar sync, email-автоматизации, post-session form без аккаунта специалиста, отмены/refunds, group capacity + waitlist (FIFO, 24h claim), admin booking management и статусы.
+Проверить внутреннюю систему бронирования one-on-one и group coaching: admin-управление специалистами и слотами, пользовательский booking **с выбором коуча** (CL-9), кредиты (OVR-059), Google Meet/Calendar sync, email-автоматизации (вкл. end5m), post-session form без аккаунта специалиста (Completed **не** от формы), отмены/refunds, group capacity + monthly gate (OVR-060) + waitlist (FIFO, **2h** claim), admin booking management и статусы.
 
 ### 1.2 In scope / Out of scope
 
 | In scope | Out of scope |
 |---|---|
 | Admin Specialists / Scheduling / Bookings | Внешний Wix / legacy scheduler parity |
-| User 1:1 consolidated calendar + auto-assign | Coach Workspace Phase 3 (полноценный login специалиста) |
-| Credits hold/redeem/refund (OVR-027) | Stripe checkout / subscription billing (кроме entitlement gate) |
-| Google Calendar event + Meet create/cancel | Нагрузочное тестирование Meet API quota |
-| Confirmation, Pre-Coaching Brief, 24h/1h reminders | Полный content QA тона Kota's Read (см. AI prompt test plan) |
-| Post-session form по token | Специалист как platform user / SSO |
-| Group sessions, capacity, waitlist, claim race | Платные group add-ons ($97) — снято OVR-028 |
-| Admin filters, reassign, manual credit adjust | Mobile native apps |
+| User 1:1 coach roster + book-again (CL-9) | Coach Workspace Phase 3 (полноценный login специалиста) |
+| Credits hold/redeem/refund (OVR-059) | Stripe checkout / subscription billing (кроме entitlement gate) |
+| Google Calendar event + Meet create/cancel/reassign | Нагрузочное тестирование Meet API quota |
+| Confirmation, Pre-Coaching Brief, 24h/1h/end5m reminders | Полный content QA тона Kota's Read (см. AI prompt test plan) |
+| Post-session form по token; Kota memory on submit | Специалист как platform user / SSO |
+| Group sessions, capacity, waitlist, 2h claim race | Платные group add-ons ($97) — снято OVR-028 |
+| Admin filters, reassign (CL-3), credit adjust, form pending | Mobile native apps; group Complete-at-end / group end5m |
 
 ### 1.3 Приоритет источников
 
 1. Явная инструкция в текущем чате  
-2. [`docs/product-overrides.md`](./product-overrides.md) — **OVR-027**, **OVR-028**, **OVR-045**  
+2. [`docs/product-overrides.md`](./product-overrides.md) — **OVR-059…063**, OVR-045  
 3. [`docs/NCLDD-31-internal-bookings-management-system.md`](./NCLDD-31-internal-bookings-management-system.md)  
 4. Bubble / Lovable / migration specs
 
@@ -59,14 +63,16 @@
 | Тема | Expected |
 |---|---|
 | Standard slot | **30 minutes** (duration configurable в admin scheduling) |
-| 1:1 credits (OVR-027) | **2 credits** = одна 30-min сессия; hold → redeem on confirm |
-| Specialist identity (user 1:1) | Имя специалиста **не** показывается до/при выборе слота; assign после confirm |
+| 1:1 credits (OVR-059) | Cost **2**; signup **+2** once; monthly **+1** on 1st UTC; **cap 6**; cancel ≥24h refund **clamped** to cap |
+| Specialist identity (user 1:1) | Coach **visible and selectable**; book-again for last coach; name in confirm email + history (CL-9) |
 | Specialist accounts | Специалистам **не** нужны platform login |
-| Cancel ≥24h before | Full credit refund |
+| Cancel ≥24h before | Full credit refund (capped) |
 | Cancel &lt;24h before | No credit refund |
-| Waitlist claim window | **24 hours** after promotion |
-| Group monthly cap (OVR-028) | Pro+Premium: **1 group session / calendar month** |
-| Status UI labels | `confirmed` → **Scheduled**; Completed / Canceled / Waitlisted |
+| Waitlist claim window | **2 hours** after promotion (CL-8) |
+| Group monthly gate (OVR-060) | `groupSessionsUsedThisMonth` 0/1; blocked copy with next-available date; cancel ≥24h resets; admin cancel resets + notifies |
+| Status UI labels | `confirmed` → **Scheduled**; **Completed** at scheduled **end** (not form submit); Form Pending\|Submitted separate; Canceled / Waitlisted |
+| Deactivate coach (CL-10) | Blocked while upcoming sessions; exact warning copy |
+| TZ (CL-4) | Slots device-local; emails in recipient TZ; 24h rule UTC |
 
 ---
 
@@ -148,7 +154,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Premium |
 | **Steps** | Dashboard / Human coaching → открыть 1:1 booking |
-| **Expected** | Календарь слотов без имён специалистов; credits balance виден или понятен до confirm. |
+| **Expected** | Roster / slots by coach (CL-9); credits balance виден или понятен до confirm. |
 
 ### BK-UI-002 — Pro: 1:1 locked, group available — TESTED
 
@@ -156,7 +162,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Pro user |
 | **Steps** | Открыть coaching booking |
-| **Expected** | 1:1 недоступен (upgrade / locked). Group sessions видны в рамках OVR-028. |
+| **Expected** | 1:1 недоступен (upgrade / locked). Group sessions видны в рамках OVR-060. |
 
 ---
 
@@ -182,9 +188,9 @@ Password для seed QA users: `qwerty123` (если применимо).
 
 | | |
 |---|---|
-| **Preconditions** | Active specialist с будущей availability |
-| **Steps** | Deactivate / mark inactive. Открыть user 1:1 calendar. |
-| **Expected** | Специалист в inactive filter. Новые слоты этого специалиста не участвуют в consolidated availability (или явно unavailable). Существующие confirmed bookings не «пропадают» без admin action. |
+| **Preconditions** | Active specialist **with upcoming confirmed bookings** |
+| **Steps** | Attempt deactivate / mark inactive |
+| **Expected** | **Blocked** with warning: `This coach has [X] upcoming sessions. Please reassign or cancel them before deactivating.` (CL-10). After bookings cleared/reassigned, deactivate succeeds; inactive coach not offered for new books. |
 
 ### BK-SPEC-004 — List active / inactive filters — TESTED
 
@@ -266,21 +272,21 @@ Password для seed QA users: `qwerty123` (если применимо).
 
 ## 7. User Flow — One-on-One Booking (§3) + Key Rules 1–3, 7
 
-### BK-1ON1-001 — Consolidated calendar без имён специалистов — TESTED
+### BK-1ON1-001 — Coach roster + book-again (CL-9) — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | ≥2 active specialists с overlapping free slots; Premium с credits |
-| **Steps** | Открыть 1:1 booking calendar; осмотреть dates/times |
-| **Expected** | Единый календарь по eligible specialists. **Имена специалистов не отображаются.** |
+| **Preconditions** | ≥2 active specialists с free slots; Premium с credits; optional prior 1:1 with coach A |
+| **Steps** | Открыть 1:1 booking; осмотреть roster / slots |
+| **Expected** | Coaches **visible** (name, photo, short bio). Returning user: **Book again with [Coach]** + that coach’s slots prominent. First-time: full roster. Browse-all always available. |
 
 ### BK-1ON1-002 — Happy path book + credit deduct + assign — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Premium ≥2 credits; free slot &gt;24h |
-| **Steps** | Select slot → confirm. Проверить credits, booking history, Admin Bookings. |
-| **Expected** | Booking confirmed только после validations. Credits: hold→redeem / deduct **2**. Specialist auto-assigned (виден admin / emails, не обязателен в user picker). Booking в user history + Admin. |
+| **Preconditions** | Premium ≥2 credits; free slot &gt;24h; coach selected |
+| **Steps** | Select coach + slot → confirm. Проверить credits, booking history, Admin Bookings, confirmation email. |
+| **Expected** | Booking confirmed. Credits deduct **2**. Coach name in confirmation email + user history. Booking in Admin. |
 
 ### BK-1ON1-003 — Insufficient credits — TESTED
 
@@ -303,8 +309,8 @@ Password для seed QA users: `qwerty123` (если применимо).
 | | |
 |---|---|
 | **Preconditions** | Confirmed 1:1 booking |
-| **Steps** | Admin Bookings → assign / change specialist |
-| **Expected** | Assigned specialist обновлён; последующие emails / Meet attendees / brief target обновляются по продуктовому правилу (минимум: Admin UI + запись booking отражают нового специалиста). |
+| **Steps** | Admin Bookings → reassign specialist |
+| **Expected** | Assigned specialist updated; Google Calendar attendees patched; previous coach notified (removed); new coach invited + Pre-Coaching Brief resent; user notified of coach change (CL-3). |
 
 ### BK-1ON1-006 — Free / Pro cannot book 1:1 — TESTED
 
@@ -422,13 +428,13 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Открыть link logged-out; identify session; add notes; submit |
 | **Expected** | Submit успешен без login специалиста. Notes связаны с booking; видны в user session history и Admin. |
 
-### BK-POST-002 — Marks session Completed — TESTED
+### BK-POST-002 — Form submit does not gate Completed (CL-7) — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Booking Scheduled; required notes policy |
-| **Steps** | Submit post-session form |
-| **Expected** | Status → **Completed** (где applicable). |
+| **Preconditions** | Booking still `confirmed` (before end) or already `completed` by end sweeper; form not yet submitted |
+| **Steps** | Submit post-session form with notes |
+| **Expected** | Notes stored; `postSessionSubmittedAt` set; Admin shows **Form: Submitted**. Status is **not** set to Completed by submit alone (Completed comes from end-time sweeper). |
 
 ### BK-POST-003 — Unauthorized token / other session — TESTED
 
@@ -444,7 +450,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Valid post-session page |
 | **Steps** | Submit без notes |
-| **Expected** | Blocked; booking не Completed. |
+| **Expected** | Blocked; notes not stored; form remains Pending. |
 
 ### BK-POST-005 — Admin can open / copy post-session link — TESTED
 
@@ -452,7 +458,31 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Admin Bookings expand panel |
 | **Steps** | Открыть / скопировать post-session form link |
-| **Expected** | Link работает; ведёт на ту же сессию. |
+| **Expected** | Link работает; ведёт на ту же сессию. Form Pending vs Submitted visible for 1:1. |
+
+### BK-POST-006 — Kota memory on form submit (G9) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Successful form submit for member with profile |
+| **Steps** | Submit notes; inspect `profiles.onboardingData.chat_session_memory` and booking stamps |
+| **Expected** | Record `human-coach:{bookingId}` appended; `postSessionKotaSyncedAt` stamped. |
+
+### BK-STATUS-COMPLETE-END — Completed at scheduled end (CL-7) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Confirmed 1:1 whose `scheduledAt + duration` is in the past; form not submitted |
+| **Steps** | Invoke `coach-booking-reminders` / `complete_ended_coach_bookings` |
+| **Expected** | Status → **completed**; `completedAt` set; form still **Pending**. |
+
+### BK-MAIL-END5M — 5-minute end warning email (G3) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Confirmed 1:1 ending in ~3–8 minutes; `endWarning5mSentAt` null; SendGrid optional |
+| **Steps** | Invoke `coach-booking-reminders` |
+| **Expected** | User receives (or soft-skip stamps) one end-warning email; coach does not; stamp set; cancelled bookings skipped. |
 
 ---
 
@@ -514,25 +544,25 @@ Password для seed QA users: `qwerty123` (если применимо).
 
 | | |
 |---|---|
-| **Preconditions** | Group session с ≥1 registration |
-| **Steps** | View participants; cancel session |
-| **Expected** | Participant list accurate; cancel updates statuses; users see canceled / removed from upcoming as designed. |
+| **Preconditions** | Group session с ≥1 registration (and ideally waitlisted) |
+| **Steps** | View participants; cancel entire session |
+| **Expected** | Participant list accurate; enrollments cancelled; registered/offered users’ `groupSessionsUsedThisMonth` reset to **0**; **all enrolled** receive cancel email (CL-6). |
 
 ### BK-GROUP-003 — User join when seats available — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Pro/Premium; capacity remaining; user without group booking this calendar month (OVR-028) |
+| **Preconditions** | Pro/Premium; capacity remaining; `groupSessionsUsedThisMonth = 0` |
 | **Steps** | View session (title, description, date, time, capacity) → Join |
-| **Expected** | Registered; capacity decrements; session in user history; status **Scheduled**. |
+| **Expected** | Registered; counter → **1**; capacity decrements; session in user history; status **Scheduled**. |
 
-### BK-GROUP-004 — Monthly group cap (OVR-028) — TESTED
+### BK-GROUP-004 — Monthly group cap (OVR-060) — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | User already joined one group this month |
+| **Preconditions** | User already used group this month (`groupSessionsUsedThisMonth = 1`) |
 | **Steps** | Attempt join second group session same calendar month |
-| **Expected** | Rejected server-side; capacity unchanged. |
+| **Expected** | Rejected with copy: `You've used your included group session for this month. Your next session is available on [date].`; capacity unchanged. |
 
 ### BK-GROUP-005 — Free cannot join group — TESTED
 
@@ -570,20 +600,20 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Record join order; one registrant cancels |
 | **Expected** | Offer/notification goes to **W1 first** (FIFO). |
 
-### BK-WAIT-003 — Notify next waitlisted + claim within 24h — TESTED
+### BK-WAIT-003 — Notify next waitlisted + claim within 2h — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Spot freed; W1 offered |
-| **Steps** | W1 receives notify; claims spot via platform within 24h |
-| **Expected** | W1 becomes registered (**Scheduled**); waitlist updated; capacity correct. |
+| **Steps** | W1 receives notify (times in user TZ); claims spot via platform within **2 hours** |
+| **Expected** | W1 becomes registered (**Scheduled**); waitlist updated; capacity correct; counter → 1 on claim. |
 
-### BK-WAIT-004 — Claim window expiry (24h) — TESTED
+### BK-WAIT-004 — Claim window expiry (2h) — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Offer to W1 with `claimExpiresAt` = now+24h |
-| **Steps** | Let offer expire without claim (time travel / job) |
+| **Preconditions** | Offer to W1 with `claimExpiresAt` = now+**2h** |
+| **Steps** | Let offer expire without claim (time travel / `group-coaching-waitlist` job) |
 | **Expected** | Offer expires; next eligible (W2) notified; W1 cannot claim after expiry. |
 
 ### BK-WAIT-005 — Claim race: one spot — TESTED
@@ -612,7 +642,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Mix of 1:1 and group bookings |
 | **Steps** | Open Admin Bookings list / expand |
-| **Expected** | User name; session type (One-on-One / Group); specialist (if applicable); date/time; duration; status; credit/refund status; Meet link; notes/history; group participants. |
+| **Expected** | User name; session type; specialist; date/time; duration; status; **Form: Pending|Submitted** (1:1); credit/refund status; Meet link; notes/history; group participants. |
 
 ### BK-ADMIN-002 — Filters & search — TESTED
 
@@ -628,7 +658,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Rows with DB `confirmed`, completed, canceled, waitlisted |
 | **Steps** | Inspect UI labels |
-| **Expected** | `confirmed` → **Scheduled**; Completed / Canceled / Waitlisted as specified. Auto-updates on cancel / post-session / waitlist events. |
+| **Expected** | `confirmed` → **Scheduled**; **Completed** after end-time sweeper (independent of form); Form Pending|Submitted separate; Canceled / Waitlisted. Auto-updates on cancel / end / waitlist events. |
 
 ### BK-ADMIN-004 — Exceptional case toolkit — TESTED
 
@@ -690,13 +720,13 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Full lifecycle: notify → brief → post-session form |
 | **Expected** | No login required for specialist actions. |
 
-### BK-RULE-007 — No specialist names in user 1:1 picker — TESTED
+### BK-RULE-007 — Coach names visible in user 1:1 picker (CL-9) — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | BK-1ON1-001 |
 | **Steps** | Inspect UI |
-| **Expected** | Names hidden at selection. |
+| **Expected** | Coach names (and roster / book-again) visible at selection; name in history after book. |
 
 ### BK-RULE-008 — Group capacity enforced — TESTED
 

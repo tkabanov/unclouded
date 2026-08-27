@@ -5,7 +5,7 @@
  * insert: the 1:1 RPC is the only thing that reserves the Premium credits, and
  * the group RPC is the only thing that enforces one session per calendar month.
  *
- * Internal 1:1 bookings use `confirm_one_on_one_booking` (slot + specialist assign).
+ * Internal 1:1 bookings use `confirm_one_on_one_booking` (slot + user-selected coach).
  * Legacy `request_one_on_one_booking` + Wix redirect remains for older flows/tests.
  */
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,17 @@ const KOTA_READ_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ge
 const FINALIZE_BOOKING_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/finalize-coach-booking`;
 const CANCEL_BOOKING_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-coach-booking`;
 
+export type BookableCoach = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  bio: string;
+};
+
+export type LastOneOnOneCoach = BookableCoach & {
+  isActive: boolean;
+};
+
 export type CoachBookingRow = {
   id: string;
   userId: string;
@@ -34,6 +45,8 @@ export type CoachBookingRow = {
   meetLink?: string | null;
   durationMinutes?: number | null;
   coachSessionNotes?: string | null;
+  specialistId?: string | null;
+  specialistName?: string | null;
 };
 
 export type OneOnOneBookingResult =
@@ -43,6 +56,7 @@ export type OneOnOneBookingResult =
       balance: number;
       scheduledAt?: string;
       durationMinutes?: number;
+      specialistName?: string | null;
       kotaRead: string | null;
     }
   | { status: "blocked"; code: string; message: string; balance?: number };
@@ -55,6 +69,18 @@ function readString(row: Record<string, unknown>, key: string): string | null {
 function readNumber(row: Record<string, unknown>, key: string): number | undefined {
   const value = row[key];
   return typeof value === "number" ? value : undefined;
+}
+
+function mapBookableCoach(row: Record<string, unknown>): BookableCoach | null {
+  const id = readString(row, "id");
+  const name = readString(row, "name");
+  if (!id || !name) return null;
+  return {
+    id,
+    name,
+    imageUrl: readString(row, "imageUrl"),
+    bio: readString(row, "bio") ?? "",
+  };
 }
 
 /** Opens the external calendar; false when blocked or when open throws. */
@@ -224,16 +250,48 @@ async function abortOneOnOneBookingRedirect(
   };
 }
 
+export async function listActiveCoachesForBooking(): Promise<BookableCoach[]> {
+  const { data, error } = await callRpc("list_active_coaches_for_booking", {});
+  if (error) {
+    if (isSchemaUnavailable(error)) return [];
+    throw new Error(error.message || "Couldn't load coaches.");
+  }
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((row) =>
+      row && typeof row === "object" ? mapBookableCoach(row as Record<string, unknown>) : null,
+    )
+    .filter((item): item is BookableCoach => item !== null);
+}
+
+export async function getMyLastOneOnOneCoach(): Promise<LastOneOnOneCoach | null> {
+  const { data, error } = await callRpc("get_my_last_one_on_one_coach", {});
+  if (error) {
+    if (isSchemaUnavailable(error)) return null;
+    throw new Error(error.message || "Couldn't load last coach.");
+  }
+  if (!data || typeof data !== "object") return null;
+  const row = data as Record<string, unknown>;
+  const coach = mapBookableCoach(row);
+  if (!coach) return null;
+  return {
+    ...coach,
+    isActive: row.isActive === true,
+  };
+}
+
 /**
- * Confirm an internal 1:1 session for an anonymized slot (no Wix redirect).
+ * Confirm an internal 1:1 session for a user-selected coach + slot.
  */
 export async function confirmOneOnOneBooking(params: {
   slotStart: string;
   durationMinutes?: number;
+  specialistId: string;
 }): Promise<OneOnOneBookingResult> {
   const { data, error } = await callRpc("confirm_one_on_one_booking", {
     p_slot_start: params.slotStart,
     p_duration_minutes: params.durationMinutes ?? DEFAULT_SLOT_DURATION_MINUTES,
+    p_specialist_id: params.specialistId,
   });
 
   if (error || !data || typeof data !== "object") {
@@ -265,6 +323,7 @@ export async function confirmOneOnOneBooking(params: {
     balance: readNumber(row, "balance") ?? 0,
     scheduledAt: readString(row, "scheduledAt") ?? params.slotStart,
     durationMinutes: readNumber(row, "durationMinutes") ?? params.durationMinutes,
+    specialistName: readString(row, "specialistName"),
     kotaRead,
   };
 }
@@ -403,33 +462,57 @@ export function formatCoachBookingStatusLabel(status: string | null | undefined)
 }
 
 export async function fetchMyCoachBookings(limit = 20): Promise<CoachBookingRow[]> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const { data, error } = await supabase
-    .from("coachBooking")
-    .select("id, userId, scheduledAt, status, kotaRead, createdAt, meetLink, durationMinutes, coachSessionNotes")
-    .eq("userId", user.id)
-    .order("scheduledAt", { ascending: false, nullsFirst: false })
-    .limit(limit);
+  const { data, error } = await callRpc("list_my_one_on_one_bookings", {
+    p_limit: limit,
+  });
 
   if (error) {
     if (isSchemaUnavailable(error)) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return [];
       const fallback = await supabase
         .from("coachBooking")
-        .select("id, userId, scheduledAt, status, kotaRead, createdAt")
+        .select(
+          "id, userId, scheduledAt, status, kotaRead, createdAt, meetLink, durationMinutes, coachSessionNotes",
+        )
         .eq("userId", user.id)
-        .order("createdAt", { ascending: false })
+        .order("scheduledAt", { ascending: false, nullsFirst: false })
         .limit(limit);
-      if (fallback.error) throw fallback.error;
+      if (fallback.error) {
+        if (isSchemaUnavailable(fallback.error)) return [];
+        throw fallback.error;
+      }
       return (fallback.data as CoachBookingRow[] | null) ?? [];
     }
-    throw error;
+    throw new Error(error.message || "Couldn't load sessions.");
   }
 
-  return (data as CoachBookingRow[] | null) ?? [];
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((row) => {
+      if (!row || typeof row !== "object") return null;
+      const record = row as Record<string, unknown>;
+      const id = readString(record, "id");
+      const userId = readString(record, "userId");
+      if (!id || !userId) return null;
+      return {
+        id,
+        userId,
+        scheduledAt: readString(record, "scheduledAt"),
+        status: readString(record, "status"),
+        kotaRead: readString(record, "kotaRead"),
+        createdAt: readString(record, "createdAt") ?? "",
+        meetLink: readString(record, "meetLink"),
+        durationMinutes: readNumber(record, "durationMinutes") ?? null,
+        coachSessionNotes: readString(record, "coachSessionNotes"),
+        specialistId: readString(record, "specialistId"),
+        specialistName: readString(record, "specialistName"),
+      } satisfies CoachBookingRow;
+    })
+    .filter((item): item is CoachBookingRow => item !== null);
 }
 
 export async function fetchLatestCoachBooking(): Promise<CoachBookingRow | null> {

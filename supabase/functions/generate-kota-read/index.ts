@@ -249,7 +249,11 @@ Deno.serve(async (req) => {
 
   const { data: booking, error: bookingError } = await auth.supabase
     .from(bookingTable)
-    .select("id, userId, scheduledAt, assignedCoachEmail")
+    .select(
+      bookingTable === "coachBooking"
+        ? "id, userId, scheduledAt, assignedCoachEmail, specialistId"
+        : "id, userId, scheduledAt, assignedCoachEmail",
+    )
     .eq("id", bookingId)
     .eq("userId", auth.user.id)
     .maybeSingle();
@@ -303,6 +307,22 @@ Deno.serve(async (req) => {
   const scheduledAt =
     typeof booking.scheduledAt === "string" ? booking.scheduledAt : null;
 
+  let coachTimeZone: string | null = null;
+  const specialistId =
+    bookingTable === "coachBooking" &&
+    typeof (booking as { specialistId?: unknown }).specialistId === "string"
+      ? ((booking as { specialistId: string }).specialistId)
+      : null;
+  if (specialistId) {
+    const { data: specialist } = await serviceClient
+      .from("specialist")
+      .select("timezone")
+      .eq("id", specialistId)
+      .maybeSingle();
+    coachTimeZone =
+      typeof specialist?.timezone === "string" ? specialist.timezone : null;
+  }
+
   const resolved = resolveKotaReadRecipients({
     assignedCoachEmail:
       typeof booking.assignedCoachEmail === "string" ? booking.assignedCoachEmail : null,
@@ -315,6 +335,7 @@ Deno.serve(async (req) => {
     memberName,
     memberEmail,
     scheduledAt,
+    timeZone: coachTimeZone,
     factualSection,
     kotaRead: kotaReadFormatted,
     adminConsoleUrl: `${appOrigin}/admin`,

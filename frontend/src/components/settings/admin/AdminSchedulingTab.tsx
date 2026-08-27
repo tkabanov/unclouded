@@ -108,9 +108,13 @@ export default function AdminSchedulingTab() {
   }, [rangeFrom, rangeTo, specialistId]);
 
   const reloadMemberPreview = useCallback(async () => {
-    const slots = await listBookableOneOnOneSlots(rangeFrom, rangeTo);
+    if (!specialistId) {
+      setMemberSlots([]);
+      return;
+    }
+    const slots = await listBookableOneOnOneSlots(rangeFrom, rangeTo, specialistId);
     setMemberSlots(slots);
-  }, [rangeFrom, rangeTo]);
+  }, [rangeFrom, rangeTo, specialistId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -337,8 +341,8 @@ export default function AdminSchedulingTab() {
         <div>
           <h4 className={bubbleStyle("Text_heading_3_")}>Preview slots (member view)</h4>
           <p className="text-sm text-muted-foreground">
-            Consolidated bookable times across all active specialists. Specialist names are never
-            included.
+            Bookable times for the selected coach — same per-coach calendar members see when
+            booking.
           </p>
         </div>
         {memberSlotsForDay.length === 0 ? (

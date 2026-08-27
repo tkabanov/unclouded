@@ -115,8 +115,9 @@ export default function GroupCoachingPanel({
       <div>
         <p className="text-sm font-medium">Group coaching</p>
         <p className="text-[11px] leading-snug text-muted-foreground">
-          One group session per calendar month. Join if seats are open, or waitlist when full
-          (24-hour claim window when promoted).
+          One group session per calendar month. If you&apos;ve already used this month&apos;s
+          session, joining is blocked until the 1st. Join if seats are open, or waitlist when
+          full.
         </p>
       </div>
 

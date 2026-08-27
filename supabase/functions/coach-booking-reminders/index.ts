@@ -1,5 +1,6 @@
 /**
- * NCLDD-31 §5 — Automated 24h / 1h reminders for confirmed 1:1 sessions.
+ * NCLDD-31 §5 / §6 — Automated 24h / 1h reminders, 5-min-before-end warning,
+ * and Complete-at-end sweeper for confirmed 1:1 sessions.
  *
  * Invoke via pg_cron / invoke_scheduled_edge_function:
  *   POST /functions/v1/coach-booking-reminders
@@ -11,6 +12,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { coachPostSessionFormUrl } from "../_shared/appOrigin.ts";
+import { formatSessionWhen } from "../_shared/sessionWhenLabel.ts";
 import {
   sendGridSmtpLabel,
   sendTransactionalEmail,
@@ -26,6 +28,7 @@ type BookingRow = {
   meetLink: string | null;
   assignedCoachEmail: string | null;
   postSessionToken: string | null;
+  specialistId: string | null;
 };
 
 function json(body: unknown, status = 200): Response {
@@ -49,18 +52,6 @@ function authorize(req: Request, serviceKey: string): boolean {
   return false;
 }
 
-function formatSessionWhen(iso: string, durationMinutes: number): string {
-  const start = new Date(iso);
-  const end = new Date(start.getTime() + durationMinutes * 60_000);
-  const opts: Intl.DateTimeFormatOptions = {
-    dateStyle: "full",
-    timeStyle: "short",
-  };
-  return `${start.toLocaleString(undefined, opts)} – ${end.toLocaleTimeString(undefined, {
-    timeStyle: "short",
-  })} (${durationMinutes} min)`;
-}
-
 function whenWindow(nowMs: number, kind: ReminderKind): { from: string; to: string } {
   if (kind === "24h") {
     return {
@@ -79,7 +70,8 @@ async function sendReminderPair(params: {
   memberEmail: string;
   memberName: string;
   specialistEmail: string;
-  whenLabel: string;
+  whenLabelUser: string;
+  whenLabelCoach: string;
   meetLink: string | null;
   postSessionToken: string | null;
 }): Promise<{ user: string; specialist: string }> {
@@ -112,8 +104,8 @@ async function sendReminderPair(params: {
         params.kind === "24h"
           ? "Reminder: your Uncloud360 1:1 is tomorrow"
           : "Reminder: your Uncloud360 1:1 starts soon",
-      text: `${lead}\n\nWhen: ${params.whenLabel}\n${meetLine}\n`,
-      html: `<p>${lead}</p><p><strong>When:</strong> ${params.whenLabel}</p><p>${meetHtml}</p>`,
+      text: `${lead}\n\nWhen: ${params.whenLabelUser}\n${meetLine}\n`,
+      html: `<p>${lead}</p><p><strong>When:</strong> ${params.whenLabelUser}</p><p>${meetHtml}</p>`,
     });
     results.user = userMail.detail;
   }
@@ -125,13 +117,38 @@ async function sendReminderPair(params: {
         params.kind === "24h"
           ? `Reminder: 1:1 with ${params.memberName} in ~24 hours`
           : `Reminder: 1:1 with ${params.memberName} in ~1 hour`,
-      text: `${lead}\n\nMember: ${params.memberName}\nWhen: ${params.whenLabel}\n${meetLine}\n${postSessionLine ? `${postSessionLine}\n` : ""}`,
-      html: `<p>${lead}</p><p><strong>Member:</strong> ${params.memberName}</p><p><strong>When:</strong> ${params.whenLabel}</p><p>${meetHtml}</p>${postSessionHtml}`,
+      text: `${lead}\n\nMember: ${params.memberName}\nWhen: ${params.whenLabelCoach}\n${meetLine}\n${postSessionLine ? `${postSessionLine}\n` : ""}`,
+      html: `<p>${lead}</p><p><strong>Member:</strong> ${params.memberName}</p><p><strong>When:</strong> ${params.whenLabelCoach}</p><p>${meetHtml}</p>${postSessionHtml}`,
     });
     results.specialist = coachMail.detail;
   }
 
   return results;
+}
+
+async function sendEndWarningEmail(params: {
+  memberEmail: string;
+  whenLabelUser: string;
+  meetLink: string | null;
+}): Promise<string> {
+  if (!params.memberEmail.includes("@")) {
+    return "smtp:skipped — no member email";
+  }
+  const meetLine = params.meetLink
+    ? `Google Meet: ${params.meetLink}`
+    : "Google Meet link is in the platform.";
+  const meetHtml = params.meetLink
+    ? `<a href="${params.meetLink}">Join Google Meet</a>`
+    : "Google Meet link is in the platform.";
+  const lead =
+    "Your Uncloud360 1:1 session is ending in about 5 minutes — wrap up when you are ready.";
+  const userMail = await sendTransactionalEmail({
+    to: params.memberEmail,
+    subject: "Your Uncloud360 1:1 is ending soon",
+    text: `${lead}\n\nWhen: ${params.whenLabelUser}\n${meetLine}\n`,
+    html: `<p>${lead}</p><p><strong>When:</strong> ${params.whenLabelUser}</p><p>${meetHtml}</p>`,
+  });
+  return userMail.detail;
 }
 
 async function processCohort(params: {
@@ -150,7 +167,9 @@ async function processCohort(params: {
 
   const { data, error } = await params.supabase
     .from("coachBooking")
-    .select("id, userId, scheduledAt, durationMinutes, meetLink, assignedCoachEmail, postSessionToken")
+    .select(
+      "id, userId, scheduledAt, durationMinutes, meetLink, assignedCoachEmail, postSessionToken, specialistId",
+    )
     .eq("status", "confirmed")
     .not("scheduledAt", "is", null)
     .is(stampCol, null)
@@ -168,7 +187,7 @@ async function processCohort(params: {
   for (const booking of bookings) {
     const { data: member } = await params.supabase
       .from("profiles")
-      .select("firstName, email")
+      .select("firstName, email, timeZone")
       .eq("id", booking.userId)
       .maybeSingle();
 
@@ -176,6 +195,10 @@ async function processCohort(params: {
       (typeof member?.firstName === "string" && member.firstName.trim()) || "Member";
     const memberEmail =
       (typeof member?.email === "string" && member.email.trim()) || "";
+    const userTimeZone =
+      typeof member?.timeZone === "string" && member.timeZone.trim()
+        ? member.timeZone.trim()
+        : null;
     const specialistEmail =
       typeof booking.assignedCoachEmail === "string"
         ? booking.assignedCoachEmail.trim()
@@ -188,7 +211,28 @@ async function processCohort(params: {
       typeof booking.meetLink === "string" && booking.meetLink.trim()
         ? booking.meetLink.trim()
         : null;
-    const whenLabel = formatSessionWhen(booking.scheduledAt, durationMinutes);
+
+    let coachTimeZone: string | null = null;
+    if (typeof booking.specialistId === "string" && booking.specialistId) {
+      const { data: specialist } = await params.supabase
+        .from("specialist")
+        .select("timezone")
+        .eq("id", booking.specialistId)
+        .maybeSingle();
+      coachTimeZone =
+        typeof specialist?.timezone === "string" ? specialist.timezone : null;
+    }
+
+    const whenLabelUser = formatSessionWhen(
+      booking.scheduledAt,
+      durationMinutes,
+      userTimeZone,
+    );
+    const whenLabelCoach = formatSessionWhen(
+      booking.scheduledAt,
+      durationMinutes,
+      coachTimeZone,
+    );
 
     const postSessionToken =
       typeof booking.postSessionToken === "string" && booking.postSessionToken.trim()
@@ -200,7 +244,8 @@ async function processCohort(params: {
       memberEmail,
       memberName,
       specialistEmail,
-      whenLabel,
+      whenLabelUser,
+      whenLabelCoach,
       meetLink,
       postSessionToken,
     });
@@ -222,6 +267,104 @@ async function processCohort(params: {
   }
 
   return { dueCount: bookings.length, stampedCount, results };
+}
+
+/**
+ * CL-7: warn the user ~5 minutes before scheduled session end.
+ * Window widened to ~5 minutes so the every-5m cron reliably hits once.
+ */
+async function processEndWarning5m(params: {
+  supabase: ReturnType<typeof createClient>;
+  nowMs: number;
+  nowIso: string;
+}): Promise<{
+  dueCount: number;
+  stampedCount: number;
+  results: Array<{ bookingId: string; user: string }>;
+}> {
+  const endFromMs = params.nowMs + 3 * 60_000;
+  const endToMs = params.nowMs + 8 * 60_000;
+
+  // Sessions that started recently (typical duration up to 3h) and not yet warned.
+  const { data, error } = await params.supabase
+    .from("coachBooking")
+    .select(
+      "id, userId, scheduledAt, durationMinutes, meetLink, assignedCoachEmail, postSessionToken, specialistId",
+    )
+    .eq("status", "confirmed")
+    .not("scheduledAt", "is", null)
+    .is("endWarning5mSentAt", null)
+    .lt("scheduledAt", params.nowIso)
+    .gte("scheduledAt", new Date(params.nowMs - 4 * 60 * 60_000).toISOString());
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const candidates = (data ?? []) as BookingRow[];
+  const due = candidates.filter((booking) => {
+    const durationMinutes =
+      typeof booking.durationMinutes === "number" && booking.durationMinutes > 0
+        ? booking.durationMinutes
+        : 30;
+    const endsAtMs =
+      new Date(booking.scheduledAt).getTime() + durationMinutes * 60_000;
+    return endsAtMs >= endFromMs && endsAtMs <= endToMs;
+  });
+
+  const results: Array<{ bookingId: string; user: string }> = [];
+  let stampedCount = 0;
+
+  for (const booking of due) {
+    const { data: member } = await params.supabase
+      .from("profiles")
+      .select("firstName, email, timeZone")
+      .eq("id", booking.userId)
+      .maybeSingle();
+
+    const memberEmail =
+      (typeof member?.email === "string" && member.email.trim()) || "";
+    const userTimeZone =
+      typeof member?.timeZone === "string" && member.timeZone.trim()
+        ? member.timeZone.trim()
+        : null;
+    const durationMinutes =
+      typeof booking.durationMinutes === "number" && booking.durationMinutes > 0
+        ? booking.durationMinutes
+        : 30;
+    const meetLink =
+      typeof booking.meetLink === "string" && booking.meetLink.trim()
+        ? booking.meetLink.trim()
+        : null;
+
+    const whenLabelUser = formatSessionWhen(
+      booking.scheduledAt,
+      durationMinutes,
+      userTimeZone,
+    );
+
+    const userDetail = await sendEndWarningEmail({
+      memberEmail,
+      whenLabelUser,
+      meetLink,
+    });
+
+    results.push({ bookingId: booking.id, user: userDetail });
+
+    const { error: updateError } = await params.supabase
+      .from("coachBooking")
+      .update({
+        endWarning5mSentAt: params.nowIso,
+        endWarning5mDetail: `user:${userDetail}`.slice(0, 500),
+      })
+      .eq("id", booking.id)
+      .eq("status", "confirmed")
+      .is("endWarning5mSentAt", null);
+
+    if (!updateError) stampedCount += 1;
+  }
+
+  return { dueCount: due.length, stampedCount, results };
 }
 
 Deno.serve(async (req) => {
@@ -260,6 +403,18 @@ Deno.serve(async (req) => {
       nowMs,
       nowIso,
     });
+    const endWarning5m = await processEndWarning5m({
+      supabase,
+      nowMs,
+      nowIso,
+    });
+
+    const { data: completedCount, error: completeError } = await supabase.rpc(
+      "complete_ended_coach_bookings",
+    );
+    if (completeError) {
+      throw new Error(completeError.message);
+    }
 
     return json({
       ok: true,
@@ -272,6 +427,15 @@ Deno.serve(async (req) => {
         dueCount: reminder1h.dueCount,
         stampedCount: reminder1h.stampedCount,
         results: reminder1h.results,
+      },
+      endWarning5m: {
+        dueCount: endWarning5m.dueCount,
+        stampedCount: endWarning5m.stampedCount,
+        results: endWarning5m.results,
+      },
+      completeEnded: {
+        completedCount:
+          typeof completedCount === "number" ? completedCount : Number(completedCount) || 0,
       },
       smtp: sendGridSmtpLabel(),
     });

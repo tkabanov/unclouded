@@ -1,6 +1,7 @@
 /** Block 3.35 — deliver Kota's Read to the assigned coach (+ inbox fallback) + admin console. */
 
 import { formatFullCoachBrief } from "./kotaReadBrief.ts";
+import { formatScheduledAtLabel } from "./sessionWhenLabel.ts";
 import { sendTransactionalEmail } from "./sendgridMail.ts";
 
 export function parseCoachBriefInbox(raw: string | undefined | null): string[] {
@@ -71,6 +72,8 @@ export function buildKotaReadEmailHtml(params: {
   memberName: string;
   memberEmail?: string | null;
   scheduledAt?: string | null;
+  /** IANA TZ for coach-facing scheduled label (CL-4). */
+  timeZone?: string | null;
   /** AI Kota's Read section (formatted from kotaReadJson). */
   kotaRead: string;
   /** Factual section (no AI) — classification, scores, mode, paths, etc. */
@@ -82,7 +85,7 @@ export function buildKotaReadEmailHtml(params: {
     ? `<p><strong>Email:</strong> ${escapeHtml(params.memberEmail.trim())}</p>`
     : "";
   const scheduledLabel = params.scheduledAt
-    ? escapeHtml(new Date(params.scheduledAt).toLocaleString())
+    ? escapeHtml(formatScheduledAtLabel(params.scheduledAt, params.timeZone))
     : "Not scheduled in app yet";
   const briefBody = params.factualSection?.trim()
     ? formatFullCoachBrief(params.factualSection, params.kotaRead)
@@ -111,6 +114,7 @@ export async function sendKotaReadBriefEmail(params: {
   memberName: string;
   memberEmail?: string | null;
   scheduledAt?: string | null;
+  timeZone?: string | null;
   kotaRead: string;
   factualSection?: string | null;
   adminConsoleUrl: string;
@@ -128,6 +132,7 @@ export async function sendKotaReadBriefEmail(params: {
     memberName: params.memberName,
     memberEmail: params.memberEmail,
     scheduledAt: params.scheduledAt,
+    timeZone: params.timeZone,
     kotaRead: params.kotaRead,
     factualSection: params.factualSection,
     adminConsoleUrl: params.adminConsoleUrl,

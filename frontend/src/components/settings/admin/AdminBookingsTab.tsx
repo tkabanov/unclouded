@@ -14,6 +14,7 @@ import {
 import {
   formatAdminCreditStatus,
   formatAdminDisplayStatus,
+  formatAdminPostSessionFormStatus,
   listAdminCoachingBookings,
   type AdminBookingDisplayStatus,
   type AdminBookingRow,
@@ -132,6 +133,12 @@ function OneOnOneExpand({
     }
     if (result.assignedCoachEmail) setCoachEmail(result.assignedCoachEmail);
     toast.success("Specialist reassigned.");
+    if (result.sideEffects && !result.sideEffects.ok) {
+      toast.warning(
+        result.sideEffects.detail?.trim() ||
+          "Coach updated in the database, but Calendar/email notifications failed.",
+      );
+    }
     onUpdated();
   };
 
@@ -248,7 +255,14 @@ function OneOnOneExpand({
       ) : null}
 
       <div className="space-y-2 border-t border-border/60 pt-3">
-        <p className="text-xs font-medium text-muted-foreground">Post-session notes</p>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-xs font-medium text-muted-foreground">Post-session notes</p>
+          {row.rowKind === "oneOnOne" ? (
+            <p className="text-xs text-muted-foreground">
+              Form: {formatAdminPostSessionFormStatus(row.postSessionFormStatus)}
+            </p>
+          ) : null}
+        </div>
         {row.notes?.trim() ? (
           <pre
             className={cn(
@@ -682,7 +696,14 @@ export default function AdminBookingsTab() {
                         {row.durationMinutes != null ? `${row.durationMinutes}m` : "—"}
                       </td>
                       <td className="px-4 py-3 align-top">
-                        {formatAdminDisplayStatus(row.displayStatus)}
+                        <div className="flex flex-col gap-0.5">
+                          <span>{formatAdminDisplayStatus(row.displayStatus)}</span>
+                          {row.rowKind === "oneOnOne" ? (
+                            <span className="text-xs text-muted-foreground">
+                              Form: {formatAdminPostSessionFormStatus(row.postSessionFormStatus)}
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="px-4 py-3 align-top text-muted-foreground">
                         {formatAdminCreditStatus(row.creditStatus)}

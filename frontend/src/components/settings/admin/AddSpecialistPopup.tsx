@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getTimeZoneOptions } from "@/lib/enums/aboutYouProfile";
+import {
   emptyAdminSpecialistForm,
   type AdminSpecialistFormState,
 } from "@/lib/settings/admin/adminSpecialistsApi";
 import { bubbleStyle } from "@/styles";
+
+const EMPTY_TZ = "__none__";
 
 export interface AddSpecialistPopupProps {
   open: boolean;
@@ -38,6 +48,7 @@ export default function AddSpecialistPopup({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const isEdit = Boolean(editSpecialistId);
+  const timeZoneOptions = useMemo(() => getTimeZoneOptions(), []);
 
   useEffect(() => {
     if (!open) return;
@@ -86,6 +97,35 @@ export default function AddSpecialistPopup({
           </div>
 
           <div className="grid gap-2">
+            <Label htmlFor="specialist-timezone">Timezone</Label>
+            <Select
+              value={form.timezone || EMPTY_TZ}
+              onValueChange={(value) =>
+                setForm((prev) => ({
+                  ...prev,
+                  timezone: value === EMPTY_TZ ? "" : value,
+                }))
+              }
+              disabled={busy}
+            >
+              <SelectTrigger id="specialist-timezone" className={bubbleStyle("Input_default_")}>
+                <SelectValue placeholder="Select time zone (UTC if empty)" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value={EMPTY_TZ}>Not set (UTC in emails)</SelectItem>
+                {timeZoneOptions.map((zone) => (
+                  <SelectItem key={zone} value={zone}>
+                    {zone.replace(/_/g, " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Used for coach-facing emails. Session times are shown in this zone.
+            </p>
+          </div>
+
+          <div className="grid gap-2">
             <Label htmlFor="specialist-bio">Description / bio</Label>
             <Textarea
               id="specialist-bio"
@@ -127,7 +167,8 @@ export default function AddSpecialistPopup({
               <div>
                 <Label htmlFor="specialist-active">Active</Label>
                 <p className="text-xs text-muted-foreground">
-                  Inactive specialists are hidden from new scheduling.
+                  Inactive specialists are hidden from new scheduling. Deactivation is blocked
+                  while the coach has upcoming sessions.
                 </p>
               </div>
               <Switch

@@ -110,6 +110,12 @@ export default function AdminGroupCatalogPanel() {
           ? `Created ${result.sessionIds.length} sessions.`
           : "Group session created.",
       );
+      if (result.meetFinalize === "failed") {
+        toast.warning(
+          result.meetDetail?.trim() ||
+            "Sessions saved, but Google Meet/Calendar setup failed. You can retry later.",
+        );
+      }
       setTitle("");
       setDescription("");
       await reload();

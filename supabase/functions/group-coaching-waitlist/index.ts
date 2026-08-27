@@ -7,6 +7,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
 import {
+  formatScheduledAtLabel,
+  formatSessionWhen,
+} from "../_shared/sessionWhenLabel.ts";
+import {
   sendGridSmtpLabel,
   sendTransactionalEmail,
 } from "../_shared/sendgridMail.ts";
@@ -92,10 +96,14 @@ Deno.serve(async (req) => {
     if (!enrollment || enrollment.status !== "offered") continue;
 
     const [{ data: profile }, { data: session }] = await Promise.all([
-      admin.from("profiles").select("email, firstName").eq("id", enrollment.userId).maybeSingle(),
+      admin
+        .from("profiles")
+        .select("email, firstName, timeZone")
+        .eq("id", enrollment.userId)
+        .maybeSingle(),
       admin
         .from("groupCoachingSession")
-        .select("title, startsAt")
+        .select("title, startsAt, durationMinutes")
         .eq("id", enrollment.sessionId)
         .maybeSingle(),
     ]);
@@ -106,30 +114,32 @@ Deno.serve(async (req) => {
         : "";
     const name =
       (typeof profile?.firstName === "string" && profile.firstName.trim()) || "there";
+    const userTimeZone =
+      typeof profile?.timeZone === "string" && profile.timeZone.trim()
+        ? profile.timeZone.trim()
+        : null;
     const title =
       (typeof session?.title === "string" && session.title.trim()) || "group coaching session";
+    const durationMinutes =
+      typeof session?.durationMinutes === "number" && session.durationMinutes > 0
+        ? session.durationMinutes
+        : 60;
     const when =
       typeof session?.startsAt === "string"
-        ? new Date(session.startsAt).toLocaleString(undefined, {
-            dateStyle: "full",
-            timeStyle: "short",
-          })
+        ? formatSessionWhen(session.startsAt, durationMinutes, userTimeZone)
         : "the scheduled time";
     const expires =
       typeof enrollment.claimExpiresAt === "string"
-        ? new Date(enrollment.claimExpiresAt).toLocaleString(undefined, {
-            dateStyle: "medium",
-            timeStyle: "short",
-          })
-        : "24 hours";
+        ? formatScheduledAtLabel(enrollment.claimExpiresAt, userTimeZone)
+        : "2 hours";
 
     let detail = "smtp:skipped — no email";
     if (email.includes("@")) {
       const mail = await sendTransactionalEmail({
         to: email,
         subject: `A spot opened: claim your Uncloud360 group session`,
-        text: `Hi ${name},\n\nA spot opened for "${title}" (${when}). Claim it within 24 hours (by ${expires}):\n${appUrl}/dashboard\n\n— Uncloud360\n`,
-        html: `<p>Hi ${name},</p><p>A spot opened for <strong>${title}</strong> (${when}).</p><p>Claim it within <strong>24 hours</strong> (by ${expires}) from your dashboard.</p><p><a href="${appUrl}/dashboard">Open dashboard →</a></p><p>— Uncloud360</p>`,
+        text: `Hi ${name},\n\nA spot opened for "${title}" (${when}). Claim it within 2 hours (by ${expires}):\n${appUrl}/dashboard\n\n— Uncloud360\n`,
+        html: `<p>Hi ${name},</p><p>A spot opened for <strong>${title}</strong> (${when}).</p><p>Claim it within <strong>2 hours</strong> (by ${expires}) from your dashboard.</p><p><a href="${appUrl}/dashboard">Open dashboard →</a></p><p>— Uncloud360</p>`,
       });
       detail = mail.detail;
     }

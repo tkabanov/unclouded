@@ -250,3 +250,75 @@ export async function deleteGoogleCalendarEvent(
     };
   }
 }
+
+export type GoogleCalendarUpdateResult = {
+  ok: boolean;
+  detail: string;
+};
+
+/**
+ * PATCH attendees (and optional summary) on an existing event; sendUpdates=all
+ * so Calendar invites/cancellations go to attendees (CL-3 reassignment).
+ */
+export async function updateGoogleCalendarEventAttendees(params: {
+  eventId: string | null | undefined;
+  attendeeEmails: string[];
+  summary?: string;
+  description?: string;
+}): Promise<GoogleCalendarUpdateResult> {
+  const trimmedId = typeof params.eventId === "string" ? params.eventId.trim() : "";
+  if (!trimmedId) {
+    return { ok: true, detail: "google:skipped — no event id" };
+  }
+
+  const { rawJson, calendarId } = readGoogleEnv();
+  if (!rawJson || !calendarId) {
+    return {
+      ok: true,
+      detail: "google:skipped — GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_CALENDAR_ID not set",
+    };
+  }
+
+  const parsed = parseServiceAccount(rawJson);
+  if ("error" in parsed) {
+    return { ok: false, detail: parsed.error };
+  }
+
+  try {
+    const accessToken = await googleServiceAccountAccessToken(parsed);
+    const attendees = params.attendeeEmails
+      .filter((email) => email.includes("@"))
+      .map((email) => ({ email }));
+
+    const body: Record<string, unknown> = { attendees };
+    if (params.summary?.trim()) body.summary = params.summary.trim();
+    if (params.description?.trim()) body.description = params.description.trim();
+
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(trimmedId)}?sendUpdates=all&conferenceDataVersion=1`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      },
+    );
+
+    if (!res.ok) {
+      const text = await res.text();
+      return {
+        ok: false,
+        detail: `google_error: ${res.status} ${text.slice(0, 400)}`,
+      };
+    }
+
+    return { ok: true, detail: "google:attendees_updated" };
+  } catch (err) {
+    return {
+      ok: false,
+      detail: `google_error: ${err instanceof Error ? err.message : "unknown"}`,
+    };
+  }
+}

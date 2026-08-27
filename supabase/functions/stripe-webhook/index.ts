@@ -127,10 +127,9 @@ async function handleInvoicePaid(
     return;
   }
 
-  // One credit per successful Premium billing period. The RPC no-ops for
-  // non-Premium users and for an invoice it has already credited.
+  // One-time Premium signup grant (+2). Monthly +1 is calendar-based (lifecycle cron).
   const data = await grantPremiumCreditForInvoice(service, userId, invoice.id);
-  console.log(`stripe-webhook: credit for ${userId} → ${JSON.stringify(data)}`);
+  console.log(`stripe-webhook: signup credit for ${userId} → ${JSON.stringify(data)}`);
 }
 
 async function handleInvoicePaymentFailed(

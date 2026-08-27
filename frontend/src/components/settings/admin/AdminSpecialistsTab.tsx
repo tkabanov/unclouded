@@ -100,8 +100,10 @@ export default function AdminSpecialistsTab() {
         toast.success(
           specialist.isActive ? "Specialist deactivated." : "Specialist activated.",
         );
-      } catch {
-        toast.error("Couldn't update specialist status.");
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Couldn't update specialist status.";
+        toast.error(message);
       } finally {
         setBusy(false);
       }
@@ -201,6 +203,11 @@ export default function AdminSpecialistsTab() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{specialist.email}</p>
+                    {specialist.timezone ? (
+                      <p className="text-xs text-muted-foreground">
+                        TZ: {specialist.timezone.replace(/_/g, " ")}
+                      </p>
+                    ) : null}
                     {specialist.bio ? (
                       <p className="text-sm text-muted-foreground line-clamp-2">{specialist.bio}</p>
                     ) : null}
