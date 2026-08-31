@@ -82,10 +82,10 @@ describe("resolveOneOnOneButtonState", () => {
     );
   });
 
-  it("explains that leftover credits died with the subscription", () => {
+  it("keeps the upsell CTA when leftover credits died with the subscription", () => {
     const state = resolveOneOnOneButtonState({ effectiveTier: TIER.PRO, creditBalance: 3 });
 
-    expect(state.kind).toBe("creditsUnavailable");
+    expect(state.kind).toBe("locked");
     expect(state.helper).toContain("no longer available");
   });
 
@@ -94,5 +94,12 @@ describe("resolveOneOnOneButtonState", () => {
 
     expect(state.kind).toBe("locked");
     expect(state.label).toBe("Unlock 1:1 Sessions");
+  });
+
+  it("upsells Premium when Free tier has orphaned credits (CSC-ACCESS-001)", () => {
+    const state = resolveOneOnOneButtonState({ effectiveTier: TIER.FREE, creditBalance: 1 });
+
+    expect(state.kind).toBe("locked");
+    expect(state.helper).toContain("no longer available");
   });
 });

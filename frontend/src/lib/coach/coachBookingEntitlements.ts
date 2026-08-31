@@ -33,8 +33,6 @@ export type OneOnOneButtonState =
   | { kind: "bookable"; label: string; helper: string }
   /** Premium, but the balance is short of one session. */
   | { kind: "insufficientCredits"; label: string; helper: string }
-  /** Premium access is ending or has ended — unused credits go with it. */
-  | { kind: "creditsUnavailable"; label: string; helper: string }
   /** Not Premium — offer the upgrade instead of a dead button. */
   | { kind: "locked"; label: string; helper: string };
 
@@ -58,20 +56,15 @@ export function resolveOneOnOneButtonState(
   const required = input.requiredCredits ?? CREDITS_PER_ONE_ON_ONE_SESSION;
 
   if (input.effectiveTier !== TIER.PREMIUM) {
-    // Credits left over from a lapsed Premium subscription are unusable, which
-    // is a different message from never having had Premium at all.
-    if (input.creditBalance > 0) {
-      return {
-        kind: "creditsUnavailable",
-        label: "Book a 1:1 Session",
-        helper: CREDITS_UNAVAILABLE_MESSAGE,
-      };
-    }
-
+    // Free/Pro always see the Premium upsell CTA. Orphaned credits from a lapsed
+    // subscription change the helper copy but must not replace the button.
     return {
       kind: "locked",
       label: "Unlock 1:1 Sessions",
-      helper: `Premium adds one credit every month — ${required} credits book one 30-minute session.`,
+      helper:
+        input.creditBalance > 0
+          ? CREDITS_UNAVAILABLE_MESSAGE
+          : `Premium adds one credit every month — ${required} credits book one 30-minute session.`,
     };
   }
 

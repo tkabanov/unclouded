@@ -1,21 +1,46 @@
 /**
- * One-off Active Premium user for SUB-PRM-* / BK-CREDIT-001 E2E
- * (avoids mutating sub-premium@test.com). After OVR-059, credit seed uses
- * billing_grant_premium_credit → signup_grant (+2 once), not legacy accrual.
+ * Premium first-time user for CSC-FIRST-* coach selection tests.
+ * No completed/past-occurred 1:1 history (coachBooking rows deleted).
  *
- *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_single_premium_user.mjs
+ *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_csc_coach_premium_first_user.mjs
  *
- * Optional: SEED_EMAIL=bk-credit-001@test.com
+ * Optional: SEED_EMAIL=csc-first@test.com
  */
 import { createRequire } from "node:module";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(new URL("../frontend/package.json", import.meta.url));
 const { createClient } = require("@supabase/supabase-js");
 
+function loadDotEnvFile(path) {
+  if (!existsSync(path)) return;
+  for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
+
+const here = dirname(fileURLToPath(import.meta.url));
+loadDotEnvFile(join(here, ".env.local"));
+loadDotEnvFile(join(here, ".env"));
+
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "https://szkextipgpupqoppccoy.supabase.co";
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = "qwerty123";
-const EMAIL = process.env.SEED_EMAIL ?? "sub-premium-run@test.com";
+const EMAIL = process.env.SEED_EMAIL ?? "csc-first@test.com";
 
 if (!SERVICE_ROLE_KEY) {
   console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
@@ -49,7 +74,7 @@ const ONBOARDING_PROFILE = {
     classification: {
       key: "building_momentum",
       name: "Building Momentum",
-      description: "Seeded for Premium subscription QA.",
+      description: "Seeded for CSC first-time coach selection QA.",
       focusAreas: ["Protect habits", "Stretch goals", "Sustain progress"],
     },
     recovery_mode_active: false,
@@ -79,7 +104,7 @@ async function ensureUser(admin, email) {
     const { error: updateError } = await admin.auth.admin.updateUserById(existingId, {
       password: PASSWORD,
       email_confirm: true,
-      user_metadata: { first_name: "Sub" },
+      user_metadata: { first_name: "CSC" },
     });
     if (updateError) throw new Error(`updateUser: ${updateError.message}`);
     return existingId;
@@ -89,10 +114,19 @@ async function ensureUser(admin, email) {
     email,
     password: PASSWORD,
     email_confirm: true,
-    user_metadata: { first_name: "Sub" },
+    user_metadata: { first_name: "CSC" },
   });
   if (error) throw new Error(`createUser: ${error.message}`);
   return data.user.id;
+}
+
+async function clearCoachBookingHistory(admin, userId) {
+  const { error, count } = await admin
+    .from("coachBooking")
+    .delete({ count: "exact" })
+    .eq("userId", userId);
+  if (error) throw new Error(`delete coachBooking: ${error.message}`);
+  console.log(`  coachBooking rows deleted: ${count ?? 0}`);
 }
 
 async function ensurePremiumCreditsForQa(admin, userId, targetBalance = 2) {
@@ -109,11 +143,11 @@ async function ensurePremiumCreditsForQa(admin, userId, targetBalance = 2) {
 
   while (balance < targetBalance && attempt < targetBalance + 8) {
     attempt += 1;
-    const invoiceId = `in_seed_premium_run_${userId.slice(0, 8)}_${Date.now()}_${attempt}`;
+    const invoiceId = `in_seed_csc_first_${userId.slice(0, 8)}_${Date.now()}_${attempt}`;
     const { data, error } = await admin.rpc("billing_grant_premium_credit", {
       p_user_id: userId,
       p_stripe_invoice_id: invoiceId,
-      p_note: "seed_single_premium_user",
+      p_note: "seed_csc_coach_premium_first_user",
     });
     if (error) throw new Error(`grant credit ${userId}: ${error.message}`);
     const nextBalance =
@@ -135,7 +169,7 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  console.log(`Seeding ${EMAIL} (Active Premium)...`);
+  console.log(`Seeding ${EMAIL} (Active Premium, no 1:1 history)...`);
   const userId = await ensureUser(admin, EMAIL);
 
   const { error: resetError } = await admin.rpc("service_reset_to_individual_free", {
@@ -143,12 +177,14 @@ async function main() {
   });
   if (resetError) throw new Error(`service_reset_to_individual_free: ${resetError.message}`);
 
+  await clearCoachBookingHistory(admin, userId);
+
   const { error: profileEntError } = await admin
     .from("profiles")
     .update({
       ...ONBOARDING_PROFILE,
-      firstName: "Sub",
-      lastName: "PremiumRun",
+      firstName: "CSC",
+      lastName: "First",
     })
     .eq("id", userId);
   if (profileEntError) throw profileEntError;
@@ -166,9 +202,9 @@ async function main() {
     p_current_period_start: start.toISOString(),
     p_current_period_end: end.toISOString(),
     p_cancel_at_period_end: false,
-    p_stripe_customer_id: `cus_seed_premium_${userId.slice(0, 8)}`,
-    p_stripe_subscription_id: `sub_seed_premium_${userId.slice(0, 8)}`,
-    p_stripe_price_id: "price_seed_premium",
+    p_stripe_customer_id: `cus_seed_csc_first_${userId.slice(0, 8)}`,
+    p_stripe_subscription_id: `sub_seed_csc_first_${userId.slice(0, 8)}`,
+    p_stripe_price_id: "price_seed_csc_first",
   });
   if (syncError) throw new Error(`billing_sync premium: ${syncError.message}`);
 
@@ -178,9 +214,15 @@ async function main() {
   const { data: balance } = await admin.rpc("available_premium_credits", {
     p_user_id: userId,
   });
+  const { count: bookingCount } = await admin
+    .from("coachBooking")
+    .select("*", { count: "exact", head: true })
+    .eq("userId", userId);
+
   console.log(`  userId: ${userId}`);
   console.log(`  effective_user_tier: ${tierRow}`);
   console.log(`  available_premium_credits: ${balance}`);
+  console.log(`  coachBooking count: ${bookingCount ?? 0}`);
   console.log(`  password: ${PASSWORD}`);
 }
 

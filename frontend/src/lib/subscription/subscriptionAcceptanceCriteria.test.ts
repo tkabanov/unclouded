@@ -449,9 +449,9 @@ describe("AC-18 an expired paid subscription transitions to Free", () => {
 });
 
 describe("AC-19 Premium credits become unusable once Premium is inactive", () => {
-  it("shows the credits-unavailable state and blocks booking server-side", () => {
+  it("shows the credits-unavailable helper with upsell CTA and blocks booking server-side", () => {
     const state = resolveOneOnOneButtonState({ effectiveTier: TIER.FREE, creditBalance: 4 });
-    expect(state.kind).toBe("creditsUnavailable");
+    expect(state.kind).toBe("locked");
     expect(state.helper).toContain("no longer available");
     expect(BOOKINGS_SQL).toMatch(/'premium_required'/);
   });

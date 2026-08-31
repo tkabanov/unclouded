@@ -1,11 +1,10 @@
 /**
- * One-off Active Premium user for SUB-PRM-* / BK-CREDIT-001 E2E
- * (avoids mutating sub-premium@test.com). After OVR-059, credit seed uses
- * billing_grant_premium_credit → signup_grant (+2 once), not legacy accrual.
+ * Individual Active Pro user for CSC coach-selection access tests (CSC-ACCESS-002+).
+ * Avoids mutating sub-pro@test.com (enterprise-linked) and sub-pro-run@test.com.
  *
- *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_single_premium_user.mjs
+ *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_csc_coach_pro_user.mjs
  *
- * Optional: SEED_EMAIL=bk-credit-001@test.com
+ * Optional: SEED_EMAIL=csc-pro@test.com
  */
 import { createRequire } from "node:module";
 
@@ -15,7 +14,7 @@ const { createClient } = require("@supabase/supabase-js");
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "https://szkextipgpupqoppccoy.supabase.co";
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = "qwerty123";
-const EMAIL = process.env.SEED_EMAIL ?? "sub-premium-run@test.com";
+const EMAIL = process.env.SEED_EMAIL ?? "csc-pro@test.com";
 
 if (!SERVICE_ROLE_KEY) {
   console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
@@ -49,7 +48,7 @@ const ONBOARDING_PROFILE = {
     classification: {
       key: "building_momentum",
       name: "Building Momentum",
-      description: "Seeded for Premium subscription QA.",
+      description: "Seeded for CSC coach-selection QA.",
       focusAreas: ["Protect habits", "Stretch goals", "Sustain progress"],
     },
     recovery_mode_active: false,
@@ -79,7 +78,7 @@ async function ensureUser(admin, email) {
     const { error: updateError } = await admin.auth.admin.updateUserById(existingId, {
       password: PASSWORD,
       email_confirm: true,
-      user_metadata: { first_name: "Sub" },
+      user_metadata: { first_name: "CSC" },
     });
     if (updateError) throw new Error(`updateUser: ${updateError.message}`);
     return existingId;
@@ -89,45 +88,10 @@ async function ensureUser(admin, email) {
     email,
     password: PASSWORD,
     email_confirm: true,
-    user_metadata: { first_name: "Sub" },
+    user_metadata: { first_name: "CSC" },
   });
   if (error) throw new Error(`createUser: ${error.message}`);
   return data.user.id;
-}
-
-async function ensurePremiumCreditsForQa(admin, userId, targetBalance = 2) {
-  const { data: initialBalance, error: balanceError } = await admin.rpc(
-    "available_premium_credits",
-    { p_user_id: userId },
-  );
-  if (balanceError) {
-    throw new Error(`available_premium_credits ${userId}: ${balanceError.message}`);
-  }
-
-  let balance = typeof initialBalance === "number" ? initialBalance : Number(initialBalance ?? 0);
-  let attempt = 0;
-
-  while (balance < targetBalance && attempt < targetBalance + 8) {
-    attempt += 1;
-    const invoiceId = `in_seed_premium_run_${userId.slice(0, 8)}_${Date.now()}_${attempt}`;
-    const { data, error } = await admin.rpc("billing_grant_premium_credit", {
-      p_user_id: userId,
-      p_stripe_invoice_id: invoiceId,
-      p_note: "seed_single_premium_user",
-    });
-    if (error) throw new Error(`grant credit ${userId}: ${error.message}`);
-    const nextBalance =
-      typeof data?.balance === "number" ? data.balance : Number(data?.balance ?? balance);
-    console.log(`  credit grant ${attempt}:`, data);
-    if (nextBalance <= balance) break;
-    balance = nextBalance;
-  }
-
-  if (balance < targetBalance) {
-    throw new Error(
-      `premium QA credits: wanted ${targetBalance}, got ${balance} for ${userId}`,
-    );
-  }
 }
 
 async function main() {
@@ -135,7 +99,7 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  console.log(`Seeding ${EMAIL} (Active Premium)...`);
+  console.log(`Seeding ${EMAIL} (Active Pro, individual)...`);
   const userId = await ensureUser(admin, EMAIL);
 
   const { error: resetError } = await admin.rpc("service_reset_to_individual_free", {
@@ -147,8 +111,8 @@ async function main() {
     .from("profiles")
     .update({
       ...ONBOARDING_PROFILE,
-      firstName: "Sub",
-      lastName: "PremiumRun",
+      firstName: "CSC",
+      lastName: "Pro",
     })
     .eq("id", userId);
   if (profileEntError) throw profileEntError;
@@ -160,27 +124,21 @@ async function main() {
 
   const { error: syncError } = await admin.rpc("billing_sync_stripe_subscription", {
     p_user_id: userId,
-    p_plan_tier: "premium",
+    p_plan_tier: "pro",
     p_status: "active",
     p_billing_interval: "month",
     p_current_period_start: start.toISOString(),
     p_current_period_end: end.toISOString(),
     p_cancel_at_period_end: false,
-    p_stripe_customer_id: `cus_seed_premium_${userId.slice(0, 8)}`,
-    p_stripe_subscription_id: `sub_seed_premium_${userId.slice(0, 8)}`,
-    p_stripe_price_id: "price_seed_premium",
+    p_stripe_customer_id: `cus_seed_csc_pro_${userId.slice(0, 8)}`,
+    p_stripe_subscription_id: `sub_seed_csc_pro_${userId.slice(0, 8)}`,
+    p_stripe_price_id: "price_seed_csc_pro",
   });
-  if (syncError) throw new Error(`billing_sync premium: ${syncError.message}`);
-
-  await ensurePremiumCreditsForQa(admin, userId, 2);
+  if (syncError) throw new Error(`billing_sync pro: ${syncError.message}`);
 
   const { data: tierRow } = await admin.rpc("effective_user_tier", { p_user_id: userId });
-  const { data: balance } = await admin.rpc("available_premium_credits", {
-    p_user_id: userId,
-  });
   console.log(`  userId: ${userId}`);
   console.log(`  effective_user_tier: ${tierRow}`);
-  console.log(`  available_premium_credits: ${balance}`);
   console.log(`  password: ${PASSWORD}`);
 }
 
