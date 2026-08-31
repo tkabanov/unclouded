@@ -1,28 +1,60 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { addDays, endOfDay, format, startOfDay } from "date-fns";
 import { toast } from "sonner";
+
+import CoachProfileSheet from "@/components/coach/booking/CoachProfileSheet";
+import CoachSelectionStep from "@/components/coach/booking/CoachSelectionStep";
+import SlotSelectionStep from "@/components/coach/booking/SlotSelectionStep";
+import {
+  SLOT_LOOKAHEAD_DAYS,
+  type BookingError,
+  type BookingMode,
+  type BookingStep,
+  type PreviousCoachAvailability,
+} from "@/components/coach/booking/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   cancelOneOnOneBooking,
   confirmOneOnOneBooking,
   fetchMyCoachBookings,
   formatCoachBookingStatusLabel,
-  getMyLastOneOnOneCoach,
   listActiveCoachesForBooking,
   listBookableOneOnOneSlots,
+  listBookableOneOnOneSlotsAnyCoach,
+  listMyPreviousOneOnOneCoaches,
   type BookableCoach,
   type BookableOneOnOneSlot,
   type CoachBookingRow,
+  type PreviousOneOnOneCoach,
 } from "@/lib/coach/coachBookingApi";
 import { cn } from "@/lib/utils";
-
-const SLOT_LOOKAHEAD_DAYS = 14;
 
 function isUpcomingConfirmed(row: CoachBookingRow): boolean {
   if (row.status !== "confirmed" || !row.scheduledAt) return false;
   return new Date(row.scheduledAt).getTime() > Date.now();
+}
+
+function resolveBookingError(code: string, message: string): BookingError {
+  if (code === "specialist_unavailable") {
+    return {
+      code,
+      message: message || "That coach is no longer available.",
+      action: "chooseCoach",
+    };
+  }
+  if (code === "slot_unavailable" || code === "slot_in_past") {
+    return {
+      code,
+      message: message || "That time was just taken.",
+      action: "pickTime",
+    };
+  }
+  return {
+    code,
+    message: message || "Could not create your booking. Please try again.",
+    action: "pickTime",
+  };
 }
 
 type OneOnOneBookingPanelProps = {
@@ -44,16 +76,24 @@ export default function OneOnOneBookingPanel({
   onPremiumRequired,
   helperText,
 }: OneOnOneBookingPanelProps) {
+  const [step, setStep] = useState<BookingStep>("chooseCoach");
+  const [bookingMode, setBookingMode] = useState<BookingMode>("manual");
   const [selectedDay, setSelectedDay] = useState<Date>(() => startOfDay(new Date()));
   const [slots, setSlots] = useState<BookableOneOnOneSlot[]>([]);
   const [history, setHistory] = useState<CoachBookingRow[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<BookableOneOnOneSlot | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [roster, setRoster] = useState<BookableCoach[]>([]);
+  const [previousCoaches, setPreviousCoaches] = useState<PreviousOneOnOneCoach[]>([]);
+  const [previousAvailability, setPreviousAvailability] = useState<
+    Record<string, PreviousCoachAvailability>
+  >({});
   const [selectedCoach, setSelectedCoach] = useState<BookableCoach | null>(null);
   const [showFullRoster, setShowFullRoster] = useState(false);
-  const [bookAgainCoach, setBookAgainCoach] = useState<BookableCoach | null>(null);
   const [loadingCoaches, setLoadingCoaches] = useState(false);
+  const [profileCoach, setProfileCoach] = useState<BookableCoach | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [bookingError, setBookingError] = useState<BookingError | null>(null);
 
   const rangeFrom = useMemo(() => startOfDay(new Date()), []);
   const rangeTo = useMemo(
@@ -70,18 +110,48 @@ export default function OneOnOneBookingPanel({
     }
   }, []);
 
+  const loadPreviousAvailability = useCallback(
+    async (coaches: PreviousOneOnOneCoach[]): Promise<Record<string, PreviousCoachAvailability>> => {
+      const entries = await Promise.all(
+        coaches.map(async (coach) => {
+          if (!coach.isActive) {
+            return [coach.id, { hasSlots: false, unavailableReason: "inactive" as const }] as const;
+          }
+          try {
+            const coachSlots = await listBookableOneOnOneSlots(rangeFrom, rangeTo, coach.id);
+            return [
+              coach.id,
+              coachSlots.length > 0
+                ? { hasSlots: true }
+                : { hasSlots: false, unavailableReason: "no_slots" as const },
+            ] as const;
+          } catch {
+            return [coach.id, { hasSlots: false, unavailableReason: "no_slots" as const }] as const;
+          }
+        }),
+      );
+      return Object.fromEntries(entries);
+    },
+    [rangeFrom, rangeTo],
+  );
+
   const reloadSlots = useCallback(async () => {
-    if (!selectedCoach) {
-      setSlots([]);
-      return;
-    }
+    if (step !== "chooseSlot") return;
+
     setLoadingSlots(true);
     try {
-      const next = await listBookableOneOnOneSlots(
-        rangeFrom,
-        rangeTo,
-        selectedCoach.id,
-      );
+      if (bookingMode === "autoMatch") {
+        const next = await listBookableOneOnOneSlotsAnyCoach(rangeFrom, rangeTo);
+        setSlots(next);
+        return;
+      }
+
+      if (!selectedCoach) {
+        setSlots([]);
+        return;
+      }
+
+      const next = await listBookableOneOnOneSlots(rangeFrom, rangeTo, selectedCoach.id);
       setSlots(next);
     } catch {
       toast.error("Couldn't load available times.");
@@ -89,56 +159,35 @@ export default function OneOnOneBookingPanel({
     } finally {
       setLoadingSlots(false);
     }
-  }, [rangeFrom, rangeTo, selectedCoach]);
+  }, [bookingMode, rangeFrom, rangeTo, selectedCoach, step]);
 
   const bootstrapCoaches = useCallback(async () => {
     if (!bookable) return;
     setLoadingCoaches(true);
     try {
-      const [coaches, last] = await Promise.all([
+      const [coaches, previous] = await Promise.all([
         listActiveCoachesForBooking(),
-        getMyLastOneOnOneCoach(),
+        listMyPreviousOneOnOneCoaches(),
       ]);
       setRoster(coaches);
-
-      let prefer: BookableCoach | null = null;
-      if (last?.isActive) {
-        const match = coaches.find((c) => c.id === last.id) ?? {
-          id: last.id,
-          name: last.name,
-          imageUrl: last.imageUrl,
-          bio: last.bio,
-        };
-        const coachSlots = await listBookableOneOnOneSlots(
-          rangeFrom,
-          rangeTo,
-          match.id,
-        );
-        if (coachSlots.length > 0) {
-          prefer = match;
-          setBookAgainCoach(match);
-          setShowFullRoster(false);
-        } else {
-          setBookAgainCoach(null);
-          setShowFullRoster(true);
-        }
-      } else {
-        setBookAgainCoach(null);
-        setShowFullRoster(true);
-      }
-
-      setSelectedCoach(prefer ?? coaches[0] ?? null);
+      setPreviousCoaches(previous);
+      setPreviousAvailability(await loadPreviousAvailability(previous));
+      setShowFullRoster(previous.length === 0);
+      setStep("chooseCoach");
+      setBookingMode("manual");
+      setSelectedCoach(null);
       setSelectedSlot(null);
+      setBookingError(null);
     } catch {
       toast.error("Couldn't load coaches.");
       setRoster([]);
-      setSelectedCoach(null);
-      setBookAgainCoach(null);
+      setPreviousCoaches([]);
+      setPreviousAvailability({});
       setShowFullRoster(true);
     } finally {
       setLoadingCoaches(false);
     }
-  }, [bookable, rangeFrom, rangeTo]);
+  }, [bookable, loadPreviousAvailability]);
 
   useEffect(() => {
     void reloadHistory();
@@ -152,66 +201,92 @@ export default function OneOnOneBookingPanel({
     void reloadSlots();
   }, [reloadSlots]);
 
-  const daysWithSlots = useMemo(() => {
-    const set = new Set<string>();
-    for (const slot of slots) {
-      set.add(format(new Date(slot.slotStart), "yyyy-MM-dd"));
-    }
-    return set;
-  }, [slots]);
-
-  const slotsForDay = useMemo(() => {
-    const from = startOfDay(selectedDay).getTime();
-    const to = endOfDay(selectedDay).getTime();
-    return slots.filter((slot) => {
-      const t = new Date(slot.slotStart).getTime();
-      return t >= from && t <= to;
-    });
-  }, [selectedDay, slots]);
-
-  const handleSelectCoach = useCallback((coach: BookableCoach) => {
-    setSelectedCoach(coach);
+  const goToCoachStep = useCallback(() => {
+    setStep("chooseCoach");
+    setBookingMode("manual");
+    setSelectedCoach(null);
     setSelectedSlot(null);
+    setSlots([]);
+    setBookingError(null);
   }, []);
+
+  const goToSlotStep = useCallback((coach: BookableCoach | null, mode: BookingMode) => {
+    setSelectedCoach(coach);
+    setBookingMode(mode);
+    setSelectedSlot(null);
+    setBookingError(null);
+    setStep("chooseSlot");
+  }, []);
+
+  const handleSelectCoach = useCallback(
+    (coach: BookableCoach, mode: "manual" | "rebook") => {
+      goToSlotStep(coach, mode);
+    },
+    [goToSlotStep],
+  );
+
+  const handleMatchMe = useCallback(() => {
+    goToSlotStep(null, "autoMatch");
+  }, [goToSlotStep]);
+
+  const handleViewProfile = useCallback((coach: BookableCoach) => {
+    setProfileCoach(coach);
+    setProfileOpen(true);
+  }, []);
+
+  const handleProfileBook = useCallback(
+    (coach: BookableCoach) => {
+      handleSelectCoach(coach, "manual");
+    },
+    [handleSelectCoach],
+  );
 
   const handleConfirm = useCallback(async () => {
     if (!bookable) {
       onPremiumRequired();
       return;
     }
-    if (!selectedSlot || !selectedCoach || busy) return;
+    if (!selectedSlot || busy) return;
+    if (bookingMode !== "autoMatch" && !selectedCoach) return;
 
     onBusyChange(true);
+    setBookingError(null);
     try {
       const result = await confirmOneOnOneBooking({
         slotStart: selectedSlot.slotStart,
         durationMinutes: selectedSlot.durationMinutes,
-        specialistId: selectedCoach.id,
+        specialistId: bookingMode === "autoMatch" ? null : selectedCoach?.id,
       });
 
       if (result.status === "blocked") {
         if (result.code === "premium_required") {
           onPremiumRequired();
         } else {
-          toast.error(result.message);
+          setBookingError(resolveBookingError(result.code, result.message));
         }
         await reloadSlots();
         await onBooked();
         return;
       }
 
+      const coachLabel = result.specialistName?.trim();
       toast.success(
-        result.kotaRead
-          ? "Session booked — confirmation is on the way, and Kota's Read was prepared for your coach."
-          : "Session booked — you'll get a confirmation email with session details.",
+        coachLabel
+          ? `Session booked with ${coachLabel} — you'll get a confirmation email with session details.`
+          : result.kotaRead
+            ? "Session booked — confirmation is on the way, and Kota's Read was prepared for your coach."
+            : "Session booked — you'll get a confirmation email with session details.",
       );
       setSelectedSlot(null);
-      await Promise.all([reloadSlots(), reloadHistory(), onBooked()]);
+      setBookingError(null);
+      await Promise.all([bootstrapCoaches(), reloadHistory(), onBooked()]);
     } finally {
       onBusyChange(false);
     }
   }, [
     bookable,
+    bookingMode,
+    bootstrapCoaches,
     busy,
     onBooked,
     onBusyChange,
@@ -221,6 +296,18 @@ export default function OneOnOneBookingPanel({
     selectedCoach,
     selectedSlot,
   ]);
+
+  const handleBookingErrorAction = useCallback(() => {
+    if (!bookingError) return;
+    setBookingError(null);
+    if (bookingError.action === "chooseCoach") {
+      goToCoachStep();
+      setShowFullRoster(true);
+      return;
+    }
+    setSelectedSlot(null);
+    void reloadSlots();
+  }, [bookingError, goToCoachStep, reloadSlots]);
 
   const handleCancel = useCallback(
     async (bookingId: string) => {
@@ -237,13 +324,15 @@ export default function OneOnOneBookingPanel({
             ? "Session canceled — your credits were returned."
             : "Session canceled. Credits are not refunded within 24 hours of the session.",
         );
-        await Promise.all([reloadSlots(), reloadHistory(), onBooked()]);
+        await Promise.all([bootstrapCoaches(), reloadHistory(), onBooked()]);
       } finally {
         onBusyChange(false);
       }
     },
-    [busy, onBooked, onBusyChange, reloadHistory, reloadSlots],
+    [busy, bootstrapCoaches, onBooked, onBusyChange, reloadHistory],
   );
+
+  const hasPreviousCoaches = previousCoaches.length > 0;
 
   return (
     <div className="space-y-3 rounded-lg border border-border/60 p-3">
@@ -256,181 +345,55 @@ export default function OneOnOneBookingPanel({
         <>
           {loadingCoaches ? (
             <p className="text-xs text-muted-foreground">Loading coaches…</p>
-          ) : roster.length === 0 ? (
+          ) : roster.length === 0 && previousCoaches.length === 0 ? (
             <p className="text-xs text-muted-foreground">
               No coaches are available to book right now.
             </p>
+          ) : step === "chooseCoach" ? (
+            <CoachSelectionStep
+              roster={roster}
+              previousCoaches={previousCoaches}
+              previousAvailability={previousAvailability}
+              showFullRoster={showFullRoster}
+              hasPreviousCoaches={hasPreviousCoaches}
+              busy={busy}
+              onViewProfile={handleViewProfile}
+              onSelectCoach={handleSelectCoach}
+              onChooseAnotherCoach={() => setShowFullRoster(true)}
+              onMatchMe={handleMatchMe}
+            />
           ) : (
-            <>
-              {bookAgainCoach && !showFullRoster ? (
-                <div className="space-y-2 rounded-md border border-border/60 bg-muted/30 p-2.5">
-                  <div className="flex items-start gap-2.5">
-                    {bookAgainCoach.imageUrl ? (
-                      <img
-                        src={bookAgainCoach.imageUrl}
-                        alt=""
-                        className="h-10 w-10 shrink-0 rounded-full object-cover border"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 shrink-0 rounded-full border bg-muted" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{bookAgainCoach.name}</p>
-                      {bookAgainCoach.bio ? (
-                        <p className="line-clamp-2 text-[11px] text-muted-foreground">
-                          {bookAgainCoach.bio}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="w-full"
-                    disabled={busy}
-                    onClick={() => handleSelectCoach(bookAgainCoach)}
-                  >
-                    Book again with {bookAgainCoach.name}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 w-full text-xs"
-                    disabled={busy}
-                    onClick={() => setShowFullRoster(true)}
-                  >
-                    Browse all coaches
-                  </Button>
-                </div>
-              ) : null}
-
-              {showFullRoster || !bookAgainCoach ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-medium text-muted-foreground">Choose a coach</p>
-                    {bookAgainCoach ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => {
-                          setShowFullRoster(false);
-                          handleSelectCoach(bookAgainCoach);
-                        }}
-                      >
-                        Back to {bookAgainCoach.name}
-                      </Button>
-                    ) : null}
-                  </div>
-                  <ul className="space-y-2">
-                    {roster.map((coach) => {
-                      const selected = selectedCoach?.id === coach.id;
-                      return (
-                        <li key={coach.id}>
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => handleSelectCoach(coach)}
-                            className={cn(
-                              "flex w-full items-start gap-2.5 rounded-md border px-2.5 py-2 text-left transition-colors",
-                              selected
-                                ? "border-primary bg-primary/5"
-                                : "border-border/60 hover:bg-muted/40",
-                            )}
-                          >
-                            {coach.imageUrl ? (
-                              <img
-                                src={coach.imageUrl}
-                                alt=""
-                                className="h-10 w-10 shrink-0 rounded-full object-cover border"
-                              />
-                            ) : (
-                              <div className="h-10 w-10 shrink-0 rounded-full border bg-muted" />
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium">{coach.name}</p>
-                              {coach.bio ? (
-                                <p className="line-clamp-2 text-[11px] text-muted-foreground">
-                                  {coach.bio}
-                                </p>
-                              ) : null}
-                            </div>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ) : null}
-
-              {selectedCoach ? (
-                <p className="text-[11px] text-muted-foreground">
-                  Times for <span className="font-medium text-foreground">{selectedCoach.name}</span>{" "}
-                  (your local timezone)
-                </p>
-              ) : null}
-
-              <Calendar
-                mode="single"
-                selected={selectedDay}
-                onSelect={(day) => {
-                  if (day) {
-                    setSelectedDay(startOfDay(day));
-                    setSelectedSlot(null);
-                  }
-                }}
-                disabled={(day) => {
-                  const key = format(day, "yyyy-MM-dd");
-                  const beforeToday = startOfDay(day) < startOfDay(new Date());
-                  const afterWindow =
-                    startOfDay(day) > startOfDay(addDays(new Date(), SLOT_LOOKAHEAD_DAYS));
-                  return beforeToday || afterWindow || !daysWithSlots.has(key);
-                }}
-                className="rounded-md border"
-              />
-
-              {loadingSlots ? (
-                <p className="text-xs text-muted-foreground">Loading times…</p>
-              ) : !selectedCoach ? (
-                <p className="text-xs text-muted-foreground">Select a coach to see times.</p>
-              ) : slotsForDay.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  No open times on this day. Pick another highlighted date.
-                </p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {slotsForDay.map((slot) => {
-                    const selected = selectedSlot?.slotStart === slot.slotStart;
-                    return (
-                      <Button
-                        key={slot.slotStart}
-                        type="button"
-                        size="sm"
-                        variant={selected ? "default" : "outline"}
-                        className="h-8 px-2.5 text-xs"
-                        disabled={busy}
-                        onClick={() => setSelectedSlot(slot)}
-                      >
-                        {format(new Date(slot.slotStart), "HH:mm")} · {slot.durationMinutes}m
-                      </Button>
-                    );
-                  })}
-                </div>
-              )}
-
-              <Button
-                type="button"
-                size="sm"
-                className="w-full"
-                disabled={busy || !selectedSlot || !selectedCoach}
-                onClick={() => void handleConfirm()}
-              >
-                {busy ? "Booking…" : "Confirm session"}
-              </Button>
-            </>
+            <SlotSelectionStep
+              bookingMode={bookingMode}
+              selectedCoach={selectedCoach}
+              selectedDay={selectedDay}
+              selectedSlot={selectedSlot}
+              slots={slots}
+              loadingSlots={loadingSlots}
+              busy={busy}
+              bookingError={bookingError}
+              onBack={goToCoachStep}
+              onSelectDay={(day) => {
+                setSelectedDay(day);
+                setSelectedSlot(null);
+                setBookingError(null);
+              }}
+              onSelectSlot={(slot) => {
+                setSelectedSlot(slot);
+                setBookingError(null);
+              }}
+              onConfirm={() => void handleConfirm()}
+              onErrorAction={handleBookingErrorAction}
+            />
           )}
+
+          <CoachProfileSheet
+            coach={profileCoach}
+            open={profileOpen}
+            busy={busy}
+            onOpenChange={setProfileOpen}
+            onBook={handleProfileBook}
+          />
         </>
       ) : locked ? (
         <Button
@@ -456,9 +419,7 @@ export default function OneOnOneBookingPanel({
             {history.map((row) => (
               <li
                 key={row.id}
-                className={cn(
-                  "flex flex-col gap-1 rounded-md bg-muted/40 px-2.5 py-2 text-xs",
-                )}
+                className={cn("flex flex-col gap-1 rounded-md bg-muted/40 px-2.5 py-2 text-xs")}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span>

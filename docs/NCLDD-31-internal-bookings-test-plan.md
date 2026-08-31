@@ -1,34 +1,34 @@
 # План тестирования: NCLDD-31 — Internal Bookings Management System
 
-**Спека:** [`docs/NCLDD-31-internal-bookings-management-system.md`](./NCLDD-31-internal-bookings-management-system.md)  
+**Спека:** [`docs/NCLDD-31-internal-bookings-management-system.md`](./NCLDD-31-internal-bookings-management-system.md) (client clarifications CL-1…CL-10; gaps G1–G10 **resolved** 2026-08-27)  
 **Jira:** [NCLDD-31](https://rapiddevelopers.atlassian.net/browse/NCLDD-31)  
-**Overrides:** OVR-027 / **OVR-059** (Premium 1:1 credits: cost 2, signup +2, monthly +1 on 1st UTC, cap 6), **OVR-060** (`groupSessionsUsedThisMonth`), OVR-045 (Pre-Coaching Brief), **OVR-061** (coach choice), **OVR-062** (reassign / deactivate), **OVR-063** (TZ / Meet / Complete-at-end / waitlist 2h) — `docs/product-overrides.md`  
+**Overrides:** OVR-027 / **OVR-059** (Premium 1:1 credits: cost 2, signup +2, monthly +1 on 1st UTC, cap 6, refunds clamped), **OVR-060** (`groupSessionsUsedThisMonth`), OVR-045 (Pre-Coaching Brief), **OVR-061** (coach choice), **OVR-064** (two-step coach selection flow), **OVR-062** (load-based auto-assign / reassign / deactivate), **OVR-063** (TZ / Meet for group / Complete-at-end / waitlist 2h / end5m email) — `docs/product-overrides.md`  
 **Код (ориентиры):**
 
 | Область | UI / API |
 |---|---|
-| Specialists CRUD | `/admin` → Specialists, `AdminSpecialistsTab`, `adminSpecialistsApi` |
+| Specialists CRUD | `/admin` → Specialists, `AdminSpecialistsTab`, `adminSpecialistsApi` (`specialist.timezone`) |
 | Scheduling / availability | `/admin` → Scheduling, `AdminSchedulingTab` |
 | Admin bookings | `/admin` → Bookings, `AdminBookingsTab`, `adminBookingsApi` |
 | Group catalog (admin) | Bookings / group panel, `AdminGroupCatalogPanel`, `adminGroupSessionsApi` |
 | User 1:1 booking | Dashboard / coaching booking UI, `OneOnOneBookingPanel`, `coachBookingApi` |
 | User group booking | Group coaching UI, `groupCoachingApi` |
 | Post-session form | `/coach-session/:token`, `CoachPostSessionPage`, `coach-post-session` edge |
-| Credits | OVR-059 ledger / hold→redeem; Admin user detail credit adjust |
-| Google Meet / Calendar | finalize-coach-booking / finalize-group-sessions; reassign Calendar PATCH |
-| Emails | confirmation, Pre-Coaching Brief, 24h / 1h / end5m reminders; waitlist offer; cancel/reassign |
+| Credits | OVR-059 ledger / hold→redeem; Admin user detail credit adjust; `subscription-lifecycle` monthly |
+| Google Meet / Calendar | `finalize-coach-booking` / `finalize-group-sessions`; reassign Calendar PATCH |
+| Emails | confirmation (coach name + recipient TZ), Pre-Coaching Brief, 24h / 1h / **end5m** reminders; waitlist offer; cancel/reassign |
 
 ## How to run
 
 - Manual / browser: `/test-list docs/NCLDD-31-internal-bookings-test-plan.md` или `/test <ID>`
 - Actor Admin: Platform Admin (`isAdmin`) — Specialists / Scheduling / Bookings
 - Actor User: Premium (1:1 + group), Pro (group only), Free (negatives)
-- Email / Meet checks: тестовый inbox специалиста + user; Google Calendar тестового аккаунта интеграции
-- Time-based: reminders / waitlist **2h** claim / Complete-at-end — clock skew, scheduled jobs, или ручной invoke cron / edge
+- Email / Meet checks: тестовый inbox специалиста + user; Google Calendar тестового аккаунта интеграции (`GOOGLE_CALENDAR_ID`)
+- Time-based: reminders / waitlist **2h** claim / Complete-at-end / monthly 1st — clock skew, scheduled jobs, или ручной invoke cron / edge
 
 ### Deploy before QA
 
-Apply migrations `20260827140000` … `20260827210000`, then deploy edges: `coach-booking-reminders`, `coach-post-session`, `reassign-coach-booking`, `cancel-group-coaching-session`, `group-coaching-waitlist`, `subscription-lifecycle`, `finalize-group-sessions`.
+Apply migrations `20260827140000` … `20260827210000`, then deploy edges: `coach-booking-reminders`, `coach-post-session`, `reassign-coach-booking`, `cancel-group-coaching-session`, `group-coaching-waitlist`, `subscription-lifecycle`, `finalize-group-sessions`, `finalize-coach-booking`.
 
 ---
 
@@ -36,26 +36,26 @@ Apply migrations `20260827140000` … `20260827210000`, then deploy edges: `coac
 
 ### 1.1 Цели
 
-Проверить внутреннюю систему бронирования one-on-one и group coaching: admin-управление специалистами и слотами, пользовательский booking **с выбором коуча** (CL-9), кредиты (OVR-059), Google Meet/Calendar sync, email-автоматизации (вкл. end5m), post-session form без аккаунта специалиста (Completed **не** от формы), отмены/refunds, group capacity + monthly gate (OVR-060) + waitlist (FIFO, **2h** claim), admin booking management и статусы.
+Проверить внутреннюю систему бронирования one-on-one и group coaching: admin-управление специалистами (вкл. IANA TZ) и слотами, пользовательский booking **с выбором коуча** (CL-9), кредиты (OVR-059: signup/accrual/cap/clamp), Google Meet/Calendar sync (**1:1 и group**, CL-5), email-автоматизации (вкл. end5m, recipient TZ), post-session form без аккаунта специалиста (Completed **не** от формы; Kota на submit), отмены/refunds (UTC 24h), group capacity + monthly gate (OVR-060) + waitlist (FIFO, **2h** claim, skip used-gate), admin booking management и статусы.
 
 ### 1.2 In scope / Out of scope
 
 | In scope | Out of scope |
 |---|---|
 | Admin Specialists / Scheduling / Bookings | Внешний Wix / legacy scheduler parity |
-| User 1:1 coach roster + book-again (CL-9) | Coach Workspace Phase 3 (полноценный login специалиста) |
-| Credits hold/redeem/refund (OVR-059) | Stripe checkout / subscription billing (кроме entitlement gate) |
-| Google Calendar event + Meet create/cancel/reassign | Нагрузочное тестирование Meet API quota |
-| Confirmation, Pre-Coaching Brief, 24h/1h/end5m reminders | Полный content QA тона Kota's Read (см. AI prompt test plan) |
-| Post-session form по token; Kota memory on submit | Специалист как platform user / SSO |
-| Group sessions, capacity, waitlist, 2h claim race | Платные group add-ons ($97) — снято OVR-028 |
+| User 1:1 coach roster + book-again (CL-9 / G7 fallback) | Coach Workspace Phase 3 (полноценный login специалиста) |
+| Credits hold/redeem/refund + signup/monthly/cap (OVR-059) | Stripe checkout / subscription billing (кроме entitlement gate + `effective_user_tier` on 1st) |
+| Google Calendar event + Meet create/cancel/reassign; **group Meet** | Нагрузочное тестирование Meet API quota |
+| Confirmation, Pre-Coaching Brief, 24h/1h/end5m (email only) | In-app / push for end5m; полный content QA тона Kota's Read |
+| Post-session form по token; Kota `chat_session_memory` on submit | Специалист как platform user / SSO |
+| Group sessions, capacity, waitlist 2h claim, monthly gate + cancel rules | Платные group add-ons ($97) — снято OVR-028 |
 | Admin filters, reassign (CL-3), credit adjust, form pending | Mobile native apps; group Complete-at-end / group end5m |
 
 ### 1.3 Приоритет источников
 
 1. Явная инструкция в текущем чате  
 2. [`docs/product-overrides.md`](./product-overrides.md) — **OVR-059…063**, OVR-045  
-3. [`docs/NCLDD-31-internal-bookings-management-system.md`](./NCLDD-31-internal-bookings-management-system.md)  
+3. [`docs/NCLDD-31-internal-bookings-management-system.md`](./NCLDD-31-internal-bookings-management-system.md) (CL-1…CL-10)  
 4. Bubble / Lovable / migration specs
 
 ### 1.4 Locked decisions — проверять как норму
@@ -63,16 +63,21 @@ Apply migrations `20260827140000` … `20260827210000`, then deploy edges: `coac
 | Тема | Expected |
 |---|---|
 | Standard slot | **30 minutes** (duration configurable в admin scheduling) |
-| 1:1 credits (OVR-059) | Cost **2**; signup **+2** once; monthly **+1** on 1st UTC; **cap 6**; cancel ≥24h refund **clamped** to cap |
-| Specialist identity (user 1:1) | Coach **visible and selectable**; book-again for last coach; name in confirm email + history (CL-9) |
+| 1:1 credits (OVR-059 / CL-1) | Cost **2**; signup **+2** once; monthly **+1** on 1st UTC if `effective_user_tier = premium`; **cap 6**; cancel ≥24h refund **clamped** so balance never exceeds 6; credits never for group |
+| Specialist identity (user 1:1) | Coach **visible and selectable**; book-again for last coach; name in confirm email + history (CL-9). If last coach inactive / no slots → full roster, no dead CTA (G7) |
+| Auto-assign (CL-2) | Only non–user-selected paths: lowest monthly load, then random; admin override anytime |
 | Specialist accounts | Специалистам **не** нужны platform login |
-| Cancel ≥24h before | Full credit refund (capped) |
+| Specialist TZ (G1) | Admin-editable IANA `specialist.timezone`; empty → UTC in coach-facing mail |
+| User TZ (G2) | User-facing emails use `profiles.timeZone`; empty → UTC; slots UI = device-local |
+| Cancel ≥24h before | Full credit refund (capped); 24h rule computed in **UTC**, deadline **displayed** in user local TZ |
 | Cancel &lt;24h before | No credit refund |
-| Waitlist claim window | **2 hours** after promotion (CL-8) |
-| Group monthly gate (OVR-060) | `groupSessionsUsedThisMonth` 0/1; blocked copy with next-available date; cancel ≥24h resets; admin cancel resets + notifies |
+| Waitlist claim window | **2 hours** after promotion; cascade to next (CL-8). Supersedes prior 24h claim |
+| Group monthly gate (OVR-060) | `groupSessionsUsedThisMonth` 0/1; blocked copy with next-available date; user cancel ≥24h → 0; &lt;24h → stays 1 (spot still frees); admin full cancel → 0 for all + notify; waitlist promote **skips** counter=1 (G6) |
+| Group Meet (CL-5 / G8) | Unique Meet at creation; service-account calendar owns events; group has **no** Calendar attendees |
 | Status UI labels | `confirmed` → **Scheduled**; **Completed** at scheduled **end** (not form submit); Form Pending\|Submitted separate; Canceled / Waitlisted |
-| Deactivate coach (CL-10) | Blocked while upcoming sessions; exact warning copy |
-| TZ (CL-4) | Slots device-local; emails in recipient TZ; 24h rule UTC |
+| End warning (G3) | **5 min** before end: **email only** to **user** (not coach) |
+| Deactivate coach (CL-10) | Blocked while upcoming sessions; exact warning copy; no auto-reassign/cancel |
+| Kota on form (G9) | Append `human-coach:{bookingId}` into `chat_session_memory`; stamp `postSessionKotaSyncedAt`; does not regenerate Pre-Coaching Brief |
 
 ---
 
@@ -86,29 +91,30 @@ Apply migrations `20260827140000` … `20260827210000`, then deploy edges: `coac
 | Admin | `/admin` → Specialists, Scheduling, Bookings |
 | User booking | Dashboard Human coaching / booking panel |
 | Post-session | `/coach-session/{token}` (link из email / Admin Bookings) |
-| Edge / jobs | booking confirm, Meet create/cancel, mailers, reminders, waitlist offer, `coach-post-session` |
+| Edge / jobs | booking confirm, Meet create/cancel, mailers, reminders, waitlist offer/expire, `coach-post-session`, `subscription-lifecycle` (1st UTC) |
 
 ### 2.2 Тестовые акторы
 
 | Actor | Пример | Для чего |
 |---|---|---|
 | Platform Admin | Admin seed / `isAdmin` | CRUD specialists, availability, bookings, credits |
-| Premium user | `sub-premium@test.com` | 1:1 + group; credits |
+| Premium user | `sub-premium@test.com` | 1:1 + group; credits (ledger may be dirty — holds/admin) |
+| Premium signup-grant (BK-CREDIT-001) | `bk-credit-001@test.com` | Clean `signup_grant` +2; seed: `scripts/seed_single_premium_user.mjs` |
 | Pro user | `sub-pro@test.com` | Group only; 1:1 locked |
 | Free user | `sub-free@test.com` | Negatives: нет 1:1 / group entitlement |
 | Second Premium | отдельный Premium | Race: двойной booking одного слота; waitlist claim race |
-| Specialist (email only) | `coach-qa-{n}@test.com` | Inbox: confirm, brief, reminders, post-session link |
+| Specialist (email only) | `coach-qa-{n}@test.com` | Inbox: confirm, brief, reminders, post-session link; set distinct IANA TZ |
 
 Password для seed QA users: `qwerty123` (если применимо).
 
 ### 2.3 Минимальные данные для прогона
 
-1. ≥2 **active** specialists с разными email и bio; ≥1 **inactive**.  
-2. Availability: несколько дат/слотов 30 min; хотя бы один overlapping attempt; слоты в окнах &gt;24h и &lt;24h от now.  
-3. Premium с ≥2 session credits (или Admin manual grant).  
+1. ≥2 **active** specialists с разными email, bio и **IANA timezone**; ≥1 **inactive**.  
+2. Availability: несколько дат/слотов 30 min; хотя бы один overlapping attempt; слоты в окнах &gt;24h и &lt;24h от now (UTC).  
+3. Premium с известным credit balance (0 / 1 / 2 / 5 / 6) для cap и insufficient cases; Admin manual grant ready.  
 4. ≥1 upcoming group session с capacity **2** (для fill → waitlist).  
 5. Доступ к тестовому Google Calendar / Meet интеграционному аккаунту.  
-6. Возможность читать письма user + specialist (или mail trap / logs).
+6. Возможность читать письма user + specialist (или mail trap / logs); user `profiles.timeZone` set ≠ coach TZ для CL-4 checks.
 
 ---
 
@@ -117,16 +123,16 @@ Password для seed QA users: `qwerty123` (если применимо).
 | Фаза | Фокус | ~время | Сценарии |
 |---|---|---|---|
 | 0 | Access + Admin UI inventory | 20–30 мин | BK-ACCESS-*, BK-UI-* |
-| 1 | Specialists CRUD | 30–45 мин | BK-SPEC-* |
+| 1 | Specialists CRUD + TZ + deactivate guard | 30–45 мин | BK-SPEC-* |
 | 2 | Scheduling & availability | 45–60 мин | BK-SCHED-* |
-| 3 | 1:1 user booking + credits + assign | 60–90 мин | BK-1ON1-*, BK-RULE-001–003 |
-| 4 | Google Meet / Calendar | 30–45 мин | BK-GMEET-* |
-| 5 | Emails + reminders (time travel / jobs) | 45–90 мин | BK-EMAIL-* |
-| 6 | Cancel + refund rules + slot release | 45–60 мин | BK-CANCEL-* |
-| 7 | Post-session form + Completed | 30–45 мин | BK-POST-* |
-| 8 | Group + waitlist + claim race | 60–90 мин | BK-GROUP-*, BK-WAIT-* |
+| 3 | 1:1 user booking + coach choice + credits | 60–90 мин | BK-1ON1-*, BK-CREDIT-*, BK-RULE-001–003 |
+| 4 | Google Meet / Calendar (1:1 + group + reassign) | 30–45 мин | BK-GMEET-* |
+| 5 | Emails + TZ + reminders + end5m | 45–90 мин | BK-EMAIL-*, BK-MAIL-END5M |
+| 6 | Cancel + refund rules (+ clamp) + slot release | 45–60 мин | BK-CANCEL-* |
+| 7 | Post-session form + Completed-at-end + Kota | 30–45 мин | BK-POST-*, BK-STATUS-COMPLETE-END |
+| 8 | Group + monthly gate + cancel counters + waitlist 2h | 60–90 мин | BK-GROUP-*, BK-WAIT-* |
 | 9 | Admin Bookings filters / statuses / exceptions | 30–45 мин | BK-ADMIN-* |
-| 10 | Business rules smoke pack | 20–30 мин | BK-RULE-*, BK-PACK-* |
+| 10 | Monthly jobs (1st UTC) + business rules smoke | 30–45 мин | BK-MONTHLY-*, BK-RULE-*, BK-PACK-* |
 
 ---
 
@@ -154,7 +160,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Premium |
 | **Steps** | Dashboard / Human coaching → открыть 1:1 booking |
-| **Expected** | Roster / slots by coach (CL-9); credits balance виден или понятен до confirm. |
+| **Expected** | Roster / slots by coach (CL-9); credits balance виден или понятен до confirm; slot times in **device-local** TZ. |
 
 ### BK-UI-002 — Pro: 1:1 locked, group available — TESTED
 
@@ -166,23 +172,23 @@ Password для seed QA users: `qwerty123` (если применимо).
 
 ---
 
-## 5. Admin — Specialist Management (§1)
+## 5. Admin — Specialist Management (§1 / CL-10 / G1)
 
 ### BK-SPEC-001 — Create specialist (happy path) — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Admin; уникальный email |
-| **Steps** | Add specialist: name, email, profile image, bio/description, availability status = active. Save. |
-| **Expected** | Специалист в списке active; поля сохранены. Нет требования создать platform account / password. |
+| **Steps** | Add specialist: name, email, profile image, bio/description (~2-line), availability status = active, **IANA timezone**. Save. |
+| **Expected** | Специалист в списке active; поля сохранены включая timezone. Нет требования создать platform account / password. |
 
 ### BK-SPEC-002 — Edit specialist fields — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Существующий specialist |
-| **Steps** | Изменить name, email, image, bio, status. Save. |
-| **Expected** | Detail/list отражают новые значения. |
+| **Steps** | Изменить name, email, image, bio, status, **timezone**. Save. |
+| **Expected** | Detail/list отражают новые значения. Subsequent coach-facing emails use updated TZ (empty → UTC). |
 
 ### BK-SPEC-003 — Deactivate specialist — TESTED
 
@@ -190,7 +196,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Active specialist **with upcoming confirmed bookings** |
 | **Steps** | Attempt deactivate / mark inactive |
-| **Expected** | **Blocked** with warning: `This coach has [X] upcoming sessions. Please reassign or cancel them before deactivating.` (CL-10). After bookings cleared/reassigned, deactivate succeeds; inactive coach not offered for new books. |
+| **Expected** | **Blocked** with warning: `This coach has [X] upcoming sessions. Please reassign or cancel them before deactivating.` (CL-10). No auto-reassign/cancel. After bookings cleared/reassigned, deactivate succeeds; inactive coach not offered for new books. |
 
 ### BK-SPEC-004 — List active / inactive filters — TESTED
 
@@ -205,12 +211,20 @@ Password для seed QA users: `qwerty123` (если применимо).
 | | |
 |---|---|
 | **Preconditions** | Admin на форме create/edit |
-| **Steps** | (a) пустое name; (b) invalid email; (c) duplicate email если запрещено |
+| **Steps** | (a) пустое name; (b) invalid email; (c) duplicate email если запрещено; (d) invalid IANA timezone если UI/API валидирует |
 | **Expected** | Save blocked; clear errors; запись не создаётся / не портится. |
+
+### BK-SPEC-006 — Empty specialist timezone → UTC in mail — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Specialist with empty `timezone`; confirmed 1:1 |
+| **Steps** | Trigger specialist confirmation / reminder email |
+| **Expected** | Coach-facing times rendered as **UTC** (G1 fallback). |
 
 ---
 
-## 6. Admin — Scheduling & Availability (§2)
+## 6. Admin — Scheduling & Availability (§2 / CL-9)
 
 ### BK-SCHED-001 — Create availability slots — TESTED
 
@@ -268,23 +282,55 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Попытаться добавить новые availability slots |
 | **Expected** | Blocked или specialist отсутствует в selector для новых slots. |
 
+### BK-SCHED-008 — User calendar is per-coach (not anonymized) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | ≥2 coaches with free slots |
+| **Steps** | Open user 1:1 booking UI |
+| **Expected** | Availability shown **per selected coach** / roster (CL-9) — not a fully anonymized consolidated calendar that hides coaches. |
+
 ---
 
-## 7. User Flow — One-on-One Booking (§3) + Key Rules 1–3, 7
+## 7. User Flow — One-on-One Booking (§3) + CL-1 / CL-9
 
-### BK-1ON1-001 — Coach roster + book-again (CL-9) — TESTED
+### BK-1ON1-001 — Two-step coach selection + roster (OVR-064) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | ≥2 active specialists с free slots; Premium с credits |
+| **Steps** | Открыть 1:1 booking на step 1 |
+| **Expected** | **No calendar on step 1.** Full roster visible (name, photo, short bio). Each coach has **View profile** (Sheet with full bio) and **Select coach**. No coach pre-selected. |
+
+### BK-1ON1-001a — Rebook with previous coach(s) (OVR-064) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Premium с ≥1 completed or past occurred 1:1; optional ≥2 distinct past coaches |
+| **Steps** | Open 1:1 booking |
+| **Expected** | Section **Rebook with previous coach** lists past coaches (most recent first). Available coach → **Rebook with [Name]** → step 2 slots for that coach only. **Choose another coach** opens full roster. |
+
+### BK-1ON1-001b — Previous coach unavailable message (OVR-064) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Premium with prior 1:1 coach A; A inactive **or** A has no free slots; other coaches have slots |
+| **Steps** | Open 1:1 booking |
+| **Expected** | A still listed in rebook section with message *isn't available* / *no open times*; **Rebook** CTA hidden for A. **Choose another coach** + full roster work. No dead-end. |
+
+### BK-1ON1-001c — Legacy CL-9 roster smoke — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | ≥2 active specialists с free slots; Premium с credits; optional prior 1:1 with coach A |
-| **Steps** | Открыть 1:1 booking; осмотреть roster / slots |
-| **Expected** | Coaches **visible** (name, photo, short bio). Returning user: **Book again with [Coach]** + that coach’s slots prominent. First-time: full roster. Browse-all always available. |
+| **Steps** | Select coach → step 2 → confirm |
+| **Expected** | Coach name in confirmation email + user history after book. |
 
 ### BK-1ON1-002 — Happy path book + credit deduct + assign — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Premium ≥2 credits; free slot &gt;24h; coach selected |
+| **Preconditions** | Premium ≥2 credits; free slot &gt;24h UTC; coach selected |
 | **Steps** | Select coach + slot → confirm. Проверить credits, booking history, Admin Bookings, confirmation email. |
 | **Expected** | Booking confirmed. Credits deduct **2**. Coach name in confirmation email + user history. Booking in Admin. |
 
@@ -304,13 +350,13 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | User A и User B почти одновременно confirm один slot (или B confirm после A) |
 | **Expected** | Только один confirmed booking. Второй получает failure; его credits **не** deducted (или hold released). Rule: slot not double-booked; re-verify availability before confirm. |
 
-### BK-1ON1-005 — Admin reassign specialist — TESTED
+### BK-1ON1-005 — Admin reassign specialist (CL-3) — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Confirmed 1:1 booking |
 | **Steps** | Admin Bookings → reassign specialist |
-| **Expected** | Assigned specialist updated; Google Calendar attendees patched; previous coach notified (removed); new coach invited + Pre-Coaching Brief resent; user notified of coach change (CL-3). |
+| **Expected** | Assigned specialist updated; Google Calendar attendees patched (member + new coach); previous coach notified (removed); new coach invited + Pre-Coaching Brief **resent**; user notified of coach change. |
 
 ### BK-1ON1-006 — Free / Pro cannot book 1:1 — TESTED
 
@@ -328,17 +374,93 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Confirm на слот, который сервер отклоняет |
 | **Expected** | Нет permanent redeem; balance restored / hold released. Booking не в Scheduled. |
 
+### BK-1ON1-008 — Auto-assign path: lowest monthly load (CL-2) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Path that still auto-assigns (e.g. confirm without `p_specialist_id` / `pick_specialist_for_one_on_one_slot`); two coaches available; coach A has fewer sessions this calendar month than B |
+| **Steps** | Trigger auto-assign booking |
+| **Expected** | Coach A preferred. On equal load, assignment is random among ties. Admin can later override. |
+
+### BK-1ON1-009 — Match me with a coach (OVR-064) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Premium с credits; ≥1 merged slot across active coaches |
+| **Steps** | Step 1 → **Match me with a coach** → pick slot → confirm |
+| **Expected** | Merged slot calendar (no coach name pre-confirm). Confirm uses auto-assign (CL-2). Success shows assigned coach name. |
+
+### BK-1ON1-010 — View profile Sheet (OVR-064) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | BK-1ON1-001 |
+| **Steps** | **View profile** on a coach → **Book with [Name]** |
+| **Expected** | Sheet shows photo + full bio. Booking continues to step 2 for that coach. |
+
+### BK-1ON1-011 — Inline slot/coach conflict (OVR-064) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Stale slot or deactivated coach at confirm |
+| **Steps** | Confirm after slot taken or coach unavailable |
+| **Expected** | Inline alert (not toast-only) with **Pick another time** or **Choose another coach**. Credits not permanently deducted. User can continue booking. |
+
 ---
 
-## 8. Google Meet & Calendar (§4) + Rule 5
+## 8. Credits wallet (CL-1 / OVR-059 / G4 / G5)
 
-### BK-GMEET-001 — Event + Meet on confirm
+### BK-CREDIT-001 — Premium signup grant +2 — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Fresh Premium with ledger `signup_grant` (+2). **Do not** use `sub-premium@test.com` / `bk-w2` (legacy accrual/holds/admin). Seed: `SEED_EMAIL=bk-credit-001@test.com SUPABASE_SERVICE_ROLE_KEY=… node scripts/seed_single_premium_user.mjs` (password `qwerty123`). Or real Stripe Premium checkout. Admin credit adjust writes `adminAdjustment` — **not** valid for this case. |
+| **Steps** | Admin → user detail (or user subscription/credits UI): inspect available credits + ledger after Premium entitlement starts |
+| **Expected** | Balance includes **+2** `signup_grant` once; first session effectively free (cost 2). |
+
+### BK-CREDIT-002 — Monthly accrual +1 on 1st UTC — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Premium with balance &lt; 6; `effective_user_tier = premium` (e.g. `bk-credit-001@test.com`). **Mid-month QA:** edge `subscription-lifecycle` always uses `now()` and skips unless UTC day = 1 — do **not** rely on cron/`x-cron-secret` alone. |
+| **Steps** | Service role RPC: `SELECT public.billing_run_monthly_premium_credit_accrual('2026-09-01T00:00:00Z'::timestamptz);` (any 1st UTC; period key = `YYYY-MM`). Or wait for real 1st + invoke lifecycle with service-role Bearer. Then inspect ledger for the Premium user. |
+| **Expected** | Ledger `monthly_accrual` **+1** (note/period for that month); balance +1. Re-run same `p_as_of` → duplicate/no double grant. |
+
+### BK-CREDIT-003 — Accrual stops at cap 6 — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Premium with balance **6** (e.g. `bk-credit-001@test.com` via Admin grant after signup/monthly). Prior period(s) may already have `monthly_accrual`. |
+| **Steps** | Mid-month: service role `SELECT public.billing_run_monthly_premium_credit_accrual('2026-10-01T00:00:00Z'::timestamptz);` (new `YYYY-MM` not yet granted for this user). Inspect that user's ledger + balance. |
+| **Expected** | Balance stays **6**; **no** new `monthly_accrual` row for this user (job may report `capped` for them). Other Premium under cap may still receive +1. |
+
+### BK-CREDIT-004 — Credits never apply to group — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Premium with credits; open group seat; counter = 0 |
+| **Steps** | Join group session |
+| **Expected** | Credit balance unchanged; only `groupSessionsUsedThisMonth` → 1. |
+
+### BK-CREDIT-005 — Rollover across months — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Premium with unused credits mid-month (e.g. balance 3) |
+| **Steps** | Cross month boundary without booking; run accrual if under cap |
+| **Expected** | Prior credits remain; accrual adds only if under cap. |
+
+---
+
+## 9. Google Meet & Calendar (§4 / CL-3 / CL-5 / G8)
+
+### BK-GMEET-001 — Event + Meet on 1:1 confirm
 
 | | |
 |---|---|
 | **Preconditions** | Working Google integration; successful 1:1 book |
 | **Steps** | После confirm открыть booking detail (Admin/user) и Google Calendar |
-| **Expected** | Calendar event создан; Meet link сгенерирован; link связан с booking; date/time/duration/user/specialist корректны. Link в confirmation emails. |
+| **Expected** | Calendar event создан; **unique** Meet link; link связан с booking; date/time/duration/user/specialist корректны. Link в confirmation emails. |
 
 ### BK-GMEET-002 — Cancel syncs Calendar / Meet
 
@@ -356,25 +478,41 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Reload Admin Bookings / user history |
 | **Expected** | Meeting/event info остаётся доступна для reference (id/link/status). |
 
+### BK-GMEET-004 — Unique Meet for group session (CL-5 / G8) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Admin creates / finalizes group session; Google integration ok |
+| **Steps** | Create group session → inspect Meet link + Calendar event |
+| **Expected** | Unique Meet at creation. Service-account calendar owns event; group has **no** Calendar attendees (Meet via platform). Different group sessions → different Meet links. |
+
+### BK-GMEET-005 — Reassign patches Calendar attendees (CL-3) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Confirmed 1:1 with Calendar event |
+| **Steps** | Admin reassigns coach |
+| **Expected** | Event attendees updated to member + new coach; previous coach removed from event. |
+
 ---
 
-## 9. Email Notifications & Automations (§5) + Rule 4
+## 10. Email Notifications & Automations (§5 / CL-3 / CL-4 / CL-7 / CL-9)
 
 ### BK-EMAIL-001 — User confirmation contents
 
 | | |
 |---|---|
-| **Preconditions** | Successful 1:1 book |
+| **Preconditions** | Successful 1:1 book; user `profiles.timeZone` set (non-UTC) |
 | **Steps** | Проверить email пользователя |
-| **Expected** | Date, time, duration, Meet link, confirmation details. |
+| **Expected** | Date/time in **user local TZ**; duration; Meet link; confirmation details; **coach name** (CL-9). |
 
 ### BK-EMAIL-002 — Specialist confirmation contents
 
 | | |
 |---|---|
-| **Preconditions** | Same booking |
+| **Preconditions** | Same booking; specialist.timezone set ≠ user TZ |
 | **Steps** | Проверить email assigned specialist |
-| **Expected** | User name / relevant user info, date/time, Meet link, coaching info as designed. |
+| **Expected** | User name / relevant user info; date/time in **coach local TZ**; Meet link; coaching info as designed. |
 
 ### BK-EMAIL-003 — Pre-Coaching Brief immediately after booking
 
@@ -390,7 +528,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Booking scheduled ~25h out; reminder job runnable |
 | **Steps** | Advance time / run reminder job |
-| **Expected** | User + specialist получают 24h reminder. |
+| **Expected** | User + specialist получают 24h reminder (times in respective recipient TZ). |
 
 ### BK-EMAIL-005 — Reminder 1h before
 
@@ -405,7 +543,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 | | |
 |---|---|
 | **Preconditions** | Booking canceled before reminder windows |
-| **Steps** | Run 24h и 1h reminder jobs for that booking id |
+| **Steps** | Run 24h, 1h, and end5m reminder jobs for that booking id |
 | **Expected** | Reminder emails **не** отправляются. |
 
 ### BK-EMAIL-007 — No duplicate storm (smoke)
@@ -416,9 +554,33 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Invoke reminder job twice for same window |
 | **Expected** | Не более одного reminder per recipient per window (idempotent). |
 
+### BK-EMAIL-008 — Reassignment notification bundle (CL-3) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Confirmed 1:1; reassign to new coach |
+| **Steps** | Complete reassign; check previous coach, new coach, user inboxes |
+| **Expected** | Previous: removed notification. New: invitation + notification + Pre-Coaching Brief. User: coach updated. |
+
+### BK-EMAIL-009 — Waitlist offer times in user TZ — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Waitlisted user with `profiles.timeZone` set; spot freed → offer |
+| **Steps** | Inspect waitlist offer email |
+| **Expected** | Session times shown in member’s local TZ (CL-4). |
+
+### BK-MAIL-END5M — 5-minute end warning email (G3 / CL-7) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | Confirmed 1:1 ending in ~3–8 minutes; `endWarning5mSentAt` null; SendGrid optional |
+| **Steps** | Invoke `coach-booking-reminders` |
+| **Expected** | User receives (or soft-skip stamps) one end-warning **email**; coach does **not**; stamp set; cancelled bookings skipped. No in-app/push required in this slice. |
+
 ---
 
-## 10. Post-Session Coach Form (§6) + Rule 6, 10
+## 11. Post-Session Coach Form (§6 / CL-7 / G9)
 
 ### BK-POST-001 — Submit notes without platform account — TESTED
 
@@ -460,47 +622,39 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Открыть / скопировать post-session form link |
 | **Expected** | Link работает; ведёт на ту же сессию. Form Pending vs Submitted visible for 1:1. |
 
-### BK-POST-006 — Kota memory on form submit (G9) — NEW
+### BK-POST-006 — Kota memory on form submit (G9) — NEW — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Successful form submit for member with profile |
 | **Steps** | Submit notes; inspect `profiles.onboardingData.chat_session_memory` and booking stamps |
-| **Expected** | Record `human-coach:{bookingId}` appended; `postSessionKotaSyncedAt` stamped. |
+| **Expected** | Record `human-coach:{bookingId}` appended (last-5 ring); `postSessionKotaSyncedAt` stamped. Does **not** regenerate Pre-Coaching Brief. |
 
-### BK-STATUS-COMPLETE-END — Completed at scheduled end (CL-7) — NEW
+### BK-STATUS-COMPLETE-END — Completed at scheduled end (CL-7) — NEW — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Confirmed 1:1 whose `scheduledAt + duration` is in the past; form not submitted |
-| **Steps** | Invoke `coach-booking-reminders` / `complete_ended_coach_bookings` |
-| **Expected** | Status → **completed**; `completedAt` set; form still **Pending**. |
-
-### BK-MAIL-END5M — 5-minute end warning email (G3) — NEW
-
-| | |
-|---|---|
-| **Preconditions** | Confirmed 1:1 ending in ~3–8 minutes; `endWarning5mSentAt` null; SendGrid optional |
-| **Steps** | Invoke `coach-booking-reminders` |
-| **Expected** | User receives (or soft-skip stamps) one end-warning email; coach does not; stamp set; cancelled bookings skipped. |
+| **Steps** | Prefer service role RPC: `SELECT public.complete_ended_coach_bookings();` (returns count updated). Or `POST /functions/v1/coach-booking-reminders` with **Bearer service role** (tmp/`x-cron-secret` alone often 401 if vault secret ≠ local guess). |
+| **Expected** | Status → **completed**; `completedAt` set; form still **Pending** (`postSessionSubmittedAt` null). |
 
 ---
 
-## 11. Cancellations & Credit Refunds (§7)
+## 12. Cancellations & Credit Refunds (§7 / CL-1 / CL-4 / G5)
 
 ### BK-CANCEL-001 — User cancel ≥24h → full refund — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Scheduled 1:1 &gt;24h away; credits redeemed |
+| **Preconditions** | Scheduled 1:1 &gt;24h away (**UTC**); credits redeemed; balance will stay ≤6 after +2 |
 | **Steps** | User cancels from platform |
-| **Expected** | Status **Canceled**; Meet/Calendar canceled; slot available again; **full** session credit refund; ledger/history отражает refund. |
+| **Expected** | Status **Canceled**; Meet/Calendar canceled; slot available again; **+2** credit refund; ledger/history отражает refund. Deadline display (if shown) in user local TZ. |
 
 ### BK-CANCEL-002 — User cancel &lt;24h → no refund — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Scheduled 1:1 &lt;24h away |
+| **Preconditions** | Scheduled 1:1 &lt;24h away (UTC) |
 | **Steps** | User cancels |
 | **Expected** | Status Canceled; slot freed; **no** credit refund; Meet canceled. |
 
@@ -528,9 +682,25 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Admin cancel / reassign / credit adjust from Bookings expand panel |
 | **Expected** | State consistent: status, credits, Meet, slot availability. |
 
+### BK-CANCEL-006 — Refund clamped at credit cap (G5) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Premium balance **5** after booking cost already redeemed (or engineered so uncapped +2 would exceed 6); cancel ≥24h |
+| **Steps** | Cancel booking that would refund +2 |
+| **Expected** | Refund **truncated** so balance never exceeds **6** (e.g. +1 only if at 5). |
+
+### BK-CANCEL-007 — 24h window uses UTC, display local — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Booking near 24h boundary; user TZ ≠ UTC |
+| **Steps** | Cancel just inside / outside 24h measured in UTC; observe any UI deadline copy |
+| **Expected** | Refund eligibility matches **UTC** calculation; any displayed deadline is in **user local TZ**. |
+
 ---
 
-## 12. Group Coaching (§8) + Rule 8
+## 13. Group Coaching (§8 / CL-1 / CL-5 / CL-6)
 
 ### BK-GROUP-001 — Admin create group session — TESTED
 
@@ -538,7 +708,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Admin |
 | **Steps** | Create group session: title, description, date/time, duration, max capacity, recurring schedule if supported |
-| **Expected** | Session в catalog; fields saved; visible to eligible users. |
+| **Expected** | Session в catalog; fields saved; visible to eligible users; unique Meet created (see BK-GMEET-004). |
 
 ### BK-GROUP-002 — Admin view participants / cancel session — TESTED
 
@@ -554,7 +724,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Pro/Premium; capacity remaining; `groupSessionsUsedThisMonth = 0` |
 | **Steps** | View session (title, description, date, time, capacity) → Join |
-| **Expected** | Registered; counter → **1**; capacity decrements; session in user history; status **Scheduled**. |
+| **Expected** | Registered; counter → **1**; capacity decrements; session in user history; status **Scheduled**; credits unchanged. |
 
 ### BK-GROUP-004 — Monthly group cap (OVR-060) — TESTED
 
@@ -578,11 +748,27 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Admin configures recurring group |
 | **Steps** | Save recurring rule; inspect upcoming occurrences |
-| **Expected** | Occurrences match schedule; each has own capacity/participants as designed. |
+| **Expected** | Occurrences match schedule; each has own capacity/participants and unique Meet as designed. |
+
+### BK-GROUP-007 — User cancel ≥24h resets monthly counter (CL-6) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Registered group; session &gt;24h away; counter = 1 |
+| **Steps** | User cancels |
+| **Expected** | Counter → **0**; spot opens; waitlist promoted if any; user may book another group this month. |
+
+### BK-GROUP-008 — User cancel &lt;24h keeps counter at 1 (CL-6) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Registered group; session &lt;24h away; counter = 1 |
+| **Steps** | User cancels |
+| **Expected** | Counter **stays at 1**; spot still opens; waitlist still promoted; no further penalty beyond lost monthly seat. |
 
 ---
 
-## 13. Group Waitlist (§9) + Rule 9
+## 14. Group Waitlist (§9 / CL-8 / G6)
 
 ### BK-WAIT-001 — Full session → Join hidden, waitlist available — TESTED
 
@@ -590,7 +776,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Capacity filled |
 | **Steps** | User opens session |
-| **Expected** | **Join Session** unavailable; **Join waitlist** available. |
+| **Expected** | **Join Session** unavailable; **Join waitlist** available. Waitlist join does **not** set counter to 1. |
 
 ### BK-WAIT-002 — FIFO waitlist order — TESTED
 
@@ -598,13 +784,13 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Full session; users W1 then W2 join waitlist |
 | **Steps** | Record join order; one registrant cancels |
-| **Expected** | Offer/notification goes to **W1 first** (FIFO). |
+| **Expected** | Offer/notification goes to **W1 first** (FIFO), if W1 eligible (counter ≠ 1). |
 
 ### BK-WAIT-003 — Notify next waitlisted + claim within 2h — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Spot freed; W1 offered |
+| **Preconditions** | Spot freed; W1 offered; W1 counter = 0 |
 | **Steps** | W1 receives notify (times in user TZ); claims spot via platform within **2 hours** |
 | **Expected** | W1 becomes registered (**Scheduled**); waitlist updated; capacity correct; counter → 1 on claim. |
 
@@ -632,9 +818,17 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | Check user history + Admin Bookings filters |
 | **Expected** | Status **Waitlisted**; filters by status work. |
 
+### BK-WAIT-007 — Skip promote when candidate monthly gate used (G6) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Full session; waitlist W1 (counter = 1) then W2 (counter = 0); registrant cancels |
+| **Steps** | Run promote / waitlist job |
+| **Expected** | W1 waitlist row cancelled/skipped; offer goes to **W2**; W1 not left holding an unclaimable offer. |
+
 ---
 
-## 14. Admin Booking Management (§10)
+## 15. Admin Booking Management (§10 / CL-2 / CL-3 / CL-7)
 
 ### BK-ADMIN-001 — Columns / fields present — TESTED
 
@@ -666,11 +860,31 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | Admin on Bookings expand |
 | **Steps** | Cancel, reassign specialist, open credit adjust (User Detail), post-session link |
-| **Expected** | Flows reachable and consistent with §§3,6,7. |
+| **Expected** | Flows reachable and consistent with §§3,6,7 and CL-3 side effects. |
 
 ---
 
-## 15. Cross-cutting business rules pack (§ Key Business Rules)
+## 16. Monthly jobs (G4 / G10 / OVR-059 / OVR-060)
+
+### BK-MONTHLY-001 — Premium credit + group counter on 1st UTC — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Premium with balance &lt; 6 and `groupSessionsUsedThisMonth = 1`; Pro/Premium with counter = 1. Mid-month: edge lifecycle/`x-cron-secret` alone will skip or 401. |
+| **Steps** | Service role RPCs (any 1st UTC dates not yet applied): `SELECT public.billing_run_monthly_premium_credit_accrual('2026-11-01T00:00:00Z'::timestamptz);` then `SELECT public.reset_group_sessions_used_this_month('2026-09-01T00:00:00Z'::timestamptz);` (or real 1st + lifecycle with Bearer service role). |
+| **Expected** | Premium under cap: +1 `monthly_accrual` for that period. Profiles with counter ≠ 0: `groupSessionsUsedThisMonth` → **0** (`resetCount` in RPC result). |
+
+### BK-MONTHLY-002 — Waitlist expire/promote cadence — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | Session with `offered` claim + ≥1 `waitlisted` behind it. Mid-month: backdate `claimExpiresAt` via service role if window not expired yet. |
+| **Steps** | Service role: expire offer (`claimExpiresAt = now() - 1 minute`), ensure next waitlisted exists, then `SELECT public.process_group_coaching_waitlist();` (or edge `group-coaching-waitlist` with Bearer service role — cron secret alone often 401). |
+| **Expected** | Expired offer → **cancelled**; next eligible waitlisted → **offered** (new `claimExpiresAt`). |
+
+---
+
+## 17. Cross-cutting business rules pack (§ Key Business Rules 1–19)
 
 ### BK-RULE-001 — No double-book same slot — TESTED
 
@@ -742,7 +956,7 @@ Password для seed QA users: `qwerty123` (если применимо).
 |---|---|
 | **Preconditions** | BK-WAIT-002/003 |
 | **Steps** | Cancel registrant |
-| **Expected** | Next waitlisted notified. |
+| **Expected** | Next eligible waitlisted notified. |
 
 ### BK-RULE-010 — Completed notes in history + admin — TESTED
 
@@ -752,53 +966,96 @@ Password для seed QA users: `qwerty123` (если применимо).
 | **Steps** | User history + Admin |
 | **Expected** | Notes visible to authorized admin and in user session history. |
 
+### BK-RULE-011 — Unique Meet for 1:1 and group (CL-5) — NEW
+
+| | |
+|---|---|
+| **Preconditions** | BK-GMEET-001 + BK-GMEET-004 |
+| **Steps** | Compare Meet links across sessions |
+| **Expected** | Each session has its own Meet link at creation. |
+
+### BK-RULE-012 — Deactivate blocked with upcoming sessions (CL-10) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | BK-SPEC-003 |
+| **Steps** | Attempt deactivate |
+| **Expected** | Blocked with exact warning copy. |
+
+### BK-RULE-013 — Waitlist claim window is 2h (CL-8) — NEW — TESTED
+
+| | |
+|---|---|
+| **Preconditions** | BK-WAIT-003/004 |
+| **Steps** | Claim / expire |
+| **Expected** | Window = **2 hours** (not 24h). |
+
 ### BK-PACK-001 — Smoke E2E 1:1 (happy) — TESTED
 
 | | |
 |---|---|
 | **Preconditions** | Admin specialist + slot; Premium credits; mail + Meet ok |
-| **Steps** | Book → emails/brief → Admin sees Scheduled → cancel ≥24h → refund + Meet cancel → rebook |
+| **Steps** | Book (chosen coach) → emails/brief (coach name + TZ) → Admin sees Scheduled → cancel ≥24h → refund + Meet cancel → rebook |
 | **Expected** | Full chain green. |
 
 ### BK-PACK-002 — Smoke E2E group + waitlist — TESTED
 
 | | |
 |---|---|
-| **Preconditions** | Capacity 1; two eligible users |
-| **Steps** | U1 join → U2 waitlist → U1 cancel → U2 claim within 24h |
-| **Expected** | U2 registered; statuses correct; no double seat. |
+| **Preconditions** | Capacity 1; two eligible users (counter = 0) |
+| **Steps** | U1 join → U2 waitlist → U1 cancel ≥24h → U2 claim within **2h** |
+| **Expected** | U2 registered; U1 counter reset; statuses correct; no double seat. |
 
 ---
 
-## 16. Known dependencies / blockers
+## 18. Known dependencies / blockers
 
 | Dependency | Impact if missing |
 |---|---|
 | Google Calendar/Meet credentials | BK-GMEET-* / email Meet link = BLOCKED or mock-only |
-| Email delivery (SendGrid / trap) | BK-EMAIL-* evidence via logs only |
-| Reminder / waitlist cron | Time-based cases need manual invoke or clock control |
+| Email delivery (SendGrid / trap) | BK-EMAIL-* / BK-MAIL-END5M evidence via logs only |
+| Reminder / waitlist / lifecycle cron | Time-based + monthly cases need manual invoke or clock control |
 | Premium credit seed / Admin grant | 1:1 happy path blocked |
-| OVR-027 / OVR-028 | Credit amounts and group monthly cap — do not test against Phase 2 Wix $97 / “included 1:1” |
+| Migrations `20260827140000`…`20260827210000` + edges listed above | CL/G cases fail against stale deploy |
+| OVR-059 / OVR-060 | Do **not** test against Phase 2 Wix $97 / “included 1:1” / 24h waitlist claim |
+
+**Product gaps:** CL-1…CL-10 and G1–G10 are **closed** in the management-system doc. Remaining work is **ops deploy + QA**, not missing product rules.
 
 ---
 
-## 17. Traceability matrix (requirements → cases)
+## 19. Traceability matrix (requirements → cases)
 
 | Spec section | Case IDs |
 |---|---|
-| §1 Specialists | BK-SPEC-001…005, BK-RULE-006 |
-| §2 Scheduling | BK-SCHED-001…007 |
-| §3 One-on-One | BK-1ON1-001…007, BK-RULE-001…003,007 |
-| §4 Google Meet | BK-GMEET-001…003, BK-RULE-005 |
-| §5 Emails | BK-EMAIL-001…007, BK-RULE-004 |
-| §6 Post-session | BK-POST-001…005, BK-RULE-010 |
-| §7 Cancel / refunds | BK-CANCEL-001…005 |
-| §8 Group | BK-GROUP-001…006, BK-RULE-008 |
-| §9 Waitlist | BK-WAIT-001…006, BK-RULE-009 |
+| CL-1 Credits / group gate | BK-CREDIT-001…005, BK-1ON1-002/003/006/007, BK-CANCEL-001/002/006, BK-GROUP-003…005/007/008, BK-MONTHLY-001 |
+| CL-2 Auto-assign | BK-1ON1-008 |
+| CL-3 Reassignment | BK-1ON1-005, BK-GMEET-005, BK-EMAIL-008 |
+| CL-4 Timezones | BK-SPEC-006, BK-UI-001, BK-EMAIL-001/002/004/009, BK-CANCEL-007 |
+| CL-5 Meet 1:1 + group | BK-GMEET-001…004, BK-RULE-011 |
+| CL-6 Group cancel counters | BK-GROUP-002/007/008, BK-WAIT-* |
+| CL-7 Complete-at-end / end5m / form pending | BK-STATUS-COMPLETE-END, BK-MAIL-END5M, BK-POST-002/006 |
+| CL-8 Waitlist 2h | BK-WAIT-003/004, BK-RULE-013, BK-PACK-002 |
+| CL-9 Coach choice | BK-1ON1-001…001c, 009–011, BK-SCHED-008, BK-EMAIL-001, BK-RULE-007 |
+| CL-10 Deactivate guard | BK-SPEC-003, BK-RULE-012 |
+| G6 Waitlist skip used gate | BK-WAIT-007 |
+| G7 Book-again fallback | BK-1ON1-001b |
+| OVR-064 Two-step flow | BK-1ON1-001, 001a, 001b, 009, 010, 011 |
+| G8 Group Calendar attendees | BK-GMEET-004 |
+| G9 Kota sync | BK-POST-006 |
+| G10 Monthly jobs | BK-MONTHLY-001/002, BK-CREDIT-002/003 |
+| §1 Specialists | BK-SPEC-001…006, BK-RULE-006 |
+| §2 Scheduling | BK-SCHED-001…008 |
+| §3 One-on-One | BK-1ON1-001…011, BK-RULE-001…003,007 |
+| §4 Google Meet | BK-GMEET-001…005, BK-RULE-005 |
+| §5 Emails | BK-EMAIL-001…009, BK-MAIL-END5M, BK-RULE-004 |
+| §6 Post-session | BK-POST-001…006, BK-STATUS-COMPLETE-END, BK-RULE-010 |
+| §7 Cancel / refunds | BK-CANCEL-001…007 |
+| §8 Group | BK-GROUP-001…008, BK-RULE-008 |
+| §9 Waitlist | BK-WAIT-001…007, BK-RULE-009 |
 | §10 Admin Bookings | BK-ADMIN-001…004 |
-| Key Business Rules | BK-RULE-001…010, BK-PACK-001…002 |
+| Key Business Rules | BK-RULE-001…013, BK-PACK-001…002 |
 | Access / UI | BK-ACCESS-*, BK-UI-* |
 
 ---
 
-*Test plan for NCLDD-31 Internal Bookings Management System. Source requirements updated 2026-08-25.*
+*Test plan for NCLDD-31 Internal Bookings Management System. Aligned to client clarifications CL-1…CL-10 and resolved gaps G1–G10 (2026-08-27).*

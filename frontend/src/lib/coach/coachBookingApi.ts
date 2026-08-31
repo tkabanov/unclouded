@@ -35,6 +35,11 @@ export type LastOneOnOneCoach = BookableCoach & {
   isActive: boolean;
 };
 
+export type PreviousOneOnOneCoach = BookableCoach & {
+  isActive: boolean;
+  lastSessionAt: string;
+};
+
 export type CoachBookingRow = {
   id: string;
   userId: string;
@@ -81,6 +86,20 @@ function mapBookableCoach(row: Record<string, unknown>): BookableCoach | null {
     imageUrl: readString(row, "imageUrl"),
     bio: readString(row, "bio") ?? "",
   };
+}
+
+function mapBookableOneOnOneSlotRow(row: unknown): BookableOneOnOneSlot | null {
+  if (!row || typeof row !== "object") return null;
+  const record = row as Record<string, unknown>;
+  const slotStart =
+    readString(record, "slotStart") ?? readString(record, "slotstart");
+  const slotEnd = readString(record, "slotEnd") ?? readString(record, "slotend");
+  const durationMinutes =
+    readNumber(record, "durationMinutes") ??
+    readNumber(record, "durationminutes") ??
+    DEFAULT_SLOT_DURATION_MINUTES;
+  if (!slotStart || !slotEnd) return null;
+  return { slotStart, slotEnd, durationMinutes };
 }
 
 /** Opens the external calendar; false when blocked or when open throws. */
@@ -280,18 +299,61 @@ export async function getMyLastOneOnOneCoach(): Promise<LastOneOnOneCoach | null
   };
 }
 
+export async function listMyPreviousOneOnOneCoaches(): Promise<PreviousOneOnOneCoach[]> {
+  const { data, error } = await callRpc("list_my_previous_one_on_one_coaches", {});
+  if (error) {
+    if (isSchemaUnavailable(error)) return [];
+    throw new Error(error.message || "Couldn't load previous coaches.");
+  }
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((row) => {
+      if (!row || typeof row !== "object") return null;
+      const record = row as Record<string, unknown>;
+      const coach = mapBookableCoach(record);
+      const lastSessionAt = readString(record, "lastSessionAt");
+      if (!coach || !lastSessionAt) return null;
+      return {
+        ...coach,
+        isActive: record.isActive === true,
+        lastSessionAt,
+      } satisfies PreviousOneOnOneCoach;
+    })
+    .filter((item): item is PreviousOneOnOneCoach => item !== null);
+}
+
+export async function listBookableOneOnOneSlotsAnyCoach(
+  rangeFrom: Date,
+  rangeTo: Date,
+): Promise<BookableOneOnOneSlot[]> {
+  const { data, error } = await callRpc("list_bookable_one_on_one_slots_any_coach", {
+    p_from: rangeFrom.toISOString(),
+    p_to: rangeTo.toISOString(),
+  });
+
+  if (error) {
+    if (isSchemaUnavailable(error)) return [];
+    throw new Error(error.message || "Couldn't load available times.");
+  }
+
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((row) => mapBookableOneOnOneSlotRow(row))
+    .filter((item): item is BookableOneOnOneSlot => item !== null);
+}
+
 /**
- * Confirm an internal 1:1 session for a user-selected coach + slot.
+ * Confirm an internal 1:1 session. Omit or null specialistId for auto-assign (CL-2).
  */
 export async function confirmOneOnOneBooking(params: {
   slotStart: string;
   durationMinutes?: number;
-  specialistId: string;
+  specialistId?: string | null;
 }): Promise<OneOnOneBookingResult> {
   const { data, error } = await callRpc("confirm_one_on_one_booking", {
     p_slot_start: params.slotStart,
     p_duration_minutes: params.durationMinutes ?? DEFAULT_SLOT_DURATION_MINUTES,
-    p_specialist_id: params.specialistId,
+    p_specialist_id: params.specialistId ?? null,
   });
 
   if (error || !data || typeof data !== "object") {

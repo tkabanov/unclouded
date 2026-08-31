@@ -622,8 +622,18 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Date** | 2026-08-27 |
 | **Overrides** | NCLDD-31 earlier rule “users should not see specialist names”; anonymized consolidated calendar + post-confirm auto-assign as the only path |
 | **Authoritative spec** | `docs/NCLDD-31-internal-bookings-management-system.md` CL-9 |
-| **Current behavior** | Users see and **select** coaches for 1:1. Returning users: most recent coach first with **“Book again with [Coach Name]”** and that coach’s slots prominent. First-time: full roster (name, photo, ~2-line bio) with slots. Browse-all coaches always available. Confirmation email and session history show **coach name**. |
+| **Current behavior** | Users see and **select** coaches for 1:1. Returning users: most recent coach first with **“Book again with [Coach Name]”** and that coach’s slots prominent. First-time: full roster (name, photo, ~2-line bio) with slots. Browse-all coaches always available. Confirmation email and session history show **coach name**. **Superseded for UX flow details by OVR-064** (two-step flow, rebook history list, Match me, Sheet profile). |
 | **Code** | `supabase/migrations/20260827150000_one_on_one_coach_choice.sql`; `OneOnOneBookingPanel` / `coachBookingApi`; user confirmation coach name in `finalize-coach-booking` |
+
+### OVR-064 — Two-step coach selection booking flow
+
+| | |
+|---|---|
+| **Date** | 2026-08-31 |
+| **Overrides** | OVR-061 single-screen roster + auto-selected first coach; “Book again with [Name]” for one coach only; no user-facing auto-match |
+| **Authoritative spec** | `docs/coach-booking-coach-selection-requirements.md` |
+| **Current behavior** | **Primary path:** two-step 1:1 booking — (1) choose coach, (2) pick slot. First-time users see full active roster with **View profile** (Sheet) + **Select coach**; no coach pre-selected. Returning users see **Rebook with previous coach** from **completed or past occurred** sessions (distinct coaches, most recent first); unavailable previous coaches show inline message (inactive / no slots) + **Choose another coach**. Secondary option: **Match me with a coach** → anonymized merged slots → confirm without `p_specialist_id` (CL-2 auto-assign). Slot/coach conflicts show inline alert with **Choose another coach** or **Pick another time** (not toast-only dead-end). Manual/rebook confirm passes `p_specialist_id`; auto-match passes `null`. |
+| **Code** | `supabase/migrations/20260827220000_coach_booking_selection_flow.sql`; `frontend/src/components/coach/booking/*`; `OneOnOneBookingPanel`; `coachBookingApi` (`listMyPreviousOneOnOneCoaches`, `listBookableOneOnOneSlotsAnyCoach`, optional `specialistId` on confirm) |
 
 ### OVR-062 — Coach load-based auto-assign, reassignment, deactivation guard
 

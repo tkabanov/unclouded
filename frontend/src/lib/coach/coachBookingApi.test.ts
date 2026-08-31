@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  confirmOneOnOneBooking,
+  listBookableOneOnOneSlotsAnyCoach,
+  listMyPreviousOneOnOneCoaches,
   openExternalBookingUrl,
   requestOneOnOneBooking,
 } from "@/lib/coach/coachBookingApi";
@@ -85,5 +88,120 @@ describe("openExternalBookingUrl", () => {
     expect(openSpy).toHaveBeenCalledWith("https://example.com/book", "_blank");
     expect(openSpy.mock.calls[0]?.length).toBe(2);
     expect(child.opener).toBeNull();
+  });
+});
+
+describe("listMyPreviousOneOnOneCoaches", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("maps previous coach rows from RPC", async () => {
+    callRpc.mockResolvedValue({
+      data: [
+        {
+          id: "coach-1",
+          name: "Alex",
+          imageUrl: "https://example.com/a.jpg",
+          bio: "Bio",
+          isActive: true,
+          lastSessionAt: "2026-08-01T10:00:00Z",
+        },
+      ],
+      error: null,
+    });
+
+    const rows = await listMyPreviousOneOnOneCoaches();
+    expect(rows).toEqual([
+      {
+        id: "coach-1",
+        name: "Alex",
+        imageUrl: "https://example.com/a.jpg",
+        bio: "Bio",
+        isActive: true,
+        lastSessionAt: "2026-08-01T10:00:00Z",
+      },
+    ]);
+    expect(callRpc).toHaveBeenCalledWith("list_my_previous_one_on_one_coaches", {});
+  });
+});
+
+describe("listBookableOneOnOneSlotsAnyCoach", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("maps merged slot rows from RPC", async () => {
+    callRpc.mockResolvedValue({
+      data: [
+        {
+          slotStart: "2026-08-10T14:00:00Z",
+          slotEnd: "2026-08-10T14:30:00Z",
+          durationMinutes: 30,
+        },
+      ],
+      error: null,
+    });
+
+    const from = new Date("2026-08-01T00:00:00Z");
+    const to = new Date("2026-08-15T23:59:59Z");
+    const slots = await listBookableOneOnOneSlotsAnyCoach(from, to);
+
+    expect(slots).toEqual([
+      {
+        slotStart: "2026-08-10T14:00:00Z",
+        slotEnd: "2026-08-10T14:30:00Z",
+        durationMinutes: 30,
+      },
+    ]);
+    expect(callRpc).toHaveBeenCalledWith("list_bookable_one_on_one_slots_any_coach", {
+      p_from: from.toISOString(),
+      p_to: to.toISOString(),
+    });
+  });
+});
+
+describe("confirmOneOnOneBooking", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    callRpc.mockResolvedValue({
+      data: {
+        ok: true,
+        bookingId: "booking-1",
+        balance: 4,
+        scheduledAt: "2026-08-10T14:00:00Z",
+        durationMinutes: 30,
+        specialistName: "Alex",
+      },
+      error: null,
+    });
+  });
+
+  it("passes null specialist id for auto-assign", async () => {
+    const result = await confirmOneOnOneBooking({
+      slotStart: "2026-08-10T14:00:00Z",
+      durationMinutes: 30,
+      specialistId: null,
+    });
+
+    expect(result.status).toBe("ok");
+    expect(callRpc).toHaveBeenCalledWith("confirm_one_on_one_booking", {
+      p_slot_start: "2026-08-10T14:00:00Z",
+      p_duration_minutes: 30,
+      p_specialist_id: null,
+    });
+  });
+
+  it("passes specialist id for manual booking", async () => {
+    await confirmOneOnOneBooking({
+      slotStart: "2026-08-10T14:00:00Z",
+      specialistId: "coach-1",
+    });
+
+    expect(callRpc).toHaveBeenCalledWith("confirm_one_on_one_booking", {
+      p_slot_start: "2026-08-10T14:00:00Z",
+      p_duration_minutes: 30,
+      p_specialist_id: "coach-1",
+    });
   });
 });
