@@ -2,8 +2,8 @@
  * NCLDD-31 §3 — After internal 1:1 confirm: create Google Meet + send confirmation emails.
  *
  * Secrets (optional — booking stays confirmed if unset):
- * - GOOGLE_SERVICE_ACCOUNT_JSON — full service-account JSON (needs Calendar scope on the calendar)
- * - GOOGLE_CALENDAR_ID — calendar id (often the shared coaching calendar email)
+ * - GOOGLE_OAUTH_CLIENT_ID / _SECRET / _REFRESH_TOKEN — see _shared/googleCalendar.ts
+ * - GOOGLE_CALENDAR_ID — calendar id (usually the coaching mailbox address)
  * - SENDGRID_API_KEY / SENDGRID_FROM_* — existing SendGrid mail secrets
  *
  * Body: { bookingId: string }
@@ -155,6 +155,7 @@ Deno.serve(async (req) => {
       startsAt: booking.scheduledAt,
       durationMinutes,
       attendeeEmails: [memberEmail, specialistEmail].filter(Boolean),
+      sessionKey: `coach-${bookingId}`,
     });
     googleDetail = created.detail;
     if (created.meetLink || created.eventId) {

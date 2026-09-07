@@ -1,9 +1,15 @@
 /**
  * Google Calendar + Meet helpers for NCLDD-31 coaching bookings.
  *
+ * Auth is a user-delegated OAuth refresh token, not a service account: Meet
+ * conferences and attendee invites both require a real Workspace user, and org
+ * policy `iam.managed.disableServiceAccountKeyCreation` blocks SA keys anyway.
+ * Mint the refresh token once with `scripts/google_oauth_refresh_token.mjs`.
+ *
  * Secrets (optional — callers skip cleanly when unset):
- * - GOOGLE_SERVICE_ACCOUNT_JSON — full service-account JSON (Calendar scope)
- * - GOOGLE_CALENDAR_ID — calendar id (often the shared coaching calendar email)
+ * - GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET — OAuth client
+ * - GOOGLE_OAUTH_REFRESH_TOKEN — offline consent from the coaching mailbox
+ * - GOOGLE_CALENDAR_ID — calendar id (usually that mailbox address)
  */
 
 export type GoogleMeetCreateResult = {
@@ -17,94 +23,152 @@ export type GoogleCalendarDeleteResult = {
   detail: string;
 };
 
-type ServiceAccount = {
-  client_email?: string;
-  private_key?: string;
-  token_uri?: string;
+export type GoogleCalendarUpdateResult = {
+  ok: boolean;
+  detail: string;
 };
 
-function readGoogleEnv(): { rawJson: string | null; calendarId: string | null } {
-  return {
-    rawJson: Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON")?.trim() || null,
-    calendarId: Deno.env.get("GOOGLE_CALENDAR_ID")?.trim() || null,
-  };
+type GoogleAuth = {
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+  calendarId: string;
+};
+
+const TOKEN_URI = "https://oauth2.googleapis.com/token";
+
+const SKIPPED_DETAIL = "google:skipped — GOOGLE_OAUTH_* or GOOGLE_CALENDAR_ID not set";
+
+/** Private extended-property name carrying our per-session key on the event. */
+const SESSION_KEY_PROPERTY = "unclouded";
+
+/**
+ * `invalid_grant` means the refresh token is dead (mailbox password change,
+ * admin revoke, or six months unused) and no retry will fix it — surface it as
+ * its own detail so ops re-runs the consent script instead of chasing quota.
+ */
+export const REFRESH_TOKEN_REVOKED_DETAIL = "google:refresh_token_revoked";
+
+function readGoogleAuth(): GoogleAuth | null {
+  const clientId = Deno.env.get("GOOGLE_OAUTH_CLIENT_ID")?.trim();
+  const clientSecret = Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET")?.trim();
+  const refreshToken = Deno.env.get("GOOGLE_OAUTH_REFRESH_TOKEN")?.trim();
+  const calendarId = Deno.env.get("GOOGLE_CALENDAR_ID")?.trim();
+  if (!clientId || !clientSecret || !refreshToken || !calendarId) return null;
+  return { clientId, clientSecret, refreshToken, calendarId };
 }
 
-function parseServiceAccount(rawJson: string): ServiceAccount | { error: string } {
-  let sa: ServiceAccount;
-  try {
-    sa = JSON.parse(rawJson) as ServiceAccount;
-  } catch {
-    return { error: "google:invalid_service_account_json" };
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
+async function googleAccessToken(auth: GoogleAuth): Promise<string> {
+  if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) {
+    return cachedToken.token;
   }
-  if (!sa.client_email || !sa.private_key) {
-    return { error: "google:incomplete_service_account" };
-  }
-  return sa;
-}
 
-function pemToArrayBuffer(pem: string): ArrayBuffer {
-  const cleaned = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/g, "")
-    .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/\s+/g, "");
-  const binary = atob(cleaned);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes.buffer;
-}
-
-async function googleServiceAccountAccessToken(sa: ServiceAccount): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: "RS256", typ: "JWT" };
-  const claim = {
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/calendar",
-    aud: sa.token_uri || "https://oauth2.googleapis.com/token",
-    iat: now,
-    exp: now + 3600,
-  };
-
-  const encode = (value: unknown) =>
-    btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value))))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-
-  const unsigned = `${encode(header)}.${encode(claim)}`;
-  const key = await crypto.subtle.importKey(
-    "pkcs8",
-    pemToArrayBuffer(sa.private_key!),
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    key,
-    new TextEncoder().encode(unsigned),
-  );
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-  const jwt = `${unsigned}.${sigB64}`;
-  const tokenRes = await fetch(sa.token_uri || "https://oauth2.googleapis.com/token", {
+  const res = await fetch(TOKEN_URI, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: jwt,
+      grant_type: "refresh_token",
+      client_id: auth.clientId,
+      client_secret: auth.clientSecret,
+      refresh_token: auth.refreshToken,
     }),
   });
 
-  if (!tokenRes.ok) {
-    throw new Error(`token_exchange_${tokenRes.status}`);
+  const payload = (await res.json().catch(() => ({}))) as {
+    access_token?: string;
+    expires_in?: number;
+    error?: string;
+  };
+
+  if (!res.ok) {
+    if (payload.error === "invalid_grant") {
+      throw new Error(REFRESH_TOKEN_REVOKED_DETAIL);
+    }
+    throw new Error(`token_exchange_${res.status}_${payload.error ?? "unknown"}`);
   }
-  const tokenJson = (await tokenRes.json()) as { access_token?: string };
-  if (!tokenJson.access_token) throw new Error("token_missing");
-  return tokenJson.access_token;
+  if (!payload.access_token) throw new Error("token_missing");
+
+  cachedToken = {
+    token: payload.access_token,
+    expiresAt: Date.now() + (payload.expires_in ?? 3600) * 1000,
+  };
+  return cachedToken.token;
+}
+
+function errorDetail(err: unknown): string {
+  const message = err instanceof Error ? err.message : "unknown";
+  return message === REFRESH_TOKEN_REVOKED_DETAIL ? message : `google_error: ${message}`;
+}
+
+export type GoogleEventLookupResult =
+  | { status: "found"; eventId: string; meetLink: string | null }
+  | { status: "absent" }
+  | { status: "error"; detail: string };
+
+/**
+ * Find an event previously created for `sessionKey`. Lets a retry adopt an
+ * event that Google accepted but whose ids never reached our DB. The `error`
+ * status is distinct from `absent` on purpose: a failed lookup must not be read
+ * as "no event exists", or the caller would create a duplicate.
+ */
+export async function findGoogleEventByKey(
+  sessionKey: string,
+): Promise<GoogleEventLookupResult> {
+  const key = sessionKey.trim();
+  if (!key) return { status: "absent" };
+
+  const auth = readGoogleAuth();
+  if (!auth) return { status: "error", detail: SKIPPED_DETAIL };
+
+  try {
+    const accessToken = await googleAccessToken(auth);
+    const query = new URLSearchParams({
+      privateExtendedProperty: `${SESSION_KEY_PROPERTY}=${key}`,
+      maxResults: "1",
+      showDeleted: "false",
+    });
+
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(auth.calendarId)}/events?${query.toString()}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!res.ok) {
+      const text = await res.text();
+      return {
+        status: "error",
+        detail: `google_error: ${res.status} ${text.slice(0, 400)}`,
+      };
+    }
+
+    const payload = (await res.json()) as {
+      items?: Array<{
+        id?: string;
+        status?: string;
+        hangoutLink?: string;
+        conferenceData?: { entryPoints?: Array<{ entryPointType?: string; uri?: string }> };
+      }>;
+    };
+
+    const event = payload.items?.find(
+      (item) => typeof item.id === "string" && item.status !== "cancelled",
+    );
+    if (!event?.id) return { status: "absent" };
+
+    const meetFromEntry = event.conferenceData?.entryPoints?.find(
+      (entry) => entry.entryPointType === "video",
+    )?.uri;
+
+    return {
+      status: "found",
+      eventId: event.id,
+      meetLink: event.hangoutLink?.trim() || meetFromEntry?.trim() || null,
+    };
+  } catch (err) {
+    return { status: "error", detail: errorDetail(err) };
+  }
 }
 
 export async function createGoogleMeetEvent(params: {
@@ -113,26 +177,24 @@ export async function createGoogleMeetEvent(params: {
   startsAt: string;
   durationMinutes: number;
   attendeeEmails: string[];
+  /**
+   * Stable per-session key (`coach-<bookingId>` / `group-<sessionId>`). Doubles
+   * as the conference requestId and is stamped onto the event, so a retry after
+   * a failed DB write can adopt the orphaned event via findGoogleEventByKey
+   * instead of creating a second one.
+   */
+  sessionKey?: string;
 }): Promise<GoogleMeetCreateResult> {
-  const { rawJson, calendarId } = readGoogleEnv();
-  if (!rawJson || !calendarId) {
-    return {
-      meetLink: null,
-      eventId: null,
-      detail: "google:skipped — GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_CALENDAR_ID not set",
-    };
-  }
-
-  const parsed = parseServiceAccount(rawJson);
-  if ("error" in parsed) {
-    return { meetLink: null, eventId: null, detail: parsed.error };
+  const auth = readGoogleAuth();
+  if (!auth) {
+    return { meetLink: null, eventId: null, detail: SKIPPED_DETAIL };
   }
 
   try {
-    const accessToken = await googleServiceAccountAccessToken(parsed);
+    const accessToken = await googleAccessToken(auth);
     const start = new Date(params.startsAt);
     const end = new Date(start.getTime() + params.durationMinutes * 60_000);
-    const requestId = crypto.randomUUID();
+    const sessionKey = params.sessionKey?.trim() || "";
 
     const body = {
       summary: params.summary,
@@ -142,16 +204,19 @@ export async function createGoogleMeetEvent(params: {
       attendees: params.attendeeEmails
         .filter((email) => email.includes("@"))
         .map((email) => ({ email })),
+      extendedProperties: sessionKey
+        ? { private: { [SESSION_KEY_PROPERTY]: sessionKey } }
+        : undefined,
       conferenceData: {
         createRequest: {
-          requestId,
+          requestId: sessionKey || crypto.randomUUID(),
           conferenceSolutionKey: { type: "hangoutsMeet" },
         },
       },
     };
 
     const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?conferenceDataVersion=1`,
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(auth.calendarId)}/events?conferenceDataVersion=1&sendUpdates=all`,
       {
         method: "POST",
         headers: {
@@ -188,11 +253,7 @@ export async function createGoogleMeetEvent(params: {
       detail: meetLink ? "google:created" : "google:created_without_meet_link",
     };
   } catch (err) {
-    return {
-      meetLink: null,
-      eventId: null,
-      detail: `google_error: ${err instanceof Error ? err.message : "unknown"}`,
-    };
+    return { meetLink: null, eventId: null, detail: errorDetail(err) };
   }
 }
 
@@ -207,23 +268,15 @@ export async function deleteGoogleCalendarEvent(
     return { ok: true, detail: "google:skipped — no event id" };
   }
 
-  const { rawJson, calendarId } = readGoogleEnv();
-  if (!rawJson || !calendarId) {
-    return {
-      ok: true,
-      detail: "google:skipped — GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_CALENDAR_ID not set",
-    };
-  }
-
-  const parsed = parseServiceAccount(rawJson);
-  if ("error" in parsed) {
-    return { ok: false, detail: parsed.error };
+  const auth = readGoogleAuth();
+  if (!auth) {
+    return { ok: true, detail: SKIPPED_DETAIL };
   }
 
   try {
-    const accessToken = await googleServiceAccountAccessToken(parsed);
+    const accessToken = await googleAccessToken(auth);
     const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(trimmedId)}`,
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(auth.calendarId)}/events/${encodeURIComponent(trimmedId)}?sendUpdates=all`,
       {
         method: "DELETE",
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -234,7 +287,10 @@ export async function deleteGoogleCalendarEvent(
     if (res.ok || res.status === 204 || res.status === 404 || res.status === 410) {
       return {
         ok: true,
-        detail: res.status === 404 || res.status === 410 ? "google:already_deleted" : "google:deleted",
+        detail:
+          res.status === 404 || res.status === 410
+            ? "google:already_deleted"
+            : "google:deleted",
       };
     }
 
@@ -244,17 +300,9 @@ export async function deleteGoogleCalendarEvent(
       detail: `google_error: ${res.status} ${text.slice(0, 400)}`,
     };
   } catch (err) {
-    return {
-      ok: false,
-      detail: `google_error: ${err instanceof Error ? err.message : "unknown"}`,
-    };
+    return { ok: false, detail: errorDetail(err) };
   }
 }
-
-export type GoogleCalendarUpdateResult = {
-  ok: boolean;
-  detail: string;
-};
 
 /**
  * PATCH attendees (and optional summary) on an existing event; sendUpdates=all
@@ -271,21 +319,13 @@ export async function updateGoogleCalendarEventAttendees(params: {
     return { ok: true, detail: "google:skipped — no event id" };
   }
 
-  const { rawJson, calendarId } = readGoogleEnv();
-  if (!rawJson || !calendarId) {
-    return {
-      ok: true,
-      detail: "google:skipped — GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_CALENDAR_ID not set",
-    };
-  }
-
-  const parsed = parseServiceAccount(rawJson);
-  if ("error" in parsed) {
-    return { ok: false, detail: parsed.error };
+  const auth = readGoogleAuth();
+  if (!auth) {
+    return { ok: true, detail: SKIPPED_DETAIL };
   }
 
   try {
-    const accessToken = await googleServiceAccountAccessToken(parsed);
+    const accessToken = await googleAccessToken(auth);
     const attendees = params.attendeeEmails
       .filter((email) => email.includes("@"))
       .map((email) => ({ email }));
@@ -295,7 +335,7 @@ export async function updateGoogleCalendarEventAttendees(params: {
     if (params.description?.trim()) body.description = params.description.trim();
 
     const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(trimmedId)}?sendUpdates=all&conferenceDataVersion=1`,
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(auth.calendarId)}/events/${encodeURIComponent(trimmedId)}?sendUpdates=all&conferenceDataVersion=1`,
       {
         method: "PATCH",
         headers: {
@@ -316,9 +356,6 @@ export async function updateGoogleCalendarEventAttendees(params: {
 
     return { ok: true, detail: "google:attendees_updated" };
   } catch (err) {
-    return {
-      ok: false,
-      detail: `google_error: ${err instanceof Error ? err.message : "unknown"}`,
-    };
+    return { ok: false, detail: errorDetail(err) };
   }
 }

@@ -21,12 +21,14 @@ import {
 } from "@/lib/settings/admin/adminBookingsApi";
 import {
   adminReassignCoachBookingSpecialist,
+  adminRetryCoachBookingMeet,
   adminSetAssignedCoachEmail,
   formatCoachBookingDeliveryStatus,
   resolveAdminCoachBriefText,
 } from "@/lib/settings/admin/adminCoachBookingsApi";
 import {
   adminCancelGroupSession,
+  adminRetryGroupSessionMeet,
   listAdminGroupEnrollments,
   type AdminGroupEnrollmentRow,
 } from "@/lib/settings/admin/adminGroupSessionsApi";
@@ -72,6 +74,23 @@ function OneOnOneExpand({
   const [saving, setSaving] = useState(false);
   const [reassigning, setReassigning] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [retryingMeet, setRetryingMeet] = useState(false);
+
+  const handleRetryMeet = async () => {
+    if (retryingMeet) return;
+    setRetryingMeet(true);
+    try {
+      const result = await adminRetryCoachBookingMeet(row.id);
+      if (result.ok) {
+        toast.success("Meet link created.");
+        onUpdated();
+      } else {
+        toast.error(result.detail ?? "Could not create the Meet link.");
+      }
+    } finally {
+      setRetryingMeet(false);
+    }
+  };
 
   useEffect(() => {
     setCoachEmail(row.assignedCoachEmail ?? "");
@@ -232,7 +251,20 @@ function OneOnOneExpand({
           Open Google Meet
         </a>
       ) : (
-        <p className="text-xs text-muted-foreground">No Meet link yet.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs text-muted-foreground">No Meet link yet.</p>
+          {isUpcomingConfirmed(row) ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={retryingMeet}
+              onClick={() => void handleRetryMeet()}
+            >
+              {retryingMeet ? "Retrying…" : "Retry Meet link"}
+            </Button>
+          ) : null}
+        </div>
       )}
 
       {isUpcomingConfirmed(row) ? (
@@ -343,6 +375,23 @@ function GroupExpand({
   const [participants, setParticipants] = useState<AdminGroupEnrollmentRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [retryingMeet, setRetryingMeet] = useState(false);
+
+  const handleRetryMeet = async () => {
+    if (!row.sessionId || retryingMeet) return;
+    setRetryingMeet(true);
+    try {
+      const result = await adminRetryGroupSessionMeet(row.sessionId);
+      if (result.ok) {
+        toast.success("Meet link created.");
+        onUpdated();
+      } else {
+        toast.error(result.detail ?? "Could not create the Meet link.");
+      }
+    } finally {
+      setRetryingMeet(false);
+    }
+  };
 
   useEffect(() => {
     if (!row.sessionId) {
@@ -404,7 +453,20 @@ function GroupExpand({
           Open Google Meet
         </a>
       ) : (
-        <p className="text-xs text-muted-foreground">No Meet link yet.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs text-muted-foreground">No Meet link yet.</p>
+          {row.sessionId ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={retryingMeet}
+              onClick={() => void handleRetryMeet()}
+            >
+              {retryingMeet ? "Retrying…" : "Retry Meet link"}
+            </Button>
+          ) : null}
+        </div>
       )}
 
       <div className="flex flex-wrap gap-2">

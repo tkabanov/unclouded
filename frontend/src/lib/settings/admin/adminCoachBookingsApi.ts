@@ -273,3 +273,23 @@ export async function adminReassignCoachBookingSpecialist(params: {
     sideEffects,
   };
 }
+
+/**
+ * Retry Meet/Calendar for a confirmed booking whose finalize failed. Safe to
+ * press repeatedly: the edge function skips bookings that already have a link.
+ */
+export async function adminRetryCoachBookingMeet(
+  bookingId: string,
+): Promise<{ ok: boolean; detail?: string }> {
+  const { data, error } = await supabase.functions.invoke("finalize-coach-booking", {
+    body: { bookingId },
+  });
+
+  if (error) return { ok: false, detail: error.message };
+
+  const row = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
+  const meetLink = typeof row.meetLink === "string" ? row.meetLink.trim() : "";
+  const detail = typeof row.google === "string" ? row.google : undefined;
+
+  return { ok: meetLink.length > 0, detail };
+}

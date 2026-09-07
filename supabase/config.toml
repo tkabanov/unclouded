@@ -110,6 +110,10 @@ verify_jwt = true
 [functions.cancel-group-coaching-session]
 verify_jwt = true
 
+# NCLDD-31 §4 — Retry Meet/Calendar for sessions confirmed during a Google outage (pg_cron).
+[functions.backfill-session-meet-links]
+verify_jwt = false
+
 # Standalone Kota prompts (AI Prompt Specifications).
 [functions.generate-journal-reflection]
 verify_jwt = true

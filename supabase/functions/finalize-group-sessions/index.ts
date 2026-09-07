@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
           ? session.durationMinutes
           : 60,
       attendeeEmails: [],
+      sessionKey: `group-${sessionId}`,
     });
 
     if (created.meetLink || created.eventId) {

@@ -190,3 +190,24 @@ export async function adminCancelGroupSession(sessionId: string): Promise<void> 
     );
   }
 }
+
+/**
+ * Retry Meet/Calendar for one scheduled group session. Safe to press
+ * repeatedly: the edge function skips sessions that already have a link.
+ */
+export async function adminRetryGroupSessionMeet(
+  sessionId: string,
+): Promise<{ ok: boolean; detail?: string }> {
+  const { data, error } = await supabase.functions.invoke("finalize-group-sessions", {
+    body: { sessionIds: [sessionId] },
+  });
+
+  if (error) return { ok: false, detail: error.message };
+
+  const row = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
+  const results = Array.isArray(row.results) ? row.results : [];
+  const first = (results[0] ?? {}) as Record<string, unknown>;
+  const detail = typeof first.detail === "string" ? first.detail : undefined;
+
+  return { ok: detail === "google:created", detail };
+}

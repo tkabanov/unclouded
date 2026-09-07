@@ -2,7 +2,7 @@
  * NCLDD-31 §4 / §7 — Cancel confirmed internal 1:1: DB cancel + Google Calendar delete.
  *
  * Secrets (optional — cancel succeeds even if unset):
- * - GOOGLE_SERVICE_ACCOUNT_JSON / GOOGLE_CALENDAR_ID — delete Calendar event
+ * - GOOGLE_OAUTH_* / GOOGLE_CALENDAR_ID — delete Calendar event
  * - SENDGRID_API_KEY / SENDGRID_FROM_* — cancel notice emails
  *
  * Body: { bookingId: string }

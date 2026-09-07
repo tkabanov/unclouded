@@ -1,10 +1,16 @@
 /**
  * NCLDD-31 §8 / CL-6 — Admin cancels an entire group coaching session:
- * RPC cancels + resets counters; this edge emails all enrolled members.
+ * RPC cancels + resets counters; this edge deletes the Calendar event (so the
+ * Meet room stops being joinable) and emails all enrolled members.
+ *
+ * Secrets (optional — cancel succeeds even if unset):
+ * - GOOGLE_OAUTH_* / GOOGLE_CALENDAR_ID — delete Calendar event
+ * - SENDGRID_API_KEY / SENDGRID_FROM_* — cancel notice emails
  *
  * Body: { sessionId: string }
  * Auth: admin JWT (settings admin).
  */
+import { deleteGoogleCalendarEvent } from "../_shared/googleCalendar.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { formatSessionWhen } from "../_shared/sessionWhenLabel.ts";
 import { sendTransactionalEmail } from "../_shared/sendgridMail.ts";
@@ -67,6 +73,12 @@ Deno.serve(async (req) => {
     });
   }
 
+  const googleEventId =
+    typeof row.googleEventId === "string" && row.googleEventId.trim()
+      ? row.googleEventId.trim()
+      : null;
+  const googleDelete = await deleteGoogleCalendarEvent(googleEventId);
+
   const title =
     typeof row.title === "string" && row.title.trim() ? row.title.trim() : "Group coaching session";
   const startsAt = typeof row.startsAt === "string" ? row.startsAt : null;
@@ -112,6 +124,7 @@ Deno.serve(async (req) => {
   return jsonResponse(200, {
     ok: true,
     sessionId,
+    google: googleDelete.detail,
     notifiedCount: mailResults.length,
     mailResults,
   });
