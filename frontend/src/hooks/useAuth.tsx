@@ -21,14 +21,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function applyAuthState(
-  setSession: (session: Session | null) => void,
-  setUser: (user: User | null) => void,
+  setSession: (updater: (prev: Session | null) => Session | null) => void,
+  setUser: (updater: (prev: User | null) => User | null) => void,
   setLoading: (loading: boolean) => void,
   session: Session | null,
   user: User | null,
 ) {
-  setSession(session);
-  setUser(user);
+  // Keep the previous object reference when nothing actually changed (e.g. a
+  // background token refresh fired when the tab regains focus). Supabase emits a
+  // fresh auth event on every visibility change; replacing `user`/`session` with a
+  // new-but-equivalent object would retrigger every `useEffect([user, ...])` across
+  // the app and make pages look like they "reload" whenever the tab is refocused.
+  setSession((prev) => (prev?.access_token === session?.access_token ? prev : session));
+  setUser((prev) => (prev?.id === user?.id ? prev : user));
   setLoading(false);
 }
 
@@ -42,26 +47,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (event === "SIGNED_OUT" || !nextSession) {
         resetUser();
         applyAuthState(setSession, setUser, setLoading, null, null);
         return;
       }
 
-      const {
-        data: { user: validatedUser },
-        error,
-      } = await supabase.auth.getUser();
+      // supabase-js runs this callback while holding its internal auth lock —
+      // including on the session-recovery check it fires whenever the tab
+      // regains focus. Awaiting another supabase.auth call (getUser) directly
+      // inside the callback can deadlock against that lock, which left `loading`
+      // stuck true and made every guarded page hang/flash back to a full-screen
+      // spinner on tab refocus. Deferring with setTimeout runs it outside the
+      // lock, per Supabase's own guidance.
+      setTimeout(() => {
+        void (async () => {
+          const {
+            data: { user: validatedUser },
+            error,
+          } = await supabase.auth.getUser();
 
-      if (error || !validatedUser) {
-        await clearLocalAuthSession();
-        applyAuthState(setSession, setUser, setLoading, null, null);
-        return;
-      }
+          if (error || !validatedUser) {
+            await clearLocalAuthSession();
+            applyAuthState(setSession, setUser, setLoading, null, null);
+            return;
+          }
 
-      applyAuthState(setSession, setUser, setLoading, nextSession, validatedUser);
-      identifyUser(validatedUser.id);
+          applyAuthState(setSession, setUser, setLoading, nextSession, validatedUser);
+          identifyUser(validatedUser.id);
+        })();
+      }, 0);
     });
 
     void resolveValidatedAuthSession().then(({ session: currentSession, user: currentUser }) => {
