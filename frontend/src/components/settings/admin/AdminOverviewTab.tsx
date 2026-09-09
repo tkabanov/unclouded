@@ -26,19 +26,30 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import {
   fetchAdminOverview,
   formatDelta,
+  UNASSIGNED_COMPANY_KEY,
   type AdminOverviewSnapshot,
   type CrisisRange,
 } from "@/lib/settings/admin/adminOverviewApi";
 import { cn } from "@/lib/utils";
 
+const ALL_COMPANIES_KEY = "all";
+
 const PIE_COLORS = [
   "hsl(var(--primary))",
   "hsl(var(--chart-2, 173 58% 39%))",
   "hsl(var(--chart-3, 197 37% 24%))",
+  "hsl(var(--chart-4, 43 74% 49%))",
   "hsl(var(--muted-foreground))",
 ];
 
@@ -81,6 +92,8 @@ export default function AdminOverviewTab() {
   const [stats, setStats] = useState<AdminOverviewSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [crisisRange, setCrisisRange] = useState<CrisisRange>("week");
+  const [classificationCompanyFilter, setClassificationCompanyFilter] =
+    useState<string>(ALL_COMPANIES_KEY);
 
   useEffect(() => {
     if (!user) return;
@@ -105,6 +118,11 @@ export default function AdminOverviewTab() {
     stats && stats.enterpriseSeatsPurchased > 0
       ? Math.round((stats.enterpriseSeatsUsed / stats.enterpriseSeatsPurchased) * 100)
       : 0;
+
+  const classificationDistribution =
+    stats && classificationCompanyFilter !== ALL_COMPANIES_KEY
+      ? (stats.classificationDistributionByCompany[classificationCompanyFilter] ?? [])
+      : (stats?.classificationDistribution ?? []);
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 p-6 md:p-8">
@@ -197,18 +215,35 @@ export default function AdminOverviewTab() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="shadow-sm">
-              <CardHeader className="pb-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-semibold tracking-tight">
                   Classification distribution
                 </CardTitle>
+                <Select
+                  value={classificationCompanyFilter}
+                  onValueChange={setClassificationCompanyFilter}
+                >
+                  <SelectTrigger className="h-7 w-[160px] text-xs">
+                    <SelectValue placeholder="All companies" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_COMPANIES_KEY}>All companies</SelectItem>
+                    {stats.classificationCompanies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={UNASSIGNED_COMPANY_KEY}>Unassigned</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent className="h-60">
-                {stats.classificationDistribution.length === 0 ? (
+                {classificationDistribution.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No classification data yet.</p>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={stats.classificationDistribution.map((row) => ({
+                      data={classificationDistribution.map((row) => ({
                         name: row.label,
                         count: row.count,
                       }))}

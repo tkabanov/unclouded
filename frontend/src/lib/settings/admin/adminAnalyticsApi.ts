@@ -32,7 +32,7 @@ export interface AdminAnalyticsSnapshot {
 
 /** Whitelisted profile columns for admin module analytics (no History answer fields). */
 export const ADMIN_MODULE_ANALYTICS_SELECT_COLUMNS =
-  "onboardingData, modulesCompletedCount, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete, isActive, tier, subscribed, accountType, enterpriseTier, results" as const;
+  "onboardingData, modulesCompletedCount, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete, isActive, tier, subscribed, accountType, enterpriseTier, results, workplaceId" as const;
 
 /** History answer fields that must never appear in admin analytics SELECT. */
 export const ADMIN_SENSITIVE_HISTORY_FIELDS = [
@@ -92,6 +92,7 @@ export type AdminAnalyticsProfileRow = {
   accountType?: string | null;
   enterpriseTier?: string | null;
   results?: Record<string, unknown> | null;
+  workplaceId?: string | null;
 };
 
 const CHECKIN_LOOKBACK_DAYS = 7;

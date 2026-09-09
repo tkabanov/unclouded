@@ -28,6 +28,10 @@ export type AdminOverviewSnapshot = {
   enterpriseContractsActive: number;
   subscriptionDistribution: Array<{ name: string; value: number }>;
   classificationDistribution: Array<{ label: string; count: number }>;
+  /** Companies with at least one profile, for the classification distribution filter. */
+  classificationCompanies: Array<{ id: string; name: string }>;
+  /** Classification distribution per company id, plus "unassigned" for profiles with no workplace. */
+  classificationDistributionByCompany: Record<string, Array<{ label: string; count: number }>>;
   crisisSeries: Array<{ label: string; count: number }>;
   crisisTotal: number;
   assessmentTrends: {
@@ -273,12 +277,18 @@ async function fetchAssessmentTrends(): Promise<AdminOverviewSnapshot["assessmen
 function buildSubscriptionDistribution(
   profiles: AdminAnalyticsProfileRow[],
 ): Array<{ name: string; value: number }> {
-  let enterprise = 0;
   const nonEnterprise: AdminAnalyticsProfileRow[] = [];
+  let enterprisePremium = 0;
+  let enterprisePro = 0;
 
   for (const profile of profiles) {
     if ((profile.accountType ?? "").toLowerCase() === "enterprise") {
-      enterprise += 1;
+      // Enterprise contracts without an explicit tier default to pro (matches resolveAdminUserType).
+      if ((profile.enterpriseTier ?? "").toLowerCase() === "premium") {
+        enterprisePremium += 1;
+      } else {
+        enterprisePro += 1;
+      }
     } else {
       nonEnterprise.push(profile);
     }
@@ -292,8 +302,33 @@ function buildSubscriptionDistribution(
     { name: "Free", value: free },
     { name: "Pro", value: pro },
     { name: "Premium", value: premium },
-    { name: "Enterprise", value: enterprise },
+    { name: "Enterprise Pro", value: enterprisePro },
+    { name: "Enterprise Premium", value: enterprisePremium },
   ].filter((row) => row.value > 0);
+}
+
+export const UNASSIGNED_COMPANY_KEY = "unassigned" as const;
+
+function buildClassificationDistributionByCompany(
+  profiles: AdminAnalyticsProfileRow[],
+  companies: Array<{ id: string; name: string }>,
+): Record<string, Array<{ label: string; count: number }>> {
+  const companyIds = new Set(companies.map((c) => c.id));
+  const byCompany = new Map<string, AdminAnalyticsProfileRow[]>();
+
+  for (const profile of profiles) {
+    const workplaceId = profile.workplaceId;
+    const key = workplaceId && companyIds.has(workplaceId) ? workplaceId : UNASSIGNED_COMPANY_KEY;
+    const bucket = byCompany.get(key) ?? [];
+    bucket.push(profile);
+    byCompany.set(key, bucket);
+  }
+
+  const result: Record<string, Array<{ label: string; count: number }>> = {};
+  for (const [key, bucketProfiles] of byCompany) {
+    result[key] = aggregateClassificationDistribution(bucketProfiles);
+  }
+  return result;
 }
 
 export async function fetchAdminOverview(
@@ -365,6 +400,10 @@ export async function fetchAdminOverview(
   );
   const crisisTotal = crisisSeries.reduce((sum, row) => sum + row.count, 0);
 
+  const classificationCompanies = workplaces.workplaces
+    .map((w) => ({ id: w.workplaceId, name: w.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   return {
     totalUsers,
     dau,
@@ -379,6 +418,11 @@ export async function fetchAdminOverview(
     enterpriseContractsActive: activeWorkplaces.length,
     subscriptionDistribution: buildSubscriptionDistribution(profiles),
     classificationDistribution: aggregateClassificationDistribution(profiles),
+    classificationCompanies,
+    classificationDistributionByCompany: buildClassificationDistributionByCompany(
+      profiles,
+      classificationCompanies,
+    ),
     crisisSeries,
     crisisTotal,
     assessmentTrends,
