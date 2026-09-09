@@ -1,0 +1,26 @@
+# Product overrides precedence
+
+> Always-on rule (imported into `CLAUDE.md`). Check `docs/product-overrides.md` before implementing
+> Bubble/Lovable/client-doc behavior.
+
+Some features **intentionally differ** from the Bubble IR export, Lovable prototype, `cursor-impl-cycle/` migration specs, and client docs in `docs/`.
+
+## Required workflow
+
+1. **Before** implementing, restoring, or "parity-fixing" UI/flows from Bubble IR, migration ACs, or client PRD/user stories, read **`docs/product-overrides.md`**.
+2. If an override entry applies to your task, follow **Current behavior** in that entry — not the overridden source.
+3. Do **not** reintroduce removed steps, tabs, or editable fields because they exist in Bubble/Lovable/migration docs alone.
+4. When the user requests a change that contradicts Bubble/Lovable/client docs, implement it and **append a new numbered entry** to `docs/product-overrides.md` (next `OVR-###`).
+
+## Precedence (highest first)
+
+1. Explicit user instruction in the current conversation
+2. `docs/product-overrides.md`
+3. Client docs in `docs/` (e.g. user stories)
+4. Bubble IR / migration specs / Lovable prototype
+
+## Examples
+
+- Signup is **single-step credentials** (OVR-001), not Bubble's 3-step signup wizard.
+- Settings tabs are **Profile / Security** only (OVR-003 / OVR-051); subscription is `/subscription` in the sidebar.
+- Profile **email is display-only** (OVR-002).

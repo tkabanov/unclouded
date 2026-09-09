@@ -1,8 +1,8 @@
 import {
   MODULE_ANSWER_FIELD_COLUMNS,
-  MODULE_FIELD_ONBOARDING_ALIASES,
   type ModuleAnswerFieldKey,
 } from "@/lib/modules/moduleFieldKeys";
+import { readModuleProfileFieldValue } from "@/lib/modules/moduleProfileFieldReader";
 import {
   isModuleComplete,
   type ModuleProfileInput,
@@ -35,33 +35,6 @@ function isModuleSlug(value: string): value is ModuleSlug {
 
 function isModuleAnswerFieldKey(value: string): value is ModuleAnswerFieldKey {
   return value in MODULE_ANSWER_FIELD_COLUMNS;
-}
-
-function readProfileFieldValue(
-  profile: ModuleProfileInput,
-  fieldKey: ModuleAnswerFieldKey,
-): string | number | boolean | null {
-  const column = MODULE_ANSWER_FIELD_COLUMNS[fieldKey];
-  const columnValue = profile[column as keyof ModuleProfileInput];
-  if (columnValue !== null && columnValue !== undefined) {
-    return columnValue as string | number | boolean;
-  }
-
-  const alias = MODULE_FIELD_ONBOARDING_ALIASES[fieldKey];
-  if (!alias) return null;
-
-  const onboardingData =
-    profile.onboardingData && typeof profile.onboardingData === "object"
-      ? profile.onboardingData
-      : null;
-  if (!onboardingData) return null;
-
-  const raw = onboardingData[alias];
-  if (raw === null || raw === undefined) return null;
-  if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
-    return raw;
-  }
-  return null;
 }
 
 function parsePrerequisiteSegment(segment: string): PathModulePrerequisite | null {
@@ -118,12 +91,12 @@ export function userMeetsPathModulePrerequisite(
     case "module_complete":
       return isModuleComplete(profile, prerequisite.slug);
     case "field_equals": {
-      const raw = readProfileFieldValue(profile, prerequisite.fieldKey);
+      const raw = readModuleProfileFieldValue(profile, prerequisite.fieldKey);
       if (raw === null) return false;
       return String(raw).trim().toLowerCase() === prerequisite.value.trim().toLowerCase();
     }
     case "field_gte": {
-      const raw = readProfileFieldValue(profile, prerequisite.fieldKey);
+      const raw = readModuleProfileFieldValue(profile, prerequisite.fieldKey);
       if (raw === null) return false;
       const numeric = typeof raw === "number" ? raw : Number(raw);
       return Number.isFinite(numeric) && numeric >= prerequisite.min;

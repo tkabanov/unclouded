@@ -49,6 +49,32 @@ export interface UserProfile {
   moduleFinancialComplete?: boolean;
   moduleBodyComplete?: boolean;
   moduleMeaningComplete?: boolean;
+  identitySelfWorthSource?: string | null;
+  identityNarrativeType?: string | null;
+  identityRoleFusionScore?: number | null;
+  identityPressureOrigin?: string | null;
+  attachmentSignal?: string | null;
+  conflictPattern?: string | null;
+  supportSeekingCapacity?: string | null;
+  intimacySafetyLevel?: string | null;
+  traumaActivationLevel?: string | null;
+  griefLoadLevel?: string | null;
+  priorSupportType?: string | null;
+  significantEvents12mo?: string[] | null;
+  financialStabilitySignal?: string | null;
+  financialAnxietyLevel?: string | null;
+  financialAgencyLevel?: string | null;
+  sleepQualitySignal?: string | null;
+  hormonalContextFlag?: boolean | null;
+  hormonalContextType?: string | null;
+  chronicPainFlag?: boolean | null;
+  bodyRelationship?: string | null;
+  substancePatternSignal?: string | null;
+  purposeClarity?: string | null;
+  spiritualFrameworkPresent?: boolean | null;
+  spiritualFrameworkType?: string | null;
+  belongingLevel?: string | null;
+  pressureReach?: string | null;
 }
 
 export interface OnboardingPayload {
@@ -104,7 +130,7 @@ interface UserProfileContextType {
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
 
 const PROFILE_SELECT =
-  "firstName, lastName, roleType, roleTypes, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, accountType, enterpriseTier, enrollmentDate, signupPlan, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete";
+  "firstName, lastName, roleType, roleTypes, primaryPillar, results, onboardingCompleted, onboardingCompletedAt, onboardingData, subscribed, tier, accountType, enterpriseTier, enrollmentDate, signupPlan, lastAssessmentDate, nextReassessmentDate, canReassessOnDemand, reassessmentResults, reassessmentReflections, reassessmentCompletedAt, modulesCompletedCount, moduleSchedules, moduleIdentityComplete, moduleRelationalComplete, moduleHistoryComplete, moduleFinancialComplete, moduleBodyComplete, moduleMeaningComplete, identitySelfWorthSource, identityNarrativeType, identityRoleFusionScore, identityPressureOrigin, attachmentSignal, conflictPattern, supportSeekingCapacity, intimacySafetyLevel, traumaActivationLevel, griefLoadLevel, priorSupportType, significantEvents12mo, financialStabilitySignal, financialAnxietyLevel, financialAgencyLevel, sleepQualitySignal, hormonalContextFlag, hormonalContextType, chronicPainFlag, bodyRelationship, substancePatternSignal, purposeClarity, spiritualFrameworkPresent, spiritualFrameworkType, belongingLevel, pressureReach";
 
 export function UserProfileProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -173,6 +199,32 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         moduleFinancialComplete: data.moduleFinancialComplete ?? undefined,
         moduleBodyComplete: data.moduleBodyComplete ?? undefined,
         moduleMeaningComplete: data.moduleMeaningComplete ?? undefined,
+        identitySelfWorthSource: data.identitySelfWorthSource ?? null,
+        identityNarrativeType: data.identityNarrativeType ?? null,
+        identityRoleFusionScore: data.identityRoleFusionScore ?? null,
+        identityPressureOrigin: data.identityPressureOrigin ?? null,
+        attachmentSignal: data.attachmentSignal ?? null,
+        conflictPattern: data.conflictPattern ?? null,
+        supportSeekingCapacity: data.supportSeekingCapacity ?? null,
+        intimacySafetyLevel: data.intimacySafetyLevel ?? null,
+        traumaActivationLevel: data.traumaActivationLevel ?? null,
+        griefLoadLevel: data.griefLoadLevel ?? null,
+        priorSupportType: data.priorSupportType ?? null,
+        significantEvents12mo: data.significantEvents12mo ?? null,
+        financialStabilitySignal: data.financialStabilitySignal ?? null,
+        financialAnxietyLevel: data.financialAnxietyLevel ?? null,
+        financialAgencyLevel: data.financialAgencyLevel ?? null,
+        sleepQualitySignal: data.sleepQualitySignal ?? null,
+        hormonalContextFlag: data.hormonalContextFlag ?? null,
+        hormonalContextType: data.hormonalContextType ?? null,
+        chronicPainFlag: data.chronicPainFlag ?? null,
+        bodyRelationship: data.bodyRelationship ?? null,
+        substancePatternSignal: data.substancePatternSignal ?? null,
+        purposeClarity: data.purposeClarity ?? null,
+        spiritualFrameworkPresent: data.spiritualFrameworkPresent ?? null,
+        spiritualFrameworkType: data.spiritualFrameworkType ?? null,
+        belongingLevel: data.belongingLevel ?? null,
+        pressureReach: data.pressureReach ?? null,
       });
     } else {
       setProfileState(null);

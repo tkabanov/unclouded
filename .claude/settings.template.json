@@ -1,0 +1,73 @@
+{
+  "_comment": "Reference template — the live config is .claude/settings.json. Copy a block from here into it (or into settings.local.json for machine-only opt-ins). All hooks are WARNING-ONLY + fail-open: they print reminders and ALWAYS exit 0, never blocking.",
+  "_stop_hook": "The Stop block below wires the cursor-impl-cycle auto-continue loop (.claude/hooks/stop.mjs → cursor-impl-cycle/hooks/stop.mjs). It makes Claude keep working after a turn ends while a cycle is active — opt in only when you actually run that cycle.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/sessionstart.mjs\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-commit.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-deploy-push.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__supabase__apply_migration",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-migration.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__supabase__deploy_edge_function",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-deploy-push.mjs\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/post-commit.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop.mjs\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

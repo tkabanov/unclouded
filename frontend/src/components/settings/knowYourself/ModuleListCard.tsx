@@ -180,6 +180,12 @@ export default function ModuleListCard({ item, onRefreshOffered }: ModuleListCar
 
             </span>
 
+            <Button asChild variant="ghost" size="sm">
+
+              <Link to={`/settings/know-yourself/${item.slug}/results`}>Review</Link>
+
+            </Button>
+
             <Button type="button" variant="outline" size="sm" onClick={() => void handleUserRefresh()}>
 
               Refresh

@@ -1,4 +1,5 @@
 import type { RouteObject } from "react-router-dom";
+import ModuleResultsPage from "@/pages/ModuleResultsPage";
 import ModuleWizard from "@/pages/ModuleWizard";
 import Onboarding from "@/pages/Onboarding";
 import Dashboard from "@/pages/Dashboard";
@@ -31,6 +32,7 @@ export const authenticatedRouteDefs: AuthenticatedRouteDef[] = [
   { path: "/subscription", element: <Subscription /> },
   { path: "/settings", element: <Settings /> },
   { path: "/settings/subscription", element: <SettingsSubscriptionRedirect /> },
+  { path: "/settings/know-yourself/:moduleSlug/results", element: <ModuleResultsPage /> },
   { path: "/settings/know-yourself/:moduleSlug", element: <ModuleWizard /> },
   { path: "/paths", element: <Paths /> },
   { path: "/employer", element: <EmployerPortal /> },

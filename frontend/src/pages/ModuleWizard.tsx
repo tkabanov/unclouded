@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-import ModuleCompletionScreen from "@/components/modules/ModuleCompletionScreen";
 import ModuleIntroScreen from "@/components/modules/ModuleIntroScreen";
 import ModuleMultiSelectScreen from "@/components/modules/ModuleMultiSelectScreen";
 import ModuleQuestionScreen from "@/components/modules/ModuleQuestionScreen";
+import ModuleResultsScreen from "@/components/modules/ModuleResultsScreen";
 import ModuleWizardShell from "@/components/modules/ModuleWizardShell";
 import { useModuleWizard } from "@/components/modules/useModuleWizard";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,13 @@ import {
 import { getModuleDefinition } from "@/lib/modules/moduleConfigApi";
 import { getModuleAvailability } from "@/lib/modules/moduleScheduler";
 import { isModuleSlug } from "@/lib/modules/moduleSlugs";
+import type { ModuleProfileInput } from "@/lib/modules/readModuleProfile";
+import {
+  fetchNewlyUnlockedPaths,
+  type NewlyUnlockedPath,
+} from "@/lib/modules/results/moduleUnlockedPaths";
+import { resolveModuleResults, type ModuleResultsView } from "@/lib/modules/results/resolveModuleResults";
+import { resolvePathsUserTier } from "@/lib/paths/resolvePathsUserTier";
 import { useUserProfile } from "@/lib/userProfile";
 
 export default function ModuleWizard() {
@@ -26,6 +33,9 @@ export default function ModuleWizard() {
   const { profile, refresh } = useUserProfile();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [results, setResults] = useState<ModuleResultsView | null>(null);
+  const [unlockedPaths, setUnlockedPaths] = useState<NewlyUnlockedPath[]>([]);
+  const profileBeforeRef = useRef<ModuleProfileInput | null>(null);
 
   const slug = moduleSlug && isModuleSlug(moduleSlug) ? moduleSlug : null;
 
@@ -43,6 +53,11 @@ export default function ModuleWizard() {
   useEffect(() => {
     if (!slug || !profile || !availability) return;
 
+    // Skip while the user is on the complete step of the wizard they are currently
+    // finishing — submitAnswers' refresh() flips availability to "completed" mid-flow,
+    // and that must not bounce them off the results screen they just earned.
+    if (wizard.currentStep.kind === "complete" || submitted) return;
+
     if (!isModuleSlug(moduleSlug ?? "")) {
       navigate("/settings?tab=profile", { replace: true });
       return;
@@ -58,7 +73,7 @@ export default function ModuleWizard() {
       toast.info(`This module is available in ${availability.daysUntilUnlock} day(s).`);
       navigate("/settings?tab=profile", { replace: true });
     }
-  }, [slug, moduleSlug, profile, availability, navigate]);
+  }, [slug, moduleSlug, profile, availability, navigate, wizard.currentStep.kind, submitted]);
 
   const handleSkip = useCallback(() => {
     navigate("/settings?tab=profile");
@@ -67,13 +82,18 @@ export default function ModuleWizard() {
   const submitAnswers = useCallback(async () => {
     if (!user || !slug || submitting || submitted) return;
 
+    // Snapshot before refresh() mutates the context profile — MRS-02 needs the before-state.
+    profileBeforeRef.current = profile ?? {};
     setSubmitting(true);
     try {
       await completeModule(user.id, slug, wizard.answers, {
         mode: isRefreshMode ? "refresh" : "initial",
       });
-      setSubmitted(true);
+      // Wait for the fresh profile to land in context before flipping `submitted` —
+      // otherwise the results-resolving effect can fire on the stale pre-submit
+      // profile and its `|| results` guard permanently locks in empty reflections.
       await refresh();
+      setSubmitted(true);
       toast.success(
         isRefreshMode
           ? `${definition?.displayTitle ?? "Module"} refreshed.`
@@ -98,10 +118,33 @@ export default function ModuleWizard() {
     submitted,
     wizard,
     refresh,
+    profile,
     definition?.displayTitle,
     navigate,
     isRefreshMode,
   ]);
+
+  // Once refresh() lands the updated profile in context, resolve results from it —
+  // guarantees the completion view matches what Review (MRS-05) shows later.
+  useEffect(() => {
+    if (!submitted || !slug || !profile || results) return;
+
+    setResults(resolveModuleResults(slug, profile));
+
+    if (slug === "history") return;
+
+    fetchNewlyUnlockedPaths({
+      slug,
+      profileBefore: profileBeforeRef.current ?? {},
+      profileAfter: profile,
+      userTier: resolvePathsUserTier(profile),
+    })
+      .then(setUnlockedPaths)
+      .catch((error) => {
+        console.error(error);
+        setUnlockedPaths([]);
+      });
+  }, [submitted, slug, profile, results]);
 
   const handleQuestionContinue = useCallback(async () => {
     if (wizard.isLastQuestionStep) {
@@ -167,9 +210,11 @@ export default function ModuleWizard() {
       ) : null}
 
       {currentStep.kind === "complete" ? (
-        <ModuleCompletionScreen
+        <ModuleResultsScreen
           definition={definition}
-          submitting={submitting || !submitted}
+          results={results ?? { headline: definition.displayTitle, lead: "", reflections: [], whatThisUnlocks: [] }}
+          unlockedPaths={unlockedPaths}
+          submitting={submitting || !submitted || !results}
           onFinish={() => navigate("/settings?tab=profile")}
         />
       ) : null}
