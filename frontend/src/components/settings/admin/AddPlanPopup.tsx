@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -21,8 +20,7 @@ export interface AddPlanPopupProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (form: AdminPlanFormState) => Promise<void>;
   busy?: boolean;
-  editPlanId?: string | null;
-  initialForm?: AdminPlanFormState | null;
+  initialForm: AdminPlanFormState | null;
 }
 
 export default function AddPlanPopup({
@@ -30,11 +28,9 @@ export default function AddPlanPopup({
   onOpenChange,
   onSubmit,
   busy = false,
-  editPlanId = null,
-  initialForm = null,
+  initialForm,
 }: AddPlanPopupProps) {
   const [form, setForm] = useState<AdminPlanFormState>(emptyAdminPlanForm());
-  const isEdit = Boolean(editPlanId);
 
   useEffect(() => {
     if (open) setForm(initialForm ?? emptyAdminPlanForm());
@@ -44,35 +40,10 @@ export default function AddPlanPopup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit subscription plan" : "Add subscription plan"}
-          </DialogTitle>
+          <DialogTitle>Edit plan description</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="add-plan-name">Name</Label>
-            <Input
-              id="add-plan-name"
-              className={bubbleStyle("Input_default_")}
-              value={form.name}
-              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="add-plan-price">Monthly price (USD)</Label>
-            <Input
-              id="add-plan-price"
-              type="number"
-              min={0}
-              value={form.price}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, price: Number(event.target.value) || 0 }))
-              }
-            />
-          </div>
-
           <div className="grid gap-2">
             <Label htmlFor="add-plan-desc">Description</Label>
             <Textarea
@@ -82,16 +53,6 @@ export default function AddPlanPopup({
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, description: event.target.value }))
               }
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="add-plan-features">Features (one per line)</Label>
-            <Textarea
-              id="add-plan-features"
-              rows={4}
-              value={form.features}
-              onChange={(event) => setForm((prev) => ({ ...prev, features: event.target.value }))}
             />
           </div>
         </div>
@@ -111,7 +72,7 @@ export default function AddPlanPopup({
             disabled={busy}
             onClick={() => void onSubmit(form)}
           >
-            {busy ? "Saving…" : isEdit ? "Save changes" : "Create plan"}
+            {busy ? "Saving…" : "Save changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

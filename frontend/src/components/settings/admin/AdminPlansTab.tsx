@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AddPlanPopup from "@/components/settings/admin/AddPlanPopup";
 import AdminDataSourceNotice from "@/components/settings/admin/AdminDataSourceNotice";
 import {
-  createAdminPlan,
-  deleteAdminPlan,
   fetchAdminPlans,
   formatPlanPrice,
   getPlanTierLabel,
@@ -24,14 +22,12 @@ export default function AdminPlansTab() {
   const [plans, setPlans] = useState<AdminPlanRecord[]>([]);
   const [dataSource, setDataSource] = useState<AdminDataSource>("table");
   const [loading, setLoading] = useState(true);
-  const [addOpen, setAddOpen] = useState(false);
   const [editPlan, setEditPlan] = useState<AdminPlanRecord | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const popupOpen = addOpen || editPlan !== null;
+  const popupOpen = editPlan !== null;
 
   const closePopup = useCallback(() => {
-    setAddOpen(false);
     setEditPlan(null);
   }, []);
 
@@ -59,17 +55,12 @@ export default function AdminPlansTab() {
   }, [reload, user]);
 
   const handleSave = useCallback(
-    async (form: Parameters<typeof createAdminPlan>[1]) => {
-      if (!user || busy) return;
+    async (form: Parameters<typeof updateAdminPlan>[2]) => {
+      if (!user || !editPlan || busy) return;
       setBusy(true);
       try {
-        if (editPlan) {
-          await updateAdminPlan(user.id, editPlan.planId, form);
-          toast.success("Plan updated.");
-        } else {
-          await createAdminPlan(user.id, form);
-          toast.success("Plan created.");
-        }
+        await updateAdminPlan(user.id, editPlan.planId, form);
+        toast.success("Plan updated.");
         await reload();
         closePopup();
       } catch (err) {
@@ -79,23 +70,6 @@ export default function AdminPlansTab() {
       }
     },
     [busy, closePopup, editPlan, reload, user],
-  );
-
-  const handleDelete = useCallback(
-    async (plan: AdminPlanRecord) => {
-      if (!user || plan.isStatic || busy) return;
-      setBusy(true);
-      try {
-        await deleteAdminPlan(user.id, plan.planId);
-        await reload();
-        toast.success("Plan deleted.");
-      } catch {
-        toast.error("Couldn't delete plan.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [busy, reload, user],
   );
 
   if (loading) {
@@ -114,13 +88,6 @@ export default function AdminPlansTab() {
         <h3 className={bubbleStyle("Text_heading_3_")}>
           Subscription plans
         </h3>
-        <Button
-          type="button"
-          className={bubbleStyle("Button_primary_")}
-          onClick={() => setAddOpen(true)}
-        >
-          Add plan
-        </Button>
       </div>
 
       <AdminDataSourceNotice source={dataSource} entityLabel="subscription plans" />
@@ -158,15 +125,6 @@ export default function AdminPlansTab() {
               >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={plan.isStatic || busy}
-                onClick={() => void handleDelete(plan)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
             </div>
           </div>
         ))}
@@ -179,7 +137,6 @@ export default function AdminPlansTab() {
         }}
         onSubmit={handleSave}
         busy={busy}
-        editPlanId={editPlan?.planId ?? null}
         initialForm={
           editPlan
             ? {
