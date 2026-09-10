@@ -75,11 +75,16 @@
       <button id="retry" type="button">Retry</button>
     </div>
     <script>
-      // MOB-03: reload the shell (server.url) once connectivity looks restored,
-      // either via explicit retry tap or the WebView's own "online" event —
-      // this local page never depends on the Capacitor bridge being present.
+      // MOB-03/MOB-OFF-002: when the WebView fails to load server.url, Capacitor
+      // swaps the current page to this local errorPath — so by the time this
+      // script runs, location.href IS offline.html, not the app's origin.
+      // location.reload() therefore just reloads this static file (always
+      // trivially "succeeds"), leaving the user stuck here forever even once
+      // connectivity is back. Navigate back to the real app origin instead.
+      // Keep this in sync with capacitor.config.ts's PROD_ORIGIN.
+      const APP_ORIGIN = "https://uncloud360.vercel.app/";
       function reload() {
-        window.location.reload();
+        window.location.href = APP_ORIGIN;
       }
       document.getElementById("retry").addEventListener("click", reload);
       window.addEventListener("online", reload);
