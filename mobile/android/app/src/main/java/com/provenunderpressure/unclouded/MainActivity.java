@@ -1,28 +1,17 @@
 package com.provenunderpressure.unclouded;
 
-import android.os.Bundle;
-import androidx.activity.OnBackPressedCallback;
 import com.getcapacitor.BridgeActivity;
 
 /**
- * MOB-03 — Android hardware back: if the WebView has in-app history, go back
- * in it; at the app root, minimize the task instead of killing the session
- * (so the user's chat/session state and auth stay alive when they return).
+ * MOB-UI-002 — hardware back is handled entirely in JS via
+ * initNativeBackButtonListener() (frontend/src/lib/platform/deepLinkRouting.ts),
+ * which listens for @capacitor/app's "backButton" event and unwinds SPA
+ * history with window.history.back(). That JS-side history is the source of
+ * truth for a client-routed SPA; the native WebView's own back-forward list
+ * (bridge.getWebView().canGoBack()) does not reliably track pushState
+ * navigations, so a native onBackPressed override here would (and did)
+ * short-circuit the JS listener with a check that's almost always false.
+ * Leave back-press handling to BridgeActivity's default, which dispatches
+ * the JS event instead of resolving it natively.
  */
-public class MainActivity extends BridgeActivity {
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-
-    getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-      @Override
-      public void handleOnBackPressed() {
-        if (bridge.getWebView().canGoBack()) {
-          bridge.getWebView().goBack();
-        } else {
-          moveTaskToBack(false);
-        }
-      }
-    });
-  }
-}
+public class MainActivity extends BridgeActivity {}

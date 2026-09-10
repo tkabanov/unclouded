@@ -154,6 +154,21 @@ export function initNativeDeepLinkListener(): () => void {
 }
 
 /**
+ * Whether the SPA router has in-app history to unwind. The native
+ * `canGoBack` flag Capacitor supplies on the backButton event reflects the
+ * WebView's own back-forward list, which does not reliably track this app's
+ * client-side (pushState) route changes — it stays `false` even many routes
+ * deep, so relying on it makes the back button exit the app immediately.
+ * react-router's history package stores an incrementing `idx` on
+ * `window.history.state` for every entry it pushes; `idx > 0` means there's
+ * at least one in-app route to go back to.
+ */
+function hasInAppHistory(): boolean {
+  const state = window.history.state as { idx?: number } | null;
+  return typeof state?.idx === "number" && state.idx > 0;
+}
+
+/**
  * Native-only: subscribes to the hardware/gesture back button (Android).
  * When the SPA has in-app history to unwind, goes back through it instead of
  * letting Capacitor's default behavior minimize/exit the app first. Only
@@ -171,8 +186,8 @@ export function initNativeBackButtonListener(): () => void {
   let cancelled = false;
 
   Promise.resolve(
-    app.addListener("backButton", ({ canGoBack }) => {
-      if (canGoBack) {
+    app.addListener("backButton", () => {
+      if (hasInAppHistory()) {
         window.history.back();
       } else {
         app.exitApp();

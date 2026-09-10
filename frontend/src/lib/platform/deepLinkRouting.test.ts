@@ -195,17 +195,20 @@ describe("initNativeBackButtonListener", () => {
   it("goes back through SPA history instead of exiting when history is available", async () => {
     mockIsNativeApp.mockReturnValue(true);
 
-    let capturedCallback: ((event: { canGoBack: boolean }) => void) | null = null;
+    let capturedCallback: (() => void) | null = null;
     const remove = vi.fn();
     const exitApp = vi.fn();
     setAppPlugin({
-      addListener: vi.fn((_event: string, cb: (event: { canGoBack: boolean }) => void) => {
+      addListener: vi.fn((_event: string, cb: () => void) => {
         capturedCallback = cb;
         return Promise.resolve({ remove });
       }),
       exitApp,
     });
 
+    // Capacitor's native `canGoBack` flag doesn't track pushState routing —
+    // this listener must key off react-router's own history.state.idx instead.
+    const historyState = vi.spyOn(window.history, "state", "get").mockReturnValue({ idx: 2 });
     const historyBack = vi.spyOn(window.history, "back").mockImplementation(() => {});
 
     const unsubscribe = initNativeBackButtonListener();
@@ -213,7 +216,7 @@ describe("initNativeBackButtonListener", () => {
     await Promise.resolve();
 
     expect(capturedCallback).not.toBeNull();
-    capturedCallback?.({ canGoBack: true });
+    capturedCallback?.();
 
     expect(historyBack).toHaveBeenCalledTimes(1);
     expect(exitApp).not.toHaveBeenCalled();
@@ -221,31 +224,34 @@ describe("initNativeBackButtonListener", () => {
     unsubscribe();
     expect(remove).toHaveBeenCalled();
     historyBack.mockRestore();
+    historyState.mockRestore();
   });
 
   it("exits the app when there's no SPA history left to unwind", async () => {
     mockIsNativeApp.mockReturnValue(true);
 
-    let capturedCallback: ((event: { canGoBack: boolean }) => void) | null = null;
+    let capturedCallback: (() => void) | null = null;
     const exitApp = vi.fn();
     setAppPlugin({
-      addListener: vi.fn((_event: string, cb: (event: { canGoBack: boolean }) => void) => {
+      addListener: vi.fn((_event: string, cb: () => void) => {
         capturedCallback = cb;
         return Promise.resolve({ remove: vi.fn() });
       }),
       exitApp,
     });
 
+    const historyState = vi.spyOn(window.history, "state", "get").mockReturnValue({ idx: 0 });
     const historyBack = vi.spyOn(window.history, "back").mockImplementation(() => {});
 
     initNativeBackButtonListener();
     await Promise.resolve();
     await Promise.resolve();
 
-    capturedCallback?.({ canGoBack: false });
+    capturedCallback?.();
 
     expect(exitApp).toHaveBeenCalledTimes(1);
     expect(historyBack).not.toHaveBeenCalled();
     historyBack.mockRestore();
+    historyState.mockRestore();
   });
 });
