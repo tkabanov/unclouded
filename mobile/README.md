@@ -17,7 +17,11 @@ not added to `frontend/package.json`, and nothing under `frontend/src` imports
 
 - Node 20+
 - For Android builds: Android Studio (or the standalone Android SDK
-  command-line tools) with `ANDROID_HOME`/`ANDROID_SDK_ROOT` set, and a JDK 17.
+  command-line tools) with `ANDROID_HOME`/`ANDROID_SDK_ROOT` set, and **JDK 21**
+  (the `capacitor-android` module compiles with `sourceCompatibility 21`; a
+  JDK 17 `JAVA_HOME` fails with `invalid source release: 21`). Point Gradle at
+  a JDK 21 install via `JAVA_HOME` or `org.gradle.java.home` in
+  `android/gradle.properties` if your default JDK is older.
 - For iOS builds: macOS with Xcode 15+ and CocoaPods (`sudo gem install cocoapods`).
 
 ## Setup
@@ -103,17 +107,41 @@ Verified in this environment (Windows, no Android SDK / no Xcode installed):
 
 No `service_role` key, VAPID private key, or Stripe key is present anywhere
 under `mobile/` (grep-verified). Native push (`MOB-09` client registration,
-`MOB-10` FCM send) still needs, before it can go live:
+`MOB-10` FCM send):
 
-- A Firebase project with `google-services.json` (Android) added to
-  `mobile/android/app/` and an APNs auth key uploaded to Firebase Cloud
-  Messaging (iOS) — neither file exists yet in this repo; never commit either
-  with real credentials.
+- **Android** — `google-services.json` is now present at
+  `mobile/android/app/google-services.json` (Firebase project `unclouded-a1e83`,
+  gitignored — never commit it). `cap sync android` + `gradlew assembleDebug`
+  verified clean with it in place.
+- **iOS** — still needs an APNs auth key (`.p8`) uploaded to Firebase Cloud
+  Messaging, plus the `aps-environment` entitlement in
+  `ios/App/App/App.entitlements` and the Push Notifications capability in
+  Xcode. Requires Apple Developer account access; not done yet.
 - The edge secret **`FCM_SERVICE_ACCOUNT_JSON`** (Supabase project settings →
   Edge Functions → Secrets) — the full JSON key for a Firebase service
-  account with the "Firebase Cloud Messaging API" role (Firebase console →
-  Project settings → Service accounts → Generate new private key). Read only
-  via `Deno.env`/`process.env` in `supabase/functions/_shared/nativePushDelivery.ts`,
-  the same pattern as the existing `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`
-  secrets — never committed, and the push send degrades to a logged skip
-  (never throws) when it's unset.
+  account with the "Firebase Cloud Messaging API" role. Read only via
+  `Deno.env`/`process.env` in
+  `supabase/functions/_shared/nativePushDelivery.ts`, the same pattern as the
+  existing `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` secrets — never committed,
+  and the push send degrades to a logged skip (never throws) when it's unset.
+
+### Getting/setting `FCM_SERVICE_ACCOUNT_JSON`
+
+1. Firebase console → Project settings → **Service accounts** →
+   `https://console.firebase.google.com/project/unclouded-a1e83/settings/serviceaccounts/adminsdk`
+   → **Generate new private key** → downloads a
+   `unclouded-a1e83-firebase-adminsdk-*.json` file. Treat it as a secret:
+   never commit it, never paste it into chat/tickets, delete the local copy
+   once it's pushed to Supabase.
+2. Push it to Supabase Edge Functions secrets (from the repo root, with the
+   Supabase CLI logged in and linked to the project):
+
+   ```bash
+   supabase secrets set FCM_SERVICE_ACCOUNT_JSON="$(cat path/to/unclouded-a1e83-firebase-adminsdk-*.json)"
+   ```
+
+   Or paste the same JSON as one value in the Dashboard: Project settings →
+   Edge Functions → Secrets → Add secret → name `FCM_SERVICE_ACCOUNT_JSON`.
+3. No local `.env` file is needed for this secret — `mobile/` ships no env
+   file and the edge function reads it from Supabase's secret store at
+   runtime, not from a checked-in `.env`.
