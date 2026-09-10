@@ -58,6 +58,16 @@ const config: CapacitorConfig = {
       style: "DEFAULT",
       backgroundColor: "#f2f8fa",
     },
+    // MOB-UI-003: `resize` (below) is iOS-only per the plugin's own typings —
+    // it does nothing on Android. The actual Android knob is
+    // `resizeOnFullScreen`: a known Capacitor/Android bug means the WebView
+    // never resizes for the keyboard while the app is edge-to-edge/full
+    // screen (StatusBar overlay, our adjustMarginsForEdgeToEdge: "force"),
+    // so the chat composer ends up hidden behind the keyboard without it.
+    Keyboard: {
+      resize: "native",
+      resizeOnFullScreen: true,
+    },
   },
 };
 
