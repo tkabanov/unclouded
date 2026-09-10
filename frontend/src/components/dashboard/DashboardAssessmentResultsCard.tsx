@@ -57,10 +57,10 @@ export default function DashboardAssessmentResultsCard() {
     traumaInformedMode,
   ]);
 
-  const handleDownloadPdf = useCallback(() => {
+  const handleDownloadPdf = useCallback(async () => {
     if (!results) return;
     try {
-      downloadOnboardingResultsPdf(firstName, results, deepDive);
+      await downloadOnboardingResultsPdf(firstName, results, deepDive);
       toast.success("Your results PDF is downloading.");
     } catch (err) {
       console.error("Failed to generate PDF", err);

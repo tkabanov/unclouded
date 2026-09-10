@@ -6,6 +6,7 @@ import {
 } from "@/lib/classification";
 import { assessmentScoreRgb } from "@/lib/dashboard/assessmentScoreStyle";
 import { sanitizePdfText } from "@/lib/pdf/sanitizePdfText";
+import { saveOrShareBlob } from "@/lib/platform/saveOrShareBlob";
 
 const PRIMARY: [number, number, number] = [48, 120, 116];
 const TEXT: [number, number, number] = [38, 45, 45];
@@ -33,12 +34,19 @@ function resolveDeepDive(
   return { title, days };
 }
 
-/** Client-side onboarding results PDF (Lovable dashboard hero download). */
-export function downloadOnboardingResultsPdf(
+/**
+ * Client-side onboarding results PDF (Lovable dashboard hero download).
+ * MOB-FILE-001: `doc.save()` is a raw `<a download>` click, which has no
+ * effect in the native WebView (no download-manager UI to hand it to) — it
+ * used to look like a success (the caller's toast fires unconditionally)
+ * while nothing actually reached the user. Route through `saveOrShareBlob`
+ * so native gets the Filesystem+Share flow the same as `downloadPupPdf`.
+ */
+export async function downloadOnboardingResultsPdf(
   firstName: string,
   results: ResultsData,
   deepDive?: ResultsPdfDeepDive | null,
-): void {
+): Promise<void> {
   const classification =
     resolveClassificationCopy(results.classification) ?? results.classification;
   const tradeoff = sanitizePdfText(classification.tradeoff || results.tradeoff_statement);
@@ -230,5 +238,6 @@ export function downloadOnboardingResultsPdf(
   );
   doc.text(disclaimerLines, margin, footerY);
 
-  doc.save(`uncloud360-results-${slugifyName(firstName)}.pdf`);
+  const blob = doc.output("blob");
+  await saveOrShareBlob(blob, `uncloud360-results-${slugifyName(firstName)}.pdf`);
 }
