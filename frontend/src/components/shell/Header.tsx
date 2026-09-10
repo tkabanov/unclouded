@@ -21,7 +21,7 @@ export default function Header({ leading }: HeaderProps) {
     <header className="flex min-h-14 shrink-0 items-center gap-4 border-b border-border bg-card px-4 pt-safe-top">
       {leading}
 
-      <div className="flex shrink-0 items-center">
+      <div className="flex min-w-0 items-center">
         <BrandLogo />
       </div>
 

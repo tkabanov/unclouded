@@ -36,6 +36,13 @@ const config: CapacitorConfig = {
   },
   android: {
     appendUserAgent: `UncloudedApp/${APP_VERSION} (android)`,
+    // MOB-UI-001: targetSdk 35 enforces edge-to-edge regardless of the theme
+    // opt-out attribute, and env(safe-area-inset-*) isn't reliably populated
+    // in this Chromium WebView — so the header/banner render under the
+    // status bar with no offset. "force" makes Capacitor apply system-bar +
+    // cutout insets as native WebView margins on every Android version,
+    // independent of CSS safe-area support.
+    adjustMarginsForEdgeToEdge: "force",
   },
   plugins: {
     SplashScreen: {
