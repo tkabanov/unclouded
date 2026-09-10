@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { isNativeApp } from "@/lib/platform/nativeApp";
 import { planCatalogEntry } from "@/lib/subscription/planCatalog";
 import { subscriptionPath } from "@/lib/subscription/routes";
 import {
@@ -21,6 +22,7 @@ import {
   type LockedFeatureKey,
 } from "@/lib/subscription/lockedFeatureUpsell";
 import { loadSubscriptionOverview } from "@/lib/subscription/subscriptionApi";
+import { NATIVE_MANAGE_PLAN_ON_WEB_MESSAGE } from "@/lib/subscription/subscriptionCopy";
 import {
   BILLING_INTERVAL_SUFFIX,
   findPlanPrice,
@@ -144,25 +146,36 @@ export default function LockedFeatureUpgradeDialog({
           </dl>
         ) : null}
 
-        <DialogFooter className="gap-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Not now
-          </Button>
-          <Button
-            type="button"
-            variant="cta"
-            onClick={() => {
-              onClose();
-              navigate(subscriptionPath());
-            }}
-          >
-            {plans.length === 1 && plans[0] === TIER.PREMIUM
-              ? "Upgrade to Premium"
-              : plans.length === 1
-                ? "Upgrade to Pro"
-                : "See plans"}
-          </Button>
-        </DialogFooter>
+        {isNativeApp() ? (
+          <DialogFooter className="gap-2">
+            <p className="w-full text-center text-sm text-muted-foreground">
+              {NATIVE_MANAGE_PLAN_ON_WEB_MESSAGE}
+            </p>
+            <Button type="button" variant="cta" className="w-full" onClick={onClose}>
+              Got it
+            </Button>
+          </DialogFooter>
+        ) : (
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Not now
+            </Button>
+            <Button
+              type="button"
+              variant="cta"
+              onClick={() => {
+                onClose();
+                navigate(subscriptionPath());
+              }}
+            >
+              {plans.length === 1 && plans[0] === TIER.PREMIUM
+                ? "Upgrade to Premium"
+                : plans.length === 1
+                  ? "Upgrade to Pro"
+                  : "See plans"}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -18,7 +18,7 @@ export default function Header({ leading }: HeaderProps) {
   const authenticated = Boolean(user);
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-b border-border bg-card px-4">
+    <header className="flex min-h-14 shrink-0 items-center gap-4 border-b border-border bg-card px-4 pt-safe-top">
       {leading}
 
       <div className="flex shrink-0 items-center">

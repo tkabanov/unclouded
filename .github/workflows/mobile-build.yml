@@ -1,0 +1,72 @@
+name: Mobile build check
+
+# MOB-13 — compile-check only, no signing. Verifies `npx cap sync` plus a
+# debug/simulator build on both platforms after a native change. Does NOT
+# produce a signed, store-uploadable artifact — that stays a human step
+# (see docs/mobile-app-release-ops.md) so no signing secret is ever needed
+# here.
+on:
+  push:
+    tags:
+      - "mobile-v*"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Assemble debug APK
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Install CocoaPods
+        working-directory: mobile/ios/App
+        run: pod install
+
+      - name: Build for the simulator (no signing)
+        working-directory: mobile/ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build

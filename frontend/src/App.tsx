@@ -8,6 +8,7 @@ import { UserProfileProvider } from "@/lib/userProfile";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 import RecoveryHashRedirect from "@/components/RecoveryHashRedirect";
+import DeepLinkListener from "@/components/DeepLinkListener";
 import { authenticatedRouteDefs } from "@/lib/router/authenticatedRoutes";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -31,6 +32,7 @@ const App = () => (
             }}
           >
             <RecoveryHashRedirect />
+            <DeepLinkListener />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/signup" element={<Index />} />

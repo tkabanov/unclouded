@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { TIER, type TierSlug } from "@/lib/enums/tier";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { openExternalUrl } from "@/lib/platform/openExternalUrl";
 import type { PlanCardAction, SubscriptionAction } from "@/lib/subscription/subscriptionActions";
 import { ACTION_PENDING_LABELS, isActionAllowed } from "@/lib/subscription/subscriptionActions";
 import {
@@ -121,6 +122,7 @@ export function useSubscriptionFlow({
       case "currentPlan":
       case "none":
       case "futurePlan":
+      case "webOnly":
         break;
       default: {
         const exhaustive: never = action;
@@ -285,9 +287,12 @@ export function useSubscriptionFlow({
             clearPaymentRecoveryPending();
           }
           const url = await openBillingPortal();
-          // Same-tab redirect so Stripe return_url lands back on Subscription
-          // (billing=portal) and recovery confirmation can run.
-          window.location.assign(url);
+          // Same-tab redirect on web so Stripe return_url lands back on
+          // Subscription (billing=portal) and recovery confirmation can run;
+          // native opens it in the in-app browser sheet instead (leaves the
+          // WebView per MOB-03's allowlist) and relies on app-resume
+          // revalidation (useSubscriptionOverview) rather than a return_url.
+          openExternalUrl(url, "replace");
         } catch (err) {
           clearPaymentRecoveryPending();
           toast.error(err instanceof Error ? err.message : SUBSCRIPTION_ERROR_MESSAGES.portal);

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isNativeApp } from "@/lib/platform/nativeApp";
 
 export const WEB_PUSH_DISMISSED_KEY = "uncloud360_web_push_dismissed";
 
@@ -14,8 +15,15 @@ function getVapidPublicKey(): string | null {
   return key || null;
 }
 
+/**
+ * MOB-09: the wrapper never attempts VAPID/service-worker web push — a
+ * WKWebView/Android WebView is not a full browser tab (no push service
+ * worker lifecycle Chrome/Safari grant to embedded WebViews the same way),
+ * and native push (`nativePushRegistration.ts`) already covers the wrapper.
+ */
 export function isWebPushSupported(): boolean {
   return (
+    !isNativeApp() &&
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
     "Notification" in window

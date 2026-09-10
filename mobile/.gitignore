@@ -1,0 +1,10 @@
+node_modules/
+
+# MOB-13: never commit signing/push credentials once ops creates them.
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist

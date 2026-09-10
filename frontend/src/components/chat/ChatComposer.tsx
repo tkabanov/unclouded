@@ -59,7 +59,7 @@ export function ChatComposer({
           placeholder={copy.input_placeholder}
           aria-describedby={isCommitmentMode ? "chat-commitment-hint" : undefined}
           onChange={(event) => onChange(event.target.value)}
-          className="min-w-0 flex-1 bg-transparent py-1.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          className="min-w-0 flex-1 bg-transparent py-1.5 text-base text-foreground outline-none placeholder:text-muted-foreground md:text-sm"
         />
         <Button
           type="submit"

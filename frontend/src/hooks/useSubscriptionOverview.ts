@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { onNativeAppResume } from "@/lib/platform/nativeAppResume";
 import {
   loadSubscriptionOverview,
   subscriptionRecordOf,
@@ -47,6 +48,13 @@ export function useSubscriptionOverview(): UseSubscriptionOverview {
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    // Native only: refresh entitlements when the app resumes from the
+    // in-app browser sheet (e.g. the Stripe billing portal opened via
+    // MOB-04's openExternalUrl) — no full reload, same as web tab-refocus.
+    return onNativeAppResume(() => void load());
   }, [load]);
 
   const applyOverview = useCallback((next: SubscriptionOverview | null) => {

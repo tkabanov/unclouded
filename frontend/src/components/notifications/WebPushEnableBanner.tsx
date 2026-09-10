@@ -4,6 +4,11 @@ import { Bell, BellOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
+import { isNativeApp } from "@/lib/platform/nativeApp";
+import {
+  enableNativePushNotifications,
+  getNativePushBannerState,
+} from "@/lib/notifications/nativePushRegistration";
 import {
   dismissWebPushOffer,
   enableWebPushNotifications,
@@ -11,17 +16,25 @@ import {
   type WebPushBannerState,
 } from "@/lib/notifications/webPushRegistration";
 
-/** REQ-07 — user-gesture prompt for vulnerable cohort Web Push (browsers block auto-prompts). */
+/**
+ * REQ-07 — user-gesture prompt for vulnerable cohort push (browsers/OS both
+ * block auto-prompts). Native and web use different registration channels
+ * (`nativePushRegistration.ts` / `webPushRegistration.ts`) but the same
+ * banner states and copy.
+ */
 export default function WebPushEnableBanner() {
-  const [bannerState, setBannerState] = useState<WebPushBannerState | null>(() =>
-    getWebPushBannerState(),
-  );
+  const native = isNativeApp();
+  const [bannerState, setBannerState] = useState<WebPushBannerState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (native) {
+      void getNativePushBannerState().then(setBannerState);
+      return;
+    }
     setBannerState(getWebPushBannerState());
-  }, []);
+  }, [native]);
 
   if (!bannerState) return null;
 
@@ -29,8 +42,10 @@ export default function WebPushEnableBanner() {
     setBusy(true);
     setError(null);
     try {
-      const result = await enableWebPushNotifications();
-      if (result.status === "subscribed") {
+      const result = native
+        ? await enableNativePushNotifications()
+        : await enableWebPushNotifications();
+      if (result.status === "subscribed" || result.status === "registered") {
         setBannerState(null);
         return;
       }
@@ -38,7 +53,9 @@ export default function WebPushEnableBanner() {
         setBannerState("denied");
         return;
       }
-      setError(result.reason ?? "Could not enable notifications. Try again later.");
+      setError(
+        ("reason" in result ? result.reason : null) ?? "Could not enable notifications. Try again later.",
+      );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not enable notifications.");
     } finally {

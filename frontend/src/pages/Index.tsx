@@ -255,7 +255,7 @@ const Index = () => {
 
       {/* Header */}
       <header
-        className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md"
+        className="sticky top-0 z-30 border-b border-border/60 bg-background/80 pt-safe-top backdrop-blur-md"
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
           <BrandLogo />

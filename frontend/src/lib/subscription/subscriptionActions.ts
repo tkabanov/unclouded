@@ -7,14 +7,32 @@
  * tab cannot cancel twice or stack a downgrade on a scheduled cancellation.
  */
 import { TIER, type TierSlug } from "@/lib/enums/tier";
+import { isNativeApp } from "@/lib/platform/nativeApp";
 import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
-import { proPlanBeginsMessage } from "@/lib/subscription/subscriptionCopy";
+import {
+  NATIVE_MANAGE_PLAN_ON_WEB_MESSAGE,
+  proPlanBeginsMessage,
+} from "@/lib/subscription/subscriptionCopy";
 import {
   normalizeStatus,
   normalizeTier,
   resolveEffectiveTier,
   type SubscriptionRecord,
 } from "@/lib/subscription/subscriptionState";
+
+/**
+ * MOB-00/OVR-066 lock: the native build ships with no purchase or plan-change
+ * flow at all — only `cancel`, `resume`, `cancelDowngrade`, and
+ * `updatePaymentMethod` (routed to the Stripe portal via MOB-04) remain.
+ * `startCheckout` and `upgradeToPremium` initiate a new charge;
+ * `scheduleDowngrade` is included too so the native build has one simple
+ * story ("manage your plan on the web") rather than a partial one.
+ */
+const NATIVE_HIDDEN_ACTIONS = new Set<SubscriptionAction>([
+  "startCheckout",
+  "upgradeToPremium",
+  "scheduleDowngrade",
+]);
 
 export type SubscriptionAction =
   | "cancel"
@@ -33,6 +51,14 @@ export type SubscriptionActionContext = {
 export function resolveAllowedActions(
   ctx: SubscriptionActionContext,
   nowMs = Date.now(),
+): SubscriptionAction[] {
+  const actions = resolveAllowedActionsForRecord(ctx, nowMs);
+  return isNativeApp() ? actions.filter((action) => !NATIVE_HIDDEN_ACTIONS.has(action)) : actions;
+}
+
+function resolveAllowedActionsForRecord(
+  ctx: SubscriptionActionContext,
+  nowMs: number,
 ): SubscriptionAction[] {
   // Enterprise entitlement is contract-based: no self-serve billing actions.
   if ((ctx.accountType ?? "").toLowerCase() === "enterprise") return [];
@@ -112,7 +138,9 @@ export type PlanCardAction =
   | { kind: "resume"; label: string }
   | { kind: "downgradeToPro"; label: string }
   | { kind: "keepPremium"; label: string }
-  | { kind: "futurePlan"; label: string };
+  | { kind: "futurePlan"; label: string }
+  /** Native only: a purchase/plan-change action would apply here on web. */
+  | { kind: "webOnly"; label: string };
 
 export type PlanCardStateInput = {
   cardTier: TierSlug;
@@ -186,27 +214,53 @@ export function resolvePlanCardState(input: PlanCardStateInput): PlanCardState {
           secondary: null,
         };
       }
+      const unfiltered = resolveAllowedActionsForRecord(ctx, nowMs);
+      if (
+        isNativeApp() &&
+        (unfiltered.includes("upgradeToPremium") || unfiltered.includes("startCheckout"))
+      ) {
+        return {
+          isCurrent: false,
+          primary: { kind: "webOnly", label: NATIVE_MANAGE_PLAN_ON_WEB_MESSAGE },
+          secondary: null,
+        };
+      }
       return { isCurrent: false, primary: { kind: "none" }, secondary: null };
     }
 
     if (effectiveTier === TIER.FREE) {
-      return {
-        isCurrent: false,
-        primary: { kind: "upgrade", targetTier: input.cardTier, label: upgradeLabel(input.cardTier) },
-        secondary: null,
-      };
+      const ctx: SubscriptionActionContext = { record, accountType: input.accountType };
+      if (isActionAllowed("startCheckout", ctx, nowMs)) {
+        return {
+          isCurrent: false,
+          primary: { kind: "upgrade", targetTier: input.cardTier, label: upgradeLabel(input.cardTier) },
+          secondary: null,
+        };
+      }
+      const primary: PlanCardAction =
+        isNativeApp() && resolveAllowedActionsForRecord(ctx, nowMs).includes("startCheckout")
+          ? { kind: "webOnly", label: NATIVE_MANAGE_PLAN_ON_WEB_MESSAGE }
+          : { kind: "none" };
+      return { isCurrent: false, primary, secondary: null };
     }
 
     // Premium user looking at the Pro card.
     if (input.cardTier === TIER.PRO && effectiveTier === TIER.PREMIUM) {
-      return {
-        isCurrent: false,
-        primary:
-          status === "active"
-            ? { kind: "downgradeToPro", label: "Downgrade to Pro" }
-            : { kind: "none" },
-        secondary: null,
-      };
+      const ctx: SubscriptionActionContext = { record, accountType: input.accountType };
+      if (status === "active" && isActionAllowed("scheduleDowngrade", ctx, nowMs)) {
+        return {
+          isCurrent: false,
+          primary: { kind: "downgradeToPro", label: "Downgrade to Pro" },
+          secondary: null,
+        };
+      }
+      const primary: PlanCardAction =
+        isNativeApp() &&
+        status === "active" &&
+        resolveAllowedActionsForRecord(ctx, nowMs).includes("scheduleDowngrade")
+          ? { kind: "webOnly", label: NATIVE_MANAGE_PLAN_ON_WEB_MESSAGE }
+          : { kind: "none" };
+      return { isCurrent: false, primary, secondary: null };
     }
 
     return { isCurrent: false, primary: { kind: "none" }, secondary: null };

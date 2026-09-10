@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.provenunderpressure.unclouded",
+      "sha256_cert_fingerprints": [
+        "TODO(owner): SHA-256 fingerprint of the release signing keystore — see mobile/README.md"
+      ]
+    }
+  }
+]

@@ -4,10 +4,9 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
-import {
-  sendWebPushToSubscription,
-  type PushSubscriptionRow,
-} from "../_shared/webPushDelivery.ts";
+import { sendWebPushToSubscription } from "../_shared/webPushDelivery.ts";
+import { sendNativePushToSubscription } from "../_shared/nativePushDelivery.ts";
+import { fanOutPushToSubscriptions, type AnyPushSubscriptionRow } from "../_shared/pushFanout.ts";
 import {
   buildStandaloneUserContext,
   canUseStandaloneProPrompts,
@@ -224,20 +223,27 @@ Deno.serve(async (req) => {
 
     const { data: subs } = await service
       .from("pushDeviceSubscription")
-      .select("id, endpoint, p256dh, auth")
+      .select("id, platform, endpoint, p256dh, auth, deviceToken")
       .eq("userId", profile.id);
 
-    let notified = false;
-    for (const row of (subs ?? []) as PushSubscriptionRow[]) {
-      const result = await sendWebPushToSubscription(row, {
+    const fanout = await fanOutPushToSubscriptions(
+      (subs ?? []) as AnyPushSubscriptionRow[],
+      {
         title: "Kota left you a message",
         body: "Open your feed to read today's insights from Kota.",
         url: `${appUrl}/dashboard`,
-      });
-      if (result.ok) notified = true;
+      },
+      { sendWebPush: sendWebPushToSubscription, sendNativePush: sendNativePushToSubscription },
+    );
+
+    if (fanout.invalidSubscriptionIds.length > 0) {
+      await service
+        .from("pushDeviceSubscription")
+        .delete()
+        .in("id", fanout.invalidSubscriptionIds);
     }
 
-    if (notified) {
+    if (fanout.ok) {
       await service
         .from("dailyInsight")
         .update({ notifiedAt: new Date().toISOString() })

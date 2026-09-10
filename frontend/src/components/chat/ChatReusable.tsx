@@ -67,7 +67,7 @@ export function ChatReusable({
         suggestionsDisabled={composerDisabled}
       />
 
-      <div className="relative shrink-0 border-t border-border bg-card/60 px-4 py-3">
+      <div className="relative shrink-0 border-t border-border bg-card/60 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
         {awaitingCommitment ? <ChatCommitmentAwaitingBanner channel="text" /> : null}
         <div className="mx-auto w-full max-w-3xl">
           <ChatComposer

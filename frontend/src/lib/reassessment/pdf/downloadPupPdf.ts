@@ -1,17 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { saveOrShareBlob } from "@/lib/platform/saveOrShareBlob";
 import { PUP_PDF_STORAGE_BUCKET } from "@/lib/reassessment/pdf/pupPdfTypes";
-
-function triggerBrowserDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.rel = "noopener";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}
 
 /** Download an already-persisted PDF via signed URL, or from in-memory bytes. */
 export async function downloadPupPdf(params: {
@@ -20,7 +9,7 @@ export async function downloadPupPdf(params: {
   filename: string;
 }): Promise<void> {
   if (params.bytes && params.bytes.length > 0) {
-    triggerBrowserDownload(
+    await saveOrShareBlob(
       new Blob([params.bytes], { type: "application/pdf" }),
       params.filename,
     );
@@ -42,7 +31,7 @@ export async function downloadPupPdf(params: {
   const response = await fetch(data.signedUrl);
   if (!response.ok) throw new Error("Could not download PDF");
   const blob = await response.blob();
-  triggerBrowserDownload(blob, params.filename);
+  await saveOrShareBlob(blob, params.filename);
 }
 
 export function pupPdfFilename(tier: "pro" | "premium", assessmentDateIso: string): string {

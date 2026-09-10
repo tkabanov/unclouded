@@ -1,6 +1,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
+import { createSupabaseAuthStorage } from "@/lib/platform/nativeSessionStorage";
 
 function getSupabaseAuthStorageKey(): string | null {
   const url = import.meta.env.VITE_SUPABASE_URL;
@@ -13,12 +14,14 @@ function getSupabaseAuthStorageKey(): string | null {
   }
 }
 
-function forceClearPersistedAuthSession(): void {
+async function forceClearPersistedAuthSession(): Promise<void> {
   const storageKey = getSupabaseAuthStorageKey();
-  if (!storageKey || typeof localStorage === "undefined") return;
+  if (!storageKey) return;
 
   try {
-    localStorage.removeItem(storageKey);
+    // Native writes through Preferences too (MOB-05); on web this is
+    // `localStorage` itself, so behavior there is unchanged.
+    await createSupabaseAuthStorage().removeItem(storageKey);
   } catch {
     // Best-effort wipe when storage is unavailable.
   }
@@ -27,7 +30,7 @@ function forceClearPersistedAuthSession(): void {
 export async function clearLocalAuthSession(): Promise<void> {
   await supabase.auth.signOut({ scope: "local" });
   // Always wipe persisted auth; deleted users can make signOut return 403 without throwing.
-  forceClearPersistedAuthSession();
+  await forceClearPersistedAuthSession();
 }
 
 /** Drop stale client sessions and validate the current user with Supabase Auth. */

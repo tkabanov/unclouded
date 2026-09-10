@@ -151,7 +151,7 @@ export default function SubscriptionPlanCard({
         ) : null}
 
         {primary.kind === "currentPlan" || primary.kind === "none" ? null : primary.kind ===
-          "futurePlan" ? (
+          "futurePlan" || primary.kind === "webOnly" ? (
           <p className="text-center text-sm text-muted-foreground">{primary.label}</p>
         ) : (
           <Button

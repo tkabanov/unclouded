@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptionFlow } from "@/hooks/useSubscriptionFlow";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
+import { isNativeApp } from "@/lib/platform/nativeApp";
 import { useUserProfile } from "@/lib/userProfile";
 import { isFoundingEligible, capturePlanFromSearch, peekPendingSignupPlan } from "@/lib/share/planAttribution";
 import {
@@ -518,6 +519,7 @@ export default function SettingsSubscriptionTab() {
       ) : null}
 
       {!isEnterprise &&
+      !isNativeApp() &&
       foundingCampaignEligible &&
       !activeRecord.isFoundingMember &&
       effectiveTier === TIER.FREE ? (

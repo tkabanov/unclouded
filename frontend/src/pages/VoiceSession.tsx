@@ -169,7 +169,7 @@ export default function VoiceSession() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-4rem)] min-h-[480px] flex-col px-4 pb-4 md:px-6">
+      <div className="flex h-[calc(100dvh-4rem-env(safe-area-inset-top))] min-h-[480px] flex-col px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:px-6">
         {bootstrapping || !conversationId || !user ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             Starting voice session…

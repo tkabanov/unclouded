@@ -16,6 +16,7 @@ import {
   SHARE_CARD_BRAND,
 } from "@/lib/share/classificationShareCardImage";
 import { ensureReferralCode } from "@/lib/share/referralCodeApi";
+import { openExternalUrl } from "@/lib/platform/openExternalUrl";
 import {
   fetchMyReferralSignUpCount,
   formatReferralSignUpCountMessage,
@@ -218,7 +219,7 @@ export default function ClassificationShareCard({
 
   const handleLinkedInShare = () => {
     if (loadingCode) return;
-    window.open(buildLinkedInShareUrl(card.shareUrl), "_blank", "noopener,noreferrer");
+    openExternalUrl(buildLinkedInShareUrl(card.shareUrl));
   };
 
   const handleNativeShare = async () => {

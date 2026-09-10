@@ -10,10 +10,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
-import {
-  sendWebPushToSubscription,
-  type PushSubscriptionRow,
-} from "../_shared/webPushDelivery.ts";
+import { sendWebPushToSubscription } from "../_shared/webPushDelivery.ts";
+import { sendNativePushToSubscription } from "../_shared/nativePushDelivery.ts";
+import { fanOutPushToSubscriptions, type AnyPushSubscriptionRow } from "../_shared/pushFanout.ts";
 import { parseCoachBriefInbox } from "../_shared/kotaReadDelivery.ts";
 import { sendTransactionalEmail } from "../_shared/sendgridMail.ts";
 import {
@@ -64,15 +63,24 @@ async function notifyCoachingSummaryReady(params: {
   const appUrl = canonicalAppOrigin();
   const { data: subs } = await params.service
     .from("pushDeviceSubscription")
-    .select("id, endpoint, p256dh, auth")
+    .select("id, platform, endpoint, p256dh, auth, deviceToken")
     .eq("userId", params.userId);
 
-  for (const row of (subs ?? []) as PushSubscriptionRow[]) {
-    await sendWebPushToSubscription(row, {
+  const fanout = await fanOutPushToSubscriptions(
+    (subs ?? []) as AnyPushSubscriptionRow[],
+    {
       title: "Your Complete Coaching Record is ready",
       body: "Open Uncloud360 to download your Premium PDF.",
       url: `${appUrl}/dashboard`,
-    });
+    },
+    { sendWebPush: sendWebPushToSubscription, sendNativePush: sendNativePushToSubscription },
+  );
+
+  if (fanout.invalidSubscriptionIds.length > 0) {
+    await params.service
+      .from("pushDeviceSubscription")
+      .delete()
+      .in("id", fanout.invalidSubscriptionIds);
   }
 
   if (!params.email?.includes("@")) return;

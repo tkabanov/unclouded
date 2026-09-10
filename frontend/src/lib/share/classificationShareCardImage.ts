@@ -1,4 +1,5 @@
 import type { ClassificationShareCardMetadata } from "@/lib/share/classificationShareCard";
+import { saveOrShareBlob } from "@/lib/platform/saveOrShareBlob";
 import logoIconUrl from "@/assets/uncloud-icon.png";
 
 /** Instagram Stories aspect ratio (9:16). */
@@ -172,15 +173,7 @@ export function shareCardDownloadFilename(classificationKey: string): string {
 }
 
 export async function downloadShareCardBlob(blob: Blob, filename: string): Promise<void> {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.rel = "noopener";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+  await saveOrShareBlob(blob, filename);
 }
 
 export type NativeShareResult = "shared" | "unsupported" | "cancelled";

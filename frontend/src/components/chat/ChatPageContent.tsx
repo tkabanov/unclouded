@@ -25,7 +25,7 @@ export default function ChatPageContent({
   return (
     <div
       data-module-owner={CHAT_MODULE_ID}
-      className={cn("flex h-[calc(100vh-3.5rem)]", className)}
+      className={cn("flex h-[calc(100dvh-3.5rem-env(safe-area-inset-top))]", className)}
     >
       <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-card/40">
         <div className="border-b border-border p-4">

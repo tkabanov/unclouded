@@ -9,6 +9,7 @@
  * Legacy `request_one_on_one_booking` + Wix redirect remains for older flows/tests.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { openExternalUrl } from "@/lib/platform/openExternalUrl";
 import { BOOKING_REDIRECT_ERROR } from "@/lib/subscription/subscriptionCopy";
 import { callRpc } from "@/lib/supabase/rpc";
 import { isSchemaUnavailable } from "@/lib/supabase/schemaFallback";
@@ -118,21 +119,13 @@ export function buildCoachBookingUrl(baseUrl: string, bookingId: string): string
 }
 
 /**
- * Opens the external calendar; false when blocked or when open throws.
- * Do not pass noopener/noreferrer as window features — those force a null
- * return even when the tab opened, which falsely aborts the booking hold.
- * Clear opener on the returned window for the same isolation as noopener.
+ * Opens the external calendar; false when blocked or when open throws, which
+ * aborts the booking hold (see the caller below). Native vs. web behavior,
+ * and why noopener/noreferrer window features are never passed, are
+ * documented on `openExternalUrl` itself.
  */
 export function openExternalBookingUrl(url: string): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const opened = window.open(url, "_blank");
-    if (!opened) return false;
-    opened.opener = null;
-    return true;
-  } catch {
-    return false;
-  }
+  return openExternalUrl(url);
 }
 
 async function authHeaders(): Promise<Record<string, string> | null> {

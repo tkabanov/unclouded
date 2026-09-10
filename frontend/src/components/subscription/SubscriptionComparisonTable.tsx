@@ -147,7 +147,7 @@ export default function SubscriptionComparisonTable({
                           )
                         ) : primary.kind === "currentPlan" || primary.kind === "none" ? (
                           <span className="block h-9" />
-                        ) : primary.kind === "futurePlan" ? (
+                        ) : primary.kind === "futurePlan" || primary.kind === "webOnly" ? (
                           <p className="text-xs text-muted-foreground">{primary.label}</p>
                         ) : (
                           <Button

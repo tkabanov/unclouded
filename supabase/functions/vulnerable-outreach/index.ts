@@ -8,7 +8,9 @@
  *
  * Copy: "Kota is here when you're ready." — warm, no guilt framing.
  * Cap: once per 7 days per user (`vulnerableOutreachEmailedAt`).
- * Channel: Web Push when user has an active subscription + VAPID configured; else SendGrid email.
+ * Channel: web/native push (MOB-10 fan-out) when the user has an active
+ * subscription and the matching secret (VAPID / FCM_SERVICE_ACCOUNT_JSON) is
+ * configured; else SendGrid email.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -21,11 +23,12 @@ import {
   VULNERABLE_OUTREACH_EMAIL_SUBJECT,
   type VulnerableOutreachProfileRow,
 } from "../_shared/vulnerableOutreachLogic.ts";
+import { isWebPushConfigured, sendWebPushToSubscription } from "../_shared/webPushDelivery.ts";
 import {
-  isWebPushConfigured,
-  sendWebPushToSubscription,
-  type PushSubscriptionRow,
-} from "../_shared/webPushDelivery.ts";
+  isNativePushConfigured,
+  sendNativePushToSubscription,
+} from "../_shared/nativePushDelivery.ts";
+import type { AnyPushSubscriptionRow } from "../_shared/pushFanout.ts";
 import {
   sendGridSmtpLabel,
   sendTransactionalEmail,
@@ -99,6 +102,8 @@ Deno.serve(async (req) => {
   const nowMs = Date.now();
   const nowIso = new Date(nowMs).toISOString();
   const pushConfigured = isWebPushConfigured();
+  const nativePushConfigured = isNativePushConfigured();
+  const anyPushConfigured = pushConfigured || nativePushConfigured;
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
@@ -121,6 +126,7 @@ Deno.serve(async (req) => {
   const sendResults: Array<{ userId: string; detail: string; channel?: string }> = [];
   let sentCount = 0;
   let pushSentCount = 0;
+  let nativePushSentCount = 0;
   let emailSentCount = 0;
   let skippedSmtp = 0;
   let skippedInactive = 0;
@@ -185,11 +191,11 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    let subscriptions: PushSubscriptionRow[] = [];
-    if (pushConfigured) {
+    let subscriptions: AnyPushSubscriptionRow[] = [];
+    if (anyPushConfigured) {
       const { data: subscriptionRows, error: subscriptionError } = await supabase
         .from("pushDeviceSubscription")
-        .select("id, endpoint, p256dh, auth")
+        .select("id, platform, endpoint, p256dh, auth, deviceToken")
         .eq("userId", candidate.id);
 
       if (subscriptionError) {
@@ -200,7 +206,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      subscriptions = (subscriptionRows ?? []) as PushSubscriptionRow[];
+      subscriptions = (subscriptionRows ?? []) as AnyPushSubscriptionRow[];
     }
 
     const delivery = await deliverVulnerableOutreach({
@@ -209,6 +215,7 @@ Deno.serve(async (req) => {
       subscriptions,
       appUrl,
       sendPush: sendWebPushToSubscription,
+      sendNativePush: sendNativePushToSubscription,
       sendEmail: sendOutreachEmail,
     });
 
@@ -226,6 +233,7 @@ Deno.serve(async (req) => {
     if (delivery.ok) {
       sentCount += 1;
       if (delivery.channel === "web-push") pushSentCount += 1;
+      if (delivery.channel === "native-push") nativePushSentCount += 1;
       if (delivery.channel === "email") emailSentCount += 1;
     } else if (delivery.detail.includes("smtp:skipped")) {
       skippedSmtp += 1;
@@ -254,6 +262,7 @@ Deno.serve(async (req) => {
     stampedCount: stamped.length,
     sentCount,
     pushSentCount,
+    nativePushSentCount,
     emailSentCount,
     skippedInactive,
     skippedSmtp,
@@ -261,6 +270,9 @@ Deno.serve(async (req) => {
     userIds: stamped,
     sendResults,
     smtp: sendGridSmtpLabel(),
-    push: pushConfigured ? "web-push" : "skipped",
+    push:
+      [pushConfigured && "web-push", nativePushConfigured && "native-push"]
+        .filter((label): label is string => Boolean(label))
+        .join("+") || "skipped",
   });
 });

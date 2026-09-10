@@ -3,6 +3,7 @@ import posthog from "posthog-js";
 import { peekPendingReferralCode } from "@/lib/share/referralAttribution";
 import { peekPendingSignupPlan } from "@/lib/share/planAttribution";
 import { peekPendingUtmParams } from "@/lib/share/utmAttribution";
+import { getAppPlatform } from "@/lib/platform/nativeApp";
 
 export const PRODUCT_FUNNEL_STEPS = [
   "signup_completed",
@@ -50,6 +51,7 @@ export function initProductAnalytics(): void {
     capture_pageview: true,
     persistence: "localStorage",
   });
+  posthog.register({ app_platform: getAppPlatform() });
   initialized = true;
 }
 

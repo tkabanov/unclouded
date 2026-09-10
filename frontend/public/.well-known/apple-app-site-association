@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TODOTEAMID.com.provenunderpressure.unclouded",
+        "paths": [
+          "/reset_pw",
+          "/reset_pw/*",
+          "/dashboard",
+          "/join/*",
+          "/coach-session/*"
+        ]
+      }
+    ]
+  }
+}

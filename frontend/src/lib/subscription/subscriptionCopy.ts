@@ -407,3 +407,10 @@ export function insufficientCreditsError(balance: number): string {
 
 export const BOOKING_REDIRECT_ERROR =
   "We couldn't open session booking. Your credits have not been deducted. Please try again.";
+
+/**
+ * MOB-06/OVR-066: shown wherever a purchase or plan-change CTA would
+ * otherwise render in the native app. Plain text, never a link — the native
+ * build has no purchase or purchase-link flow at all.
+ */
+export const NATIVE_MANAGE_PLAN_ON_WEB_MESSAGE = "Manage your plan on unclouded.app";

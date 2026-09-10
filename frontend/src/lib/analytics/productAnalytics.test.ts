@@ -4,6 +4,7 @@ const capture = vi.fn();
 const identify = vi.fn();
 const reset = vi.fn();
 const init = vi.fn();
+const register = vi.fn();
 
 vi.mock("posthog-js", () => ({
   default: {
@@ -11,6 +12,7 @@ vi.mock("posthog-js", () => ({
     capture,
     identify,
     reset,
+    register,
   },
 }));
 
@@ -21,6 +23,7 @@ describe("productAnalytics", () => {
     identify.mockReset();
     reset.mockReset();
     init.mockReset();
+    register.mockReset();
     vi.unstubAllEnvs();
   });
 
@@ -59,6 +62,7 @@ describe("productAnalytics", () => {
       expect.objectContaining({ tier: "free", signup_plan: "founding" }),
     );
     expect(reset).toHaveBeenCalled();
+    expect(register).toHaveBeenCalledWith({ app_platform: "web" });
   });
 
   it("documents the marketing funnel steps", async () => {
