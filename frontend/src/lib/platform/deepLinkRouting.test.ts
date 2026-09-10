@@ -11,6 +11,7 @@ vi.mock("@/lib/platform/openExternalUrl", () => ({
 
 import { isNativeApp } from "@/lib/platform/nativeApp";
 import {
+  initNativeBackButtonListener,
   initNativeDeepLinkListener,
   registerDeepLinkNavigator,
   resetDeepLinkRoutingForTests,
@@ -170,5 +171,81 @@ describe("initNativeDeepLinkListener", () => {
 
     unsubscribe();
     expect(remove).toHaveBeenCalled();
+  });
+});
+
+describe("initNativeBackButtonListener", () => {
+  afterEach(() => {
+    mockIsNativeApp.mockReturnValue(false);
+    setAppPlugin(undefined);
+  });
+
+  it("no-ops on web", () => {
+    const unsubscribe = initNativeBackButtonListener();
+    expect(() => unsubscribe()).not.toThrow();
+  });
+
+  it("no-ops when native but the App plugin bridge is missing", () => {
+    mockIsNativeApp.mockReturnValue(true);
+    setAppPlugin(undefined);
+    const unsubscribe = initNativeBackButtonListener();
+    expect(() => unsubscribe()).not.toThrow();
+  });
+
+  it("goes back through SPA history instead of exiting when history is available", async () => {
+    mockIsNativeApp.mockReturnValue(true);
+
+    let capturedCallback: ((event: { canGoBack: boolean }) => void) | null = null;
+    const remove = vi.fn();
+    const exitApp = vi.fn();
+    setAppPlugin({
+      addListener: vi.fn((_event: string, cb: (event: { canGoBack: boolean }) => void) => {
+        capturedCallback = cb;
+        return Promise.resolve({ remove });
+      }),
+      exitApp,
+    });
+
+    const historyBack = vi.spyOn(window.history, "back").mockImplementation(() => {});
+
+    const unsubscribe = initNativeBackButtonListener();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(capturedCallback).not.toBeNull();
+    capturedCallback?.({ canGoBack: true });
+
+    expect(historyBack).toHaveBeenCalledTimes(1);
+    expect(exitApp).not.toHaveBeenCalled();
+
+    unsubscribe();
+    expect(remove).toHaveBeenCalled();
+    historyBack.mockRestore();
+  });
+
+  it("exits the app when there's no SPA history left to unwind", async () => {
+    mockIsNativeApp.mockReturnValue(true);
+
+    let capturedCallback: ((event: { canGoBack: boolean }) => void) | null = null;
+    const exitApp = vi.fn();
+    setAppPlugin({
+      addListener: vi.fn((_event: string, cb: (event: { canGoBack: boolean }) => void) => {
+        capturedCallback = cb;
+        return Promise.resolve({ remove: vi.fn() });
+      }),
+      exitApp,
+    });
+
+    const historyBack = vi.spyOn(window.history, "back").mockImplementation(() => {});
+
+    initNativeBackButtonListener();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    capturedCallback?.({ canGoBack: false });
+
+    expect(exitApp).toHaveBeenCalledTimes(1);
+    expect(historyBack).not.toHaveBeenCalled();
+    historyBack.mockRestore();
   });
 });

@@ -97,11 +97,22 @@ interface CapacitorAppUrlOpenEvent {
   url: string;
 }
 
+interface CapacitorBackButtonEvent {
+  canGoBack: boolean;
+}
+
 interface CapacitorAppPlugin {
-  addListener: (
-    eventName: "appUrlOpen",
-    callback: (event: CapacitorAppUrlOpenEvent) => void,
-  ) => Promise<{ remove: () => void }> | { remove: () => void };
+  addListener: {
+    (
+      eventName: "appUrlOpen",
+      callback: (event: CapacitorAppUrlOpenEvent) => void,
+    ): Promise<{ remove: () => void }> | { remove: () => void };
+    (
+      eventName: "backButton",
+      callback: (event: CapacitorBackButtonEvent) => void,
+    ): Promise<{ remove: () => void }> | { remove: () => void };
+  };
+  exitApp: () => void;
 }
 
 function getAppPlugin(): CapacitorAppPlugin | null {
@@ -128,6 +139,45 @@ export function initNativeDeepLinkListener(): () => void {
 
   Promise.resolve(
     app.addListener("appUrlOpen", (event) => routeDeepLink(event.url)),
+  ).then((result) => {
+    if (cancelled) {
+      result.remove();
+      return;
+    }
+    handle = result;
+  });
+
+  return () => {
+    cancelled = true;
+    handle?.remove();
+  };
+}
+
+/**
+ * Native-only: subscribes to the hardware/gesture back button (Android).
+ * When the SPA has in-app history to unwind, goes back through it instead of
+ * letting Capacitor's default behavior minimize/exit the app first. Only
+ * falls through to `App.exitApp()` once there's nothing left to navigate
+ * back to. Returns an unsubscribe function; no-ops on web or when the bridge
+ * is unavailable.
+ */
+export function initNativeBackButtonListener(): () => void {
+  if (!isNativeApp()) return () => {};
+
+  const app = getAppPlugin();
+  if (!app) return () => {};
+
+  let handle: { remove: () => void } | null = null;
+  let cancelled = false;
+
+  Promise.resolve(
+    app.addListener("backButton", ({ canGoBack }) => {
+      if (canGoBack) {
+        window.history.back();
+      } else {
+        app.exitApp();
+      }
+    }),
   ).then((result) => {
     if (cancelled) {
       result.remove();
