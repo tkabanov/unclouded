@@ -42,7 +42,7 @@ const OnboardingWizardShell = ({
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  size="lg"
                   onClick={onBack}
                   className="shrink-0 gap-1.5 text-muted-foreground"
                   aria-label="Go back"

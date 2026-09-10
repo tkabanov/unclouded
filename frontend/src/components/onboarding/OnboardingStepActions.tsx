@@ -40,6 +40,7 @@ const OnboardingStepActions = ({
       <Button
         type="button"
         variant="ghost"
+        size="lg"
         onClick={() => void onSaveAndContinueLater()}
         disabled={savingLater}
       >
