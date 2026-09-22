@@ -261,24 +261,18 @@ export default function WorkplaceMembersPanel({
 
                 {!isPending ? (
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium">HR access</p>
-                        <p className="text-xs text-muted-foreground">Can use employer portal</p>
-                      </div>
+                    <div className="flex items-center gap-3">
                       <Switch
                         checked={hrEnabled}
                         disabled={disabled || busy || member.isPrimaryHr}
                         onCheckedChange={(checked) => void handleRoleChange(member, "hr", checked)}
                       />
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium">Manager</p>
-                        <p className="text-xs text-muted-foreground">
-                          Team aggregate + direct reports
-                        </p>
+                        <p className="text-sm font-medium">HR access</p>
+                        <p className="text-xs text-muted-foreground">Can use employer portal</p>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-3">
                       <Switch
                         checked={member.isManager}
                         disabled={disabled || busy}
@@ -286,6 +280,12 @@ export default function WorkplaceMembersPanel({
                           void handleRoleChange(member, "manager", checked)
                         }
                       />
+                      <div>
+                        <p className="text-sm font-medium">Manager</p>
+                        <p className="text-xs text-muted-foreground">
+                          Team aggregate + direct reports
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ) : null}
