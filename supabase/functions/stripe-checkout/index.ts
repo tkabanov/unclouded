@@ -163,8 +163,8 @@ Deno.serve(async (req) => {
           userId: profile.id,
           product: "success_plan_addon",
         },
-        success_url: `${returnBase}&checkout=success&addon=success_plan`,
-        cancel_url: `${returnBase}&checkout=cancelled&addon=success_plan`,
+        success_url: `${returnBase}?checkout=success&addon=success_plan`,
+        cancel_url: `${returnBase}?checkout=cancelled&addon=success_plan`,
         allow_promotion_codes: false,
       });
 
@@ -322,8 +322,8 @@ Deno.serve(async (req) => {
         foundingRate: String(price.isFoundingRate),
         signupPlan: profile.signupPlan ?? "",
       },
-      success_url: `${returnBase}&checkout=success&plan=${tier}`,
-      cancel_url: `${returnBase}&checkout=cancelled`,
+      success_url: `${returnBase}?checkout=success&plan=${tier}`,
+      cancel_url: `${returnBase}?checkout=cancelled`,
       allow_promotion_codes: false,
     });
 
