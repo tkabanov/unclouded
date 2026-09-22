@@ -25,6 +25,23 @@ Migrations and edge functions live in `../supabase/` at the repo root. Copy env 
 
 Transactional email (US-606): branded Auth templates and ops guide in `../supabase/EMAIL_TEMPLATES.md`. App hooks in `src/lib/email/`.
 
+### Regenerating `src/integrations/supabase/types.ts`
+
+```bash
+npx supabase gen types typescript --project-id szkextipgpupqoppccoy --schema public > frontend/src/integrations/supabase/types.ts
+```
+
+On **Windows PowerShell**, `>` redirection writes **UTF-16LE**, which ESLint's parser rejects
+(`Parsing error: Invalid character`). Either run the command from Git Bash/WSL, or on PowerShell pipe
+through UTF-8-safe redirection instead:
+
+```powershell
+npx supabase gen types typescript --project-id szkextipgpupqoppccoy --schema public | Out-File -Encoding utf8NoBOM frontend/src/integrations/supabase/types.ts
+```
+
+After regenerating, confirm the file is UTF-8 (`file frontend/src/integrations/supabase/types.ts` should say
+`ASCII text` / `UTF-8 Unicode text`, not `UTF-16`) and that `npm run lint` reports no parsing error.
+
 ## Production deploy
 
 CI (`.github/workflows/frontend-ci.yml`) verifies lint/test/build on every push/PR.
