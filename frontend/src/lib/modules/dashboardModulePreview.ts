@@ -9,7 +9,7 @@ import { MODULE_AI_SHORT_NAMES } from "./moduleRegistry";
 import type { ModuleProfileInput } from "./readModuleProfile";
 import { MODULE_DISPLAY_TITLES, MODULE_SLUGS, type ModuleSlug } from "./moduleSlugs";
 
-const SECTION_LABEL = "Know Yourself Deeper";
+const SECTION_LABEL = "Coaching Insights";
 
 const LABEL_TO_SLUG = new Map<string, ModuleSlug>(
   MODULE_SLUGS.flatMap((slug) => [

@@ -17,7 +17,7 @@ export interface DashboardMainSlots {
   currentPath?: ReactNode;
   /** Left column — human coaching + daily check-in. */
   dailyCheckIn?: ReactNode;
-  /** Right column — Know Yourself Deeper preview. */
+  /** Right column — Coaching Insights preview. */
   modulePreview?: ReactNode;
   /** Right column — compact next deep-dive teaser. */
   nextDeepDive?: ReactNode;

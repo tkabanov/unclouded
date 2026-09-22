@@ -22,10 +22,10 @@ describe("ReassessmentModuleRefreshBanner", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(/Know Yourself Deeper — updated/i)).toBeInTheDocument();
+    expect(screen.getByText(/Coaching Insights — updated/i)).toBeInTheDocument();
     expect(screen.getByText(/The Identity Lens/)).toBeInTheDocument();
     expect(screen.getByText(/Your Body's Story/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Go to Know Yourself Deeper/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Go to Coaching Insights/i })).toHaveAttribute(
       "href",
       "/settings?tab=profile",
     );

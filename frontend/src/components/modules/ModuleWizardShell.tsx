@@ -53,7 +53,7 @@ export default function ModuleWizardShell({
             <span className="w-[72px] shrink-0" aria-hidden />
           )}
           <div className="min-w-0 flex-1 text-center">
-            <p className="truncate text-sm font-medium text-foreground">Know Yourself Deeper</p>
+            <p className="truncate text-sm font-medium text-foreground">Coaching Insights</p>
             <p className="truncate text-xs text-muted-foreground">{moduleTitle}</p>
           </div>
           <span className="w-[72px] shrink-0" aria-hidden />

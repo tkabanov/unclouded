@@ -676,3 +676,13 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Current behavior** | The shipped platform is React/Vite + Supabase, not Bubble, so the mobile "wrapper" is a **Capacitor 7** monorepo app in `mobile/` that loads the deployed web app via `server.url` (production origin) with a native offline screen — not a rebuild of any Bubble page. Native value-add against App Store 4.2 "thin wrapper" rejection: native push (FCM for both iOS/Android), native share/save, offline screen, deep links. **Monetization:** the native build ships with **no purchase or purchase-link flow at all** — no Apple IAP, no External Purchase Link, and no tappable link to web checkout (contra US-704's literal "direct users to web checkout"). Upsell copy in the native build reads "Manage your plan on unclouded.app" as plain text, not a link. `/subscription` remains reachable read-only (plan status, renewal date, entitlements); only purchase *intent* is removed. Enterprise/enrollment flows render as on web (no purchase, no fee exposure). App identity: bundle id `com.provenunderpressure.unclouded`, display name **Unclouded**, min OS iOS 15+ / Android 8 (API 26)+. Revisit option (b)/(c) if native conversion becomes material. |
 | **Code** | `mobile/` (new, `MOB-03`), `frontend/src/lib/platform/nativeApp.ts` (`MOB-02`), `frontend/src/lib/subscription/subscriptionActions.ts` / upsell components (`MOB-06`) |
 
+### OVR-067 — "Know Yourself Deeper" renamed to "Coaching Insights" everywhere
+
+| | |
+|---|---|
+| **Date** | 2026-09-22 |
+| **Overrides** | OVR-010 authoritative title "Know Yourself Deeper" (all remaining surfaces); Build Brief §9 delivery rule wording; OVR-050 right-column label "Know yourself deeper" |
+| **Authoritative spec** | Owner request |
+| **Current behavior** | Every remaining user-facing occurrence of **Know Yourself Deeper** is now **Coaching Insights** — matching the Settings section title already set by OVR-033. Covers: reassessment module-refresh banner heading/CTA, module wizard shell header, dashboard next-deep-dive card CTA, dashboard module preview card heading, and the internal `modulesToSurface` / section-label sentinel string used to match dashboard config against module surface labels. Routes/slugs (e.g. `/settings/know-yourself/:moduleSlug`) are unchanged — this is copy only. |
+| **Code** | `frontend/src/components/reassessment/ReassessmentModuleRefreshBanner.tsx`, `frontend/src/components/modules/ModuleWizardShell.tsx`, `frontend/src/components/dashboard/DashboardNextDeepDiveCard.tsx`, `frontend/src/components/dashboard/DashboardModulePreviewCard.tsx`, `frontend/src/lib/classification.ts`, `frontend/src/lib/modules/dashboardModulePreview.ts` |
+

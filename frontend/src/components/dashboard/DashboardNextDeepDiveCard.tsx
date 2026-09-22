@@ -44,7 +44,7 @@ export default function DashboardNextDeepDiveCard() {
         <span className="font-semibold">{formatUnlockPhrase(upcoming.daysUntilUnlock)}</span>
       </p>
       <Button asChild type="button" variant="outline" size="sm" className="px-4">
-        <Link to="/settings?tab=profile">Know Yourself Deeper</Link>
+        <Link to="/settings?tab=profile">Coaching Insights</Link>
       </Button>
     </div>
   );

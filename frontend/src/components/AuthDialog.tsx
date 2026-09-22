@@ -292,8 +292,8 @@ const AuthDialog = ({ open, onOpenChange, onSuccess, onSwitchToSignup }: AuthDia
                   "text-xs text-muted-foreground leading-relaxed",
                 )}
               >
-                Uncloud360 is AI-powered coaching only — not therapy or medical advice. In an emergency,
-                call 988 or 911.
+                Uncloud360 provides AI-powered coaching guidance only — not therapy, diagnosis, or medical
+                advice. If you are in crisis, please call or text 988.
               </p>
             </div>
           )}

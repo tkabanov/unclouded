@@ -223,7 +223,7 @@ export function getDashboardConfig(classification: ClassificationType, flags: {
     showConsistencyStreak: false,
     showProgressDelta: false,
     stabilityWarning: false,
-    modulesToSurface: ["Know Yourself Deeper"],
+    modulesToSurface: ["Coaching Insights"],
   };
 
   switch (classification.key) {

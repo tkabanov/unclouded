@@ -126,7 +126,7 @@ describe("DashboardModulePreviewCard", () => {
 
     renderCard(buildProfile({ moduleSchedules: schedules }));
 
-    expect(screen.getByRole("heading", { name: "Know yourself deeper" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Coaching Insights" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Start/i })).toHaveAttribute(
       "href",
       "/settings/know-yourself/body",

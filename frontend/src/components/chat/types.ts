@@ -54,7 +54,7 @@ export const CHAT_COMPOSER_DEFAULTS = {
 
 /** Footer disclaimer below the composer (Lovable chat layout). */
 export const CHAT_COMPOSER_DISCLAIMER =
-  "Unclouded is AI coaching only — not therapy or medical care. In an emergency, call 911 or text 988.";
+  "Uncloud360 provides AI-powered coaching guidance only — not therapy, diagnosis, or medical advice. If you are in crisis, please call or text 988.";
 
 /** Composer copy while the session waits for a micro-commitment reply. */
 export const CHAT_COMMITMENT_COMPOSER = {

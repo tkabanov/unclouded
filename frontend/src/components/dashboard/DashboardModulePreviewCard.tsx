@@ -72,7 +72,7 @@ export default function DashboardModulePreviewCard() {
             data-style-ref="Text_heading_3_"
             className={cn(bubbleStyle("Text_heading_3_"), "text-base font-semibold")}
           >
-            Know yourself deeper
+            Coaching Insights
           </h2>
         </div>
 

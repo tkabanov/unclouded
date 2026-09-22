@@ -42,7 +42,7 @@ const BASE_INPUT: ModuleSchedulerInput = {
 
 describe("dashboardModulePreview", () => {
   it("maps surface labels to module slugs and ignores section label", () => {
-    expect(resolveModuleSurfaceLabelsToSlugs(["Know Yourself Deeper"])).toEqual([]);
+    expect(resolveModuleSurfaceLabelsToSlugs(["Coaching Insights"])).toEqual([]);
     expect(resolveModuleSurfaceLabelsToSlugs(["Identity Lens", "What Holds You"])).toEqual([
       "identity",
       "meaning",
@@ -55,7 +55,7 @@ describe("dashboardModulePreview", () => {
     const items = buildModuleListItems({ moduleSchedules: schedules }, ANCHOR);
 
     expect(
-      selectDashboardModuleItem(items, ["Know Yourself Deeper"])?.slug,
+      selectDashboardModuleItem(items, ["Coaching Insights"])?.slug,
     ).toBe("body");
   });
 
@@ -65,10 +65,10 @@ describe("dashboardModulePreview", () => {
     const items = buildModuleListItems({ moduleSchedules: schedules }, now);
 
     expect(
-      selectDashboardModuleItem(items, ["Know Yourself Deeper"])?.status,
+      selectDashboardModuleItem(items, ["Coaching Insights"])?.status,
     ).toBe("available");
     expect(
-      selectDashboardModuleItem(items, ["Know Yourself Deeper"])?.slug,
+      selectDashboardModuleItem(items, ["Coaching Insights"])?.slug,
     ).toBe("body");
   });
 
@@ -87,7 +87,7 @@ describe("dashboardModulePreview", () => {
       ANCHOR,
     );
 
-    expect(selectDashboardModuleItem(items, ["Know Yourself Deeper"])).toBeNull();
+    expect(selectDashboardModuleItem(items, ["Coaching Insights"])).toBeNull();
     expect(
       resolveDashboardModulePreview({
         profile: {

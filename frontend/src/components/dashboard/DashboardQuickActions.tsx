@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/lib/userProfile";
+import { CHAT_ROUTE } from "@/lib/chat/routes";
 import {
   isDepletedForVoiceSessionCta,
   VOICE_SESSION_ROUTE,
@@ -36,7 +37,7 @@ export default function DashboardQuickActions() {
         type="button"
         data-style-ref="Button_accent_"
         className={cn(bubbleStyle("Button_accent_"), "gap-1.5")}
-        onClick={() => navigate("/paths")}
+        onClick={() => navigate(CHAT_ROUTE)}
       >
         <CalendarDays className="h-3.5 w-3.5" aria-hidden />
         Plan tomorrow

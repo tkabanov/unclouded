@@ -52,7 +52,7 @@ export default function ReassessmentModuleRefreshBanner({
         <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
         <div className="space-y-1">
           <h2 className="text-base font-semibold text-foreground">
-            Know Yourself Deeper — updated for your reassessment
+            Coaching Insights — updated for your reassessment
           </h2>
           <p className="text-sm text-muted-foreground">
             {bodyParts.join(" ")}
@@ -62,7 +62,7 @@ export default function ReassessmentModuleRefreshBanner({
         </div>
       </div>
       <Button asChild variant="cta" size="sm">
-        <Link to="/settings?tab=profile">Go to Know Yourself Deeper</Link>
+        <Link to="/settings?tab=profile">Go to Coaching Insights</Link>
       </Button>
     </div>
   );

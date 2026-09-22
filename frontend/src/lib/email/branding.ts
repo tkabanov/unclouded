@@ -4,7 +4,7 @@ export const TRANSACTIONAL_EMAIL_FROM = "noreply@uncloud360.ai" as const;
 export const TRANSACTIONAL_EMAIL_PRODUCT_NAME = "Uncloud360" as const;
 
 export const TRANSACTIONAL_EMAIL_DISCLAIMER =
-  "Uncloud360 is AI-powered coaching only — not therapy or medical advice. In an emergency, call 988 or 911." as const;
+  "Uncloud360 provides AI-powered coaching guidance only — not therapy, diagnosis, or medical advice. If you are in crisis, please call or text 988." as const;
 
 /** Sampled from frontend design tokens (primary + brand gradient). */
 export const TRANSACTIONAL_EMAIL_BRAND = {

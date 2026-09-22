@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardUserContext } from "@/hooks/useDashboardUser";
 import { downloadOnboardingResultsPdf } from "@/lib/dashboard/downloadOnboardingResultsPdf";
 import { DASHBOARD_DAILY_CHECKIN_ID } from "@/lib/dashboard/routes";
+import { CHAT_ROUTE } from "@/lib/chat/routes";
 import { resolveDashboardModulePreview } from "@/lib/modules/dashboardModulePreview";
 import { cn } from "@/lib/utils";
 
@@ -161,7 +162,7 @@ export default function DashboardGreetingCard() {
             variant="outline"
             size="sm"
             className={heroButtonClass}
-            onClick={() => navigate("/paths")}
+            onClick={() => navigate(CHAT_ROUTE)}
           >
             <CalendarDays className="h-3.5 w-3.5" aria-hidden />
             Plan tomorrow
