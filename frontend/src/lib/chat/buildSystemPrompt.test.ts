@@ -4,6 +4,16 @@ import {
   resolveCoachingModes,
   type ProfileData,
 } from "../../../../supabase/functions/chat/buildSystemPrompt.ts";
+import {
+  MASTER_BASE_PROMPT,
+  SAFETY_BOUNDARIES,
+} from "../../../../supabase/functions/chat/prompt/library.ts";
+import {
+  EMPTY_PLATFORM_AI_SETTINGS,
+  PLATFORM_RULES_HEADER,
+  TONE_OF_VOICE_HEADER,
+  type PlatformAiSettings,
+} from "../../../../supabase/functions/_shared/platformAiSettings.ts";
 
 function baseProfile(overrides: Partial<ProfileData> = {}): ProfileData {
   return {
@@ -1045,5 +1055,43 @@ describe("prompt library verbatim anchors", () => {
     expect(finalLayerStart).toBeGreaterThanOrEqual(0);
     expect(afterFinal).toContain("exchange_count");
     expect(afterFinal).not.toContain("INTELLIGENT SUMMARIZATION SYSTEM");
+  });
+});
+
+describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
+  const settings: PlatformAiSettings = {
+    globalSystemPrompt: "Always answer in English.",
+    prohibitedTopics: ["politics", "crypto trading"],
+    toneOfVoice: "Very casual.",
+  };
+
+  it("empty settings leave the prompt byte-identical", () => {
+    const profile = baseProfile();
+    const baseline = buildSystemPrompt(profile, "ctx");
+    expect(buildSystemPrompt(profile, "ctx", undefined, EMPTY_PLATFORM_AI_SETTINGS)).toBe(baseline);
+    expect(buildSystemPrompt(profile, "ctx", undefined, null)).toBe(baseline);
+    expect(
+      buildSystemPrompt(profile, "ctx", undefined, {
+        globalSystemPrompt: "   ",
+        prohibitedTopics: ["  "],
+        toneOfVoice: "",
+      }),
+    ).toBe(baseline);
+  });
+
+  it("places platform rules after safety and before master base; tone is the last block", () => {
+    const prompt = buildSystemPrompt(baseProfile(), undefined, undefined, settings);
+    const safetyIndex = prompt.indexOf(SAFETY_BOUNDARIES.slice(0, 80));
+    const rulesIndex = prompt.indexOf(PLATFORM_RULES_HEADER);
+    const masterIndex = prompt.indexOf(MASTER_BASE_PROMPT.slice(0, 40));
+    expect(safetyIndex).toBeGreaterThanOrEqual(0);
+    expect(rulesIndex).toBeGreaterThan(safetyIndex);
+    expect(masterIndex).toBeGreaterThan(rulesIndex);
+    expect(prompt).toContain("- politics");
+    expect(prompt).toContain("- crypto trading");
+
+    const blocks = prompt.split("\n\n---\n\n");
+    expect(blocks[blocks.length - 1].startsWith(TONE_OF_VOICE_HEADER)).toBe(true);
+    expect(blocks[blocks.length - 1]).toContain("Very casual.");
   });
 });

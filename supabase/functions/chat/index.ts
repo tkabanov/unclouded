@@ -58,6 +58,13 @@ import { persistSignificantLifeEventFlag } from "./persistSignificantLifeEventFl
 import { scheduleEdgeBackgroundWork } from "../_shared/edgeBackground.ts";
 import { resolvePromptLibraryLayers } from "./prompt/loadPromptLibraryVersion.ts";
 import type { PromptLibraryLayerMap } from "./prompt/promptLibraryStaticLayers.ts";
+import { resolvePromptLibraryRequestOptions } from "./prompt/promptLibraryRequestOptions.ts";
+import { getServiceClient } from "../_shared/serviceClient.ts";
+import {
+  loadPlatformAiSettings,
+  withPlatformSettings,
+  type PlatformAiSettings,
+} from "../_shared/platformAiSettings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,8 +92,9 @@ function buildSystemWithLifecycle(
   context: string | undefined,
   lifecycle: ChatLifecycleMode | undefined,
   promptLayers?: PromptLibraryLayerMap,
+  platformSettings?: PlatformAiSettings | null,
 ): string {
-  const base = buildSystemPrompt(profileData, context, promptLayers);
+  const base = buildSystemPrompt(profileData, context, promptLayers, platformSettings);
   if (!lifecycle) return base;
   const instruction = buildSessionLifecycleInstruction(
     lifecycle,
@@ -214,14 +222,23 @@ Deno.serve(async (req: Request) => {
       return jsonError(404, "Profile not found");
     }
 
-    const preferDraft =
-      Deno.env.get("PROMPT_LIBRARY_PREFER_DRAFT") === "true" ||
-      req.headers.get("x-prompt-library-slot") === "draft";
-    const { layers: promptLayers } = await resolvePromptLibraryLayers(supabase, {
-      versionId: body.promptLibraryVersionId ?? null,
-      preferDraft,
-      createdBy: user.id,
-    });
+    // Prompt Library + platform AI settings are admin-only tables: read them with service role
+    // (user RLS client silently fell back to static layers). Draft/explicit version stay admin-only.
+    const serviceClient = getServiceClient();
+    const promptLibraryOptions = resolvePromptLibraryRequestOptions(
+      profileData,
+      req.headers,
+      body,
+      Deno.env.get("PROMPT_LIBRARY_PREFER_DRAFT") === "true",
+    );
+    const [{ layers: promptLayers }, platformSettings] = await Promise.all([
+      resolvePromptLibraryLayers(serviceClient, {
+        ...promptLibraryOptions,
+        // Lazy production seed runs under service role; only attribute it to admins.
+        createdBy: profileData.roleType === "admin" ? user.id : null,
+      }),
+      loadPlatformAiSettings(serviceClient),
+    ]);
 
     if (lifecycle === "prompt_test") {
       if (profileData.roleType !== "admin") {
@@ -254,6 +271,7 @@ Deno.serve(async (req: Request) => {
         testContext,
         testLifecycle,
         promptLayers,
+        platformSettings,
       );
 
       const crisisLevel =
@@ -367,7 +385,7 @@ Deno.serve(async (req: Request) => {
     if (lifecycle === "session_close") {
       const result = await generateText({
         model,
-        system: SESSION_CLOSE_SYSTEM_PROMPT,
+        system: withPlatformSettings(SESSION_CLOSE_SYSTEM_PROMPT, platformSettings),
         prompt: buildSessionCloseUserPrompt(uiMessages, profileData),
       });
       const text = sanitizeSessionCloseReplyText(result.text);
@@ -380,7 +398,7 @@ Deno.serve(async (req: Request) => {
     if (lifecycle === "session_close_ack") {
       const result = await generateText({
         model,
-        system: SESSION_CLOSE_ACK_SYSTEM_PROMPT,
+        system: withPlatformSettings(SESSION_CLOSE_ACK_SYSTEM_PROMPT, platformSettings),
         prompt: buildSessionCloseAckUserPrompt(uiMessages, profileData),
       });
       const text = sanitizeSessionCloseReplyText(result.text);
@@ -390,7 +408,13 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(200, { text });
     }
 
-    let system = buildSystemWithLifecycle(profileData, context, lifecycle, promptLayers);
+    let system = buildSystemWithLifecycle(
+      profileData,
+      context,
+      lifecycle,
+      promptLayers,
+      platformSettings,
+    );
 
     // REQ-12: compress older session summaries into a generated arc when context exceeds ~6k tokens.
     const compressed = await applySessionMemoryCompressionIfNeeded(
@@ -400,7 +424,13 @@ Deno.serve(async (req: Request) => {
       system,
     );
     if (compressed) {
-      system = buildSystemWithLifecycle(profileData, context, lifecycle, promptLayers);
+      system = buildSystemWithLifecycle(
+        profileData,
+        context,
+        lifecycle,
+        promptLayers,
+        platformSettings,
+      );
     }
 
     if (lifecycle === "session_finalize") {

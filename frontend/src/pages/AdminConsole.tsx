@@ -16,6 +16,7 @@ import AdminSchedulingTab from "@/components/settings/admin/AdminSchedulingTab";
 import AdminBookingsTab from "@/components/settings/admin/AdminBookingsTab";
 import AdminReassessmentsTab from "@/components/settings/admin/AdminReassessmentsTab";
 import AdminPromptTestSuite from "@/components/settings/admin/AdminPromptTestSuite";
+import AdminAiSettingsTab from "@/components/settings/admin/AdminAiSettingsTab";
 import AdminReferralPartnersTab from "@/components/settings/admin/AdminReferralPartnersTab";
 import AdminReferralPartnerDetail from "@/components/settings/admin/AdminReferralPartnerDetail";
 import AdminReferralDashboard from "@/components/settings/admin/AdminReferralDashboard";
@@ -157,6 +158,14 @@ export default function AdminConsole() {
           element={
             <AdminSection>
               <AdminPromptTestSuite />
+            </AdminSection>
+          }
+        />
+        <Route
+          path="ai-settings"
+          element={
+            <AdminSection>
+              <AdminAiSettingsTab />
             </AdminSection>
           }
         />

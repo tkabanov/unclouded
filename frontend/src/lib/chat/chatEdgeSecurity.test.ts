@@ -17,6 +17,7 @@ import {
   shouldRecordNewSession,
 } from "../../../../supabase/functions/chat/tierGateHelpers.ts";
 import { buildSystemPrompt } from "../../../../supabase/functions/chat/buildSystemPrompt.ts";
+import { resolvePromptLibraryRequestOptions } from "../../../../supabase/functions/chat/prompt/promptLibraryRequestOptions.ts";
 
 describe("classifyCrisisLevel", () => {
   it("returns null for Level 1 distress (no edge regex hard-stop)", () => {
@@ -206,5 +207,37 @@ describe("buildSystemPrompt stability flag", () => {
 
     expect(prompt).toContain("STABILITY SAFETY FLAG");
     expect(prompt).toContain("988");
+  });
+});
+
+describe("resolvePromptLibraryRequestOptions (service-role prompt library)", () => {
+  const draftHeaders = new Headers({ "x-prompt-library-slot": "draft" });
+  const body = { promptLibraryVersionId: "11111111-1111-1111-1111-111111111111" };
+
+  it("ignores draft header, env draft flag and explicit version for non-admins", () => {
+    for (const roleType of ["professional", "coach", undefined, null, "Admin"]) {
+      expect(resolvePromptLibraryRequestOptions({ roleType }, draftHeaders, body, true)).toEqual({
+        versionId: null,
+        preferDraft: false,
+      });
+    }
+    expect(resolvePromptLibraryRequestOptions(null, draftHeaders, body, true)).toEqual({
+      versionId: null,
+      preferDraft: false,
+    });
+  });
+
+  it("honors draft slot and explicit version for admins", () => {
+    expect(resolvePromptLibraryRequestOptions({ roleType: "admin" }, draftHeaders, body)).toEqual({
+      versionId: body.promptLibraryVersionId,
+      preferDraft: true,
+    });
+    expect(resolvePromptLibraryRequestOptions({ roleType: "admin" }, new Headers(), {}, false)).toEqual({
+      versionId: null,
+      preferDraft: false,
+    });
+    expect(resolvePromptLibraryRequestOptions({ roleType: "admin" }, new Headers(), {}, true).preferDraft).toBe(
+      true,
+    );
   });
 });

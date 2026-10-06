@@ -25,6 +25,7 @@ export const ADMIN_MORE_NAV = [
   ADMIN_SUB_TAB.BOOKINGS,
   ADMIN_SUB_TAB.REASSESSMENTS,
   ADMIN_SUB_TAB.PROMPT_TESTS,
+  ADMIN_SUB_TAB.AI_SETTINGS,
 ] as const satisfies readonly AdminSubTabSlug[];
 
 export const ADMIN_NAV_PATH: Record<AdminSubTabSlug, string> = {
@@ -45,6 +46,7 @@ export const ADMIN_NAV_PATH: Record<AdminSubTabSlug, string> = {
   group_sessions: "/admin/bookings",
   reassessments: "/admin/reassessments",
   prompt_tests: "/admin/prompt-tests",
+  ai_settings: "/admin/ai-settings",
 };
 
 export function adminNavLabel(tab: AdminSubTabSlug): string {
@@ -74,5 +76,6 @@ export function resolveAdminSubTab(pathname: string): AdminSubTabSlug {
   if (pathname.startsWith("/admin/group-sessions")) return ADMIN_SUB_TAB.BOOKINGS;
   if (pathname.startsWith("/admin/reassessments")) return ADMIN_SUB_TAB.REASSESSMENTS;
   if (pathname.startsWith("/admin/prompt-tests")) return ADMIN_SUB_TAB.PROMPT_TESTS;
+  if (pathname.startsWith("/admin/ai-settings")) return ADMIN_SUB_TAB.AI_SETTINGS;
   return ADMIN_SUB_TAB.OVERVIEW;
 }

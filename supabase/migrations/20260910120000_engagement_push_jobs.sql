@@ -58,6 +58,8 @@ BEGIN
     WHEN 'generate-daily-insights' THEN 'daily_insights_cron_secret'
     WHEN 'generate-coaching-summary' THEN 'coaching_summary_cron_secret'
     WHEN 'coach-booking-reminders' THEN 'coach_booking_reminders_cron_secret'
+    WHEN 'group-coaching-waitlist' THEN 'group_coaching_waitlist_cron_secret'
+    WHEN 'backfill-session-meet-links' THEN 'meet_backfill_cron_secret'
     WHEN 'daily-checkin-reminder' THEN 'daily_checkin_reminder_cron_secret'
     WHEN 'inactivity-followup' THEN 'inactivity_followup_cron_secret'
     ELSE NULL
