@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   AI_SETTINGS_LIMITS,
   fetchPlatformAiSettings,
+  friendlyErrorMessage,
   savePlatformAiSettings,
   type PlatformAiSettingsPatch,
   type PlatformAiSettingsRecord,
@@ -90,7 +91,7 @@ export default function AdminAiSettingsTab() {
         setTone(record.toneOfVoice);
       })
       .catch((err) => {
-        if (!cancelled) setLoadError(err instanceof Error ? err.message : "Couldn't load AI settings.");
+        if (!cancelled) setLoadError(friendlyErrorMessage(err instanceof Error ? err.message : undefined, "Couldn't load AI settings."));
       });
     return () => {
       cancelled = true;
@@ -110,7 +111,7 @@ export default function AdminAiSettingsTab() {
         if (field === "toneOfVoice") setTone(record.toneOfVoice);
         toast.success(successMessage);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Couldn't save AI settings.");
+        toast.error(friendlyErrorMessage(err instanceof Error ? err.message : undefined, "Couldn't save AI settings."));
       } finally {
         setBusy((prev) => ({ ...prev, [field]: false }));
       }
@@ -195,7 +196,7 @@ export default function AdminAiSettingsTab() {
 
       <SettingCard
         title="Prohibited topics"
-        description="The AI gently declines and redirects when these come up. Press Enter to add; click a topic to edit."
+        description="The AI gently declines and redirects when these come up. Press Enter to add; click a topic to edit, × to remove."
         dirty={topicsDirty}
       >
         <TagInput

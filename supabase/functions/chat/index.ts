@@ -94,14 +94,11 @@ function buildSystemWithLifecycle(
   promptLayers?: PromptLibraryLayerMap,
   platformSettings?: PlatformAiSettings | null,
 ): string {
-  const base = buildSystemPrompt(profileData, context, promptLayers, platformSettings);
-  if (!lifecycle) return base;
-  const instruction = buildSessionLifecycleInstruction(
-    lifecycle,
-    profileData ?? {},
-    context,
-  );
-  return `${base}\n\n---\n\n${instruction}`;
+  const instruction = lifecycle
+    ? buildSessionLifecycleInstruction(lifecycle, profileData ?? {}, context)
+    : undefined;
+  // Lifecycle instruction goes before the platform rules reminder + tone (NCLDD-53 BUG-1).
+  return buildSystemPrompt(profileData, context, promptLayers, platformSettings, instruction);
 }
 
 function sessionOpenMessages(): UIMessage[] {

@@ -23,7 +23,8 @@ function hasTag(tags: readonly string[], candidate: string, ignoreIndex?: number
 
 /**
  * Enter adds a tag, click a chip to edit it inline, × removes it.
- * Backspace on an empty input does nothing (no accidental deletes).
+ * Clearing a chip's text keeps the original tag; only × deletes. Backspace on an empty
+ * input does nothing (no accidental deletes). Duplicates (case-insensitive) show a hint.
  */
 export function TagInput({
   value,
@@ -40,6 +41,8 @@ export function TagInput({
   const [editDraft, setEditDraft] = React.useState("");
   // Prevents the blur fired after Enter/Escape from committing a second time.
   const skipBlurCommit = React.useRef(false);
+  const [notice, setNotice] = React.useState<string | null>(null);
+  const hintId = React.useId();
 
   const atLimit = maxTags !== undefined && value.length >= maxTags;
 
@@ -51,8 +54,13 @@ export function TagInput({
   const addDraft = () => {
     const tag = clean(draft);
     if (!tag || atLimit) return;
-    if (!hasTag(value, tag)) onChange([...value, tag]);
+    if (hasTag(value, tag)) {
+      setNotice(`"${tag}" is already in the list.`);
+      return;
+    }
+    onChange([...value, tag]);
     setDraft("");
+    setNotice(null);
   };
 
   const startEdit = (index: number) => {
@@ -66,10 +74,11 @@ export function TagInput({
     if (editingIndex === null || skipBlurCommit.current) return;
     skipBlurCommit.current = true;
     const tag = clean(editDraft);
-    if (tag && !hasTag(value, tag, editingIndex)) {
+    if (tag && hasTag(value, tag, editingIndex)) {
+      setNotice(`"${tag}" is already in the list.`);
+    } else if (tag) {
       onChange(value.map((existing, index) => (index === editingIndex ? tag : existing)));
-    } else if (!tag) {
-      onChange(value.filter((_, index) => index !== editingIndex));
+      setNotice(null);
     }
     setEditingIndex(null);
     setEditDraft("");
@@ -100,7 +109,10 @@ export function TagInput({
                   maxLength={maxTagLength}
                   className="h-8 w-48"
                   aria-label={`Edit ${tag}`}
-                  onChange={(event) => setEditDraft(event.target.value)}
+                  onChange={(event) => {
+                    setEditDraft(event.target.value);
+                    setNotice(null);
+                  }}
                   onBlur={commitEdit}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
@@ -144,7 +156,11 @@ export function TagInput({
         maxLength={maxTagLength}
         placeholder={atLimit ? `Limit of ${maxTags} reached` : placeholder}
         aria-label={ariaLabel}
-        onChange={(event) => setDraft(event.target.value)}
+        aria-describedby={notice ? hintId : undefined}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          setNotice(null);
+        }}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.preventDefault();
@@ -152,6 +168,11 @@ export function TagInput({
           }
         }}
       />
+      {notice && (
+        <p id={hintId} role="status" className="text-xs text-muted-foreground">
+          {notice}
+        </p>
+      )}
     </div>
   );
 }
