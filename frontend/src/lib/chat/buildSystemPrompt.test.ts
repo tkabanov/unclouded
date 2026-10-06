@@ -11,9 +11,11 @@ import {
 import {
   EMPTY_PLATFORM_AI_SETTINGS,
   PLATFORM_RULES_HEADER,
+  PLATFORM_RULES_REMINDER_HEADER,
   TONE_OF_VOICE_HEADER,
   type PlatformAiSettings,
 } from "../../../../supabase/functions/_shared/platformAiSettings.ts";
+import { buildSessionLifecycleInstruction } from "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts";
 
 function baseProfile(overrides: Partial<ProfileData> = {}): ProfileData {
   return {
@@ -1093,5 +1095,29 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     const blocks = prompt.split("\n\n---\n\n");
     expect(blocks[blocks.length - 1].startsWith(TONE_OF_VOICE_HEADER)).toBe(true);
     expect(blocks[blocks.length - 1]).toContain("Very casual.");
+    expect(blocks[blocks.length - 2].startsWith(PLATFORM_RULES_REMINDER_HEADER)).toBe(true);
+  });
+
+  it("restates platform rules after the session_open lifecycle instruction (BUG-1)", () => {
+    const profile = baseProfile();
+    const instruction = buildSessionLifecycleInstruction("session_open", profile);
+    const prompt = buildSystemPrompt(profile, undefined, undefined, settings, instruction);
+    const blocks = prompt.split("\n\n---\n\n");
+
+    expect(blocks[blocks.length - 3]).toBe(instruction);
+    const reminder = blocks[blocks.length - 2];
+    expect(reminder.startsWith(PLATFORM_RULES_REMINDER_HEADER)).toBe(true);
+    expect(reminder).toContain("Always answer in English.");
+    expect(reminder).toContain("- crypto trading");
+    expect(blocks[blocks.length - 1].startsWith(TONE_OF_VOICE_HEADER)).toBe(true);
+  });
+
+  it("empty settings with a lifecycle keep the pre-feature prompt (base + instruction)", () => {
+    const profile = baseProfile();
+    const instruction = buildSessionLifecycleInstruction("session_open", profile);
+    const legacy = `${buildSystemPrompt(profile, "ctx")}\n\n---\n\n${instruction}`;
+    expect(
+      buildSystemPrompt(profile, "ctx", undefined, EMPTY_PLATFORM_AI_SETTINGS, instruction),
+    ).toBe(legacy);
   });
 });

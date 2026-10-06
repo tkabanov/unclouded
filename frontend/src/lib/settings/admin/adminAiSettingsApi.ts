@@ -54,13 +54,21 @@ export function normalizeTopics(topics: readonly string[]): string[] {
   return result;
 }
 
+/** Network failures surface as raw `TypeError: Failed to fetch`; show the friendly fallback instead. */
+export function friendlyErrorMessage(message: string | undefined, fallback: string): string {
+  if (!message) return fallback;
+  return /failed to fetch|networkerror|load failed|network request failed/i.test(message)
+    ? fallback
+    : message;
+}
+
 export async function fetchPlatformAiSettings(): Promise<PlatformAiSettingsRecord> {
   const { data, error } = await supabase
     .from("platformAiSettings")
     .select(SELECT_COLUMNS)
     .eq("id", PLATFORM_AI_SETTINGS_ROW_ID)
     .maybeSingle();
-  if (error) throw new Error(error.message || "Couldn't load AI settings.");
+  if (error) throw new Error(friendlyErrorMessage(error.message, "Couldn't load AI settings."));
   return toRecord(data);
 }
 
@@ -85,6 +93,6 @@ export async function savePlatformAiSettings(
     .upsert(payload, { onConflict: "id" })
     .select(SELECT_COLUMNS)
     .single();
-  if (error) throw new Error(error.message || "Couldn't save AI settings.");
+  if (error) throw new Error(friendlyErrorMessage(error.message, "Couldn't save AI settings."));
   return toRecord(data);
 }

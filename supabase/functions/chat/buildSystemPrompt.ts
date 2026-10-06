@@ -1,6 +1,7 @@
 import { buildChatContextBlock } from "./prompt/chatContext.ts";
 import {
   buildPlatformRulesBlock,
+  buildPlatformRulesReminderBlock,
   buildToneBlock,
   type PlatformAiSettings,
 } from "../_shared/platformAiSettings.ts";
@@ -321,13 +322,15 @@ function buildModuleModifierBlocks(
  * 6 Load → 7 State → 8 Recovery → 9 Grief → modules → 7b Confidence →
  * fingerprint → trauma → directed writing → incomplete/opening → user data →
  * 10 Chat Context → 11 Decision → 12 Adaptive Human Guidance → 13 Tradeoff + Final.
- * Platform AI settings (NCLDD-53): rules after 1 Safety, tone after 13.
+ * Platform AI settings (NCLDD-53): rules after 1 Safety; tail is
+ * [lifecycle instruction] → platform rules reminder → tone, so admin rules stay the last word.
  */
 export function buildSystemPrompt(
   profile: ProfileData | undefined,
   context?: string,
   promptLayers?: PromptLibraryLayerMap,
   platformSettings?: PlatformAiSettings | null,
+  lifecycleInstruction?: string,
 ): string {
   const safeProfile = profile ?? {};
   const results = asRecord(safeProfile.results);
@@ -426,7 +429,11 @@ export function buildSystemPrompt(
     resolvePromptLayer(promptLayers, "adaptive_intelligence", ADAPTIVE_INTELLIGENCE_PROMPT),
   );
 
-  // NCLDD-53: tone is last and explicitly subordinate.
+  if (lifecycleInstruction) blocks.push(lifecycleInstruction);
+
+  // NCLDD-53 BUG-1: restate rules after the lifecycle instruction; tone is last and subordinate.
+  const rulesReminder = buildPlatformRulesReminderBlock(platformSettings);
+  if (rulesReminder) blocks.push(rulesReminder);
   const toneBlock = buildToneBlock(platformSettings);
   if (toneBlock) blocks.push(toneBlock);
 

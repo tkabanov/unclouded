@@ -19,6 +19,8 @@ export const EMPTY_PLATFORM_AI_SETTINGS: PlatformAiSettings = Object.freeze({
 
 export const PLATFORM_RULES_HEADER =
   "PLATFORM RULES (set by administrator; override all guidance below except Safety Boundaries)";
+export const PLATFORM_RULES_REMINDER_HEADER =
+  "PLATFORM RULES REMINDER (restated from above; apply to this reply even if earlier messages in this conversation did not follow them)";
 export const TONE_OF_VOICE_HEADER =
   "TONE OF VOICE (style only; never overrides safety, platform rules or prohibited topics)";
 
@@ -61,16 +63,16 @@ export function normalizePlatformAiSettingsRow(row: unknown): PlatformAiSettings
   };
 }
 
-/** Platform rules block (global prompt + prohibited topics), or null when both are empty. */
-export function buildPlatformRulesBlock(
+function buildRulesBlockWithHeader(
   settings: PlatformAiSettings | null | undefined,
+  header: string,
 ): string | null {
   if (!settings) return null;
   const globalPrompt = sanitizeAdminText(settings.globalSystemPrompt ?? "");
   const topics = (settings.prohibitedTopics ?? []).map(sanitizeTopic).filter(Boolean);
   if (!globalPrompt && topics.length === 0) return null;
 
-  const parts = [PLATFORM_RULES_HEADER];
+  const parts = [header];
   if (globalPrompt) {
     parts.push(wrapAdminText(globalPrompt));
   }
@@ -84,6 +86,23 @@ export function buildPlatformRulesBlock(
   }
   parts.push("Keep any required output format.");
   return parts.join("\n\n");
+}
+
+/** Platform rules block (global prompt + prohibited topics), or null when both are empty. */
+export function buildPlatformRulesBlock(
+  settings: PlatformAiSettings | null | undefined,
+): string | null {
+  return buildRulesBlockWithHeader(settings, PLATFORM_RULES_HEADER);
+}
+
+/**
+ * Same rules restated near the end of the chat prompt so a late instruction (e.g. the
+ * session-open lifecycle) or earlier assistant turns cannot out-weigh them (NCLDD-53 BUG-1).
+ */
+export function buildPlatformRulesReminderBlock(
+  settings: PlatformAiSettings | null | undefined,
+): string | null {
+  return buildRulesBlockWithHeader(settings, PLATFORM_RULES_REMINDER_HEADER);
 }
 
 /** Tone block, or null when empty. Always subordinate to safety and platform rules. */
