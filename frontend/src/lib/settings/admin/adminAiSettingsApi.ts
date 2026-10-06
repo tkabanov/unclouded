@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 
 /** NCLDD-53 — platform-wide AI prompt settings (singleton row id = 1, admin-only RLS). */
 export const PLATFORM_AI_SETTINGS_ROW_ID = 1;
@@ -23,14 +24,8 @@ export type PlatformAiSettingsPatch = Partial<
 
 const SELECT_COLUMNS = "globalSystemPrompt, prohibitedTopics, toneOfVoice, updatedAt";
 
-// Table is newer than the generated types; regenerate `types.ts` after the migration is applied.
-type UntypedSupabase = {
-  from: (table: string) => ReturnType<typeof supabase.from>;
-};
-
-const db = supabase as unknown as UntypedSupabase;
-
 function toRecord(row: unknown): PlatformAiSettingsRecord {
+  // Defensive read: the singleton row may be missing (RLS hides it from non-admins).
   const record = (row ?? {}) as Record<string, unknown>;
   return {
     globalSystemPrompt:
@@ -60,7 +55,7 @@ export function normalizeTopics(topics: readonly string[]): string[] {
 }
 
 export async function fetchPlatformAiSettings(): Promise<PlatformAiSettingsRecord> {
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from("platformAiSettings")
     .select(SELECT_COLUMNS)
     .eq("id", PLATFORM_AI_SETTINGS_ROW_ID)
@@ -74,7 +69,7 @@ export async function savePlatformAiSettings(
   patch: PlatformAiSettingsPatch,
 ): Promise<PlatformAiSettingsRecord> {
   // `updatedBy` is set by a DB trigger from auth.uid().
-  const payload: Record<string, unknown> = { id: PLATFORM_AI_SETTINGS_ROW_ID };
+  const payload: TablesInsert<"platformAiSettings"> = { id: PLATFORM_AI_SETTINGS_ROW_ID };
   if (patch.globalSystemPrompt !== undefined) {
     payload.globalSystemPrompt = patch.globalSystemPrompt.trim();
   }
@@ -85,9 +80,9 @@ export async function savePlatformAiSettings(
     payload.toneOfVoice = patch.toneOfVoice.trim();
   }
 
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from("platformAiSettings")
-    .upsert(payload as never, { onConflict: "id" })
+    .upsert(payload, { onConflict: "id" })
     .select(SELECT_COLUMNS)
     .single();
   if (error) throw new Error(error.message || "Couldn't save AI settings.");
