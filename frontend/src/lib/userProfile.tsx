@@ -17,6 +17,7 @@ import {
 import { addNinetyDaysIso } from "@/lib/reassessment/reassessmentEntitlements";
 import { resolveCurrentTier } from "@/lib/settings/subscriptionApi";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 
 export interface UserProfile {
@@ -210,7 +211,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         traumaActivationLevel: data.traumaActivationLevel ?? null,
         griefLoadLevel: data.griefLoadLevel ?? null,
         priorSupportType: data.priorSupportType ?? null,
-        significantEvents12mo: data.significantEvents12mo ?? null,
+        significantEvents12mo: Array.isArray(data.significantEvents12mo)
+          ? data.significantEvents12mo.filter((event): event is string => typeof event === "string")
+          : null,
         financialStabilitySignal: data.financialStabilitySignal ?? null,
         financialAnxietyLevel: data.financialAnxietyLevel ?? null,
         financialAgencyLevel: data.financialAgencyLevel ?? null,
@@ -299,7 +302,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     async (payload: OnboardingDraftPayload) => {
       if (!user) return;
 
-      const updates: Record<string, unknown> = {};
+      const updates: TablesUpdate<"profiles"> = {};
       if (payload.firstName !== undefined) updates.firstName = payload.firstName;
       if (payload.lastName !== undefined) updates.lastName = payload.lastName;
       if (payload.roleTypes !== undefined) {
