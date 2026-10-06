@@ -26,7 +26,11 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      // Edge functions import Deno `npm:` specifiers; stub for unit tests (see src/test/stubs).
+      "npm:ai": path.resolve(__dirname, "./src/test/stubs/npmAi.ts"),
+    },
   },
   server: {
     fs: {

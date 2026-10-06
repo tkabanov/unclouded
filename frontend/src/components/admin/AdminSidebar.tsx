@@ -46,6 +46,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   [ADMIN_SUB_TAB.BOOKINGS]: MessageSquareText,
   [ADMIN_SUB_TAB.REASSESSMENTS]: FileText,
   [ADMIN_SUB_TAB.PROMPT_TESTS]: Sparkles,
+  [ADMIN_SUB_TAB.AI_SETTINGS]: Sparkles,
 };
 
 function SidebarLink({

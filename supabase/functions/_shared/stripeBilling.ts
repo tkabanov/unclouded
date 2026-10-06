@@ -6,7 +6,7 @@
  * Amounts shown to the user always come from Stripe — never computed in the app.
  */
 import Stripe from "npm:stripe@17.7.0";
-import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 import {
   appOrigin,
@@ -18,6 +18,7 @@ import {
   type PaidTier,
   type SubscriptionTier,
 } from "./subscriptionLifecycle.ts";
+import { getServiceClient } from "./serviceClient.ts";
 
 export type PlanPriceRow = {
   tierSlug: PaidTier;
@@ -49,11 +50,7 @@ export function getStripe(): Stripe {
   return stripeSingleton;
 }
 
-export function getServiceClient(): SupabaseClient {
-  return createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
+export { getServiceClient };
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

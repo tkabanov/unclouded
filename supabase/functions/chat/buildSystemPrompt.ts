@@ -1,5 +1,10 @@
 import { buildChatContextBlock } from "./prompt/chatContext.ts";
 import {
+  buildPlatformRulesBlock,
+  buildToneBlock,
+  type PlatformAiSettings,
+} from "../_shared/platformAiSettings.ts";
+import {
   CUSTOMER_ROLE,
   parseCustomerRoleTypesFromProfile,
   profileHasCustomerRole,
@@ -316,11 +321,13 @@ function buildModuleModifierBlocks(
  * 6 Load → 7 State → 8 Recovery → 9 Grief → modules → 7b Confidence →
  * fingerprint → trauma → directed writing → incomplete/opening → user data →
  * 10 Chat Context → 11 Decision → 12 Adaptive Human Guidance → 13 Tradeoff + Final.
+ * Platform AI settings (NCLDD-53): rules after 1 Safety, tone after 13.
  */
 export function buildSystemPrompt(
   profile: ProfileData | undefined,
   context?: string,
   promptLayers?: PromptLibraryLayerMap,
+  platformSettings?: PlatformAiSettings | null,
 ): string {
   const safeProfile = profile ?? {};
   const results = asRecord(safeProfile.results);
@@ -344,6 +351,8 @@ export function buildSystemPrompt(
   const blocks: string[] = [
     resolvePromptLayer(promptLayers, "master_philosophy", MASTER_PHILOSOPHY_PROMPT),
     resolvePromptLayer(promptLayers, "safety_boundaries", SAFETY_BOUNDARIES),
+    // NCLDD-53: admin platform rules sit right below Safety Boundaries ("" is filtered out).
+    buildPlatformRulesBlock(platformSettings) ?? "",
     resolvePromptLayer(promptLayers, "master_base", MASTER_BASE_PROMPT).split("[USER_FIRST_NAME]").join(displayName),
     resolvePromptLayer(promptLayers, "general_rules", GENERAL_RULES_PROMPT),
     substitutePlaceholders(MODE_PROMPTS[modes.primary], placeholders),
@@ -416,6 +425,10 @@ export function buildSystemPrompt(
     resolvePromptLayer(promptLayers, "tradeoff_engine", TRADEOFF_ENGINE_PROMPT),
     resolvePromptLayer(promptLayers, "adaptive_intelligence", ADAPTIVE_INTELLIGENCE_PROMPT),
   );
+
+  // NCLDD-53: tone is last and explicitly subordinate.
+  const toneBlock = buildToneBlock(platformSettings);
+  if (toneBlock) blocks.push(toneBlock);
 
   return blocks.filter(Boolean).join("\n\n---\n\n");
 }

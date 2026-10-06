@@ -1,5 +1,7 @@
 import { generateText } from "npm:ai";
 import { createChatModel } from "../_shared/openai-provider.ts";
+import { getServiceClient } from "../_shared/serviceClient.ts";
+import { loadPlatformAiSettings, withPlatformSettings } from "../_shared/platformAiSettings.ts";
 import type { PupPdfNarrative, PupPdfTier } from "./types.ts";
 
 const SYSTEM = `You are Dr. Sam writing short PDF report copy for Uncloud360 (PuP 360).
@@ -37,10 +39,13 @@ export async function generatePdfNarrative(input: NarrativeInput): Promise<PupPd
     .map((r, i) => `Q${i + 1}: ${r.question}\nA: ${r.answer}`)
     .join("\n\n");
 
+  // NCLDD-53: platform rules + tone wrap the PDF copy prompt (JSON format stays in SYSTEM).
+  const system = withPlatformSettings(SYSTEM, await loadPlatformAiSettings(getServiceClient));
+
   if (input.tier === "pro") {
     const { text } = await generateText({
       model: createChatModel(),
-      system: SYSTEM,
+      system,
       prompt: `Write a 3-4 sentence coaching context paragraph for ${input.firstName}'s Pro PuP 360 summary PDF.
 
 Scores — Stability: ${input.scores.stability}, Performance: ${input.scores.performance}, Alignment: ${input.scores.alignment}
@@ -58,7 +63,7 @@ Return JSON: { "coachingContext": "..." }`,
 
   const { text } = await generateText({
     model: createChatModel(),
-    system: SYSTEM,
+    system,
     prompt: `Write Premium PuP 360 diagnostic PDF narrative for ${input.firstName}.
 
 Scores — Stability: ${input.scores.stability}, Performance: ${input.scores.performance}, Alignment: ${input.scores.alignment}
