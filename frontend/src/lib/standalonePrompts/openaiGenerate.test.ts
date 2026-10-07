@@ -31,7 +31,8 @@ describe("generateStandaloneText platform AI settings", () => {
 
   it("wraps the system prompt with platform rules and tone", async () => {
     loadSettingsMock.mockResolvedValue({
-      globalSystemPrompt: "Rule.",
+      globalSystemPrompt: "Base.",
+      platformRules: "Rule.",
       prohibitedTopics: ["politics"],
       toneOfVoice: "Warm.",
     });
@@ -39,7 +40,9 @@ describe("generateStandaloneText platform AI settings", () => {
     expect(text).toBe("reply");
     const system = generateTextMock.mock.calls[0][0].system as string;
     expect(system.indexOf(PLATFORM_RULES_HEADER)).toBe(0);
-    expect(system).not.toContain("Rule.");
+    expect(system).not.toContain("Base.");
+    expect(system.indexOf("Rule.")).toBeGreaterThan(0);
+    expect(system.indexOf("Rule.")).toBeLessThan(system.indexOf("Return JSON."));
     expect(system.indexOf("Return JSON.")).toBeGreaterThan(0);
     expect(system.indexOf(TONE_OF_VOICE_HEADER)).toBeGreaterThan(system.indexOf("Return JSON."));
   });

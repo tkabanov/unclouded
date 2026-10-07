@@ -1150,6 +1150,7 @@ export type Database = {
           createdAt: string
           globalSystemPrompt: string
           id: number
+          platformRules: string
           prohibitedTopics: string[]
           toneOfVoice: string
           updatedAt: string
@@ -1159,6 +1160,7 @@ export type Database = {
           createdAt?: string
           globalSystemPrompt?: string
           id?: number
+          platformRules?: string
           prohibitedTopics?: string[]
           toneOfVoice?: string
           updatedAt?: string
@@ -1168,6 +1170,7 @@ export type Database = {
           createdAt?: string
           globalSystemPrompt?: string
           id?: number
+          platformRules?: string
           prohibitedTopics?: string[]
           toneOfVoice?: string
           updatedAt?: string
