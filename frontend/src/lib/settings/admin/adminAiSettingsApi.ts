@@ -5,7 +5,7 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 export const PLATFORM_AI_SETTINGS_ROW_ID = 1;
 
 export const AI_SETTINGS_LIMITS = {
-  globalSystemPrompt: 8000,
+  globalSystemPrompt: 100000,
   toneOfVoice: 1000,
   topicCount: 50,
   topicLength: 200,

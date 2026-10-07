@@ -149,16 +149,16 @@ export default function AdminAiSettingsTab() {
 
       <SettingCard
         title="Global system prompt"
-        description="Platform-wide instructions for text and voice AI. Applied right after safety rules."
+        description="Base coaching prompt for text and voice AI chat. Applied right after safety rules; [USER_FIRST_NAME] is replaced with the user's name."
         dirty={promptDirty}
       >
         <Textarea
           value={globalPrompt}
           onChange={(event) => setGlobalPrompt(event.target.value)}
-          rows={8}
+          rows={20}
           disabled={busy.globalSystemPrompt}
           aria-label="Global system prompt"
-          placeholder="e.g. Always answer in English. Never recommend specific products."
+          placeholder="Empty — the built-in base prompt from code is used."
         />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CharCounter value={globalPrompt} max={AI_SETTINGS_LIMITS.globalSystemPrompt} />
@@ -256,7 +256,7 @@ export default function AdminAiSettingsTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Clear global system prompt?</AlertDialogTitle>
             <AlertDialogDescription>
-              The AI will stop using the platform-wide prompt for new replies within ~1 minute.
+              New replies will fall back to the built-in base prompt from code within ~1 minute.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
