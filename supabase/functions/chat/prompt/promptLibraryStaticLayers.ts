@@ -49,3 +49,25 @@ export function resolvePromptLayer(
   const override = layers?.[layerKey];
   return typeof override === "string" && override.trim() ? override : fallback;
 }
+
+/**
+ * Always-on coaching core layers that the admin global system prompt replaces (OVR-070).
+ * Safety, crisis and conditional protocols stay in code / Prompt Library.
+ */
+export const CORE_BASE_LAYER_KEYS = [
+  "master_philosophy",
+  "master_base",
+  "general_rules",
+  "decision_intelligence",
+  "adaptive_guidance",
+  "tradeoff_engine",
+  "adaptive_intelligence",
+] as const;
+
+/** Default base prompt text (used to seed `platformAiSettings.globalSystemPrompt`). */
+export function buildDefaultBasePrompt(layers?: PromptLibraryLayerMap): string {
+  const staticLayers = buildStaticPromptLayerMap();
+  return CORE_BASE_LAYER_KEYS.map((key) =>
+    resolvePromptLayer(layers, key, staticLayers[key] ?? ""),
+  ).join("\n\n---\n\n");
+}

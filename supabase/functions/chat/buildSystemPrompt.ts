@@ -1,5 +1,6 @@
 import { buildChatContextBlock } from "./prompt/chatContext.ts";
 import {
+  buildBasePromptBlock,
   buildPlatformRulesBlock,
   buildPlatformRulesReminderBlock,
   buildToneBlock,
@@ -322,7 +323,8 @@ function buildModuleModifierBlocks(
  * 6 Load → 7 State → 8 Recovery → 9 Grief → modules → 7b Confidence →
  * fingerprint → trauma → directed writing → incomplete/opening → user data →
  * 10 Chat Context → 11 Decision → 12 Adaptive Human Guidance → 13 Tradeoff + Final.
- * Platform AI settings (NCLDD-53): rules after 1 Safety; tail is
+ * Platform AI settings (NCLDD-53): a non-empty global system prompt replaces the core layers
+ * (0, 2, 3, 11–13) and sits right after 1 Safety (OVR-070); prohibited topics after it; tail is
  * [lifecycle instruction] → platform rules reminder → tone, so admin rules stay the last word.
  */
 export function buildSystemPrompt(
@@ -351,15 +353,20 @@ export function buildSystemPrompt(
   const confidenceLevel = resolveAiConfidenceLevel(modulesCompleted);
   const displayName = sanitizeDisplayName(safeProfile.firstName);
 
-  const blocks: string[] = [
-    resolvePromptLayer(promptLayers, "master_philosophy", MASTER_PHILOSOPHY_PROMPT),
-    resolvePromptLayer(promptLayers, "safety_boundaries", SAFETY_BOUNDARIES),
-    // NCLDD-53: admin platform rules sit right below Safety Boundaries ("" is filtered out).
-    buildPlatformRulesBlock(platformSettings) ?? "",
-    resolvePromptLayer(promptLayers, "master_base", MASTER_BASE_PROMPT).split("[USER_FIRST_NAME]").join(displayName),
-    resolvePromptLayer(promptLayers, "general_rules", GENERAL_RULES_PROMPT),
-    substitutePlaceholders(MODE_PROMPTS[modes.primary], placeholders),
-  ];
+  const adminBase = buildBasePromptBlock(platformSettings);
+  const safety = resolvePromptLayer(promptLayers, "safety_boundaries", SAFETY_BOUNDARIES);
+  // NCLDD-53: prohibited topics sit right below Safety Boundaries / admin base ("" is filtered out).
+  const rulesBlock = buildPlatformRulesBlock(platformSettings) ?? "";
+  const blocks: string[] = adminBase
+    ? [safety, adminBase.split("[USER_FIRST_NAME]").join(displayName), rulesBlock]
+    : [
+        resolvePromptLayer(promptLayers, "master_philosophy", MASTER_PHILOSOPHY_PROMPT),
+        safety,
+        rulesBlock,
+        resolvePromptLayer(promptLayers, "master_base", MASTER_BASE_PROMPT).split("[USER_FIRST_NAME]").join(displayName),
+        resolvePromptLayer(promptLayers, "general_rules", GENERAL_RULES_PROMPT),
+      ];
+  blocks.push(substitutePlaceholders(MODE_PROMPTS[modes.primary], placeholders));
 
   const classificationPrompt = CLASSIFICATION_PROMPTS[classificationKey];
   if (classificationPrompt) {
@@ -422,12 +429,14 @@ export function buildSystemPrompt(
     }
   }
 
-  blocks.push(
-    resolvePromptLayer(promptLayers, "decision_intelligence", DECISION_INTELLIGENCE_PROMPT),
-    resolvePromptLayer(promptLayers, "adaptive_guidance", ADAPTIVE_GUIDANCE_PROMPT),
-    resolvePromptLayer(promptLayers, "tradeoff_engine", TRADEOFF_ENGINE_PROMPT),
-    resolvePromptLayer(promptLayers, "adaptive_intelligence", ADAPTIVE_INTELLIGENCE_PROMPT),
-  );
+  if (!adminBase) {
+    blocks.push(
+      resolvePromptLayer(promptLayers, "decision_intelligence", DECISION_INTELLIGENCE_PROMPT),
+      resolvePromptLayer(promptLayers, "adaptive_guidance", ADAPTIVE_GUIDANCE_PROMPT),
+      resolvePromptLayer(promptLayers, "tradeoff_engine", TRADEOFF_ENGINE_PROMPT),
+      resolvePromptLayer(promptLayers, "adaptive_intelligence", ADAPTIVE_INTELLIGENCE_PROMPT),
+    );
+  }
 
   if (lifecycleInstruction) blocks.push(lifecycleInstruction);
 

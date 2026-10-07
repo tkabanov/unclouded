@@ -5,9 +5,14 @@ import {
   type ProfileData,
 } from "../../../../supabase/functions/chat/buildSystemPrompt.ts";
 import {
+  ADAPTIVE_INTELLIGENCE_PROMPT,
+  DECISION_INTELLIGENCE_PROMPT,
+  GENERAL_RULES_PROMPT,
   MASTER_BASE_PROMPT,
+  MASTER_PHILOSOPHY_PROMPT,
   SAFETY_BOUNDARIES,
 } from "../../../../supabase/functions/chat/prompt/library.ts";
+import { buildDefaultBasePrompt } from "../../../../supabase/functions/chat/prompt/promptLibraryStaticLayers.ts";
 import {
   EMPTY_PLATFORM_AI_SETTINGS,
   PLATFORM_RULES_HEADER,
@@ -1082,7 +1087,10 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
   });
 
   it("places platform rules after safety and before master base; tone is the last block", () => {
-    const prompt = buildSystemPrompt(baseProfile(), undefined, undefined, settings);
+    const prompt = buildSystemPrompt(baseProfile(), undefined, undefined, {
+      ...settings,
+      globalSystemPrompt: "",
+    });
     const safetyIndex = prompt.indexOf(SAFETY_BOUNDARIES.slice(0, 80));
     const rulesIndex = prompt.indexOf(PLATFORM_RULES_HEADER);
     const masterIndex = prompt.indexOf(MASTER_BASE_PROMPT.slice(0, 40));
@@ -1098,6 +1106,37 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     expect(blocks[blocks.length - 2].startsWith(PLATFORM_RULES_REMINDER_HEADER)).toBe(true);
   });
 
+  it("global system prompt replaces the core layers and sits right after safety (OVR-070)", () => {
+    const prompt = buildSystemPrompt(baseProfile(), undefined, undefined, {
+      ...settings,
+      globalSystemPrompt: "ADMIN BASE for [USER_FIRST_NAME]",
+    });
+    const blocks = prompt.split("\n\n---\n\n");
+    expect(blocks[0]).toBe(SAFETY_BOUNDARIES);
+    expect(blocks[1]).toBe("ADMIN BASE for Alex");
+    expect(blocks[2].startsWith(PLATFORM_RULES_HEADER)).toBe(true);
+    for (const layer of [
+      MASTER_PHILOSOPHY_PROMPT,
+      MASTER_BASE_PROMPT,
+      GENERAL_RULES_PROMPT,
+      DECISION_INTELLIGENCE_PROMPT,
+      ADAPTIVE_INTELLIGENCE_PROMPT,
+    ]) {
+      expect(prompt).not.toContain(layer.slice(0, 120));
+    }
+  });
+
+  it("default base prompt (seed) reproduces the core layers of the code prompt", () => {
+    const profile = baseProfile();
+    const withSeed = buildSystemPrompt(profile, undefined, undefined, {
+      globalSystemPrompt: buildDefaultBasePrompt(),
+      prohibitedTopics: [],
+      toneOfVoice: "",
+    });
+    const blocks = buildSystemPrompt(profile).split("\n\n---\n\n");
+    for (const block of blocks) expect(withSeed).toContain(block);
+  });
+
   it("restates platform rules after the session_open lifecycle instruction (BUG-1)", () => {
     const profile = baseProfile();
     const instruction = buildSessionLifecycleInstruction("session_open", profile);
@@ -1107,7 +1146,6 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     expect(blocks[blocks.length - 3]).toBe(instruction);
     const reminder = blocks[blocks.length - 2];
     expect(reminder.startsWith(PLATFORM_RULES_REMINDER_HEADER)).toBe(true);
-    expect(reminder).toContain("Always answer in English.");
     expect(reminder).toContain("- crypto trading");
     expect(blocks[blocks.length - 1].startsWith(TONE_OF_VOICE_HEADER)).toBe(true);
   });

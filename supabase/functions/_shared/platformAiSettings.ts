@@ -2,7 +2,8 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 /**
  * NCLDD-53 — platform-wide AI settings set by admins in `/admin/ai-settings`.
- * Priority: safety boundaries → platform rules (global prompt + prohibited topics) → coaching stack → tone.
+ * The global system prompt is the editable coaching base prompt (replaces the core code layers
+ * in chat, OVR-070). Priority: safety boundaries → prohibited topics → coaching stack → tone.
  * Empty settings must leave every prompt byte-identical to the pre-feature output.
  */
 export type PlatformAiSettings = {
@@ -63,32 +64,34 @@ export function normalizePlatformAiSettingsRow(row: unknown): PlatformAiSettings
   };
 }
 
+/** Base coaching prompt from the global system prompt field, or null when empty. */
+export function buildBasePromptBlock(
+  settings: PlatformAiSettings | null | undefined,
+): string | null {
+  if (!settings) return null;
+  const base = (settings.globalSystemPrompt ?? "").trim();
+  return base ? base : null;
+}
+
 function buildRulesBlockWithHeader(
   settings: PlatformAiSettings | null | undefined,
   header: string,
 ): string | null {
   if (!settings) return null;
-  const globalPrompt = sanitizeAdminText(settings.globalSystemPrompt ?? "");
   const topics = (settings.prohibitedTopics ?? []).map(sanitizeTopic).filter(Boolean);
-  if (!globalPrompt && topics.length === 0) return null;
+  if (topics.length === 0) return null;
 
-  const parts = [header];
-  if (globalPrompt) {
-    parts.push(wrapAdminText(globalPrompt));
-  }
-  if (topics.length > 0) {
-    parts.push(
-      [
-        "Prohibited topics. Do not discuss or engage with these topics; gently decline and redirect:",
-        ...topics.map((topic) => `- ${topic}`),
-      ].join("\n"),
-    );
-  }
-  parts.push("Keep any required output format.");
-  return parts.join("\n\n");
+  return [
+    header,
+    [
+      "Prohibited topics. Do not discuss or engage with these topics; gently decline and redirect:",
+      ...topics.map((topic) => `- ${topic}`),
+    ].join("\n"),
+    "Keep any required output format.",
+  ].join("\n\n");
 }
 
-/** Platform rules block (global prompt + prohibited topics), or null when both are empty. */
+/** Platform rules block (prohibited topics), or null when there are none. */
 export function buildPlatformRulesBlock(
   settings: PlatformAiSettings | null | undefined,
 ): string | null {
@@ -117,7 +120,10 @@ export function buildToneBlock(settings: PlatformAiSettings | null | undefined):
   ].join("\n\n");
 }
 
-/** Wrap a standalone system prompt: platform rules → original prompt → tone. */
+/**
+ * Wrap a standalone system prompt: platform rules → original prompt → tone.
+ * The global system prompt (coaching base) is chat-only and not applied here.
+ */
 export function withPlatformSettings(
   system: string,
   settings: PlatformAiSettings | null | undefined,

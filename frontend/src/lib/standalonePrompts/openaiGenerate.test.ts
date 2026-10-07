@@ -39,6 +39,7 @@ describe("generateStandaloneText platform AI settings", () => {
     expect(text).toBe("reply");
     const system = generateTextMock.mock.calls[0][0].system as string;
     expect(system.indexOf(PLATFORM_RULES_HEADER)).toBe(0);
+    expect(system).not.toContain("Rule.");
     expect(system.indexOf("Return JSON.")).toBeGreaterThan(0);
     expect(system.indexOf(TONE_OF_VOICE_HEADER)).toBeGreaterThan(system.indexOf("Return JSON."));
   });
