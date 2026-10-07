@@ -6,6 +6,7 @@ export const PLATFORM_AI_SETTINGS_ROW_ID = 1;
 
 export const AI_SETTINGS_LIMITS = {
   globalSystemPrompt: 100000,
+  platformRules: 8000,
   toneOfVoice: 1000,
   topicCount: 50,
   topicLength: 200,
@@ -13,16 +14,21 @@ export const AI_SETTINGS_LIMITS = {
 
 export type PlatformAiSettingsRecord = {
   globalSystemPrompt: string;
+  platformRules: string;
   prohibitedTopics: string[];
   toneOfVoice: string;
   updatedAt: string | null;
 };
 
 export type PlatformAiSettingsPatch = Partial<
-  Pick<PlatformAiSettingsRecord, "globalSystemPrompt" | "prohibitedTopics" | "toneOfVoice">
+  Pick<
+    PlatformAiSettingsRecord,
+    "globalSystemPrompt" | "platformRules" | "prohibitedTopics" | "toneOfVoice"
+  >
 >;
 
-const SELECT_COLUMNS = "globalSystemPrompt, prohibitedTopics, toneOfVoice, updatedAt";
+const SELECT_COLUMNS =
+  "globalSystemPrompt, platformRules, prohibitedTopics, toneOfVoice, updatedAt";
 
 function toRecord(row: unknown): PlatformAiSettingsRecord {
   // Defensive read: the singleton row may be missing (RLS hides it from non-admins).
@@ -30,6 +36,7 @@ function toRecord(row: unknown): PlatformAiSettingsRecord {
   return {
     globalSystemPrompt:
       typeof record.globalSystemPrompt === "string" ? record.globalSystemPrompt : "",
+    platformRules: typeof record.platformRules === "string" ? record.platformRules : "",
     prohibitedTopics: Array.isArray(record.prohibitedTopics)
       ? record.prohibitedTopics.filter((topic): topic is string => typeof topic === "string")
       : [],
@@ -80,6 +87,9 @@ export async function savePlatformAiSettings(
   const payload: TablesInsert<"platformAiSettings"> = { id: PLATFORM_AI_SETTINGS_ROW_ID };
   if (patch.globalSystemPrompt !== undefined) {
     payload.globalSystemPrompt = patch.globalSystemPrompt.trim();
+  }
+  if (patch.platformRules !== undefined) {
+    payload.platformRules = patch.platformRules.trim();
   }
   if (patch.prohibitedTopics !== undefined) {
     payload.prohibitedTopics = normalizeTopics(patch.prohibitedTopics);

@@ -26,7 +26,26 @@ import {
 import { cn } from "@/lib/utils";
 import { bubbleStyle } from "@/styles";
 
-type FieldKey = "globalSystemPrompt" | "prohibitedTopics" | "toneOfVoice";
+type FieldKey = "globalSystemPrompt" | "platformRules" | "prohibitedTopics" | "toneOfVoice";
+type ClearableField = "globalSystemPrompt" | "platformRules";
+
+const CLEAR_DIALOG: Record<
+  ClearableField,
+  { title: string; description: string; action: string; success: string }
+> = {
+  globalSystemPrompt: {
+    title: "Clear global system prompt?",
+    description: "New replies will fall back to the built-in base prompt from code within ~1 minute.",
+    action: "Clear prompt",
+    success: "Global system prompt cleared.",
+  },
+  platformRules: {
+    title: "Clear platform rules?",
+    description: "New replies will stop following these rules within ~1 minute.",
+    action: "Clear rules",
+    success: "Platform rules cleared.",
+  },
+};
 
 function sameTopics(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((topic, index) => topic === b[index]);
@@ -71,14 +90,17 @@ export default function AdminAiSettingsTab() {
   const [saved, setSaved] = useState<PlatformAiSettingsRecord | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [globalPrompt, setGlobalPrompt] = useState("");
+  const [rules, setRules] = useState("");
   const [topics, setTopics] = useState<string[]>([]);
   const [tone, setTone] = useState("");
   const [busy, setBusy] = useState<Record<FieldKey, boolean>>({
     globalSystemPrompt: false,
+    platformRules: false,
     prohibitedTopics: false,
     toneOfVoice: false,
   });
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [clearTarget, setClearTarget] = useState<ClearableField>("globalSystemPrompt");
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +109,7 @@ export default function AdminAiSettingsTab() {
         if (cancelled) return;
         setSaved(record);
         setGlobalPrompt(record.globalSystemPrompt);
+        setRules(record.platformRules);
         setTopics(record.prohibitedTopics);
         setTone(record.toneOfVoice);
       })
@@ -107,6 +130,7 @@ export default function AdminAiSettingsTab() {
         // Re-read the confirmed value so unsaved text is never shown as applied.
         setSaved((prev) => (prev ? { ...prev, [field]: record[field], updatedAt: record.updatedAt } : record));
         if (field === "globalSystemPrompt") setGlobalPrompt(record.globalSystemPrompt);
+        if (field === "platformRules") setRules(record.platformRules);
         if (field === "prohibitedTopics") setTopics(record.prohibitedTopics);
         if (field === "toneOfVoice") setTone(record.toneOfVoice);
         toast.success(successMessage);
@@ -128,10 +152,17 @@ export default function AdminAiSettingsTab() {
   }
 
   const promptDirty = globalPrompt.trim() !== saved.globalSystemPrompt;
+  const rulesDirty = rules.trim() !== saved.platformRules;
   const topicsDirty = !sameTopics(topics, saved.prohibitedTopics);
   const toneDirty = tone.trim() !== saved.toneOfVoice;
   const promptTooLong = globalPrompt.length > AI_SETTINGS_LIMITS.globalSystemPrompt;
+  const rulesTooLong = rules.length > AI_SETTINGS_LIMITS.platformRules;
   const toneTooLong = tone.length > AI_SETTINGS_LIMITS.toneOfVoice;
+  const clearDialog = CLEAR_DIALOG[clearTarget];
+  const askClear = (field: ClearableField) => {
+    setClearTarget(field);
+    setConfirmClearOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -171,7 +202,7 @@ export default function AdminAiSettingsTab() {
               onClick={() => {
                 // Nothing applied yet: just discard the local text.
                 if (!saved.globalSystemPrompt) setGlobalPrompt("");
-                else setConfirmClearOpen(true);
+                else askClear("globalSystemPrompt");
               }}
             >
               Clear
@@ -189,6 +220,49 @@ export default function AdminAiSettingsTab() {
               }
             >
               {busy.globalSystemPrompt ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </div>
+      </SettingCard>
+
+      <SettingCard
+        title="Platform rules"
+        description="Short rules every AI reply must follow (chat, session opening and close, generated content). Highest priority after safety; overrides the global prompt and tone."
+        dirty={rulesDirty}
+      >
+        <Textarea
+          value={rules}
+          onChange={(event) => setRules(event.target.value)}
+          rows={6}
+          disabled={busy.platformRules}
+          aria-label="Platform rules"
+          placeholder="e.g. Never give medical diagnoses. Always reply in English."
+        />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CharCounter value={rules} max={AI_SETTINGS_LIMITS.platformRules} />
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={busy.platformRules || (!saved.platformRules && !rules)}
+              onClick={() => {
+                // Nothing applied yet: just discard the local text.
+                if (!saved.platformRules) setRules("");
+                else askClear("platformRules");
+              }}
+            >
+              Clear
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={busy.platformRules || !rulesDirty || rulesTooLong}
+              onClick={() =>
+                void save("platformRules", { platformRules: rules }, "Platform rules saved.")
+              }
+            >
+              {busy.platformRules ? "Saving…" : "Save"}
             </Button>
           </div>
         </div>
@@ -227,7 +301,7 @@ export default function AdminAiSettingsTab() {
 
       <SettingCard
         title="Tone of voice"
-        description="Style only. Never overrides safety rules, the global prompt or prohibited topics."
+        description="Style only. Never overrides safety rules, platform rules, the global prompt or prohibited topics."
         dirty={toneDirty}
       >
         <Textarea
@@ -254,19 +328,15 @@ export default function AdminAiSettingsTab() {
       <AlertDialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear global system prompt?</AlertDialogTitle>
-            <AlertDialogDescription>
-              New replies will fall back to the built-in base prompt from code within ~1 minute.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{clearDialog.title}</AlertDialogTitle>
+            <AlertDialogDescription>{clearDialog.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() =>
-                void save("globalSystemPrompt", { globalSystemPrompt: "" }, "Global system prompt cleared.")
-              }
+              onClick={() => void save(clearTarget, { [clearTarget]: "" }, clearDialog.success)}
             >
-              Clear prompt
+              {clearDialog.action}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

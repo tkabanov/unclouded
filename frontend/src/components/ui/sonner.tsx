@@ -10,6 +10,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      // Top-right keeps toasts off bottom-of-card Save buttons (NCLDD-53 UX-1).
+      position="top-right"
       toastOptions={{
         classNames: {
           toast:

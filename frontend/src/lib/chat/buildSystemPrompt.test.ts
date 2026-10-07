@@ -1068,6 +1068,7 @@ describe("prompt library verbatim anchors", () => {
 describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
   const settings: PlatformAiSettings = {
     globalSystemPrompt: "Always answer in English.",
+    platformRules: "End every reply with KIWI.",
     prohibitedTopics: ["politics", "crypto trading"],
     toneOfVoice: "Very casual.",
   };
@@ -1080,6 +1081,7 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     expect(
       buildSystemPrompt(profile, "ctx", undefined, {
         globalSystemPrompt: "   ",
+        platformRules: "  ",
         prohibitedTopics: ["  "],
         toneOfVoice: "",
       }),
@@ -1099,6 +1101,8 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     expect(masterIndex).toBeGreaterThan(rulesIndex);
     expect(prompt).toContain("- politics");
     expect(prompt).toContain("- crypto trading");
+    expect(prompt.indexOf("End every reply with KIWI.")).toBeGreaterThan(rulesIndex);
+    expect(prompt.indexOf("End every reply with KIWI.")).toBeLessThan(masterIndex);
 
     const blocks = prompt.split("\n\n---\n\n");
     expect(blocks[blocks.length - 1].startsWith(TONE_OF_VOICE_HEADER)).toBe(true);
@@ -1106,15 +1110,16 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     expect(blocks[blocks.length - 2].startsWith(PLATFORM_RULES_REMINDER_HEADER)).toBe(true);
   });
 
-  it("global system prompt replaces the core layers and sits right after safety (OVR-070)", () => {
+  it("global system prompt replaces the core layers and follows safety + platform rules (OVR-070/071)", () => {
     const prompt = buildSystemPrompt(baseProfile(), undefined, undefined, {
       ...settings,
       globalSystemPrompt: "ADMIN BASE for [USER_FIRST_NAME]",
     });
     const blocks = prompt.split("\n\n---\n\n");
     expect(blocks[0]).toBe(SAFETY_BOUNDARIES);
-    expect(blocks[1]).toBe("ADMIN BASE for Alex");
-    expect(blocks[2].startsWith(PLATFORM_RULES_HEADER)).toBe(true);
+    expect(blocks[1].startsWith(PLATFORM_RULES_HEADER)).toBe(true);
+    expect(blocks[1]).toContain("End every reply with KIWI.");
+    expect(blocks[2]).toBe("ADMIN BASE for Alex");
     for (const layer of [
       MASTER_PHILOSOPHY_PROMPT,
       MASTER_BASE_PROMPT,
@@ -1130,6 +1135,7 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     const profile = baseProfile();
     const withSeed = buildSystemPrompt(profile, undefined, undefined, {
       globalSystemPrompt: buildDefaultBasePrompt(),
+      platformRules: "",
       prohibitedTopics: [],
       toneOfVoice: "",
     });
@@ -1147,6 +1153,26 @@ describe("buildSystemPrompt platform AI settings (NCLDD-53)", () => {
     const reminder = blocks[blocks.length - 2];
     expect(reminder.startsWith(PLATFORM_RULES_REMINDER_HEADER)).toBe(true);
     expect(reminder).toContain("- crypto trading");
+    expect(reminder).toContain("End every reply with KIWI.");
+    expect(blocks[blocks.length - 1].startsWith(TONE_OF_VOICE_HEADER)).toBe(true);
+  });
+
+  it("restates platform rules alone (no topics) after session_open, before tone (OVR-071)", () => {
+    const profile = baseProfile();
+    const instruction = buildSessionLifecycleInstruction("session_open", profile);
+    const prompt = buildSystemPrompt(
+      profile,
+      undefined,
+      undefined,
+      { ...settings, prohibitedTopics: [] },
+      instruction,
+    );
+    const blocks = prompt.split("\n\n---\n\n");
+    expect(blocks[1].startsWith(PLATFORM_RULES_HEADER)).toBe(true);
+    expect(blocks[blocks.length - 3]).toBe(instruction);
+    expect(blocks[blocks.length - 2].startsWith(PLATFORM_RULES_REMINDER_HEADER)).toBe(true);
+    expect(blocks[blocks.length - 2]).toContain("End every reply with KIWI.");
+    expect(blocks[blocks.length - 2]).not.toContain("Prohibited topics.");
     expect(blocks[blocks.length - 1].startsWith(TONE_OF_VOICE_HEADER)).toBe(true);
   });
 

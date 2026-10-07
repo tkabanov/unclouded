@@ -323,9 +323,10 @@ function buildModuleModifierBlocks(
  * 6 Load → 7 State → 8 Recovery → 9 Grief → modules → 7b Confidence →
  * fingerprint → trauma → directed writing → incomplete/opening → user data →
  * 10 Chat Context → 11 Decision → 12 Adaptive Human Guidance → 13 Tradeoff + Final.
- * Platform AI settings (NCLDD-53): a non-empty global system prompt replaces the core layers
- * (0, 2, 3, 11–13) and sits right after 1 Safety (OVR-070); prohibited topics after it; tail is
- * [lifecycle instruction] → platform rules reminder → tone, so admin rules stay the last word.
+ * Platform AI settings (NCLDD-53): platform rules + prohibited topics sit right after 1 Safety
+ * (OVR-071); a non-empty global system prompt replaces the core layers (0, 2, 3, 11–13) and
+ * follows them (OVR-070); tail is [lifecycle instruction] → platform rules reminder → tone, so
+ * admin rules stay the last word.
  */
 export function buildSystemPrompt(
   profile: ProfileData | undefined,
@@ -355,10 +356,11 @@ export function buildSystemPrompt(
 
   const adminBase = buildBasePromptBlock(platformSettings);
   const safety = resolvePromptLayer(promptLayers, "safety_boundaries", SAFETY_BOUNDARIES);
-  // NCLDD-53: prohibited topics sit right below Safety Boundaries / admin base ("" is filtered out).
+  // NCLDD-53 / OVR-071: platform rules + prohibited topics sit right below Safety Boundaries,
+  // above the admin base prompt ("" is filtered out).
   const rulesBlock = buildPlatformRulesBlock(platformSettings) ?? "";
   const blocks: string[] = adminBase
-    ? [safety, adminBase.split("[USER_FIRST_NAME]").join(displayName), rulesBlock]
+    ? [safety, rulesBlock, adminBase.split("[USER_FIRST_NAME]").join(displayName)]
     : [
         resolvePromptLayer(promptLayers, "master_philosophy", MASTER_PHILOSOPHY_PROMPT),
         safety,
