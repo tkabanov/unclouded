@@ -85,7 +85,7 @@ export default function AdminSidebar() {
   const activeTab = resolveAdminSubTab(pathname);
 
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-border bg-card">
+    <aside className="sticky top-0 flex h-screen w-56 shrink-0 self-start flex-col border-r border-border bg-card">
       <div className="flex items-start gap-2 border-b border-border px-4 py-4">
         <img
           src={logoIcon}
