@@ -1,6 +1,11 @@
 import type { ChatMessage } from "@/components/chat/types";
 import { supabase } from "@/integrations/supabase/client";
 import { readChatStreamText } from "@/lib/chat/readChatStreamText";
+import {
+  AI_MONTHLY_LIMIT_CODE,
+  FREE_TIER_LIMIT_CODE,
+  formatMonthlyAiLimitMessage,
+} from "@/lib/chat/chatSessionLimit";
 import type { ProfileData } from "../../../../supabase/functions/chat/prompt/types.ts";
 import type { ChatLifecycleMode } from "../../../../supabase/functions/chat/prompt/sessionLifecycle.ts";
 
@@ -37,11 +42,13 @@ export class ChatEdgeError extends Error {
 type ChatErrorPayload = {
   error?: unknown;
   code?: unknown;
+  mode?: unknown;
 };
 
 async function parseChatError(response: Response): Promise<never> {
   let message = `chat edge function ${response.status}`;
   let code: string | undefined;
+  let limitMode: "text" | "voice" = "text";
 
   try {
     const payload = (await response.json()) as ChatErrorPayload;
@@ -51,6 +58,7 @@ async function parseChatError(response: Response): Promise<never> {
     if (typeof payload.code === "string") {
       code = payload.code;
     }
+    if (payload.mode === "voice") limitMode = "voice";
   } catch {
     // Non-JSON error responses still surface the status.
   }
@@ -59,8 +67,11 @@ async function parseChatError(response: Response): Promise<never> {
     throw new ChatEdgeError("Your session expired. Please sign in again.", "unauthorized");
   }
   if (response.status === 402) {
-    if (code === "free_tier_session_limit") {
+    if (code === FREE_TIER_LIMIT_CODE) {
       throw new ChatEdgeError(message, code);
+    }
+    if (code === AI_MONTHLY_LIMIT_CODE) {
+      throw new ChatEdgeError(formatMonthlyAiLimitMessage(limitMode), code);
     }
     throw new ChatEdgeError(
       "AI credits are exhausted. Add credits in Settings to continue.",

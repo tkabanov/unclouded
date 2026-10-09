@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       classification: ctx.classification,
       coachingMode: ctx.coachingMode,
       activeFlags: ctx.activeFlags,
-    });
+    }, { userId: auth.user.id });
   } catch (error) {
     // One retry after brief delay (spec: retry once).
     await new Promise((r) => setTimeout(r, 800));
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
         classification: ctx.classification,
         coachingMode: ctx.coachingMode,
         activeFlags: ctx.activeFlags,
-      });
+      }, { userId: auth.user.id });
     } catch {
       const message = error instanceof Error ? error.message : "Generation failed";
       return jsonResponse(502, { error: message });

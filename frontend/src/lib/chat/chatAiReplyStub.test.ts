@@ -57,6 +57,45 @@ describe("callChatEdge payload", () => {
     expect(body.context).toBe("Name: Alex");
   });
 
+  it("maps a 402 ai_monthly_limit_reached to a limit error, not the OpenAI quota message (NCLDD-52)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 402,
+      headers: { get: () => "application/json" },
+      json: async () => ({
+        error: "Monthly AI voice limit reached.",
+        code: "ai_monthly_limit_reached",
+        mode: "voice",
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { callChatEdge } = await import("@/lib/chat/chatAiReplyStub");
+
+    await expect(
+      callChatEdge({ messages: [{ id: "1", role: "user", content: "hi" }], conversationId: "c1" }),
+    ).rejects.toMatchObject({
+      code: "ai_monthly_limit_reached",
+      message: "You've reached this month's AI voice limit. It resets on the 1st (UTC).",
+    });
+  });
+
+  it("keeps the generic quota message for other 402 responses", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 402,
+      headers: { get: () => "application/json" },
+      json: async () => ({ error: "OpenAI quota exceeded" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { callChatEdge } = await import("@/lib/chat/chatAiReplyStub");
+
+    await expect(
+      callChatEdge({ messages: [{ id: "1", role: "user", content: "hi" }], conversationId: "c1" }),
+    ).rejects.toMatchObject({ code: "openai_quota" });
+  });
+
   it("returns text from session_close JSON replies", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

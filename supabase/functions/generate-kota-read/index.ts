@@ -1,6 +1,9 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { canonicalAppOrigin } from "../_shared/appOrigin.ts";
+import { normalizeUsage, recordAiUsage } from "../_shared/aiUsage.ts";
+import { scheduleEdgeBackgroundWork } from "../_shared/edgeBackground.ts";
+import { getServiceClient } from "../_shared/serviceClient.ts";
 import {
   buildKotaReadUserPrompt,
   buildPathsLine,
@@ -128,9 +131,13 @@ async function buildKotaReadContext(
   };
 }
 
+const KOTA_READ_MODEL = "gpt-4o-mini";
+
 async function generateKotaRead(params: {
   apiKey: string;
   context: KotaReadContext;
+  /** User the call is attributed to in the AI usage ledger (NCLDD-52). */
+  usageUserId: string;
 }): Promise<KotaReadBrief | null> {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -139,7 +146,7 @@ async function generateKotaRead(params: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: KOTA_READ_MODEL,
       temperature: 0.35,
       response_format: { type: "json_object" },
       messages: [
@@ -152,6 +159,15 @@ async function generateKotaRead(params: {
   if (!response.ok) return null;
 
   const payload = await response.json();
+  scheduleEdgeBackgroundWork(
+    recordAiUsage(getServiceClient(), {
+      userId: params.usageUserId,
+      mode: "other",
+      source: "kota_read",
+      model: KOTA_READ_MODEL,
+      usage: normalizeUsage(payload?.usage),
+    }),
+  );
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) return null;
 
@@ -223,6 +239,7 @@ Deno.serve(async (req) => {
     const kotaReadBrief = await generateKotaRead({
       apiKey: openaiKey,
       context,
+      usageUserId: targetUserId,
     });
 
     if (!kotaReadBrief) {
@@ -285,6 +302,7 @@ Deno.serve(async (req) => {
   const kotaReadBrief = await generateKotaRead({
     apiKey: openaiKey,
     context,
+    usageUserId: auth.user.id,
   });
 
   if (!kotaReadBrief) {

@@ -13,12 +13,15 @@ import {
 
 type UseVoiceSessionRecorderOptions = {
   enabled: boolean;
+  /** Attributes STT cost to the conversation in the AI usage ledger. */
+  conversationId?: string;
   onTranscript: (text: string, options?: { emotionDetected?: boolean }) => void | Promise<void>;
   onError?: (error: Error) => void;
 };
 
 export function useVoiceSessionRecorder({
   enabled,
+  conversationId,
   onTranscript,
   onError,
 }: UseVoiceSessionRecorderOptions) {
@@ -117,6 +120,7 @@ export function useVoiceSessionRecorder({
       const { text: transcript, emotionDetected } = await transcribeVoiceBlob(blob, {
         filename: validation.uploadFilename,
         durationSec: validation.durationSec,
+        conversationId,
       });
       if (!transcript.trim()) {
         throw new Error("No speech detected.");
@@ -127,7 +131,7 @@ export function useVoiceSessionRecorder({
     } finally {
       setTranscribing(false);
     }
-  }, [clearSilenceTimer, onError, onTranscript, resetSilenceState, stopTracks]);
+  }, [clearSilenceTimer, conversationId, onError, onTranscript, resetSilenceState, stopTracks]);
 
   const startRecording = useCallback(async () => {
     if (!enabled || recording || transcribing) return;

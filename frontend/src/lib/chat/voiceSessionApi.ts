@@ -4,6 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { ChatEdgeError } from "@/lib/chat/chatAiReplyStub";
+import { AI_MONTHLY_LIMIT_CODE, formatMonthlyAiLimitMessage } from "@/lib/chat/chatSessionLimit";
 import {
   decodeVoiceBlobToMonoSamples,
   detectVoiceEmotionFromBlob,
@@ -177,25 +179,31 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 async function parseVoiceError(response: Response, fallback: string): Promise<never> {
   let message = fallback;
+  let code: string | undefined;
   try {
-    const payload = (await response.json()) as { error?: unknown };
+    const payload = (await response.json()) as { error?: unknown; code?: unknown };
     if (typeof payload.error === "string" && payload.error.trim()) {
       message = payload.error.trim();
     }
+    if (typeof payload.code === "string") code = payload.code;
   } catch {
     // ignore
+  }
+  if (response.status === 402 && code === AI_MONTHLY_LIMIT_CODE) {
+    throw new ChatEdgeError(formatMonthlyAiLimitMessage("voice"), code);
   }
   throw new Error(message);
 }
 
 export async function transcribeVoiceBlob(
   audio: Blob,
-  options?: { filename?: string; durationSec?: number },
+  options?: { filename?: string; durationSec?: number; conversationId?: string },
 ): Promise<VoiceTranscriptionResult> {
   const form = new FormData();
   form.append("file", audio, options?.filename ?? "voice.webm");
   form.append("model", "whisper-1");
   form.append("language", "en");
+  if (options?.conversationId) form.append("conversationId", options.conversationId);
 
   const [response, emotionAnalysis] = await Promise.all([
     fetch(`${CHAT_ENDPOINT}?voice=transcribe`, {
@@ -227,7 +235,7 @@ export function playVoiceCloseRitualSilence(ms = VOICE_CLOSE_SILENCE_MS): Promis
   });
 }
 
-export async function synthesizeKotaSpeech(text: string): Promise<Blob> {
+export async function synthesizeKotaSpeech(text: string, conversationId?: string): Promise<Blob> {
   if (!text.trim()) {
     throw new Error("No text to synthesize");
   }
@@ -241,6 +249,7 @@ export async function synthesizeKotaSpeech(text: string): Promise<Blob> {
     body: JSON.stringify({
       text: text.slice(0, 4096),
       voice: KOTA_TTS_VOICE,
+      conversationId,
     }),
   });
 

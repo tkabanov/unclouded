@@ -18,6 +18,7 @@ export const ADMIN_SUB_TAB = {
   REASSESSMENTS: "reassessments",
   PROMPT_TESTS: "prompt_tests",
   AI_SETTINGS: "ai_settings",
+  AI_USAGE: "ai_usage",
   REFERRAL_PARTNERS: "referral_partners",
 } as const;
 
@@ -39,6 +40,7 @@ export const ADMIN_SUB_TAB_ORDER: readonly AdminSubTabSlug[] = [
   ADMIN_SUB_TAB.REASSESSMENTS,
   ADMIN_SUB_TAB.PROMPT_TESTS,
   ADMIN_SUB_TAB.AI_SETTINGS,
+  ADMIN_SUB_TAB.AI_USAGE,
   ADMIN_SUB_TAB.REFERRAL_PARTNERS,
 ];
 
@@ -60,5 +62,6 @@ export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
   reassessments: "Reassessments",
   prompt_tests: "Prompt Tests",
   ai_settings: "AI Settings",
+  ai_usage: "AI Usage",
   referral_partners: "Referral Partners",
 };

@@ -275,7 +275,7 @@ async function generateForAssessment(params: {
 
   let summary: CoachingSummaryResult;
   try {
-    summary = await generateCoachingSummary(input);
+    summary = await generateCoachingSummary(input, { userId });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
 

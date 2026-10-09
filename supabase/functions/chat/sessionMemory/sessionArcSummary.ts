@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { normalizeUsage, type UsageReporter } from "../../_shared/aiUsage.ts";
 import { sanitizePromptField } from "../prompt/profileHelpers.ts";
 import type { ProfileData } from "../prompt/types.ts";
 import { estimatePromptTokens, shouldCompressContext } from "../tokenEstimate.ts";
@@ -26,6 +27,8 @@ export const SESSION_ARC_UPDATED_AT_KEY = "session_arc_updated_at" as const;
 
 /** Target ~200 tokens (~150 words). */
 export const MAX_ARC_SUMMARY_WORDS = 150;
+
+const ARC_SUMMARY_MODEL = "gpt-4o-mini";
 
 const ARC_SYSTEM_PROMPT =
   "You compress coaching session history into a single session arc summary (~200 tokens max). Capture: (1) major themes over the period, (2) the most significant insight the user reached, (3) the current open commitment if any, (4) behavioral patterns observed. Never identify individuals by name. Use plain prose only — no bullet lists, no JSON.";
@@ -160,6 +163,7 @@ export function buildCompressedSessionMemorySectionLines(
 export async function generateSessionArcSummary(
   records: SessionMemoryRecord[],
   apiKey: string,
+  onUsage?: UsageReporter,
 ): Promise<string | null> {
   if (records.length === 0) return null;
 
@@ -170,7 +174,7 @@ export async function generateSessionArcSummary(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: ARC_SUMMARY_MODEL,
       temperature: 0.3,
       max_tokens: 280,
       messages: [
@@ -183,6 +187,7 @@ export async function generateSessionArcSummary(
   if (!response.ok) return null;
 
   const payload = await response.json();
+  onUsage?.(ARC_SUMMARY_MODEL, normalizeUsage(payload?.usage));
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) return null;
 
@@ -221,6 +226,7 @@ export async function applySessionMemoryCompressionIfNeeded(
   userId: string,
   profileData: ProfileData,
   assembledSystemPrompt: string,
+  onUsage?: UsageReporter,
 ): Promise<boolean> {
   if (!shouldCompressContext(estimatePromptTokens(assembledSystemPrompt))) {
     return false;
@@ -237,7 +243,7 @@ export async function applySessionMemoryCompressionIfNeeded(
     const apiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
     if (!apiKey) return false;
 
-    const generated = await generateSessionArcSummary(eligible, apiKey);
+    const generated = await generateSessionArcSummary(eligible, apiKey, onUsage);
     if (!generated?.trim()) return false;
 
     profileData.onboardingData = await persistSessionArcSummary(

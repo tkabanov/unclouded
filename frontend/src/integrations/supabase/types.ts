@@ -2505,6 +2505,44 @@ export type Database = {
         Args: { p_delta: number; p_note: string; p_user_id: string }
         Returns: Json
       }
+      admin_ai_limit_audit: {
+        Args: { p_limit?: number; p_offset?: number; p_user?: string }
+        Returns: Json
+      }
+      admin_ai_plan_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      admin_ai_usage_overview: {
+        Args: { p_from: string; p_tier?: string; p_to: string }
+        Returns: Json
+      }
+      admin_ai_usage_users: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+          p_tier?: string
+        }
+        Returns: Json
+      }
+      admin_ai_user_limit_detail: {
+        Args: { p_user: string }
+        Returns: Json
+      }
+      admin_restore_ai_user_limit: {
+        Args: { p_mode: string; p_user: string }
+        Returns: Json
+      }
+      admin_set_ai_plan_limit: {
+        Args: { p_amount: number; p_mode: string; p_tier: string }
+        Returns: Json
+      }
+      admin_set_ai_user_limit: {
+        Args: { p_amount?: number; p_kind: string; p_mode: string; p_user: string }
+        Returns: Json
+      }
       admin_cancel_group_coaching_session: {
         Args: { p_session_id: string }
         Returns: Json

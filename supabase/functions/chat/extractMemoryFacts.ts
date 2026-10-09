@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
+import { normalizeUsage, type UsageReporter } from "../_shared/aiUsage.ts";
+
 import {
   joinMemoryFactItems,
   mergeMemoryFactFieldWithDates,
@@ -8,6 +10,7 @@ import {
 } from "./sessionMemory/memoryFactItemHelpers.ts";
 
 const MAX_ITEMS_PER_FIELD = 5;
+const MEMORY_EXTRACT_MODEL = "gpt-4o-mini";
 
 type MemoryFactFields = {
   peopleInLife: string | null;
@@ -91,6 +94,7 @@ function parseExtractedPayload(raw: unknown): ExtractedMemoryPayload | null {
 async function extractWithOpenAi(
   transcript: string,
   apiKey: string,
+  onUsage?: UsageReporter,
 ): Promise<ExtractedMemoryPayload | null> {
   const trimmed = transcript.trim();
   if (!trimmed) return null;
@@ -102,7 +106,7 @@ async function extractWithOpenAi(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: MEMORY_EXTRACT_MODEL,
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
@@ -119,6 +123,7 @@ async function extractWithOpenAi(
   if (!response.ok) return null;
 
   const payload = await response.json();
+  onUsage?.(MEMORY_EXTRACT_MODEL, normalizeUsage(payload?.usage));
   const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) return null;
 
@@ -139,9 +144,10 @@ export async function extractMemoryFacts(
   userId: string,
   transcript: string,
   openaiApiKey: string,
+  onUsage?: UsageReporter,
 ): Promise<void> {
   try {
-    const extracted = await extractWithOpenAi(transcript, openaiApiKey);
+    const extracted = await extractWithOpenAi(transcript, openaiApiKey, onUsage);
     if (!extracted) return;
 
     const { data: existingRow } = await supabase

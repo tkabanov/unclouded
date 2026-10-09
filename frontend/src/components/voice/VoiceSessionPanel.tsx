@@ -13,7 +13,7 @@ import {
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
 import { generateAiReplyStub, type ChatAiProfileData, ChatEdgeError } from "@/lib/chat/chatAiReplyStub";
-import { FREE_TIER_UPSELL_MESSAGE } from "@/lib/chat/chatSessionLimit";
+import { isSessionLimitCode, sessionLimitNoticeFor } from "@/lib/chat/chatSessionLimit";
 import { touchConversationAfterMessage } from "@/lib/chat/chatConversationsApi";
 import {
   fetchMessagesForConversation,
@@ -67,7 +67,9 @@ export default function VoiceSessionPanel({
   const [awaitingCommitment, setAwaitingCommitment] = useState(false);
   const [closePromptMessageId, setClosePromptMessageId] = useState<string | null>(null);
   const [sessionClosed, setSessionClosed] = useState(false);
-  const [sessionLimitBlocked, setSessionLimitBlocked] = useState(false);
+  // Banner text while the session is blocked (Free-tier sessions or monthly AI budget); null = not blocked.
+  const [sessionLimitNotice, setSessionLimitNotice] = useState<string | null>(null);
+  const sessionLimitBlocked = sessionLimitNotice !== null;
   const openerSentForConversation = useRef<string | null>(null);
   const sessionLimitToastShown = useRef(false);
   const mountedRef = useRef(true);
@@ -109,7 +111,7 @@ export default function VoiceSessionPanel({
     setAwaitingCommitment(false);
     setClosePromptMessageId(null);
     setSessionClosed(false);
-    setSessionLimitBlocked(false);
+    setSessionLimitNotice(null);
     openerSentForConversation.current = null;
     sessionLimitToastShown.current = false;
     stopKotaSpeech();
@@ -137,14 +139,19 @@ export default function VoiceSessionPanel({
 
       // Persist first; keep Thinking… until TTS finishes, then reveal text.
       try {
-        const audio = await synthesizeKotaSpeech(assistantText);
+        const audio = await synthesizeKotaSpeech(assistantText, conversationId);
         if (!mountedRef.current || conversationIdRef.current !== conversationId) {
           return { assistantMessage, nextThread };
         }
         await playKotaSpeech(audio);
-      } catch {
+      } catch (error) {
         if (mountedRef.current && conversationIdRef.current === conversationId) {
-          toast.error("Couldn't play Kota's voice reply.");
+          if (error instanceof ChatEdgeError && isSessionLimitCode(error.code)) {
+            setSessionLimitNotice(sessionLimitNoticeFor(error.code, error.message));
+            toast.error(error.message);
+          } else {
+            toast.error("Couldn't play Kota's voice reply.");
+          }
         }
       }
 
@@ -210,8 +217,8 @@ export default function VoiceSessionPanel({
         );
         await sendAssistantMessage(openingText, []);
       } catch (error) {
-        if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
-          setSessionLimitBlocked(true);
+        if (error instanceof ChatEdgeError && isSessionLimitCode(error.code)) {
+          setSessionLimitNotice(sessionLimitNoticeFor(error.code, error.message));
           if (!sessionLimitToastShown.current) {
             sessionLimitToastShown.current = true;
             toast.error(error.message);
@@ -313,8 +320,8 @@ export default function VoiceSessionPanel({
           const { nextThread } = await sendAssistantMessage(assistantText, threadForAi);
           void maybeGenerateConversationTitle(nextThread);
         } catch (error) {
-          if (error instanceof ChatEdgeError && error.code === "free_tier_session_limit") {
-            setSessionLimitBlocked(true);
+          if (error instanceof ChatEdgeError && isSessionLimitCode(error.code)) {
+            setSessionLimitNotice(sessionLimitNoticeFor(error.code, error.message));
             if (!sessionLimitToastShown.current) {
               sessionLimitToastShown.current = true;
               toast.error(error.message);
@@ -379,9 +386,15 @@ export default function VoiceSessionPanel({
 
   const voiceRecorder = useVoiceSessionRecorder({
     enabled: !sessionClosed && !sessionLimitBlocked,
+    conversationId,
     onTranscript: (transcript, options) =>
       sendVoiceTurn(transcript, options?.emotionDetected),
-    onError: (error) => toast.error(error.message),
+    onError: (error) => {
+      if (error instanceof ChatEdgeError && isSessionLimitCode(error.code)) {
+        setSessionLimitNotice(sessionLimitNoticeFor(error.code, error.message));
+      }
+      toast.error(error.message);
+    },
   });
 
   if (loading) {
@@ -396,7 +409,7 @@ export default function VoiceSessionPanel({
     <section className={cn("flex h-full min-h-0 flex-col", className)}>
       {sessionLimitBlocked ? (
         <div className="border-b border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-          {FREE_TIER_UPSELL_MESSAGE}
+          {sessionLimitNotice}
         </div>
       ) : null}
 

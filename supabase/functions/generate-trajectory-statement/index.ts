@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
       coachingModeAfter: ctx.coachingMode,
       pathsCompleted: String(pathsCompleted ?? 0),
       activeFlags: ctx.activeFlags,
-    });
+    }, { userId: auth.user.id });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Generation failed";
     return jsonResponse(502, { error: message });
