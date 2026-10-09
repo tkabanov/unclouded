@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
         recentThemes: ctx.recentThemes,
         aiConfidenceLevel: ctx.aiConfidenceLevel,
         activeFlags: ctx.activeFlags,
-      });
+      }, { userId: profile.id });
     } catch (err) {
       console.error("daily_insights_failed", profile.id, err);
       const nextAttempt = (retryState?.attemptCount ?? 0) + 1;

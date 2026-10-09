@@ -17,6 +17,7 @@ import {
   ClipboardList,
   FileText,
   Flag,
+  Gauge,
   LayoutDashboard,
   Library,
   Lightbulb,
@@ -47,6 +48,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   [ADMIN_SUB_TAB.REASSESSMENTS]: FileText,
   [ADMIN_SUB_TAB.PROMPT_TESTS]: Sparkles,
   [ADMIN_SUB_TAB.AI_SETTINGS]: Sparkles,
+  [ADMIN_SUB_TAB.AI_USAGE]: Gauge,
 };
 
 function SidebarLink({

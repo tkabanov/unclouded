@@ -54,6 +54,8 @@ describe("resolveSessionOpeningTemplate", () => {
   it("includes memory hint from the latest stored session record", () => {
     const opening = resolveSessionOpeningTemplate(
       baseProfile({
+        tier: "pro",
+        subscribed: true,
         onboardingData: {
           ...(baseProfile().onboardingData as Record<string, unknown>),
           last_session_topic_text: "sleep",

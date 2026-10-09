@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
       classification: ctx.classification,
       coachingMode: ctx.coachingMode,
       activeFlags: ctx.activeFlags,
-    });
+    }, { userId: auth.user.id });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Generation failed";
     return jsonResponse(502, { error: message });

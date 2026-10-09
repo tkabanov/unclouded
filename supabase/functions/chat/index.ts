@@ -1,7 +1,17 @@
 import { convertToModelMessages, generateText, streamText, type UIMessage } from "npm:ai";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { createChatModel } from "../_shared/openai-provider.ts";
+import { createChatModel, resolveOpenAiModelId } from "../_shared/openai-provider.ts";
+import {
+  AI_MONTHLY_LIMIT_CODE,
+  normalizeUsage,
+  lookupConversation,
+  recordAiUsage,
+  type AiPlanTier,
+  type AiUsageMode,
+  type AiUsageSource,
+} from "../_shared/aiUsage.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
+import { endsSession, evaluateAiBudgetGate } from "./aiBudgetGate.ts";
 import { buildSystemPrompt, type ProfileData } from "./buildSystemPrompt.ts";
 import {
   CRISIS_RESPONSE_TEXT,
@@ -152,15 +162,22 @@ Deno.serve(async (req: Request) => {
       return jsonError(401, "Unauthorized");
     }
 
-    const voiceRoute = resolveVoiceRoute(req);
-    if (voiceRoute === "transcribe") {
-      return handleVoiceTranscribe(req);
-    }
-    if (voiceRoute === "tts") {
-      return handleVoiceTts(req);
-    }
-
     const { supabase, user } = auth;
+
+    const voiceRoute = resolveVoiceRoute(req);
+    if (voiceRoute === "transcribe" || voiceRoute === "tts") {
+      // NCLDD-52: voice STT/TTS are budget-checked and recorded; a missing service client only
+      // disables that (never the voice reply itself).
+      let usageAdmin: SupabaseClient | null = null;
+      try {
+        usageAdmin = getServiceClient();
+      } catch (err) {
+        console.warn("voice usage client unavailable", err);
+      }
+      return voiceRoute === "transcribe"
+        ? handleVoiceTranscribe(req, user.id, usageAdmin)
+        : handleVoiceTts(req, user.id, usageAdmin);
+    }
 
     let model;
     try {
@@ -180,6 +197,51 @@ Deno.serve(async (req: Request) => {
     const requestExchangeCount = body.exchangeCount;
     const requestVoiceEmotionDetected = body.voiceEmotionDetected;
 
+    // NCLDD-52: usage ledger + budget. Prompt tests and journal reflection are `other` (never limited).
+    const serviceClient = getServiceClient();
+    const modelId = resolveOpenAiModelId();
+    // `other` is only derived from server-verified paths (admin prompt tests). Never from a request
+    // field such as `context`, which a client could use to dodge the budget.
+    const conversationInfo =
+      lifecycle === "prompt_test"
+        ? { mode: "text" as const, owned: false }
+        : await lookupConversation(supabase, conversationId, user.id, requestSessionType);
+    const usageMode: AiUsageMode = lifecycle === "prompt_test" ? "other" : conversationInfo.mode;
+    let usageTier: AiPlanTier | null = null;
+    const trackUsage = (
+      source: AiUsageSource,
+      usage: unknown,
+      usedModel: string = modelId,
+      mode: AiUsageMode = usageMode,
+    ) => {
+      scheduleEdgeBackgroundWork(
+        recordAiUsage(serviceClient, {
+          userId: user.id,
+          conversationId,
+          mode,
+          source,
+          model: usedModel,
+          usage: normalizeUsage(usage),
+          tier: usageTier,
+        }),
+      );
+    };
+
+    const enforceBudget = async (allowWhenOwnedConversation: boolean): Promise<Response | null> => {
+      const gate = await evaluateAiBudgetGate(serviceClient, {
+        userId: user.id,
+        usageMode,
+        ownedConversation: conversationInfo.owned,
+        allowWhenOwnedConversation,
+      });
+      usageTier = usageTier ?? gate.tier;
+      if (!gate.blockedMode) return null;
+      return jsonError(402, `Monthly AI ${gate.blockedMode} limit reached.`, {
+        code: AI_MONTHLY_LIMIT_CODE,
+        mode: gate.blockedMode,
+      });
+    };
+
     if (!Array.isArray(messages)) {
       if (lifecycle === "session_open") {
         messages = [];
@@ -194,6 +256,8 @@ Deno.serve(async (req: Request) => {
         : truncateConversationMessages(messages);
 
     if (lifecycle === "conversation_title") {
+      const titleBlocked = await enforceBudget(false);
+      if (titleBlocked) return titleBlocked;
       const pair = extractLatestUserAssistantPair(uiMessages);
       if (!pair) {
         return jsonError(400, "User and assistant messages are required to generate a title");
@@ -205,6 +269,7 @@ Deno.serve(async (req: Request) => {
         prompt: buildConversationTitleUserPrompt(pair.userMessage, pair.assistantMessage),
       });
 
+      trackUsage("title", result.usage);
       const title = sanitizeConversationTitle(result.text);
       if (!title) {
         return jsonError(500, "Failed to generate conversation title");
@@ -221,7 +286,6 @@ Deno.serve(async (req: Request) => {
 
     // Prompt Library + platform AI settings are admin-only tables: read them with service role
     // (user RLS client silently fell back to static layers). Draft/explicit version stay admin-only.
-    const serviceClient = getServiceClient();
     const promptLibraryOptions = resolvePromptLibraryRequestOptions(
       profileData,
       req.headers,
@@ -298,6 +362,7 @@ Deno.serve(async (req: Request) => {
         messages: await convertToModelMessages(testMessages),
       });
 
+      trackUsage("prompt_test", result.usage);
       const evaluation = evaluatePromptTestDivergence(result.text, scenario.checks, {
         crisisHardStop: false,
       });
@@ -378,6 +443,11 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // NCLDD-52: monthly USD budget. Closing / finalize calls of an owned conversation stay allowed
+    // over budget (so a session can always be ended) and are only recorded.
+    const overBudget = await enforceBudget(endsSession(lifecycle));
+    if (overBudget) return overBudget;
+
     // Dedicated close turns — bypass full Kota coaching stack (avoids echo of prior assistant message).
     if (lifecycle === "session_close") {
       const result = await generateText({
@@ -385,6 +455,7 @@ Deno.serve(async (req: Request) => {
         system: withPlatformSettings(SESSION_CLOSE_SYSTEM_PROMPT, platformSettings),
         prompt: buildSessionCloseUserPrompt(uiMessages, profileData),
       });
+      trackUsage("session_close", result.usage);
       const text = sanitizeSessionCloseReplyText(result.text);
       if (!text) {
         return jsonError(500, "Failed to generate session close message");
@@ -398,6 +469,7 @@ Deno.serve(async (req: Request) => {
         system: withPlatformSettings(SESSION_CLOSE_ACK_SYSTEM_PROMPT, platformSettings),
         prompt: buildSessionCloseAckUserPrompt(uiMessages, profileData),
       });
+      trackUsage("session_close_ack", result.usage);
       const text = sanitizeSessionCloseReplyText(result.text);
       if (!text) {
         return jsonError(500, "Failed to generate session close acknowledgment");
@@ -419,6 +491,7 @@ Deno.serve(async (req: Request) => {
       user.id,
       profileData,
       system,
+      (model, usage) => trackUsage("arc_summary", usage, model),
     );
     if (compressed) {
       system = buildSystemWithLifecycle(
@@ -445,6 +518,7 @@ Deno.serve(async (req: Request) => {
             attempt === 0 ? SESSION_FINALIZE_SYSTEM_PROMPT : SESSION_FINALIZE_RETRY_SYSTEM_PROMPT,
           prompt: finalizePrompt,
         });
+        trackUsage("session_finalize", result.usage);
         parsed = parseSessionFinalizePayload(result.text);
         if (!parsed) {
           console.warn("session_finalize JSON parse failed", {
@@ -492,7 +566,9 @@ Deno.serve(async (req: Request) => {
         const transcript = buildSessionTranscript(uiMessages);
         if (transcript.trim()) {
           scheduleEdgeBackgroundWork(
-            extractMemoryFacts(supabase, user.id, transcript, openaiKey),
+            extractMemoryFacts(supabase, user.id, transcript, openaiKey, (model, usage) =>
+              trackUsage("memory_extract", usage, model),
+            ),
           );
         }
       }
@@ -510,6 +586,9 @@ Deno.serve(async (req: Request) => {
       model,
       system,
       messages: await convertToModelMessages(uiMessages),
+      onFinish: ({ usage }) => {
+        trackUsage(context === "journal-reflection" ? "journal_reflection" : "chat_turn", usage);
+      },
     });
 
     return result.toUIMessageStreamResponse({ headers: corsHeaders });

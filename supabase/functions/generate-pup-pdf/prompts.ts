@@ -1,5 +1,7 @@
 import { generateText } from "npm:ai";
-import { createChatModel } from "../_shared/openai-provider.ts";
+import { createChatModel, resolveOpenAiModelId } from "../_shared/openai-provider.ts";
+import { normalizeUsage, recordAiUsage } from "../_shared/aiUsage.ts";
+import { scheduleEdgeBackgroundWork } from "../_shared/edgeBackground.ts";
 import { getServiceClient } from "../_shared/serviceClient.ts";
 import { loadPlatformAiSettings, withPlatformSettings } from "../_shared/platformAiSettings.ts";
 import type { PupPdfNarrative, PupPdfTier } from "./types.ts";
@@ -32,7 +34,23 @@ function asNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-export async function generatePdfNarrative(input: NarrativeInput): Promise<PupPdfNarrative> {
+function recordPdfUsage(userId: string | undefined, usage: unknown): void {
+  if (!userId) return;
+  scheduleEdgeBackgroundWork(
+    recordAiUsage(getServiceClient(), {
+      userId,
+      mode: "other",
+      source: "pup_pdf",
+      model: resolveOpenAiModelId(),
+      usage: normalizeUsage(usage),
+    }),
+  );
+}
+
+export async function generatePdfNarrative(
+  input: NarrativeInput,
+  usageUserId?: string,
+): Promise<PupPdfNarrative> {
   const reflectionQ1 = input.reflections[0]?.answer ?? "";
   const reflectionBlock = input.reflections
     .filter((r) => r.answer.trim())
@@ -43,7 +61,7 @@ export async function generatePdfNarrative(input: NarrativeInput): Promise<PupPd
   const system = withPlatformSettings(SYSTEM, await loadPlatformAiSettings(getServiceClient));
 
   if (input.tier === "pro") {
-    const { text } = await generateText({
+    const { text, usage } = await generateText({
       model: createChatModel(),
       system,
       prompt: `Write a 3-4 sentence coaching context paragraph for ${input.firstName}'s Pro PuP 360 summary PDF.
@@ -55,13 +73,14 @@ Reflection answer 1: ${reflectionQ1 || "(not provided)"}
 
 Return JSON: { "coachingContext": "..." }`,
     });
+    recordPdfUsage(usageUserId, usage);
     const parsed = parseJsonObject(text);
     const coachingContext = asNonEmptyString(parsed.coachingContext);
     if (!coachingContext) throw new Error("Missing coachingContext from AI");
     return { coachingContext, coachingSummary: null, nextFocus: null };
   }
 
-  const { text } = await generateText({
+  const { text, usage } = await generateText({
     model: createChatModel(),
     system,
     prompt: `Write Premium PuP 360 diagnostic PDF narrative for ${input.firstName}.
@@ -87,6 +106,7 @@ Return JSON:
 }`,
   });
 
+  recordPdfUsage(usageUserId, usage);
   const parsed = parseJsonObject(text);
   const coachingContext = asNonEmptyString(parsed.coachingContext);
   const coachingSummary = asNonEmptyString(parsed.coachingSummary);
