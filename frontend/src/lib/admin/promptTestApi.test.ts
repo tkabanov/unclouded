@@ -86,11 +86,11 @@ describe("crisis prompt test scenarios (OVR-012)", () => {
 });
 
 describe("prompt test scenarios", () => {
-  it("defines 30 REQ-13 scenarios", async () => {
+  it("defines 29 REQ-13 scenarios", async () => {
     const { PROMPT_TEST_SCENARIOS } = await import(
       "../../../../supabase/functions/chat/promptTest/scenarios.ts"
     );
-    expect(PROMPT_TEST_SCENARIOS).toHaveLength(30);
+    expect(PROMPT_TEST_SCENARIOS).toHaveLength(29);
   });
 });
 

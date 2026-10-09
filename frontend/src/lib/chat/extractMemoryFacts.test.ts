@@ -40,6 +40,8 @@ describe("buildSessionTranscript", () => {
   });
 });
 
+const DATE = "2026-10-08";
+
 describe("mergeMemoryFactField (REQ-01)", () => {
   it("prefers newly extracted items and keeps up to 5 total", () => {
     const existing = [
@@ -51,11 +53,11 @@ describe("mergeMemoryFactField (REQ-01)", () => {
     ].join("\n");
     const incoming = "Partner: Jordan\nManager: Taylor";
 
-    const merged = mergeMemoryFactField(existing, incoming);
+    const merged = mergeMemoryFactField(existing, incoming, DATE);
     expect(merged).toBe(
       [
-        "Manager: Taylor",
-        "Partner: Jordan",
+        `${DATE}|Partner: Jordan`,
+        `${DATE}|Manager: Taylor`,
         "Manager: Sam",
         "Child: Alex (8)",
         "Parent: Mom",
@@ -66,7 +68,10 @@ describe("mergeMemoryFactField (REQ-01)", () => {
   it("dedupes case-insensitively and preserves existing when nothing new arrives", () => {
     const existing = "I am just tired\nI can't keep doing this";
     expect(mergeMemoryFactField(existing, null)).toBe(existing);
-    expect(mergeMemoryFactField(existing, "I AM JUST TIRED")).toBe(existing);
+    expect(mergeMemoryFactField(existing, "I AM JUST TIRED", DATE)).toBe(
+      `${DATE}|I AM JUST TIRED
+I can't keep doing this`,
+    );
   });
 
   it("returns null when both sides are empty", () => {
