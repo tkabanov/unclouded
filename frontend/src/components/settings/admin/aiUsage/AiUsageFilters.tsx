@@ -43,13 +43,17 @@ export function AiUsageFilters({
   onCustomRangeChange,
   tier,
   onTierChange,
+  hideToday = false,
 }: {
   period: PeriodChoice;
   onPeriodChange: (period: PeriodChoice) => void;
   customRange: CustomRange | null;
   onCustomRangeChange: (range: CustomRange) => void;
-  tier: TierFilter;
-  onTierChange: (tier: TierFilter) => void;
+  /** Omit both to hide the plan filter (AI Insights, NCLDD-55). */
+  tier?: TierFilter;
+  onTierChange?: (tier: TierFilter) => void;
+  /** AI Insights only reports closed weeks/months, so "Today" is meaningless there. */
+  hideToday?: boolean;
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [draft, setDraft] = useState<DateRange | undefined>(
@@ -78,7 +82,7 @@ export function AiUsageFilters({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="today">Today</SelectItem>
+          {hideToday ? null : <SelectItem value="today">Today</SelectItem>}
           <SelectItem value="7d">Last 7 days</SelectItem>
           <SelectItem value="30d">Last 30 days</SelectItem>
           <SelectItem value="custom">Custom range</SelectItem>
@@ -105,19 +109,21 @@ export function AiUsageFilters({
         </Popover>
       ) : null}
 
-      <Select value={tier} onValueChange={(value) => onTierChange(value as TierFilter)}>
-        <SelectTrigger className="w-[170px]" aria-label="Plan">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_TIERS}>All plans</SelectItem>
-          {AI_PLAN_TIERS.map((value) => (
-            <SelectItem key={value} value={value}>
-              {AI_TIER_LABELS[value]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {tier !== undefined && onTierChange ? (
+        <Select value={tier} onValueChange={(value) => onTierChange(value as TierFilter)}>
+          <SelectTrigger className="w-[170px]" aria-label="Plan">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_TIERS}>All plans</SelectItem>
+            {AI_PLAN_TIERS.map((value) => (
+              <SelectItem key={value} value={value}>
+                {AI_TIER_LABELS[value]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
     </div>
   );
 }

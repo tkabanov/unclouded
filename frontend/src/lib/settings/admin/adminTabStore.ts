@@ -19,6 +19,8 @@ export const ADMIN_SUB_TAB = {
   PROMPT_TESTS: "prompt_tests",
   AI_SETTINGS: "ai_settings",
   AI_USAGE: "ai_usage",
+  /** NCLDD-55 — aggregated AI conversation analytics (not the `insights` articles editor). */
+  AI_INSIGHTS: "ai_insights",
   REFERRAL_PARTNERS: "referral_partners",
 } as const;
 
@@ -41,6 +43,7 @@ export const ADMIN_SUB_TAB_ORDER: readonly AdminSubTabSlug[] = [
   ADMIN_SUB_TAB.PROMPT_TESTS,
   ADMIN_SUB_TAB.AI_SETTINGS,
   ADMIN_SUB_TAB.AI_USAGE,
+  ADMIN_SUB_TAB.AI_INSIGHTS,
   ADMIN_SUB_TAB.REFERRAL_PARTNERS,
 ];
 
@@ -63,5 +66,6 @@ export const ADMIN_SUB_TAB_LABELS: Record<AdminSubTabSlug, string> = {
   prompt_tests: "Prompt Tests",
   ai_settings: "AI Settings",
   ai_usage: "AI Usage",
+  ai_insights: "AI Insights",
   referral_partners: "Referral Partners",
 };

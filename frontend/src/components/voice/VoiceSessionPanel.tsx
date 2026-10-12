@@ -427,6 +427,7 @@ export default function VoiceSessionPanel({
         messages={messages}
         isAssistantTyping={awaitingAssistantReply}
         commitmentPromptMessageId={commitmentPromptMessageId}
+        feedbackConversationId={conversationId}
       />
 
       {awaitingCommitment ? <ChatCommitmentAwaitingBanner channel="voice" /> : null}

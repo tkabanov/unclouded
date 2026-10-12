@@ -27,6 +27,7 @@ export const ADMIN_MORE_NAV = [
   ADMIN_SUB_TAB.PROMPT_TESTS,
   ADMIN_SUB_TAB.AI_SETTINGS,
   ADMIN_SUB_TAB.AI_USAGE,
+  ADMIN_SUB_TAB.AI_INSIGHTS,
 ] as const satisfies readonly AdminSubTabSlug[];
 
 export const ADMIN_NAV_PATH: Record<AdminSubTabSlug, string> = {
@@ -49,6 +50,7 @@ export const ADMIN_NAV_PATH: Record<AdminSubTabSlug, string> = {
   prompt_tests: "/admin/prompt-tests",
   ai_settings: "/admin/ai-settings",
   ai_usage: "/admin/ai-usage",
+  ai_insights: "/admin/ai-insights",
 };
 
 export function adminNavLabel(tab: AdminSubTabSlug): string {
@@ -80,5 +82,6 @@ export function resolveAdminSubTab(pathname: string): AdminSubTabSlug {
   if (pathname.startsWith("/admin/prompt-tests")) return ADMIN_SUB_TAB.PROMPT_TESTS;
   if (pathname.startsWith("/admin/ai-settings")) return ADMIN_SUB_TAB.AI_SETTINGS;
   if (pathname.startsWith("/admin/ai-usage")) return ADMIN_SUB_TAB.AI_USAGE;
+  if (pathname.startsWith("/admin/ai-insights")) return ADMIN_SUB_TAB.AI_INSIGHTS;
   return ADMIN_SUB_TAB.OVERVIEW;
 }

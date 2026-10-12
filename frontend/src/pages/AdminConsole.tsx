@@ -17,6 +17,7 @@ import AdminBookingsTab from "@/components/settings/admin/AdminBookingsTab";
 import AdminReassessmentsTab from "@/components/settings/admin/AdminReassessmentsTab";
 import AdminPromptTestSuite from "@/components/settings/admin/AdminPromptTestSuite";
 import AdminAiSettingsTab from "@/components/settings/admin/AdminAiSettingsTab";
+import AdminAiInsightsTab from "@/components/settings/admin/aiInsights/AdminAiInsightsTab";
 import AdminAiUsageTab from "@/components/settings/admin/aiUsage/AdminAiUsageTab";
 import AdminReferralPartnersTab from "@/components/settings/admin/AdminReferralPartnersTab";
 import AdminReferralPartnerDetail from "@/components/settings/admin/AdminReferralPartnerDetail";
@@ -175,6 +176,14 @@ export default function AdminConsole() {
           element={
             <div className="mx-auto w-full max-w-6xl p-6 md:p-8">
               <AdminAiUsageTab />
+            </div>
+          }
+        />
+        <Route
+          path="ai-insights"
+          element={
+            <div className="mx-auto w-full max-w-6xl p-6 md:p-8">
+              <AdminAiInsightsTab />
             </div>
           }
         />

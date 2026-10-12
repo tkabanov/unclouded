@@ -1,5 +1,7 @@
 import { StickToBottom } from "use-stick-to-bottom";
 
+import { useAiMessageFeedback } from "@/hooks/useAiMessageFeedback";
+import { canRateMessage } from "@/lib/chat/aiMessageFeedbackApi";
 import { cn } from "@/lib/utils";
 
 import { ChatAssistantTypingCell } from "./ChatAssistantTypingCell";
@@ -15,6 +17,8 @@ export type ChatMessagesListProps = {
   commitmentPromptMessageId?: string | null;
   onSuggestionSend?: (text: string) => void;
   suggestionsDisabled?: boolean;
+  /** NCLDD-55: enables 👍 / 👎 on saved Kota replies of this conversation. */
+  feedbackConversationId?: string | null;
   className?: string;
 };
 
@@ -27,9 +31,19 @@ export function ChatMessagesList({
   commitmentPromptMessageId = null,
   onSuggestionSend,
   suggestionsDisabled = false,
+  feedbackConversationId = null,
   className,
 }: ChatMessagesListProps) {
   const showEmptyWelcome = messages.length === 0 && !isAssistantTyping;
+  const feedback = useAiMessageFeedback(feedbackConversationId);
+  const feedbackProps = (message: ChatMessage) =>
+    feedback.available && canRateMessage(message)
+      ? {
+          value: feedback.feedbackFor(message.id),
+          onSubmit: (rating: 1 | -1 | 0, reasons?: string[]) =>
+            void feedback.submit(message.id, rating, reasons),
+        }
+      : undefined;
 
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col overflow-hidden", className)}>
@@ -56,7 +70,11 @@ export function ChatMessagesList({
                 message.id === commitmentPromptMessageId ? (
                   <ChatCommitmentPromptCell key={message.id} message={message} />
                 ) : (
-                  <ChatMessageCell key={message.id} message={message} />
+                  <ChatMessageCell
+                    key={message.id}
+                    message={message}
+                    feedback={feedbackProps(message)}
+                  />
                 ),
               )
             )}

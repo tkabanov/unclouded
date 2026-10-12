@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { AiInsightsConsentGate } from "@/components/aiInsights/AiInsightsConsentGate";
 import VoiceSessionPanel from "@/components/voice/VoiceSessionPanel";
 import type { ChatAiProfileData } from "@/lib/chat/chatAiReplyStub";
 import {
@@ -23,6 +24,7 @@ export interface ConversationPanelMountProps {
 
 /**
  * Routes to text or voice panel based on conversation sessionType.
+ * NCLDD-55: both panels sit behind the first-use AI Insights consent choice.
  */
 export default function ConversationPanelMount({
   conversationId,
@@ -69,7 +71,25 @@ export default function ConversationPanelMount({
 
   if (sessionType === "voice") {
     return (
-      <VoiceSessionPanel
+      <AiInsightsConsentGate className={className}>
+        <VoiceSessionPanel
+          key={conversationId}
+          conversationId={conversationId}
+          userId={userId}
+          onboardingData={onboardingData}
+          context={context}
+          profileData={profileData}
+          onThreadUpdated={onThreadUpdated}
+          onSessionClosed={onSessionClosed}
+          className={className}
+        />
+      </AiInsightsConsentGate>
+    );
+  }
+
+  return (
+    <AiInsightsConsentGate className={className}>
+      <ChatPanelMount
         key={conversationId}
         conversationId={conversationId}
         userId={userId}
@@ -80,20 +100,6 @@ export default function ConversationPanelMount({
         onSessionClosed={onSessionClosed}
         className={className}
       />
-    );
-  }
-
-  return (
-    <ChatPanelMount
-      key={conversationId}
-      conversationId={conversationId}
-      userId={userId}
-      onboardingData={onboardingData}
-      context={context}
-      profileData={profileData}
-      onThreadUpdated={onThreadUpdated}
-      onSessionClosed={onSessionClosed}
-      className={className}
-    />
+    </AiInsightsConsentGate>
   );
 }

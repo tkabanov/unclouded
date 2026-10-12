@@ -26,7 +26,8 @@ export type AiUsageSource =
   | "path_closing"
   | "kota_read"
   | "pup_pdf"
-  | "prompt_test";
+  | "prompt_test"
+  | "insights_classify";
 
 export type AiPlanTier = "free" | "pro" | "premium";
 

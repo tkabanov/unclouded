@@ -27,6 +27,7 @@ import {
   UserCog,
   BarChart3,
   Handshake,
+  MessageCircleHeart,
   type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -49,6 +50,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   [ADMIN_SUB_TAB.PROMPT_TESTS]: Sparkles,
   [ADMIN_SUB_TAB.AI_SETTINGS]: Sparkles,
   [ADMIN_SUB_TAB.AI_USAGE]: Gauge,
+  [ADMIN_SUB_TAB.AI_INSIGHTS]: MessageCircleHeart,
 };
 
 function SidebarLink({

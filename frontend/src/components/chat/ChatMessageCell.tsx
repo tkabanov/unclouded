@@ -1,17 +1,24 @@
 import coachAvatar from "@/assets/coach-avatar.png";
+import type { AiFeedbackRating, AiMessageFeedback } from "@/lib/chat/aiMessageFeedbackApi";
 import { cn } from "@/lib/utils";
 
+import { ChatMessageFeedback } from "./ChatMessageFeedback";
 import type { ChatMessage } from "./types";
 
 export type ChatMessageCellProps = {
   message: ChatMessage;
+  /** NCLDD-55: when set, the assistant reply shows 👍 / 👎 controls. */
+  feedback?: {
+    value: AiMessageFeedback | null;
+    onSubmit: (rating: AiFeedbackRating | 0, reasons?: string[]) => void;
+  };
   className?: string;
 };
 
 /**
  * Lovable-style message row: user bubble on the right, assistant text with coach avatar.
  */
-export function ChatMessageCell({ message, className }: ChatMessageCellProps) {
+export function ChatMessageCell({ message, feedback, className }: ChatMessageCellProps) {
   if (message.role === "user") {
     return (
       <div className={cn("group flex w-full max-w-[95%] flex-col gap-2 is-user ml-auto justify-end", className)}>
@@ -37,6 +44,13 @@ export function ChatMessageCell({ message, className }: ChatMessageCellProps) {
         />
         <div className="min-w-0 text-sm text-foreground">
           <p className="whitespace-pre-wrap">{message.content}</p>
+          {feedback ? (
+            <ChatMessageFeedback
+              className="mt-1 -ml-1.5"
+              feedback={feedback.value}
+              onSubmit={feedback.onSubmit}
+            />
+          ) : null}
         </div>
       </div>
     </div>

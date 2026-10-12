@@ -18,27 +18,27 @@ export const AI_TIER_LABELS: Record<AiPlanTier, string> = {
   premium: "Premium",
 };
 
-type Raw = Record<string, unknown>;
+export type Raw = Record<string, unknown>;
 
-function rec(value: unknown): Raw {
+export function rec(value: unknown): Raw {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Raw) : {};
 }
-function arr(value: unknown): Raw[] {
+export function arr(value: unknown): Raw[] {
   return Array.isArray(value) ? value.map(rec) : [];
 }
-function num(value: unknown): number {
+export function num(value: unknown): number {
   const n = typeof value === "string" ? Number(value) : (value as number);
   return typeof n === "number" && Number.isFinite(n) ? n : 0;
 }
-function numOrNull(value: unknown): number | null {
+export function numOrNull(value: unknown): number | null {
   if (value === null || value === undefined) return null;
   const n = typeof value === "string" ? Number(value) : (value as number);
   return typeof n === "number" && Number.isFinite(n) ? n : null;
 }
-function str(value: unknown): string {
+export function str(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
-function strOrNull(value: unknown): string | null {
+export function strOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 function tier(value: unknown): AiPlanTier {
@@ -54,7 +54,8 @@ const ERRORS = {
   save: "Couldn't save the change.",
 } as const;
 
-async function callRpc(name: string, args: Raw, fallback: string): Promise<Raw> {
+/** Shared by admin RPC clients (AI Usage, AI Insights). */
+export async function callRpc(name: string, args: Raw, fallback: string): Promise<Raw> {
   // Cast: argument shapes are fixed by the typed wrappers below.
   const { data, error } = await supabase.rpc(name as never, args as never);
   if (error) throw new Error(friendlyErrorMessage(error.message, fallback));

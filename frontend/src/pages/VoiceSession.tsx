@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import { AiInsightsConsentGate } from "@/components/aiInsights/AiInsightsConsentGate";
 import VoiceSessionPanel from "@/components/voice/VoiceSessionPanel";
 import {
   formatCustomerRoleTypesForDisplay,
@@ -175,18 +176,20 @@ export default function VoiceSession() {
             Starting voice session…
           </div>
         ) : (
-          <VoiceSessionPanel
-            key={conversationId}
-            conversationId={conversationId}
-            userId={user.id}
-            onboardingData={profile?.onboardingData ?? null}
-            context={context}
-            profileData={profileData}
-            onSessionClosed={handleSessionClosed}
-            onNewSession={() => void handleNewSession()}
-            newSessionDisabled={startingNewSession}
-            className="flex-1 min-h-0 rounded-xl border border-border bg-card"
-          />
+          <AiInsightsConsentGate>
+            <VoiceSessionPanel
+              key={conversationId}
+              conversationId={conversationId}
+              userId={user.id}
+              onboardingData={profile?.onboardingData ?? null}
+              context={context}
+              profileData={profileData}
+              onSessionClosed={handleSessionClosed}
+              onNewSession={() => void handleNewSession()}
+              newSessionDisabled={startingNewSession}
+              className="flex-1 min-h-0 rounded-xl border border-border bg-card"
+            />
+          </AiInsightsConsentGate>
         )}
       </div>
     </DashboardLayout>

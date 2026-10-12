@@ -25,6 +25,8 @@ export type ChatReusableProps = {
   endSessionLabel?: string;
   awaitingCommitment?: boolean;
   commitmentPromptMessageId?: string | null;
+  /** NCLDD-55: enables 👍 / 👎 on saved Kota replies. */
+  feedbackConversationId?: string | null;
   className?: string;
 };
 
@@ -46,6 +48,7 @@ export function ChatReusable({
   endSessionLabel,
   awaitingCommitment = false,
   commitmentPromptMessageId = null,
+  feedbackConversationId = null,
   className,
 }: ChatReusableProps) {
   return (
@@ -65,6 +68,7 @@ export function ChatReusable({
         commitmentPromptMessageId={commitmentPromptMessageId}
         onSuggestionSend={onSuggestionSend}
         suggestionsDisabled={composerDisabled}
+        feedbackConversationId={feedbackConversationId}
       />
 
       <div className="relative shrink-0 border-t border-border bg-card/60 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">

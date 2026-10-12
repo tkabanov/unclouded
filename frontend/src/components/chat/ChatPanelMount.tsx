@@ -406,6 +406,7 @@ export default function ChatPanelMount({
             endSessionLabel={awaitingCommitment ? "Waiting for commitment…" : "End session"}
             awaitingCommitment={awaitingCommitment}
             commitmentPromptMessageId={commitmentPromptMessageId}
+            feedbackConversationId={conversationId}
             className="flex-1 min-h-0"
           />
         </>

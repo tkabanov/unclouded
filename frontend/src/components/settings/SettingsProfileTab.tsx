@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import SettingsAboutYouSection from "@/components/settings/SettingsAboutYouSection";
+import { SettingsAiInsightsConsentSection } from "@/components/settings/SettingsAiInsightsConsentSection";
 import SettingsEnrollmentCodeSection from "@/components/settings/SettingsEnrollmentCodeSection";
 import SettingsKnowYourselfSection from "@/components/settings/SettingsKnowYourselfSection";
 import SettingsReferralStatsSection from "@/components/settings/SettingsReferralStatsSection";
@@ -204,6 +205,8 @@ export default function SettingsProfileTab() {
       />
 
       <SettingsWorkplaceAggregateOptInSection />
+
+      <SettingsAiInsightsConsentSection />
 
       <SettingsManagerTeamAggregateSection managesATeam={aboutYouForm.managesATeam} />
 

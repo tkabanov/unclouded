@@ -12,6 +12,7 @@ import {
 } from "../_shared/aiUsage.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { endsSession, evaluateAiBudgetGate } from "./aiBudgetGate.ts";
+import { classifySessionInsights } from "./insights/sessionInsightsClassifier.ts";
 import { buildSystemPrompt, type ProfileData } from "./buildSystemPrompt.ts";
 import {
   CRISIS_RESPONSE_TEXT,
@@ -571,6 +572,23 @@ Deno.serve(async (req: Request) => {
             ),
           );
         }
+      }
+
+      // NCLDD-55: consent-gated Insights classification (background; closed taxonomy keys only).
+      // Recorded as mode `other` so it never counts against the user's monthly AI limit.
+      if (openaiKey && conversationInfo.owned) {
+        scheduleEdgeBackgroundWork(
+          classifySessionInsights({
+            admin: serviceClient,
+            generate: ({ system: insightsSystem, prompt }) =>
+              generateText({ model, system: insightsSystem, prompt, temperature: 0 }),
+            userId: user.id,
+            conversationId,
+            sessionType: conversationInfo.mode,
+            transcript: buildSessionTranscript(uiMessages),
+            onUsage: (usage) => trackUsage("insights_classify", usage, modelId, "other"),
+          }),
+        );
       }
 
       // Clear prior-crisis flag after a clean completed session (no L2+ this turn).
