@@ -35,6 +35,20 @@ select "userId", "sessionType", "sessionDate", topics, "requestTypes", "concernT
 from public."aiInsightSessionFact" order by "createdAt" desc limit 20;
 ```
 
+### Automated SQL checks (linked DB, as postgres)
+
+```bash
+npx supabase db query --linked -f supabase/tests/ai_insights_proof.sql     # rollback, ALL PASS
+npx supabase db query --linked -f supabase/tests/ai_insights_qa_seed.sql   # persistent QA data
+npx supabase db query --linked -f supabase/tests/ai_insights_qa_smoke.sql  # rollback, ALL PASS
+npx supabase db query --linked -f supabase/tests/ai_insights_qa_cleanup.sql
+```
+
+The seed plants `qa55-*@unclouded.invalid` users with facts/feedback in closed weeks (admin tab
+needs them for A-2…A-13) and "near-k" items that must stay hidden. The smoke checks k=5,
+exclusion of declined / outdated-consent users and pre-consent ratings, rounding, period
+normalization, no ids/text in the payload, revoke and non-admin refusal.
+
 ## 1. First-use consent
 
 | ID | Steps | Expected |
