@@ -79,6 +79,7 @@ Reason chips only show right after clicking 👍/👎 (`showReasons` state in `f
 - `parseSessionInsightsPayload` keeps a resource id only if its catalog title (case-insensitive, whitespace-normalized) occurs in a `Kota:` turn; `User:` turns never count. Prompt tightened ("exact title the COACH named; when unsure return []"). `AI_INSIGHTS_CLASSIFIER_VERSION` 1 → 2; consent version unchanged.
 - New unit tests: title absent → `[]`; title only in a `User:` turn → `[]`; `Kota:` turn names the title → id kept; unknown id → dropped.
 - Live check: `admin-qa@test.com` with consent on, text session `cd5e5bb5-dbf9-4928-a853-7fba101c8da0` (deadline stress + commitment; Kota named no resource; catalog still has `test`) → fact `text`, topics `work_stress / workload_time`, `classifierVersion = 2`, **`resourceIds = {}`**.
+- Live positive check: same account, text session `4e30c29b-aa5e-40fa-b3e0-eab3f5e03259` where the user asked Kota to recommend the resource by name and Kota replied "I recommend reading the resource called \"test\" tonight" → fact `text`, `classifierVersion = 2`, **`resourceIds = {336714be-b263-484f-aac8-529bea08b8bf}`**.
 - OVR-073 updated (resource rule + known limitation: paraphrases are missed, very short titles can match by coincidence).
 
 **UX-1 — pass (browser).** 👎 + "Too generic" on a Kota reply → after reload the label "Too generic" shows next to the active thumb; clicking it reopens the reason chips; clicking the active thumb still clears the rating and the label (row removed).
@@ -102,4 +103,4 @@ Reason chips only show right after clicking 👍/👎 (`showReasons` state in `f
 - QA seed removed (`ai_insights_qa_cleanup.sql`): no `qa55-*` users, facts, feedback.
 - `sub-pro@test.com` and `admin-qa@test.com`: consent reset to NULL, their consent events, facts and feedback deleted (DB matches pre-test: 1 pre-existing consenting user, 1 event, 0 facts, 0 feedback).
 - Leftover conversations: `sub-pro@test.com` text `1a7a59e8-ec09-4175-b728-97a0715cee7f`, `976fb9b1-4cc8-4d81-a2f8-0dc830f44b6b`, voice `b0461669-ed13-4f82-8a5a-4adc80a7f858`; `admin-qa@test.com` empty voice `15036663-1276-4444-86d4-bea80da31fdf`.
-- After the retest: `admin-qa@test.com` consent reset to NULL, its consent events and facts deleted (0/0), test 👎 rating cleared (0 feedback). Leftover conversation `cd5e5bb5-dbf9-4928-a853-7fba101c8da0` (text, finalized).
+- After the retest: `admin-qa@test.com` consent reset to NULL, its consent events and facts deleted (0/0), test 👎 rating cleared (0 feedback). Leftover conversations `cd5e5bb5-dbf9-4928-a853-7fba101c8da0` and `4e30c29b-aa5e-40fa-b3e0-eab3f5e03259` (text, finalized).
