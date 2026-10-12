@@ -24,6 +24,9 @@ export function ChatMessageFeedback({ feedback, onSubmit, className }: ChatMessa
   const rating = feedback?.rating ?? null;
   const reasons = feedback?.reasons ?? [];
   const reasonOptions = rating === 1 ? AI_FEEDBACK_POSITIVE_REASONS : AI_FEEDBACK_NEGATIVE_REASONS;
+  const selectedLabels = reasonOptions
+    .filter((option) => reasons.includes(option.key))
+    .map((option) => option.label);
 
   const rate = (next: AiFeedbackRating) => {
     if (rating === next) {
@@ -67,6 +70,15 @@ export function ChatMessageFeedback({ feedback, onSubmit, className }: ChatMessa
         >
           <ThumbsDown className="h-3.5 w-3.5" fill={rating === -1 ? "currentColor" : "none"} />
         </button>
+        {!showReasons && rating !== null ? (
+          <button
+            type="button"
+            className="ml-1 px-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            onClick={() => setShowReasons(true)}
+          >
+            {selectedLabels.length ? selectedLabels.join(", ") : "Add reason"}
+          </button>
+        ) : null}
       </div>
 
       {showReasons && rating !== null ? (

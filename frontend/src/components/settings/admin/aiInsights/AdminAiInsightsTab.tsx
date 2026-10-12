@@ -91,6 +91,7 @@ export default function AdminAiInsightsTab() {
           customRange={customRange}
           onCustomRangeChange={setCustomRange}
           hideToday
+          disableFromTodayUtc
         />
         <Badge variant="outline">Consenting users only · UTC dates</Badge>
       </div>
@@ -115,13 +116,17 @@ export default function AdminAiInsightsTab() {
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>
                 <span className="font-medium text-foreground">Period:</span>{" "}
-                {data.period.from && data.period.to
-                  ? `${data.period.from} → ${data.period.to} (UTC, whole ${data.period.bucket}s).`
-                  : `no complete ${data.period.bucket} in the selected range yet.`}{" "}
-                <span className="font-medium text-foreground">Sample:</span>{" "}
-                {data.sample.suppressed
-                  ? `fewer than ${k} people — no session insights are shown for this period.`
-                  : `about ${data.sample.users.toLocaleString()} people, ${data.sample.sessions.toLocaleString()} sessions (text: ${formatModeCount(data.sample.textSessions, k)}, voice: ${formatModeCount(data.sample.voiceSessions, k)}).`}
+                {data.period.from && data.period.to ? (
+                  <>
+                    {`${data.period.from} → ${data.period.to} (UTC, whole ${data.period.bucket}s).`}{" "}
+                    <span className="font-medium text-foreground">Sample:</span>{" "}
+                    {data.sample.suppressed
+                      ? `fewer than ${k} people — no session insights are shown for this period.`
+                      : `about ${data.sample.users.toLocaleString()} people, ${data.sample.sessions.toLocaleString()} sessions (text: ${formatModeCount(data.sample.textSessions, k)}, voice: ${formatModeCount(data.sample.voiceSessions, k)}).`}
+                  </>
+                ) : (
+                  `no complete ${data.period.bucket} in the selected range yet.`
+                )}
               </p>
               <p>
                 <span className="font-medium text-foreground">Source:</span> finished AI coaching

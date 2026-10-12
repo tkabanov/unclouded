@@ -49,7 +49,8 @@ export const SESSION_INSIGHTS_SYSTEM_PROMPT = [
   "You label coaching conversations for anonymized, aggregated product analytics.",
   "Return ONLY a JSON object with these keys:",
   `"topics" (1-${MAX_TOPICS} keys), "requestTypes" (1-${MAX_REQUEST_TYPES} keys), "concerns" (0-${MAX_CONCERNS} keys),`,
-  `"resourceIds" (0-${MAX_RESOURCES} ids of catalog resources the COACH recommended or mentioned),`,
+  `"resourceIds" (0-${MAX_RESOURCES} ids of catalog resources whose exact title the COACH named in the conversation;`,
+  "never infer a resource from the topic, never pick one just because the catalog is small; when unsure return []),",
   '"crisisLineMentioned" (true only if the coach referred the user to a crisis line such as 988, 741741 or 911).',
   "Use only keys and ids from the lists provided. Never output names, quotes, or any other text.",
   "",
@@ -87,10 +88,29 @@ function parseJsonObjectLoose(text: string): Record<string, unknown> | null {
   }
 }
 
-/** Validate model output against the taxonomy and the resource catalog. Null when unusable. */
+function normalizeForMatch(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** Text of the coach's turns only; `User:` turns never count as a resource mention. */
+function coachTurnsText(transcript: string): string {
+  return normalizeForMatch(
+    transcript
+      .split(/\n\n(?=(?:User|Kota): )/)
+      .filter((turn) => turn.startsWith("Kota: "))
+      .map((turn) => turn.slice("Kota: ".length))
+      .join("\n"),
+  );
+}
+
+/**
+ * Validate model output against the taxonomy and the resource catalog. A resource id is kept
+ * only if its catalog title occurs in a Kota turn of the transcript. Null when unusable.
+ */
 export function parseSessionInsightsPayload(
   text: string,
-  catalogIds: Set<string>,
+  catalog: Map<string, string>,
+  transcript: string,
 ): SessionInsightsFact | null {
   const raw = parseJsonObjectLoose(text);
   if (!raw) return null;
@@ -100,11 +120,15 @@ export function parseSessionInsightsPayload(
   if (topics.length === 0 && requestTypes.length === 0) return null;
 
   const resourceIds: string[] = [];
+  const coachText = coachTurnsText(transcript);
   if (Array.isArray(raw.resourceIds)) {
     for (const value of raw.resourceIds) {
       if (typeof value !== "string") continue;
       const id = value.trim().toLowerCase();
-      if (!catalogIds.has(id) || resourceIds.includes(id)) continue;
+      const title = catalog.get(id);
+      if (!title || resourceIds.includes(id)) continue;
+      const needle = normalizeForMatch(title);
+      if (!needle || !coachText.includes(needle)) continue;
       resourceIds.push(id);
       if (resourceIds.length >= MAX_RESOURCES) break;
     }
@@ -209,7 +233,11 @@ export async function classifySessionInsights(
     });
     params.onUsage?.(usage);
 
-    const fact = parseSessionInsightsPayload(text, new Set(resources.map((r) => r.id)));
+    const fact = parseSessionInsightsPayload(
+      text,
+      new Map(resources.map((r) => [r.id, r.title])),
+      params.transcript,
+    );
     if (!fact) {
       console.warn("insights classifier output unusable", { conversationId: params.conversationId });
       return "unparseable";

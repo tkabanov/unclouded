@@ -72,7 +72,7 @@ const baseParams = (admin: SupabaseClient, text = GOOD_OUTPUT) => ({
   userId: "user-1",
   conversationId: CONVERSATION_ID,
   sessionType: "voice" as const,
-  transcript: "User: I am drowning in work.\n\nKota: Let's prioritize.",
+  transcript: "User: I am drowning in work.\n\nKota: Let's prioritize. Try the Box breathing guide.",
   now: new Date("2026-10-12T10:00:00Z"),
 });
 
@@ -82,7 +82,11 @@ beforeEach(() => {
 
 describe("parseSessionInsightsPayload (NCLDD-55)", () => {
   it("keeps only taxonomy keys and catalog resource ids", () => {
-    const fact = parseSessionInsightsPayload(GOOD_OUTPUT, new Set([RESOURCE_ID]));
+    const fact = parseSessionInsightsPayload(
+      GOOD_OUTPUT,
+      new Map([[RESOURCE_ID, "Box breathing guide"]]),
+      "Kota: Try the box   breathing\nguide today.",
+    );
     expect(fact).toEqual({
       topics: ["work_stress"],
       requestTypes: ["prioritize_workload"],
@@ -93,8 +97,8 @@ describe("parseSessionInsightsPayload (NCLDD-55)", () => {
   });
 
   it("rejects output with no usable topic or request type", () => {
-    expect(parseSessionInsightsPayload('{"topics":["nope"]}', new Set())).toBeNull();
-    expect(parseSessionInsightsPayload("not json", new Set())).toBeNull();
+    expect(parseSessionInsightsPayload('{"topics":["nope"]}', new Map(), "")).toBeNull();
+    expect(parseSessionInsightsPayload("not json", new Map(), "")).toBeNull();
   });
 
   it("caps topics at three", () => {
@@ -103,9 +107,47 @@ describe("parseSessionInsightsPayload (NCLDD-55)", () => {
         topics: ["work_stress", "burnout_energy", "communication", "career_growth"],
         requestTypes: [],
       }),
-      new Set(),
+      new Map(),
+      "",
     );
     expect(fact?.topics).toHaveLength(3);
+  });
+
+  describe("resource mentions", () => {
+    const output = JSON.stringify({ topics: ["work_stress"], requestTypes: [], resourceIds: [RESOURCE_ID] });
+    const catalog = new Map([[RESOURCE_ID, "test"]]);
+
+    it("drops an id whose title the transcript never mentions", () => {
+      const fact = parseSessionInsightsPayload(output, catalog, "User: Hi.\n\nKota: How are you?");
+      expect(fact?.resourceIds).toEqual([]);
+    });
+
+    it("ignores titles that appear only in User turns", () => {
+      const fact = parseSessionInsightsPayload(
+        output,
+        catalog,
+        "User: I read the TEST article.\n\nKota: Tell me more.",
+      );
+      expect(fact?.resourceIds).toEqual([]);
+    });
+
+    it("keeps an id when a Kota turn names the title", () => {
+      const fact = parseSessionInsightsPayload(
+        output,
+        catalog,
+        "User: Anything to read?\n\nKota: Have a look at Test in the library.",
+      );
+      expect(fact?.resourceIds).toEqual([RESOURCE_ID]);
+    });
+
+    it("drops ids that are not in the catalog", () => {
+      const fact = parseSessionInsightsPayload(
+        JSON.stringify({ topics: ["work_stress"], resourceIds: [OTHER_ID] }),
+        catalog,
+        "Kota: test",
+      );
+      expect(fact?.resourceIds).toEqual([]);
+    });
   });
 });
 

@@ -44,6 +44,7 @@ export function AiUsageFilters({
   tier,
   onTierChange,
   hideToday = false,
+  disableFromTodayUtc = false,
 }: {
   period: PeriodChoice;
   onPeriodChange: (period: PeriodChoice) => void;
@@ -54,7 +55,10 @@ export function AiUsageFilters({
   onTierChange?: (tier: TierFilter) => void;
   /** AI Insights only reports closed weeks/months, so "Today" is meaningless there. */
   hideToday?: boolean;
+  /** Disable days >= today (UTC): AI Insights has no closed period there yet. */
+  disableFromTodayUtc?: boolean;
 }) {
+  const todayUtcKey = new Date().toISOString().slice(0, 10);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [draft, setDraft] = useState<DateRange | undefined>(
     customRange ? { from: parseLocalDate(customRange.from), to: parseLocalDate(customRange.to) } : undefined,
@@ -103,6 +107,7 @@ export function AiUsageFilters({
               selected={draft}
               onSelect={applyDraft}
               numberOfMonths={2}
+              disabled={disableFromTodayUtc ? (day) => localDateKey(day) >= todayUtcKey : undefined}
               initialFocus
             />
           </PopoverContent>

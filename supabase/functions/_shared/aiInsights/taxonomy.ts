@@ -14,7 +14,7 @@
 export const AI_INSIGHTS_CONSENT_VERSION = 1;
 
 /** Bump when the classifier prompt or taxonomy semantics change. */
-export const AI_INSIGHTS_CLASSIFIER_VERSION = 1;
+export const AI_INSIGHTS_CLASSIFIER_VERSION = 2;
 
 /** Minimum distinct consenting users behind any number shown to admins. */
 export const AI_INSIGHTS_MIN_COHORT_SIZE = 5;
