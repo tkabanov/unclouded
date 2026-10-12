@@ -6,7 +6,7 @@
 
 Consent dialog (text + voice), Settings switch, revoke, 👍/👎 feedback, consent-gated classification and the admin AI Insights tab pass, including k=5 hiding, exclusion of declined / outdated-consent users and pre-consent ratings, rounding, closed-bucket periods and the no-identifiers boundary. **One defect:** the session classifier adds catalog resources the coach never mentioned, so "Most mentioned resources" is unreliable.
 
-**Retest (2026-10-12, `main` @ `7d406e6`, `chat` redeployed):** BUG-1, UX-1, UX-2 fixed — see [Retest](#retest-after-fixes). BUG-1 still needs one live text session on the deployed `chat` to close.
+**Retest (2026-10-12, `main` @ `7d406e6`, `chat` redeployed):** BUG-1, UX-1, UX-2 fixed and verified (BUG-1 incl. a live session on the deployed `chat`) — see [Retest](#retest-after-fixes).
 
 ## Work items for the agent
 
@@ -75,10 +75,10 @@ Reason chips only show right after clicking 👍/👎 (`showReasons` state in `f
 
 **Build:** `main` @ `7d406e6` · `chat` edge function redeployed · local frontend `localhost:3000`.
 
-**BUG-1 — fixed in code, live check pending**
+**BUG-1 — pass**
 - `parseSessionInsightsPayload` keeps a resource id only if its catalog title (case-insensitive, whitespace-normalized) occurs in a `Kota:` turn; `User:` turns never count. Prompt tightened ("exact title the COACH named; when unsure return []"). `AI_INSIGHTS_CLASSIFIER_VERSION` 1 → 2; consent version unchanged.
 - New unit tests: title absent → `[]`; title only in a `User:` turn → `[]`; `Kota:` turn names the title → id kept; unknown id → dropped.
-- **Pending:** one consenting live text session where Kota names no resource → `select "resourceIds" from "aiInsightSessionFact" where "conversationId" = '<id>'` should be `{}`; then reset the account as in "Environment state after testing".
+- Live check: `admin-qa@test.com` with consent on, text session `cd5e5bb5-dbf9-4928-a853-7fba101c8da0` (deadline stress + commitment; Kota named no resource; catalog still has `test`) → fact `text`, topics `work_stress / workload_time`, `classifierVersion = 2`, **`resourceIds = {}`**.
 - OVR-073 updated (resource rule + known limitation: paraphrases are missed, very short titles can match by coincidence).
 
 **UX-1 — pass (browser).** 👎 + "Too generic" on a Kota reply → after reload the label "Too generic" shows next to the active thumb; clicking it reopens the reason chips; clicking the active thumb still clears the rating and the label (row removed).
@@ -102,4 +102,4 @@ Reason chips only show right after clicking 👍/👎 (`showReasons` state in `f
 - QA seed removed (`ai_insights_qa_cleanup.sql`): no `qa55-*` users, facts, feedback.
 - `sub-pro@test.com` and `admin-qa@test.com`: consent reset to NULL, their consent events, facts and feedback deleted (DB matches pre-test: 1 pre-existing consenting user, 1 event, 0 facts, 0 feedback).
 - Leftover conversations: `sub-pro@test.com` text `1a7a59e8-ec09-4175-b728-97a0715cee7f`, `976fb9b1-4cc8-4d81-a2f8-0dc830f44b6b`, voice `b0461669-ed13-4f82-8a5a-4adc80a7f858`; `admin-qa@test.com` empty voice `15036663-1276-4444-86d4-bea80da31fdf`.
-- After the retest: the account logged in on `localhost:3000` answered the consent dialog with **Don't allow** (consent `false` + one `first_use` event); its test 👎 rating was cleared.
+- After the retest: `admin-qa@test.com` consent reset to NULL, its consent events and facts deleted (0/0), test 👎 rating cleared (0 feedback). Leftover conversation `cd5e5bb5-dbf9-4928-a853-7fba101c8da0` (text, finalized).
