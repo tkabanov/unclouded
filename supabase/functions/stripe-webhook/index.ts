@@ -7,12 +7,15 @@
  * Idempotency is layered:
  *  - `stripeWebhookEvent` rejects a replayed `event.id`;
  *  - the credit ledger has a unique index per (user, invoice) accrual, so even a
- *    concurrent duplicate delivery cannot grant two credits.
+ *    concurrent duplicate delivery cannot grant two credits;
+ *  - referral rewards (NCLDD-56) are keyed by invoice id / referred user in SQL, and
+ *    refunds / disputes are applied from the charge's re-fetched current state.
  */
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@17.7.0";
 
 import {
+  describeStripePrice,
   getServiceClient,
   getStripe,
   json,
@@ -26,6 +29,12 @@ import {
 } from "../_shared/stripeSubscriptionReconcile.ts";
 import { grantPremiumCreditForInvoice } from "../_shared/premiumCreditGrant.ts";
 import { grantSuccessPlanAddonFromCheckout } from "../_shared/successPlanAddonGrant.ts";
+import {
+  buildInvoicePaymentPayload,
+  chargeIdFromEventObject,
+  recordReferralInvoicePayment,
+  syncReferralChargeState,
+} from "../_shared/referralPayments.ts";
 import { syncStripeSubscriptionForUser } from "../_shared/stripeSubscriptionSync.ts";
 import {
   graceDeadlineFrom,
@@ -130,6 +139,26 @@ async function handleInvoicePaid(
   // One-time Premium signup grant (+2). Monthly +1 is calendar-based (lifecycle cron).
   const data = await grantPremiumCreditForInvoice(service, userId, invoice.id);
   console.log(`stripe-webhook: signup credit for ${userId} → ${JSON.stringify(data)}`);
+
+  // Payment history + referral coach credit / partner commission (NCLDD-56).
+  const payment = buildInvoicePaymentPayload(
+    invoice,
+    userId,
+    (priceId) => describeStripePrice(prices, priceId)?.tier ?? null,
+  );
+  if (payment) {
+    const referral = await recordReferralInvoicePayment(service, payment);
+    console.log(`stripe-webhook: referral payment ${invoice.id} → ${JSON.stringify(referral)}`);
+
+    // A refund / dispute may have been processed before this (retried) invoice.paid.
+    if (payment.p_charge_id && payment.p_amount_cents > 0) {
+      const reversal = await syncReferralChargeState(service, stripe, payment.p_charge_id, {
+        invoiceIdHint: payment.p_invoice_id,
+        onlyWhenReversed: true,
+      });
+      if (reversal) console.log(`stripe-webhook: charge state ${invoice.id} → ${JSON.stringify(reversal)}`);
+    }
+  }
 }
 
 async function handleInvoicePaymentFailed(
@@ -238,6 +267,20 @@ Deno.serve(async (req) => {
 
       case "invoice.payment_failed": {
         await handleInvoicePaymentFailed(service, event.data.object as Stripe.Invoice);
+        break;
+      }
+
+      case "charge.refunded":
+      case "charge.dispute.created":
+      case "charge.dispute.closed": {
+        // Event payloads are snapshots; apply the charge's current state instead.
+        const chargeId = chargeIdFromEventObject(
+          event.data.object as Stripe.Charge | Stripe.Dispute,
+        );
+        if (chargeId) {
+          const data = await syncReferralChargeState(service, stripe, chargeId);
+          console.log(`stripe-webhook: ${event.type} ${chargeId} → ${JSON.stringify(data)}`);
+        }
         break;
       }
 

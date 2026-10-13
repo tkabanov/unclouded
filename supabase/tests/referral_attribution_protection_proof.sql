@@ -385,10 +385,16 @@ SELECT set_config('request.jwt.claim.sub', '', true);
 SELECT set_config('request.jwt.claim.role', 'anon', true);
 SET LOCAL ROLE anon;
 
+-- 0 rows under RLS, or no privilege at all once 20261013160000 revokes anon.
 DO $$
+DECLARE
+  v_rows bigint := 0;
 BEGIN
-  ASSERT (SELECT count(*) FROM public."referralAttribution") = 0,
-    'anon must not read the registry';
+  BEGIN
+    SELECT count(*) INTO v_rows FROM public."referralAttribution";
+  EXCEPTION WHEN SQLSTATE '42501' THEN v_rows := 0;
+  END;
+  ASSERT v_rows = 0, 'anon must not read the registry';
 END $$;
 
 RESET ROLE;

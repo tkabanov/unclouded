@@ -11,6 +11,7 @@ export default defineConfig({
     include: [
       "src/**/*.{test,spec}.{ts,tsx}",
       "../supabase/functions/chat/**/*.test.ts",
+      "../supabase/functions/_shared/referralPayments.test.ts",
     ],
     server: {
       deps: {
