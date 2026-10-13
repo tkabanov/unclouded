@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -16,8 +16,10 @@ export function useReferralOverview() {
   const [overview, setOverview] = useState<ReferralOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestId = useRef(0);
 
   const load = useCallback(async () => {
+    const id = ++requestId.current;
     if (!user) {
       setOverview(null);
       setLoading(false);
@@ -30,11 +32,13 @@ export function useReferralOverview() {
       // block the page.
       const code = await ensureReferralCode(user.id).catch(() => null);
       const next = await fetchMyReferralOverview();
-      setOverview({ ...next, code: next.code ?? code });
+      if (id === requestId.current) setOverview({ ...next, code: next.code ?? code });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't load your referrals.");
+      if (id === requestId.current) {
+        setError(err instanceof Error ? err.message : "Couldn't load your referrals.");
+      }
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }, [user]);
 

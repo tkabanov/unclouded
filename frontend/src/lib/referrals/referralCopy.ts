@@ -1,4 +1,6 @@
 /** NCLDD-56 — referral program copy (English UI). */
+import type { PartnerClientStatus, PartnerTerms } from "@/lib/referrals/partnerPortalApi";
+import { formatMoneyFromCents } from "@/lib/subscription/subscriptionFormat";
 import type {
   ReferralCreditReason,
   ReferralInviteeStatus,
@@ -46,4 +48,46 @@ export function referralHistoryLabel(reason: ReferralCreditReason): string {
     case "admin_adjustment":
       return "Adjusted by support";
   }
+}
+
+// ---------------------------------------------------------------------------
+// B2B partner portal
+// ---------------------------------------------------------------------------
+
+export const PARTNER_PORTAL_TITLE = "Partner portal";
+
+export const PARTNER_PORTAL_SUBTITLE =
+  "Share your partner link, see who joined through it and what you've earned.";
+
+export const PARTNER_TERMS_NOT_CONFIGURED =
+  "Your commission terms haven't been confirmed yet, so earnings aren't calculated. " +
+  "Payments from your clients are still recorded and will be counted once terms are confirmed.";
+
+export const PARTNER_TERMS_ENDED =
+  "No commission terms are active right now. Earnings shown are from your earlier confirmed terms; " +
+  "new payments aren't calculated until new terms are confirmed.";
+
+export const PARTNER_INACTIVE_NOTICE =
+  "Your partner account is inactive: new sign-ups with your link aren't attributed to you.";
+
+export const PARTNER_CLIENT_STATUS_LABELS: Record<PartnerClientStatus, string> = {
+  pending_confirmation: "Awaiting email confirmation",
+  signed_up: "Signed up",
+  paying: "Paying client",
+};
+
+export function describePartnerTerms(terms: PartnerTerms): string {
+  const percent = `${Number(terms.commissionPercent.toFixed(2))}%`;
+  switch (terms.scope) {
+    case "first_payment":
+      return `${percent} of each client's first payment`;
+    case "months":
+      return `${percent} of every payment during a client's first ${terms.scopeMonths ?? 0} month${terms.scopeMonths === 1 ? "" : "s"}`;
+    case "lifetime":
+      return `${percent} of every payment`;
+  }
+}
+
+export function formatMoney(cents: number, currency: string | null): string {
+  return formatMoneyFromCents(cents, currency ?? "usd") ?? "";
 }

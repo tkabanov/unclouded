@@ -73,7 +73,7 @@ BEGIN
       u.created_at AS joined_at,
       jsonb_build_object(
         'displayName', public.referral_mask_name(p."firstName", p."lastName"),
-        'joinedAt', u.created_at,
+        'joinedAt', date_trunc('day', u.created_at),
         'status', CASE
           WHEN reward."createdAt" IS NOT NULL THEN 'rewarded'
           WHEN u.email_confirmed_at IS NOT NULL THEN 'signed_up'

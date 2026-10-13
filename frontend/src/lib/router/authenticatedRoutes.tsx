@@ -13,7 +13,8 @@ import EmployerPortal from "@/pages/EmployerPortal";
 import VoiceSession from "@/pages/VoiceSession";
 import AdminConsole from "@/pages/AdminConsole";
 import InviteFriend from "@/pages/InviteFriend";
-import { INVITE_FRIEND_ROUTE } from "@/lib/referrals/routes";
+import PartnerPortal from "@/pages/PartnerPortal";
+import { INVITE_FRIEND_ROUTE, PARTNER_PORTAL_ROUTE } from "@/lib/referrals/routes";
 
 export type AppRouteMeta = {
   requiresAuth: true;
@@ -33,6 +34,7 @@ export const authenticatedRouteDefs: AuthenticatedRouteDef[] = [
   { path: "/journal", element: <Journal /> },
   { path: "/subscription", element: <Subscription /> },
   { path: INVITE_FRIEND_ROUTE, element: <InviteFriend /> },
+  { path: PARTNER_PORTAL_ROUTE, element: <PartnerPortal /> },
   { path: "/settings", element: <Settings /> },
   { path: "/settings/subscription", element: <SettingsSubscriptionRedirect /> },
   { path: "/settings/know-yourself/:moduleSlug/results", element: <ModuleResultsPage /> },
