@@ -84,6 +84,7 @@ const fakes = vi.hoisted(() => {
         retrieve: vi.fn(async (id: string) => ({ id, customer: "cus_1", metadata: { userId: "user_1" } })),
         update: vi.fn(),
       },
+      invoices: { retrieve: vi.fn(async (id: string) => liveInvoice({ id })) },
       charges: { retrieve: vi.fn() },
       disputes: { list: vi.fn(async () => ({ data: [] })) },
     };
@@ -156,26 +157,26 @@ function deliver(event: Record<string, unknown>): Promise<Response> {
   );
 }
 
-function invoicePaidEvent(eventId: string) {
+/** Invoice as the SDK's pinned API version returns it (subscription + charge present). */
+function liveInvoice(overrides: Record<string, unknown> = {}) {
   return {
-    id: eventId,
-    type: "invoice.paid",
-    data: {
-      object: {
-        id: "in_1",
-        object: "invoice",
-        customer: "cus_1",
-        subscription: "sub_1",
-        charge: "ch_1",
-        amount_paid: 2900,
-        currency: "usd",
-        billing_reason: "subscription_create",
-        status_transitions: { paid_at: 1_760_000_000 },
-        subscription_details: { metadata: { userId: "user_1" } },
-        lines: { data: [{ amount: 2900, price: { id: "price_pro_month" } }] },
-      },
-    },
+    id: "in_1",
+    object: "invoice",
+    customer: "cus_1",
+    subscription: "sub_1",
+    charge: "ch_1",
+    amount_paid: 2900,
+    currency: "usd",
+    billing_reason: "subscription_create",
+    status_transitions: { paid_at: 1_760_000_000 },
+    subscription_details: { metadata: { userId: "user_1" } },
+    lines: { data: [{ amount: 2900, price: { id: "price_pro_month" } }] },
+    ...overrides,
   };
+}
+
+function invoicePaidEvent(eventId: string, object: Record<string, unknown> = liveInvoice()) {
+  return { id: eventId, type: "invoice.paid", data: { object } };
 }
 
 /** Charge as Stripe returns it now (the source of truth for reversals). */
@@ -262,6 +263,32 @@ describe("stripe-webhook — A1: duplicate invoice.paid", () => {
     expect(fakes.stripe.charges.retrieve).toHaveBeenCalledWith("ch_1");
     expect(rpcNamed("referral_record_payment_reversal").map((call) => call.args)).toEqual([
       { p_invoice_id: "in_1", p_charge_id: "ch_1", p_refunded_cents: 2900, p_disputed_cents: 0 },
+    ]);
+  });
+
+  it("records the payment when the event uses a newer API shape and beats checkout", async () => {
+    fakes.stripe.charges.retrieve.mockResolvedValue(liveCharge());
+    // basil+ events: no subscription / charge / subscription_details; customer not stored yet.
+    const newShape = {
+      id: "in_1",
+      object: "invoice",
+      customer: "cus_unknown",
+      amount_paid: 2900,
+      currency: "usd",
+      parent: { subscription_details: { subscription: "sub_1" } },
+    };
+
+    await deliver(invoicePaidEvent("evt_paid_new", newShape));
+
+    expect(fakes.stripe.invoices.retrieve).toHaveBeenCalledWith("in_1");
+    expect(rpcNamed("referral_record_invoice_payment").map((call) => call.args)).toEqual([
+      expect.objectContaining({
+        p_invoice_id: "in_1",
+        p_user_id: "user_1",
+        p_subscription_id: "sub_1",
+        p_charge_id: "ch_1",
+        p_tier: "pro",
+      }),
     ]);
   });
 });

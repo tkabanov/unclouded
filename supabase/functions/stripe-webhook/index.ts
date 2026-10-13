@@ -114,20 +114,25 @@ async function handleInvoicePaid(
   service: SupabaseClient,
   prices: PlanPriceRow[],
   stripe: Stripe,
-  invoice: Stripe.Invoice,
+  eventInvoice: Stripe.Invoice,
 ): Promise<void> {
+  // Newer endpoint API versions drop `subscription` / `charge` from the event's invoice;
+  // re-read it with the SDK's pinned version so both are present.
+  const invoice = eventInvoice.id ? await stripe.invoices.retrieve(eventInvoice.id) : eventInvoice;
   const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
   const subscriptionId =
     typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
 
   // Re-sync first so a renewal that recovered from past due is active again
-  // before we decide whether a credit is owed.
+  // before we decide whether a credit is owed. The subscription's metadata also names the
+  // user when this invoice arrives before checkout.session.completed stored the customer.
+  let syncedUserId: string | null = null;
   if (subscriptionId) {
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    await syncSubscription(service, prices, subscription);
+    syncedUserId = await syncSubscription(service, prices, subscription);
   }
 
-  const userId = await resolveUserId(service, {
+  const userId = syncedUserId ?? await resolveUserId(service, {
     metadataUserId: invoice.subscription_details?.metadata?.userId ?? null,
     customerId: customerId ?? null,
   });
