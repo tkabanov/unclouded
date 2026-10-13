@@ -12,6 +12,8 @@ export default defineConfig({
       "src/**/*.{test,spec}.{ts,tsx}",
       "../supabase/functions/chat/**/*.test.ts",
       "../supabase/functions/_shared/referralPayments.test.ts",
+      "../supabase/functions/_shared/kotaReadEligibility.test.ts",
+      "../supabase/functions/stripe-webhook/index.test.ts",
     ],
     server: {
       deps: {
@@ -31,6 +33,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
       // Edge functions import Deno `npm:` specifiers; stub for unit tests (see src/test/stubs).
       "npm:ai": path.resolve(__dirname, "./src/test/stubs/npmAi.ts"),
+      "npm:stripe@17.7.0": path.resolve(__dirname, "./src/test/stubs/npmStripe.ts"),
     },
   },
   server: {

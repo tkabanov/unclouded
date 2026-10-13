@@ -30,6 +30,31 @@ SQL proofs (each a single transaction ending in `ROLLBACK`, run on PGlite with a
 
 Reviews: security review per slice (all blocking findings fixed, re-reviewed), fidelity review of the whole ticket against the DoD (must-fixes applied in slice 6).
 
+## Test-plan run (2026-10-13, `docs/NCLDD-56-test-plan.md`)
+
+**§2.1 automated (pre-deploy):** lint 0 errors (32 pre-existing warnings) · `npm run test` 1209 / 1209 (188 files, incl. A1–A7) · build pass · typecheck 182 (unchanged, pre-existing) · 7 SQL proofs on PGlite: all `ALL PASS`.
+
+**§2.2 gaps added (all green, no product bugs found):**
+
+| # | File | Tests |
+|---|---|---|
+| A1, A2 | `supabase/functions/stripe-webhook/index.test.ts` (+ `frontend/src/test/stubs/npmStripe.ts`) | 9 — replayed event / same invoice under new event id → one payment + one credit; failed handling releases the event row; refund / dispute created / closed won+lost use the charge re-fetched from Stripe |
+| A3 | `supabase/functions/_shared/kotaReadEligibility.test.ts` | 14 — Free + `referral_credit` upcoming booking allowed once (409 after brief exists); past / cancelled → 409; Free without credit or group session → 403; Pro/Premium unchanged. Eligibility extracted from `generate-kota-read/index.ts` into `_shared/kotaReadEligibility.ts` (same behavior) |
+| A4 | `frontend/src/components/shell/SignupPopup.referral.test.tsx` | 7 — `?ref=` survives navigation, first code wins, cleared after signup, kept on failed signup, invalid / tampered code dropped silently |
+| A5 | `frontend/src/components/AppSidebar.referrals.test.tsx` | 9 — Invite a friend for regular + enterprise users; Partner portal only when `is_my_referral_partner` is `true`; `/partner` redirects non-partners |
+| A6 | `frontend/src/components/coach/BookCoachCard.test.tsx` | 7 — referral credit hint for 1:1 (also before Premium credits), Free with 0 credits → paywall, credit never unlocks group sessions, balance used only by the 1:1 booking card |
+| A7 | `frontend/src/components/settings/admin/AdminReferralPartnersTab.test.tsx` | 8 — sort by sign-ups / paying / commission desc→asc; partner without terms shows "Terms not set" / "No terms", no amount |
+| A8 | `scripts/referral_isolation_smoke.mjs` | written, **not run** — needs deployed migrations + test users |
+
+**Notes from the run:**
+- HR-only (employer-portal) users see only Settings in the sidebar, so no "Invite a friend" — existing sidebar design, product call whether the plan's "every user" includes them.
+- UI wording for missing terms is "Terms not set" / "No terms" (plan says "not confirmed").
+- Partner portal sidebar item appears after reload if an account is linked mid-session (per-load cache).
+- Spend order (referral credit before Premium credits) is server-side (`confirm_one_on_one_booking`) — covered by `one_on_one_referral_credit_proof.sql`, not by A6.
+- Pro/Premium can regenerate Kota's Read (and re-email the coach) — pre-existing behavior.
+
+**Blocked:** §2.1 proofs in the Supabase SQL editor, A8 and all manual cases M-01…M-54 — the six NCLDD-56 migrations (`20261013150000…200000`) are not applied on the linked project (`supabase migration list`), edge functions not deployed.
+
 ## Deploy checklist
 
 1. PM review, then run the read-only pre-checks in the headers of `20261013150000` and `20261013160000` (each must return 0).

@@ -22,10 +22,13 @@ import {
   resolveKotaReadRecipients,
   sendKotaReadBriefEmail,
 } from "../_shared/kotaReadDelivery.ts";
+import {
+  resolveKotaReadEligibility,
+  type KotaReadEligibilityBooking,
+} from "../_shared/kotaReadEligibility.ts";
 import { readSessionMemoryRecords } from "../chat/sessionMemory/sessionMemoryHelpers.ts";
 import {
   buildStandaloneUserContext,
-  canUseStandaloneProPrompts,
   normalizeStandaloneTier,
 } from "../_shared/standalonePrompts/index.ts";
 
@@ -289,31 +292,13 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   const tier = normalizeStandaloneTier(profile?.tier);
-  // NCLDD-56 / OVR-074: a 1:1 session booked with a referral coach credit gets Kota's Read on
-  // any plan, so the coach has context even for a Free member.
-  const paidWithReferralCredit =
-    bookingTable === "coachBooking" &&
-    (booking as { paymentSource?: string | null }).paymentSource === "referral_credit";
-  if (!canUseStandaloneProPrompts(tier)) {
-    if (!paidWithReferralCredit) {
-      return jsonResponse(403, { error: "Pro or Premium membership required" });
-    }
-    // Plan-free access is one brief for one upcoming, live referral booking — no regeneration
-    // (each call costs an AI generation and emails the coach).
-    const referralBooking = booking as {
-      status?: string | null;
-      scheduledAt?: string | null;
-      kotaReadJson?: unknown;
-    };
-    const upcoming =
-      typeof referralBooking.scheduledAt === "string" &&
-      new Date(referralBooking.scheduledAt).getTime() > Date.now();
-    if (!["pending", "confirmed"].includes(referralBooking.status ?? "") || !upcoming) {
-      return jsonResponse(409, { error: "Kota's Read is only prepared for upcoming sessions" });
-    }
-    if (referralBooking.kotaReadJson) {
-      return jsonResponse(409, { error: "Kota's Read was already prepared for this session" });
-    }
+  const eligibility = resolveKotaReadEligibility({
+    tier,
+    bookingTable,
+    booking: booking as KotaReadEligibilityBooking,
+  });
+  if (!eligibility.ok) {
+    return jsonResponse(eligibility.status, { error: eligibility.error });
   }
 
   const context = await buildKotaReadContext(
