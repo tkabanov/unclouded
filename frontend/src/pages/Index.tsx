@@ -41,7 +41,11 @@ import { isSettingsAdminUser } from "@/lib/settings/isSettingsAdminUser";
 import { isOnboardingComplete, resolvePostAuthRouteForUser } from "@/lib/userProfile/onboardingStatus";
 import { EMPLOYER_PORTAL_ROUTE } from "@/lib/employer/routes";
 import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
-import { captureReferralFromSearch } from "@/lib/share/referralAttribution";
+import {
+  captureReferralFromSearch,
+  readReferralCodeFromSearch,
+} from "@/lib/share/referralAttribution";
+import { recordReferralLinkVisit } from "@/lib/share/referralLinkClick";
 import { capturePlanFromSearch, FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
 import { captureUtmFromSearch } from "@/lib/share/utmAttribution";
 import { subscriptionPath } from "@/lib/subscription/routes";
@@ -232,6 +236,8 @@ const Index = () => {
   // Referral and marketing links land on /signup?ref=… — open the signup popup.
   useEffect(() => {
     captureReferralFromSearch(location.search);
+    const visitedCode = readReferralCodeFromSearch(location.search);
+    if (visitedCode) void recordReferralLinkVisit(visitedCode);
     captureUtmFromSearch(location.search);
     capturePlanFromSearch(location.search);
     const enterpriseCode = new URLSearchParams(location.search).get("enterpriseCode");

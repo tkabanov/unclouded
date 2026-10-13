@@ -268,7 +268,7 @@ Deno.serve(async (req) => {
     .from(bookingTable)
     .select(
       bookingTable === "coachBooking"
-        ? "id, userId, scheduledAt, assignedCoachEmail, specialistId"
+        ? "id, userId, scheduledAt, assignedCoachEmail, specialistId, paymentSource, status, kotaReadJson"
         : "id, userId, scheduledAt, assignedCoachEmail",
     )
     .eq("id", bookingId)
@@ -289,8 +289,31 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   const tier = normalizeStandaloneTier(profile?.tier);
+  // NCLDD-56 / OVR-074: a 1:1 session booked with a referral coach credit gets Kota's Read on
+  // any plan, so the coach has context even for a Free member.
+  const paidWithReferralCredit =
+    bookingTable === "coachBooking" &&
+    (booking as { paymentSource?: string | null }).paymentSource === "referral_credit";
   if (!canUseStandaloneProPrompts(tier)) {
-    return jsonResponse(403, { error: "Pro or Premium membership required" });
+    if (!paidWithReferralCredit) {
+      return jsonResponse(403, { error: "Pro or Premium membership required" });
+    }
+    // Plan-free access is one brief for one upcoming, live referral booking — no regeneration
+    // (each call costs an AI generation and emails the coach).
+    const referralBooking = booking as {
+      status?: string | null;
+      scheduledAt?: string | null;
+      kotaReadJson?: unknown;
+    };
+    const upcoming =
+      typeof referralBooking.scheduledAt === "string" &&
+      new Date(referralBooking.scheduledAt).getTime() > Date.now();
+    if (!["pending", "confirmed"].includes(referralBooking.status ?? "") || !upcoming) {
+      return jsonResponse(409, { error: "Kota's Read is only prepared for upcoming sessions" });
+    }
+    if (referralBooking.kotaReadJson) {
+      return jsonResponse(409, { error: "Kota's Read was already prepared for this session" });
+    }
   }
 
   const context = await buildKotaReadContext(

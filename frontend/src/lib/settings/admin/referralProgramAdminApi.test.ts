@@ -19,11 +19,11 @@ describe("mappers", () => {
   it("maps user stats", () => {
     expect(
       mapAdminUserReferralStats({
-        invites: { invited: 2, registered: 1, paidProPremium: 1, movedToPartner: 1 },
+        invites: { linkVisits: 5, invited: 2, registered: 1, paidProPremium: 1, movedToPartner: 1 },
         credits: { earned: 1, used: 0, takenBack: 0, adjusted: 0, available: 1 },
       }),
     ).toEqual({
-      invites: { invited: 2, registered: 1, paidProPremium: 1, movedToPartner: 1 },
+      invites: { linkVisits: 5, invited: 2, registered: 1, paidProPremium: 1, movedToPartner: 1 },
       credits: { earned: 1, used: 0, takenBack: 0, adjusted: 0, available: 1 },
     });
   });

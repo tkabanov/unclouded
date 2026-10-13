@@ -190,6 +190,7 @@ BEGIN
 
   SELECT jsonb_build_object(
     'signups', v_signups,
+    'linkVisits', (SELECT count(*) FROM public."referralLinkClick" WHERE "partnerId" = v_partner.id),
     'payingClients', count(DISTINCT c."referredUserId"),
     'payments', count(*),
     'pendingTermsPayments', count(*) FILTER (WHERE c.status = 'pending_terms'),

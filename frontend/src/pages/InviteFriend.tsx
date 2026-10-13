@@ -53,7 +53,11 @@ export default function InviteFriend() {
             </div>
           ) : overview ? (
             <div className="grid gap-4 md:grid-cols-2">
-              <ReferralLinkCard code={code} shareUrl={code ? buildReferralShareUrl(code) : null} />
+              <ReferralLinkCard
+                code={code}
+                shareUrl={code ? buildReferralShareUrl(code) : null}
+                linkVisits={overview.linkVisits}
+              />
               <ReferralCreditsSummary credits={overview.credits} />
               <ReferralInviteesList invitees={overview.invitees} totalInvited={overview.totalInvited} />
               <ReferralCreditHistory history={overview.history} />

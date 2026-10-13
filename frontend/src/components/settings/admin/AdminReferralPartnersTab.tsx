@@ -310,7 +310,7 @@ export default function AdminReferralPartnersTab() {
                       <>
                         {partnerMetrics.signups}
                         <span className="block text-xs text-muted-foreground">
-                          {partnerMetrics.confirmed} confirmed
+                          {partnerMetrics.confirmed} confirmed · {partnerMetrics.linkVisits} visits
                         </span>
                       </>
                     ) : (

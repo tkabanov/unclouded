@@ -41,6 +41,8 @@ export type ReferralCreditTotals = {
 
 export type ReferralOverview = {
   code: string | null;
+  /** Anonymous link visits (deduplicated per browser and day); not conversions. */
+  linkVisits: number;
   totalInvited: number;
   invitees: ReferralInvitee[];
   credits: ReferralCreditTotals;
@@ -113,6 +115,7 @@ export function mapReferralOverview(value: unknown): ReferralOverview {
   const credits = asRecord(row.credits) ?? {};
   return {
     code: asString(row.code)?.toUpperCase() ?? null,
+    linkVisits: asNumber(row.linkVisits),
     totalInvited: asNumber(row.totalInvited),
     invitees: asArray(row.invitees)
       .map(mapInvitee)

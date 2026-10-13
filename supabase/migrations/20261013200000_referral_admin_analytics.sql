@@ -5,8 +5,8 @@
 -- Settings-admin-only RPCs (is_settings_admin(), 42501 otherwise):
 --   * admin_get_user_referral_stats — B2C activity of one user: invited (accounts created with the
 --     user's link), registered (email confirmed), paid Pro/Premium (a recorded qualifying
---     payment), referral coach credits earned / used / taken back / available. Link clicks are not
---     tracked and are never counted as conversions.
+--     payment), referral coach credits earned / used / taken back / available. Link visits
+--     are reported separately and are never counted as conversions.
 --   * admin_referral_partner_metrics — one row per partner to compare: sign-ups, confirmed,
 --     paying clients, payments, payments waiting for terms, net accrued commission per currency,
 --     current terms, linked account.
@@ -42,6 +42,9 @@ BEGIN
         AND bp."amountPaidCents" > 0
         AND bp."tierSlug" IN ('pro', 'premium')
     )),
+    'linkVisits', (
+      SELECT count(*) FROM public."referralLinkClick" AS lc WHERE lc."referrerUserId" = p_user_id
+    ),
     'movedToPartner', (
       SELECT count(*) FROM public."referralAttribution" AS m
       WHERE m."referredByUserId" = p_user_id AND m."referralPartnerId" IS NOT NULL
@@ -87,6 +90,7 @@ BEGIN
     SELECT jsonb_agg(jsonb_build_object(
       'partnerId', p.id,
       'signups', coalesce(att.signups, 0),
+      'linkVisits', (SELECT count(*) FROM public."referralLinkClick" AS lc WHERE lc."partnerId" = p.id),
       'confirmed', coalesce(att.confirmed, 0),
       'payingClients', coalesce(com.paying_clients, 0),
       'payments', coalesce(com.payments, 0),

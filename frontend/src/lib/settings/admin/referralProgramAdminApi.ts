@@ -7,12 +7,19 @@ import { callRpc } from "@/lib/supabase/rpc";
  */
 
 export type AdminUserReferralStats = {
-  invites: { invited: number; registered: number; paidProPremium: number; movedToPartner: number };
+  invites: {
+    linkVisits: number;
+    invited: number;
+    registered: number;
+    paidProPremium: number;
+    movedToPartner: number;
+  };
   credits: { earned: number; used: number; takenBack: number; adjusted: number; available: number };
 };
 
 export type AdminPartnerMetrics = {
   partnerId: string;
+  linkVisits: number;
   signups: number;
   confirmed: number;
   payingClients: number;
@@ -103,6 +110,7 @@ export function mapAdminUserReferralStats(value: unknown): AdminUserReferralStat
   const credits = asRecord(row.credits) ?? {};
   return {
     invites: {
+      linkVisits: asNumber(invites.linkVisits),
       invited: asNumber(invites.invited),
       registered: asNumber(invites.registered),
       paidProPremium: asNumber(invites.paidProPremium),
@@ -137,6 +145,7 @@ export function mapAdminPartnerMetrics(value: unknown): AdminPartnerMetrics[] {
           : null;
       return {
         partnerId,
+        linkVisits: asNumber(row.linkVisits),
         signups: asNumber(row.signups),
         confirmed: asNumber(row.confirmed),
         payingClients: asNumber(row.payingClients),

@@ -35,6 +35,8 @@ export type PartnerPortal = {
   terms: PartnerTerms | null;
   clients: PartnerClient[];
   totals: {
+    /** Anonymous link visits (deduplicated per browser and day); not conversions. */
+    linkVisits: number;
     signups: number;
     payingClients: number;
     payments: number;
@@ -123,6 +125,7 @@ export function mapPartnerPortal(value: unknown): PartnerPortal | null {
       .map(mapClient)
       .filter((item): item is PartnerClient => item !== null),
     totals: {
+      linkVisits: asNumber(totals.linkVisits),
       signups: asNumber(totals.signups),
       payingClients: asNumber(totals.payingClients),
       payments: asNumber(totals.payments),

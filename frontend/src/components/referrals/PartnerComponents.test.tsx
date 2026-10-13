@@ -11,7 +11,7 @@ const basePortal: PartnerPortal = {
   termsStatus: "confirmed",
   terms: { commissionPercent: 20, scope: "lifetime", scopeMonths: null, effectiveFrom: null, confirmedAt: null },
   clients: [],
-  totals: { signups: 2, payingClients: 1, payments: 2, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 870 }] },
+  totals: { linkVisits: 5, signups: 2, payingClients: 1, payments: 2, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 870 }] },
 };
 
 describe("describePartnerTerms", () => {

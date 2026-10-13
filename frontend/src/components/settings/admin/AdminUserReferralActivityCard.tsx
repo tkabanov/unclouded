@@ -39,7 +39,8 @@ export default function AdminUserReferralActivityCard({ userId }: { userId: stri
     <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <h3 className="mb-1 text-sm font-semibold text-foreground">Referral activity (Invite a friend)</h3>
       <p className="mb-4 text-xs text-muted-foreground">
-        People who signed up with this user's link. Link clicks are not tracked.
+        People who signed up with this user's link. Link visits are anonymous (once per browser per
+        day) and are not conversions.
       </p>
       {failed ? (
         <p className="text-sm text-muted-foreground">Referral activity isn't available right now.</p>
@@ -47,7 +48,8 @@ export default function AdminUserReferralActivityCard({ userId }: { userId: stri
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-4">
+            <Stat label="Link visits" value={stats.invites.linkVisits} />
             <Stat label="Invited (accounts created)" value={stats.invites.invited} />
             <Stat label="Registered (email confirmed)" value={stats.invites.registered} />
             <Stat

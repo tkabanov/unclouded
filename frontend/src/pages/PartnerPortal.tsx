@@ -70,6 +70,7 @@ export default function PartnerPortal() {
                   description="Your partner link and code are permanent. Clients who sign up with it are attributed to you."
                   code={portal.partner.code}
                   shareUrl={buildReferralShareUrl(portal.partner.code)}
+                  linkVisits={portal.totals.linkVisits}
                 />
                 <PartnerEarningsSummary portal={portal} />
                 <div className="md:col-span-2">

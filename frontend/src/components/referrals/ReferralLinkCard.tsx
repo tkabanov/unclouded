@@ -10,6 +10,8 @@ type ReferralLinkCardProps = {
   shareUrl: string | null;
   title?: string;
   description?: string;
+  /** Anonymous visits of the link (once per browser per day). */
+  linkVisits?: number;
 };
 
 /** Permanent personal referral link + code with copy buttons (B2C and partner pages). */
@@ -18,6 +20,7 @@ export default function ReferralLinkCard({
   shareUrl,
   title = "Your referral link",
   description = "Your link and code are permanent. Share them anywhere.",
+  linkVisits,
 }: ReferralLinkCardProps) {
   const copy = useCallback(async (value: string, label: string) => {
     try {
@@ -66,6 +69,11 @@ export default function ReferralLinkCard({
               <Copy className="h-3.5 w-3.5" aria-hidden />
             </Button>
           </div>
+        ) : null}
+        {typeof linkVisits === "number" ? (
+          <p className="text-xs text-muted-foreground">
+            {linkVisits} link visit{linkVisits === 1 ? "" : "s"} so far (counted once per browser per day).
+          </p>
         ) : null}
       </CardContent>
     </Card>
