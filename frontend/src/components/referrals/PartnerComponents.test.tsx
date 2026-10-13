@@ -61,17 +61,31 @@ describe("PartnerEarningsSummary", () => {
 });
 
 describe("PartnerClientsList", () => {
-  it("shows per-client earnings, or 'Not calculated' without terms", () => {
+  it("shows per-client earnings, or 'Not calculated' while payments wait for terms", () => {
     const clients = [
       { displayName: "Wendy W.", joinedAt: null, status: "paying" as const, payments: 2, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 870 }] },
       { displayName: "Xena X.", joinedAt: null, status: "paying" as const, payments: 1, pendingTermsPayments: 1, earned: [] },
       { displayName: "Walter W.", joinedAt: null, status: "signed_up" as const, payments: 0, pendingTermsPayments: 0, earned: [] },
     ];
-    render(<PartnerClientsList clients={clients} termsConfirmed={false} />);
+    render(<PartnerClientsList clients={clients} />);
     expect(screen.getByText(/8[.,]70/)).toBeInTheDocument();
     expect(screen.getByText("Not calculated")).toBeInTheDocument();
     expect(screen.getByText(/1 awaiting terms/)).toBeInTheDocument();
     expect(screen.getByText("Signed up")).toBeInTheDocument();
     expect(screen.getByText("(3)")).toBeInTheDocument();
+  });
+
+  it("never shows $0 for a client whose payments predate the confirmed terms", () => {
+    render(
+      <PartnerClientsList
+        clients={[
+          { displayName: "Early E.", joinedAt: null, status: "paying", payments: 2, pendingTermsPayments: 2, earned: [] },
+          { displayName: "Scope S.", joinedAt: null, status: "paying", payments: 1, pendingTermsPayments: 0, earned: [] },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Not calculated")).toBeInTheDocument();
+    // Only the client still waiting for terms is "Not calculated"; the out-of-scope one is a decided 0.
+    expect(screen.getAllByText("Not calculated")).toHaveLength(1);
   });
 });

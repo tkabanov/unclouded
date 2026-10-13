@@ -24,7 +24,7 @@ export const REFERRAL_PROGRAM_RULES: readonly string[] = [
   "You earn one human-coach session credit the first time each friend pays for Pro or Premium.",
   "Each credit books one 30-minute 1:1 session with a coach on any plan. Credits don't expire.",
   "Credits can't be used for AI sessions.",
-  "If a friend's first payment is refunded or charged back, the credit for that friend is removed if you haven't used it yet.",
+  "If a friend's first payment is fully refunded or charged back, the credit for that friend is removed if you haven't used it yet.",
 ];
 
 export const INVITEE_STATUS_LABELS: Record<ReferralInviteeStatus, string> = {
@@ -61,7 +61,8 @@ export const PARTNER_PORTAL_SUBTITLE =
 
 export const PARTNER_TERMS_NOT_CONFIGURED =
   "Your commission terms haven't been confirmed yet, so earnings aren't calculated. " +
-  "Payments from your clients are still recorded and will be counted once terms are confirmed.";
+  "Payments from your clients are still recorded; those made on or after the start date of your " +
+  "confirmed terms will be counted.";
 
 export const PARTNER_TERMS_ENDED =
   "No commission terms are active right now. Earnings shown are from your earlier confirmed terms; " +

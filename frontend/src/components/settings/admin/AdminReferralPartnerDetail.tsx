@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AddReferralPartnerPopup from "@/components/settings/admin/AddReferralPartnerPopup";
+import AdminReferralPartnerProgram from "@/components/settings/admin/AdminReferralPartnerProgram";
 import {
   fetchAdminReferralPartner,
   partnerTypeLabel,
@@ -223,6 +224,8 @@ export default function AdminReferralPartnerDetail() {
           />
         </div>
       </section>
+
+      <AdminReferralPartnerProgram partnerId={partnerId} />
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">

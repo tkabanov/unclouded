@@ -73,10 +73,7 @@ export default function PartnerPortal() {
                 />
                 <PartnerEarningsSummary portal={portal} />
                 <div className="md:col-span-2">
-                  <PartnerClientsList
-                    clients={portal.clients}
-                    termsConfirmed={portal.termsStatus === "confirmed"}
-                  />
+                  <PartnerClientsList clients={portal.clients} />
                 </div>
               </div>
             </>

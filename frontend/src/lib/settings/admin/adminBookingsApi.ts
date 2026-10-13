@@ -32,6 +32,8 @@ export type AdminBookingRow = {
   meetLink: string | null;
   creditsRequired: number | null;
   creditStatus: AdminBookingCreditStatus | string;
+  /** NCLDD-56: what paid for a 1:1 booking; null for group rows / before the migration. */
+  paymentSource: "premium_credits" | "referral_credit" | null;
   notes: string | null;
   sessionTitle: string | null;
   sessionId: string | null;
@@ -95,6 +97,10 @@ function mapRow(raw: Record<string, unknown>): AdminBookingRow | null {
     meetLink: asString(raw.meetLink),
     creditsRequired: asNumber(raw.creditsRequired),
     creditStatus: asString(raw.creditStatus) ?? "none",
+    paymentSource:
+      raw.paymentSource === "referral_credit" || raw.paymentSource === "premium_credits"
+        ? raw.paymentSource
+        : null,
     notes: asString(raw.notes),
     sessionTitle: asString(raw.sessionTitle),
     sessionId: asString(raw.sessionId),

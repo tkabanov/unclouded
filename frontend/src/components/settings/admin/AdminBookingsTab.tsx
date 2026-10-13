@@ -769,6 +769,9 @@ export default function AdminBookingsTab() {
                       </td>
                       <td className="px-4 py-3 align-top text-muted-foreground">
                         {formatAdminCreditStatus(row.creditStatus)}
+                        {row.paymentSource === "referral_credit" ? (
+                          <span className="block text-xs">Referral credit</span>
+                        ) : null}
                       </td>
                       <td className="px-4 py-3 align-top">
                         {row.meetLink ? (

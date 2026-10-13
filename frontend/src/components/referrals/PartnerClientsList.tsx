@@ -8,18 +8,21 @@ import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
 
 type PartnerClientsListProps = {
   clients: PartnerClient[];
-  termsConfirmed: boolean;
 };
 
-function clientEarnings(client: PartnerClient, termsConfirmed: boolean): string | null {
+/**
+ * Accrued commission, or "Not calculated" while payments still wait for terms — a payment
+ * outside any confirmed terms is never shown as $0 earned.
+ */
+function clientEarnings(client: PartnerClient): string | null {
   if (client.payments === 0) return null;
   if (client.earned.length > 0) {
     return client.earned.map((amount) => formatMoney(amount.cents, amount.currency)).join(" + ");
   }
-  return termsConfirmed ? formatMoney(0, "usd") : "Not calculated";
+  return client.pendingTermsPayments > 0 ? "Not calculated" : formatMoney(0, "usd");
 }
 
-export default function PartnerClientsList({ clients, termsConfirmed }: PartnerClientsListProps) {
+export default function PartnerClientsList({ clients }: PartnerClientsListProps) {
   return (
     <Card className="border-border/60 shadow-card">
       <CardHeader className="pb-2">
@@ -39,7 +42,7 @@ export default function PartnerClientsList({ clients, termsConfirmed }: PartnerC
         ) : (
           <ul className="divide-y divide-border/60">
             {clients.map((client, index) => {
-              const earnings = clientEarnings(client, termsConfirmed);
+              const earnings = clientEarnings(client);
               return (
                 <li
                   key={`${client.displayName}-${client.joinedAt ?? index}`}

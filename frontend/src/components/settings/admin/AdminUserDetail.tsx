@@ -39,6 +39,7 @@ import {
 } from "@/lib/settings/admin/adminUserType";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import AdminUserReferralActivityCard from "@/components/settings/admin/AdminUserReferralActivityCard";
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -478,6 +479,8 @@ export default function AdminUserDetailPanel({ userId, onBack, onStatusChanged }
             </Select>
           </div>
         </Card>
+
+        <AdminUserReferralActivityCard userId={userId} />
 
         <Card title="Bookings & credits">
           <div className="grid grid-cols-3 gap-3">
