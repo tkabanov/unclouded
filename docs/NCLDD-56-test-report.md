@@ -60,7 +60,9 @@ Reviews: security review per slice (all blocking findings fixed, re-reviewed), f
 - Hosted signup creates a `userSubscription` row, so the 1:1 proof upserts it.
 - Function grants checked: payment RPCs (`referral_record_invoice_payment`, `referral_record_payment_reversal`) not executable by `anon` / `authenticated`; user RPCs not executable by `anon`; only `record_referral_link_click` is open to `anon` (by design).
 
-**Still not run:** A8 and the manual cases M-01…M-54. They need test accounts on the production project, sign-ins with passwords and Stripe test-mode actions in the dashboard (the Stripe endpoint must also get `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`) — to be done by a person.
+**A8 (2026-10-13, production, seeded `ncldd56-*@test.com` accounts via `scripts/seed_ncldd56_referral_test_users.mjs`):** **ALL PASS** — M-48 own overview only, masked invitees, REF-B sees none of REF-A's invitees; M-49 / M-34 portal only for PARTNER-1, no emails / foreign ids, `null` for REF-A and USER-X; M-50 all admin referral RPCs `42501` for four non-admins (`admin_list_coaching_bookings` keeps its pre-NCLDD-56 `{ ok: false, code: 'forbidden' }` contract, no data); M-51 anon `42501`; M-52 direct select on all six private tables `42501`; M-53 direct `coachBooking` insert `42501`; admin analytics allowed for ADMIN.
+
+**Still not run:** the manual UI cases M-01…M-47 and M-54. They need test accounts on the production project, sign-ins with passwords and Stripe test-mode actions in the dashboard (the Stripe endpoint must also get `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`) — to be done by a person.
 
 ## Deploy checklist
 
