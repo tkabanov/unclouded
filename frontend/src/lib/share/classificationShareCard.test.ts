@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildClassificationShareCardMetadata,
+  buildReferralShareUrl,
   generateReferralCode,
 } from "./classificationShareCard";
 import {
@@ -25,6 +26,10 @@ describe("classificationShareCard", () => {
     expect(metadata.shareUrl).toBe("https://app.uncloud360.ai/signup?ref=TESTCODE");
     expect(metadata.classificationName).toBe("Capacity Erosion");
     expect(metadata.tagline).toContain("carrying more than your system");
+  });
+
+  it("defaults the referral link to the current app origin", () => {
+    expect(buildReferralShareUrl("ABCD2345")).toBe(`${window.location.origin}/signup?ref=ABCD2345`);
   });
 });
 

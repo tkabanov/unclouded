@@ -49,7 +49,9 @@ export function buildClassificationShareCardMetadata(params: {
 
 /** Personal referral signup link (no classification card required). */
 export function buildReferralShareUrl(referralCode: string, origin?: string): string {
-  const resolvedOrigin = (origin ?? "https://uncloud360.ai").replace(/\/$/, "");
+  // Default to the app's own origin: uncloud360.ai does not serve the app yet.
+  const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "https://uncloud360.ai";
+  const resolvedOrigin = (origin ?? fallbackOrigin).replace(/\/$/, "");
   const code = generateReferralCode(referralCode);
   return `${resolvedOrigin}/signup?ref=${encodeURIComponent(code)}`;
 }
