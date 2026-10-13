@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useHrWorkplaces } from "@/hooks/useHrWorkplaces";
 import { buildReferralShareUrl } from "@/lib/share/classificationShareCard";
+import { INVITE_FRIEND_ROUTE } from "@/lib/referrals/routes";
 import { ensureReferralCode } from "@/lib/share/referralCodeApi";
 import {
   fetchMyReferralSignUpCount,
@@ -15,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 export default function SettingsReferralStatsSection() {
   const { user } = useAuth();
+  const { isPortalOnlyHr } = useHrWorkplaces();
   const [referralCount, setReferralCount] = useState<number | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +97,12 @@ export default function SettingsReferralStatsSection() {
           </Button>
         </div>
       ) : null}
+
+      {isPortalOnlyHr ? null : (
+        <Link to={INVITE_FRIEND_ROUTE} className="w-fit text-sm font-medium text-primary hover:underline">
+          See your invited friends and coach session credits
+        </Link>
+      )}
     </div>
   );
 }

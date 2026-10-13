@@ -6,6 +6,7 @@ export const SIDEBAR_NAV = {
   JOURNAL: "journal",
   PATHS: "paths",
   SUBSCRIPTION: "subscription",
+  INVITE_FRIEND: "inviteFriend",
   SETTINGS: "settings",
 } as const;
 
@@ -17,6 +18,7 @@ export const SIDEBAR_NAV_LABELS: Record<SidebarNavSlug, string> = {
   journal: "Journal",
   paths: "Paths & Resources",
   subscription: "Subscription",
+  inviteFriend: "Invite a friend",
   settings: "Settings",
 };
 
@@ -26,6 +28,7 @@ export const SIDEBAR_NAV_ROUTES: Record<SidebarNavSlug, string> = {
   journal: "/journal",
   paths: "/paths",
   subscription: "/subscription",
+  inviteFriend: "/invite",
   settings: "/settings",
 };
 
@@ -35,6 +38,7 @@ export const SIDEBAR_NAV_ORDER: readonly SidebarNavSlug[] = [
   SIDEBAR_NAV.JOURNAL,
   SIDEBAR_NAV.PATHS,
   SIDEBAR_NAV.SUBSCRIPTION,
+  SIDEBAR_NAV.INVITE_FRIEND,
   SIDEBAR_NAV.SETTINGS,
 ];
 

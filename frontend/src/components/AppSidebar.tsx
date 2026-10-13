@@ -6,6 +6,7 @@ import {
   BookOpen,
   Compass,
   CreditCard,
+  Gift,
   Settings,
   Phone,
   MessageSquare,
@@ -38,6 +39,7 @@ const NAV_ICONS: Record<SidebarNavSlug, LucideIcon> = {
   journal: BookOpen,
   paths: Compass,
   subscription: CreditCard,
+  inviteFriend: Gift,
   settings: Settings,
 };
 
