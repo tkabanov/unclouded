@@ -34,6 +34,29 @@ describe("shouldShowHumanCoachingCard", () => {
 });
 
 describe("resolveOneOnOneButtonState", () => {
+  it("lets any plan book with a referral credit, before Premium credits", () => {
+    for (const tier of [TIER.FREE, TIER.PRO, TIER.PREMIUM]) {
+      const state = resolveOneOnOneButtonState({
+        effectiveTier: tier,
+        creditBalance: 4,
+        referralCredits: 2,
+      });
+      expect(state.kind).toBe("bookable");
+      expect(state.helper).toBe(
+        "One referral credit will be used after your booking is confirmed. You have 2 referral credits.",
+      );
+    }
+  });
+
+  it("keeps the Premium upsell when there are no referral credits", () => {
+    const state = resolveOneOnOneButtonState({
+      effectiveTier: TIER.FREE,
+      creditBalance: 0,
+      referralCredits: 0,
+    });
+    expect(state.kind).toBe("locked");
+  });
+
   it("offers the booking when Premium has enough credits", () => {
     const state = resolveOneOnOneButtonState({
       effectiveTier: TIER.PREMIUM,

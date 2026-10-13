@@ -7,6 +7,7 @@ import GroupCoachingPanel from "@/components/coach/GroupCoachingPanel";
 import LockedFeatureUpgradeDialog from "@/components/subscription/LockedFeatureUpgradeDialog";
 import { useLockedFeatureUpsell } from "@/hooks/useLockedFeatureUpsell";
 import { useEffectiveTier } from "@/hooks/useEffectiveTier";
+import { useReferralCoachCredits } from "@/hooks/useReferralCoachCredits";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import { useUserProfile } from "@/lib/userProfile";
 import {
@@ -20,6 +21,7 @@ import { resolveCreditsExpireAt } from "@/lib/subscription/subscriptionState";
 export default function BookCoachCard() {
   const { overview, record, loading, refresh } = useSubscriptionOverview();
   const { tier } = useEffectiveTier();
+  const { credits: referralCredits, refresh: refreshReferralCredits } = useReferralCoachCredits();
   const { profile } = useUserProfile();
   const { openFeature, promptUpgrade, closeUpsell, isEnterprise } = useLockedFeatureUpsell(
     tier,
@@ -37,6 +39,7 @@ export default function BookCoachCard() {
     creditsExpireReason:
       record?.status === "scheduledToDowngrade" ? "downgrade" : "cancel",
     requiredCredits: overview?.credits.requiredPerSession,
+    referralCredits,
   });
 
   if (loading && !overview) return null;
@@ -51,7 +54,7 @@ export default function BookCoachCard() {
             Human coaching
           </CardTitle>
           <CardDescription className="text-sm">
-            One group session a month comes with Pro. 1:1 sessions come with Premium credits.
+            One group session a month comes with Pro. 1:1 sessions come with Premium credits or a referral credit.
           </CardDescription>
         </CardHeader>
 
@@ -67,7 +70,9 @@ export default function BookCoachCard() {
             locked={oneOnOne.kind === "locked"}
             busy={oneOnOneBusy}
             onBusyChange={setOneOnOneBusy}
-            onBooked={refresh}
+            onBooked={async () => {
+              await Promise.all([refresh(), refreshReferralCredits()]);
+            }}
             onPremiumRequired={() => promptUpgrade("oneOnOneSession")}
             helperText={oneOnOne.helper}
           />

@@ -1,4 +1,5 @@
 import { TIER, type TierSlug } from "@/lib/enums/tier";
+import { bookingHelperReferralCredits } from "@/lib/referrals/referralCopy";
 import {
   BOOKING_HELPER_ENOUGH_CREDITS,
   CREDITS_UNAVAILABLE_MESSAGE,
@@ -29,7 +30,7 @@ export function canAccessHumanCoachingCard(tier: TierSlug): boolean {
 }
 
 export type OneOnOneButtonState =
-  /** Premium with enough credits. */
+  /** Premium with enough credits, or any plan with a referral coach credit. */
   | { kind: "bookable"; label: string; helper: string }
   /** Premium, but the balance is short of one session. */
   | { kind: "insufficientCredits"; label: string; helper: string }
@@ -43,17 +44,28 @@ export type OneOnOneButtonInput = {
   creditsExpireAtLabel?: string | null;
   creditsExpireReason?: CreditsExpireReason;
   requiredCredits?: number;
+  /** Referral coach credits (NCLDD-56): one books a full session on any plan, used first. */
+  referralCredits?: number;
 };
 
 /**
  * Resolves the 1:1 button copy from effective access and credit balance.
  *
- * Advisory only — `request_one_on_one_booking` re-checks both server-side.
+ * Advisory only — `confirm_one_on_one_booking` re-checks both server-side.
  */
 export function resolveOneOnOneButtonState(
   input: OneOnOneButtonInput,
 ): OneOnOneButtonState {
   const required = input.requiredCredits ?? CREDITS_PER_ONE_ON_ONE_SESSION;
+  const referralCredits = input.referralCredits ?? 0;
+
+  if (referralCredits >= 1) {
+    return {
+      kind: "bookable",
+      label: "Book a 1:1 Session",
+      helper: bookingHelperReferralCredits(referralCredits),
+    };
+  }
 
   if (input.effectiveTier !== TIER.PREMIUM) {
     // Free/Pro always see the Premium upsell CTA. Orphaned credits from a lapsed
