@@ -55,6 +55,341 @@ export type Database = {
           },
         ]
       }
+      aiInsightsConsentEvent: {
+        Row: {
+          createdAt: string
+          granted: boolean
+          id: string
+          source: string
+          userId: string
+          version: number
+        }
+        Insert: {
+          createdAt?: string
+          granted: boolean
+          id?: string
+          source: string
+          userId: string
+          version: number
+        }
+        Update: {
+          createdAt?: string
+          granted?: boolean
+          id?: string
+          source?: string
+          userId?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      aiInsightSessionFact: {
+        Row: {
+          classifierVersion: number
+          concernThemes: string[]
+          conversationId: string
+          createdAt: string
+          crisisLineMentioned: boolean
+          id: string
+          requestTypes: string[]
+          resourceIds: string[]
+          sessionDate: string
+          sessionType: string
+          topics: string[]
+          userId: string
+        }
+        Insert: {
+          classifierVersion: number
+          concernThemes?: string[]
+          conversationId: string
+          createdAt?: string
+          crisisLineMentioned?: boolean
+          id?: string
+          requestTypes?: string[]
+          resourceIds?: string[]
+          sessionDate: string
+          sessionType: string
+          topics?: string[]
+          userId: string
+        }
+        Update: {
+          classifierVersion?: number
+          concernThemes?: string[]
+          conversationId?: string
+          createdAt?: string
+          crisisLineMentioned?: boolean
+          id?: string
+          requestTypes?: string[]
+          resourceIds?: string[]
+          sessionDate?: string
+          sessionType?: string
+          topics?: string[]
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aiInsightSessionFact_conversationId_fkey"
+            columns: ["conversationId"]
+            isOneToOne: true
+            referencedRelation: "chatConversation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aiLimitAuditLog: {
+        Row: {
+          action: string
+          actorUserId: string | null
+          createdAt: string
+          id: string
+          mode: string
+          newValue: Json | null
+          oldValue: Json | null
+          planTier: string | null
+          targetUserId: string | null
+        }
+        Insert: {
+          action: string
+          actorUserId?: string | null
+          createdAt?: string
+          id?: string
+          mode: string
+          newValue?: Json | null
+          oldValue?: Json | null
+          planTier?: string | null
+          targetUserId?: string | null
+        }
+        Update: {
+          action?: string
+          actorUserId?: string | null
+          createdAt?: string
+          id?: string
+          mode?: string
+          newValue?: Json | null
+          oldValue?: Json | null
+          planTier?: string | null
+          targetUserId?: string | null
+        }
+        Relationships: []
+      }
+      aiMessageFeedback: {
+        Row: {
+          conversationId: string
+          createdAt: string
+          id: string
+          messageId: string
+          rating: number
+          reasons: string[]
+          sessionType: string
+          updatedAt: string
+          userId: string
+        }
+        Insert: {
+          conversationId: string
+          createdAt?: string
+          id?: string
+          messageId: string
+          rating: number
+          reasons?: string[]
+          sessionType: string
+          updatedAt?: string
+          userId: string
+        }
+        Update: {
+          conversationId?: string
+          createdAt?: string
+          id?: string
+          messageId?: string
+          rating?: number
+          reasons?: string[]
+          sessionType?: string
+          updatedAt?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aiMessageFeedback_conversationId_fkey"
+            columns: ["conversationId"]
+            isOneToOne: false
+            referencedRelation: "chatConversation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aiMessageFeedback_messageId_fkey"
+            columns: ["messageId"]
+            isOneToOne: false
+            referencedRelation: "chatMessage"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aiModelPricing: {
+        Row: {
+          effectiveFrom: string
+          model: string
+          provider: string
+          unit: string
+          usdPerUnit: number
+        }
+        Insert: {
+          effectiveFrom?: string
+          model: string
+          provider?: string
+          unit: string
+          usdPerUnit: number
+        }
+        Update: {
+          effectiveFrom?: string
+          model?: string
+          provider?: string
+          unit?: string
+          usdPerUnit?: number
+        }
+        Relationships: []
+      }
+      aiPlanLimit: {
+        Row: {
+          mode: string
+          monthlyUsd: number | null
+          planTier: string
+          updatedAt: string
+          updatedBy: string | null
+        }
+        Insert: {
+          mode: string
+          monthlyUsd?: number | null
+          planTier: string
+          updatedAt?: string
+          updatedBy?: string | null
+        }
+        Update: {
+          mode?: string
+          monthlyUsd?: number | null
+          planTier?: string
+          updatedAt?: string
+          updatedBy?: string | null
+        }
+        Relationships: []
+      }
+      aiUsageEvent: {
+        Row: {
+          audioSeconds: number
+          cachedInputTokens: number
+          conversationId: string | null
+          costIsEstimated: boolean
+          costUsd: number
+          createdAt: string
+          id: string
+          inputTokens: number
+          mode: string
+          model: string
+          monthKey: string
+          outputTokens: number
+          planTierAtEvent: string
+          pricingMissing: boolean
+          provider: string
+          source: string
+          ttsChars: number
+          userId: string
+        }
+        Insert: {
+          audioSeconds?: number
+          cachedInputTokens?: number
+          conversationId?: string | null
+          costIsEstimated?: boolean
+          costUsd?: number
+          createdAt?: string
+          id?: string
+          inputTokens?: number
+          mode: string
+          model: string
+          monthKey?: string
+          outputTokens?: number
+          planTierAtEvent?: string
+          pricingMissing?: boolean
+          provider?: string
+          source: string
+          ttsChars?: number
+          userId: string
+        }
+        Update: {
+          audioSeconds?: number
+          cachedInputTokens?: number
+          conversationId?: string | null
+          costIsEstimated?: boolean
+          costUsd?: number
+          createdAt?: string
+          id?: string
+          inputTokens?: number
+          mode?: string
+          model?: string
+          monthKey?: string
+          outputTokens?: number
+          planTierAtEvent?: string
+          pricingMissing?: boolean
+          provider?: string
+          source?: string
+          ttsChars?: number
+          userId?: string
+        }
+        Relationships: []
+      }
+      aiUserLimitOverride: {
+        Row: {
+          kind: string
+          mode: string
+          monthlyUsd: number | null
+          updatedAt: string
+          updatedBy: string | null
+          userId: string
+        }
+        Insert: {
+          kind: string
+          mode: string
+          monthlyUsd?: number | null
+          updatedAt?: string
+          updatedBy?: string | null
+          userId: string
+        }
+        Update: {
+          kind?: string
+          mode?: string
+          monthlyUsd?: number | null
+          updatedAt?: string
+          updatedBy?: string | null
+          userId?: string
+        }
+        Relationships: []
+      }
+      aiUserLimitRestore: {
+        Row: {
+          createdAt: string
+          createdBy: string | null
+          id: string
+          mode: string
+          monthKey: string
+          spendBaselineUsd: number
+          userId: string
+        }
+        Insert: {
+          createdAt?: string
+          createdBy?: string | null
+          id?: string
+          mode: string
+          monthKey: string
+          spendBaselineUsd: number
+          userId: string
+        }
+        Update: {
+          createdAt?: string
+          createdBy?: string | null
+          id?: string
+          mode?: string
+          monthKey?: string
+          spendBaselineUsd?: number
+          userId?: string
+        }
+        Relationships: []
+      }
       assessmentResult: {
         Row: {
           alignmentScore: number | null
@@ -148,6 +483,57 @@ export type Database = {
           trajectoryType?: string | null
           updatedAt?: string
           userId?: string
+        }
+        Relationships: []
+      }
+      billingInvoicePayment: {
+        Row: {
+          amountPaidCents: number
+          billingReason: string | null
+          createdAt: string
+          currency: string
+          disputedCents: number
+          paidAt: string
+          refundedCents: number
+          status: string
+          stripeChargeId: string | null
+          stripeInvoiceId: string
+          stripeSubscriptionId: string | null
+          tierSlug: string | null
+          updatedAt: string
+          userId: string | null
+        }
+        Insert: {
+          amountPaidCents: number
+          billingReason?: string | null
+          createdAt?: string
+          currency: string
+          disputedCents?: number
+          paidAt: string
+          refundedCents?: number
+          status?: string
+          stripeChargeId?: string | null
+          stripeInvoiceId: string
+          stripeSubscriptionId?: string | null
+          tierSlug?: string | null
+          updatedAt?: string
+          userId?: string | null
+        }
+        Update: {
+          amountPaidCents?: number
+          billingReason?: string | null
+          createdAt?: string
+          currency?: string
+          disputedCents?: number
+          paidAt?: string
+          refundedCents?: number
+          status?: string
+          stripeChargeId?: string | null
+          stripeInvoiceId?: string
+          stripeSubscriptionId?: string | null
+          tierSlug?: string | null
+          updatedAt?: string
+          userId?: string | null
         }
         Relationships: []
       }
@@ -250,6 +636,7 @@ export type Database = {
           meetBackfillAttemptedAt: string | null
           meetBackfillDetail: string | null
           meetLink: string | null
+          paymentSource: string
           postSessionKotaSyncDetail: string | null
           postSessionKotaSyncedAt: string | null
           postSessionSubmittedAt: string | null
@@ -285,6 +672,7 @@ export type Database = {
           meetBackfillAttemptedAt?: string | null
           meetBackfillDetail?: string | null
           meetLink?: string | null
+          paymentSource?: string
           postSessionKotaSyncDetail?: string | null
           postSessionKotaSyncedAt?: string | null
           postSessionSubmittedAt?: string | null
@@ -320,6 +708,7 @@ export type Database = {
           meetBackfillAttemptedAt?: string | null
           meetBackfillDetail?: string | null
           meetLink?: string | null
+          paymentSource?: string
           postSessionKotaSyncDetail?: string | null
           postSessionKotaSyncedAt?: string | null
           postSessionSubmittedAt?: string | null
@@ -1224,6 +1613,9 @@ export type Database = {
           accountType: string
           ageRange: string | null
           aiConfidenceLevel: string | null
+          aiInsightsConsent: boolean | null
+          aiInsightsConsentUpdatedAt: string | null
+          aiInsightsConsentVersion: number | null
           alignmentScore: number | null
           attachmentSignal: string | null
           behavioralFingerprint: string | null
@@ -1344,6 +1736,9 @@ export type Database = {
           accountType?: string
           ageRange?: string | null
           aiConfidenceLevel?: string | null
+          aiInsightsConsent?: boolean | null
+          aiInsightsConsentUpdatedAt?: string | null
+          aiInsightsConsentVersion?: number | null
           alignmentScore?: number | null
           attachmentSignal?: string | null
           behavioralFingerprint?: string | null
@@ -1464,6 +1859,9 @@ export type Database = {
           accountType?: string
           ageRange?: string | null
           aiConfidenceLevel?: string | null
+          aiInsightsConsent?: boolean | null
+          aiInsightsConsentUpdatedAt?: string | null
+          aiInsightsConsentVersion?: number | null
           alignmentScore?: number | null
           attachmentSignal?: string | null
           behavioralFingerprint?: string | null
@@ -1813,6 +2211,138 @@ export type Database = {
         }
         Relationships: []
       }
+      referralAttribution: {
+        Row: {
+          paidBeforeRewards: boolean
+          referralCode: string | null
+          referralFirstPaidAt: string | null
+          referralPartnerCode: string | null
+          referralPartnerId: string | null
+          referredAt: string | null
+          referredByReferralCode: string | null
+          referredByUserId: string | null
+          updatedAt: string
+          userId: string
+        }
+        Insert: {
+          paidBeforeRewards?: boolean
+          referralCode?: string | null
+          referralFirstPaidAt?: string | null
+          referralPartnerCode?: string | null
+          referralPartnerId?: string | null
+          referredAt?: string | null
+          referredByReferralCode?: string | null
+          referredByUserId?: string | null
+          updatedAt?: string
+          userId: string
+        }
+        Update: {
+          paidBeforeRewards?: boolean
+          referralCode?: string | null
+          referralFirstPaidAt?: string | null
+          referralPartnerCode?: string | null
+          referralPartnerId?: string | null
+          referredAt?: string | null
+          referredByReferralCode?: string | null
+          referredByUserId?: string | null
+          updatedAt?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referralAttribution_referralPartnerId_fkey"
+            columns: ["referralPartnerId"]
+            isOneToOne: false
+            referencedRelation: "referralPartner"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referralCoachCreditLedger: {
+        Row: {
+          coachBookingId: string | null
+          createdAt: string
+          delta: number
+          id: string
+          note: string | null
+          reason: string
+          referredUserId: string | null
+          seq: number
+          stripeInvoiceId: string | null
+          userId: string
+        }
+        Insert: {
+          coachBookingId?: string | null
+          createdAt?: string
+          delta: number
+          id?: string
+          note?: string | null
+          reason: string
+          referredUserId?: string | null
+          seq?: never
+          stripeInvoiceId?: string | null
+          userId: string
+        }
+        Update: {
+          coachBookingId?: string | null
+          createdAt?: string
+          delta?: number
+          id?: string
+          note?: string | null
+          reason?: string
+          referredUserId?: string | null
+          seq?: never
+          stripeInvoiceId?: string | null
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referralCoachCreditLedger_coachBookingId_fkey"
+            columns: ["coachBookingId"]
+            isOneToOne: false
+            referencedRelation: "coachBooking"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referralLinkClick: {
+        Row: {
+          clickedOn: string
+          code: string
+          createdAt: string
+          id: number
+          partnerId: string | null
+          referrerUserId: string | null
+          visitorHash: string
+        }
+        Insert: {
+          clickedOn?: string
+          code: string
+          createdAt?: string
+          id?: never
+          partnerId?: string | null
+          referrerUserId?: string | null
+          visitorHash: string
+        }
+        Update: {
+          clickedOn?: string
+          code?: string
+          createdAt?: string
+          id?: never
+          partnerId?: string | null
+          referrerUserId?: string | null
+          visitorHash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referralLinkClick_partnerId_fkey"
+            columns: ["partnerId"]
+            isOneToOne: false
+            referencedRelation: "referralPartner"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referralPartner: {
         Row: {
           contactInfo: string | null
@@ -1824,6 +2354,9 @@ export type Database = {
           status: string
           type: string
           updatedAt: string
+          userId: string | null
+          userLinkedAt: string | null
+          userLinkedBy: string | null
         }
         Insert: {
           contactInfo?: string | null
@@ -1835,6 +2368,9 @@ export type Database = {
           status?: string
           type: string
           updatedAt?: string
+          userId?: string | null
+          userLinkedAt?: string | null
+          userLinkedBy?: string | null
         }
         Update: {
           contactInfo?: string | null
@@ -1846,8 +2382,137 @@ export type Database = {
           status?: string
           type?: string
           updatedAt?: string
+          userId?: string | null
+          userLinkedAt?: string | null
+          userLinkedBy?: string | null
         }
         Relationships: []
+      }
+      referralPartnerCommission: {
+        Row: {
+          baseCents: number
+          commissionCents: number | null
+          commissionPercent: number | null
+          createdAt: string
+          currency: string
+          id: string
+          paidAt: string
+          partnerId: string
+          referredUserId: string | null
+          reversedCents: number
+          status: string
+          stripeInvoiceId: string
+          termsId: string | null
+          updatedAt: string
+        }
+        Insert: {
+          baseCents: number
+          commissionCents?: number | null
+          commissionPercent?: number | null
+          createdAt?: string
+          currency: string
+          id?: string
+          paidAt: string
+          partnerId: string
+          referredUserId?: string | null
+          reversedCents?: number
+          status: string
+          stripeInvoiceId: string
+          termsId?: string | null
+          updatedAt?: string
+        }
+        Update: {
+          baseCents?: number
+          commissionCents?: number | null
+          commissionPercent?: number | null
+          createdAt?: string
+          currency?: string
+          id?: string
+          paidAt?: string
+          partnerId?: string
+          referredUserId?: string | null
+          reversedCents?: number
+          status?: string
+          stripeInvoiceId?: string
+          termsId?: string | null
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referralPartnerCommission_partnerId_fkey"
+            columns: ["partnerId"]
+            isOneToOne: false
+            referencedRelation: "referralPartner"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referralPartnerCommission_stripeInvoiceId_fkey"
+            columns: ["stripeInvoiceId"]
+            isOneToOne: true
+            referencedRelation: "billingInvoicePayment"
+            referencedColumns: ["stripeInvoiceId"]
+          },
+          {
+            foreignKeyName: "referralPartnerCommission_termsId_fkey"
+            columns: ["termsId"]
+            isOneToOne: false
+            referencedRelation: "referralPartnerTerms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referralPartnerTerms: {
+        Row: {
+          archivedAt: string | null
+          archivedBy: string | null
+          commissionPercent: number
+          confirmedAt: string
+          confirmedBy: string | null
+          effectiveFrom: string
+          id: string
+          note: string | null
+          partnerId: string
+          scope: string
+          scopeMonths: number | null
+          status: string
+        }
+        Insert: {
+          archivedAt?: string | null
+          archivedBy?: string | null
+          commissionPercent: number
+          confirmedAt?: string
+          confirmedBy?: string | null
+          effectiveFrom: string
+          id?: string
+          note?: string | null
+          partnerId: string
+          scope: string
+          scopeMonths?: number | null
+          status?: string
+        }
+        Update: {
+          archivedAt?: string | null
+          archivedBy?: string | null
+          commissionPercent?: number
+          confirmedAt?: string
+          confirmedBy?: string | null
+          effectiveFrom?: string
+          id?: string
+          note?: string | null
+          partnerId?: string
+          scope?: string
+          scopeMonths?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referralPartnerTerms_partnerId_fkey"
+            columns: ["partnerId"]
+            isOneToOne: false
+            referencedRelation: "referralPartner"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       relapseEvent: {
         Row: {
@@ -2505,14 +3170,15 @@ export type Database = {
         Args: { p_delta: number; p_note: string; p_user_id: string }
         Returns: Json
       }
+      admin_ai_insights_overview: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
       admin_ai_limit_audit: {
         Args: { p_limit?: number; p_offset?: number; p_user?: string }
         Returns: Json
       }
-      admin_ai_plan_limits: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      admin_ai_plan_limits: { Args: never; Returns: Json }
       admin_ai_usage_overview: {
         Args: { p_from: string; p_tier?: string; p_to: string }
         Returns: Json
@@ -2527,24 +3193,24 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_ai_user_limit_detail: {
-        Args: { p_user: string }
-        Returns: Json
-      }
-      admin_restore_ai_user_limit: {
-        Args: { p_mode: string; p_user: string }
-        Returns: Json
-      }
-      admin_set_ai_plan_limit: {
-        Args: { p_amount: number; p_mode: string; p_tier: string }
-        Returns: Json
-      }
-      admin_set_ai_user_limit: {
-        Args: { p_amount?: number; p_kind: string; p_mode: string; p_user: string }
-        Returns: Json
+      admin_ai_user_limit_detail: { Args: { p_user: string }; Returns: Json }
+      admin_archive_referral_partner_terms: {
+        Args: { p_partner_id: string }
+        Returns: undefined
       }
       admin_cancel_group_coaching_session: {
         Args: { p_session_id: string }
+        Returns: Json
+      }
+      admin_confirm_referral_partner_terms: {
+        Args: {
+          p_commission_percent: number
+          p_effective_from?: string
+          p_note?: string
+          p_partner_id: string
+          p_scope: string
+          p_scope_months?: number
+        }
         Returns: Json
       }
       admin_create_group_coaching_sessions: {
@@ -2562,6 +3228,18 @@ export type Database = {
         Args: { p_id: string }
         Returns: undefined
       }
+      admin_get_referral_partner_program: {
+        Args: { p_partner_id: string }
+        Returns: Json
+      }
+      admin_get_user_referral_stats: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      admin_link_referral_partner_user: {
+        Args: { p_email: string; p_partner_id: string }
+        Returns: Json
+      }
       admin_list_coaching_bookings: {
         Args: {
           p_from?: string
@@ -2576,6 +3254,24 @@ export type Database = {
       }
       admin_reassign_coach_booking_specialist: {
         Args: { p_booking_id: string; p_specialist_id: string }
+        Returns: Json
+      }
+      admin_referral_partner_metrics: { Args: never; Returns: Json }
+      admin_restore_ai_user_limit: {
+        Args: { p_mode: string; p_user: string }
+        Returns: Json
+      }
+      admin_set_ai_plan_limit: {
+        Args: { p_amount: number; p_mode: string; p_tier: string }
+        Returns: Json
+      }
+      admin_set_ai_user_limit: {
+        Args: {
+          p_amount?: number
+          p_kind: string
+          p_mode: string
+          p_user: string
+        }
         Returns: Json
       }
       admin_set_coach_booking_email: {
@@ -2633,6 +3329,14 @@ export type Database = {
           workplace_name: string
         }[]
       }
+      ai_effective_limit: {
+        Args: { p_mode: string; p_month?: string; p_user: string }
+        Returns: Json
+      }
+      ai_insights_consent_version: { Args: never; Returns: number }
+      ai_insights_round_count: { Args: { p_value: number }; Returns: number }
+      ai_limit_tier: { Args: { p_user: string }; Returns: string }
+      ai_usage_display_name: { Args: { p_user: string }; Returns: string }
       apply_pending_workplace_invitations: {
         Args: { p_email: string; p_user_id: string }
         Returns: undefined
@@ -2646,6 +3350,10 @@ export type Database = {
         Returns: Json
       }
       available_premium_credits: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      available_referral_coach_credits: {
         Args: { p_user_id: string }
         Returns: number
       }
@@ -2768,6 +3476,10 @@ export type Database = {
         Args: { p_invitation_id: string; p_workplace_id: string }
         Returns: Json
       }
+      check_ai_budget: {
+        Args: { p_mode: string; p_user: string }
+        Returns: Json
+      }
       claim_founding_member_slot: {
         Args: { p_user_id: string }
         Returns: number
@@ -2852,6 +3564,8 @@ export type Database = {
       }
       get_my_group_session_status: { Args: never; Returns: Json }
       get_my_last_one_on_one_coach: { Args: never; Returns: Json }
+      get_my_referral_overview: { Args: never; Returns: Json }
+      get_my_referral_partner_portal: { Args: never; Returns: Json }
       get_my_subscription_overview: { Args: never; Returns: Json }
       group_coaching_period_month: { Args: { p_at?: string }; Returns: string }
       group_session_registered_count: {
@@ -2871,6 +3585,7 @@ export type Database = {
         Args: { function_slug: string }
         Returns: number
       }
+      is_my_referral_partner: { Args: never; Returns: boolean }
       is_settings_admin: { Args: never; Returns: boolean }
       is_workplace_hr_contact: {
         Args: { p_workplace_id: string }
@@ -2961,6 +3676,7 @@ export type Database = {
       my_can_access_path: { Args: { p_path_id: string }; Returns: boolean }
       my_effective_tier: { Args: never; Returns: string }
       my_premium_credit_balance: { Args: never; Returns: number }
+      my_referral_coach_credit_balance: { Args: never; Returns: number }
       my_tier_allows: { Args: { p_required_tier: string }; Returns: boolean }
       path_is_success_plan: { Args: { p_path_id: string }; Returns: boolean }
       path_required_tier: { Args: { p_path_id: string }; Returns: string }
@@ -2995,12 +3711,63 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: string
       }
+      record_referral_link_click: {
+        Args: { p_code: string; p_visitor_id: string }
+        Returns: boolean
+      }
       redeem_premium_credits_for_booking: {
         Args: { p_booking_id: string }
         Returns: Json
       }
       redeem_workplace_enrollment_code: {
         Args: { p_code: string }
+        Returns: Json
+      }
+      referral_apply_payment_reversal: {
+        Args: { p_invoice_id: string }
+        Returns: Json
+      }
+      referral_evaluate_partner_commission: {
+        Args: { p_commission_id: string }
+        Returns: string
+      }
+      referral_mask_name: {
+        Args: { p_first_name: string; p_last_name: string }
+        Returns: string
+      }
+      referral_partner_terms_at: {
+        Args: { p_paid_at: string; p_partner_id: string }
+        Returns: string
+      }
+      referral_payment_reversed_ratio: {
+        Args: {
+          p_amount_cents: number
+          p_disputed_cents: number
+          p_refunded_cents: number
+        }
+        Returns: number
+      }
+      referral_record_invoice_payment: {
+        Args: {
+          p_amount_cents: number
+          p_billing_reason: string
+          p_charge_id: string
+          p_currency: string
+          p_invoice_id: string
+          p_paid_at: string
+          p_subscription_id: string
+          p_tier: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      referral_record_payment_reversal: {
+        Args: {
+          p_charge_id: string
+          p_disputed_cents: number
+          p_invoice_id: string
+          p_refunded_cents: number
+        }
         Returns: Json
       }
       release_one_on_one_booking_hold: {
@@ -3018,6 +3785,14 @@ export type Database = {
       }
       service_reset_to_individual_free: {
         Args: { p_user_id: string }
+        Returns: Json
+      }
+      set_ai_insights_consent: {
+        Args: { p_granted: boolean; p_source: string; p_version: number }
+        Returns: Json
+      }
+      set_ai_message_feedback: {
+        Args: { p_message_id: string; p_rating: number; p_reasons?: string[] }
         Returns: Json
       }
       set_workplace_member_role: {

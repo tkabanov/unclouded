@@ -22,7 +22,13 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO public."userSubscription"
   ("userId", "planTier", status, "billingInterval", "currentPeriodStart", "currentPeriodEnd")
 VALUES ('00000000-0000-4000-8000-0000000058f2', 'premium', 'active', 'month',
-        now() - interval '1 day', now() + interval '29 days');
+        now() - interval '1 day', now() + interval '29 days')
+-- Hosted Supabase creates a Free subscription row on signup.
+ON CONFLICT ("userId") DO UPDATE SET
+  "planTier" = EXCLUDED."planTier", status = EXCLUDED.status,
+  "billingInterval" = EXCLUDED."billingInterval",
+  "currentPeriodStart" = EXCLUDED."currentPeriodStart",
+  "currentPeriodEnd" = EXCLUDED."currentPeriodEnd";
 
 INSERT INTO public."premiumCreditLedger" ("userId", delta, reason, note)
 VALUES ('00000000-0000-4000-8000-0000000058f2', 2, 'adminAdjustment', 'proof');

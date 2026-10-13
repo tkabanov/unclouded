@@ -66,7 +66,10 @@ DO $$
 BEGIN
   ASSERT NOT public.record_referral_link_click('PRLCREF2', '00000000-0000-4000-8000-00000000f003'), 'own link';
   ASSERT (public.get_my_referral_overview() ->> 'linkVisits')::int = 2, 'R sees 2 link visits';
-  ASSERT (SELECT count(*) FROM public."referralLinkClick") = 0, 'users cannot read the visit table';
+  BEGIN
+    ASSERT (SELECT count(*) FROM public."referralLinkClick") = 0, 'users cannot read the visit table';
+  EXCEPTION WHEN insufficient_privilege THEN NULL; -- no table grant on hosted Supabase: stricter
+  END;
 END $$;
 
 RESET ROLE;

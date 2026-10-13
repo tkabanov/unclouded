@@ -204,9 +204,12 @@ DO $$
 BEGIN
   ASSERT NOT public.is_my_referral_partner() AND public.get_my_referral_partner_portal() IS NULL,
     'unlinked account loses the portal';
-  ASSERT (SELECT count(*) FROM public."referralPartner") = 0
-     AND (SELECT count(*) FROM public."referralPartnerCommission") = 0,
-    'partner tables stay admin-only';
+  ASSERT (SELECT count(*) FROM public."referralPartner") = 0, 'partner table stays admin-only';
+  BEGIN
+    ASSERT (SELECT count(*) FROM public."referralPartnerCommission") = 0,
+      'commission table stays admin-only';
+  EXCEPTION WHEN insufficient_privilege THEN NULL; -- no table grant on hosted Supabase: stricter
+  END;
 END $$;
 
 RESET ROLE;

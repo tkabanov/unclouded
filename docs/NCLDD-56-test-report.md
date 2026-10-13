@@ -53,7 +53,14 @@ Reviews: security review per slice (all blocking findings fixed, re-reviewed), f
 - Spend order (referral credit before Premium credits) is server-side (`confirm_one_on_one_booking`) — covered by `one_on_one_referral_credit_proof.sql`, not by A6.
 - Pro/Premium can regenerate Kota's Read (and re-email the coach) — pre-existing behavior.
 
-**Blocked:** §2.1 proofs in the Supabase SQL editor, A8 and all manual cases M-01…M-54 — the six NCLDD-56 migrations (`20261013150000…200000`) are not applied on the linked project (`supabase migration list`), edge functions not deployed.
+**Deploy (2026-10-13, `szkextipgpupqoppccoy`):** pre-checks 0 / 0 / 0 · migrations `20261013150000…200000` applied (by the developer) · `stripe-webhook` and `generate-kota-read` deployed (unsigned webhook POST → 400, Kota's Read without auth → 401) · `types.ts` regenerated (typecheck still 182, lint 0 errors, build pass) · frontend on https://uncloud360.vercel.app already ships the NCLDD-56 bundle (auto-deploy from `main`).
+
+**SQL proofs on hosted Supabase:** all 7 `ALL PASS` (also re-run green on PGlite). Two harness differences were fixed in the proofs, not in the migrations:
+- New private tables (`referralAttribution`, `billingInvoicePayment`, `referralCoachCreditLedger`, `referralPartnerTerms`, `referralPartnerCommission`, `referralLinkClick`) have **no `SELECT` grant for `authenticated`** on hosted Supabase (no default privileges), so direct reads give `42501` instead of 0 rows — stricter than designed. The proofs now accept either. Consequence: the "Settings admin selects …" RLS policies are inert; nothing uses them (admin UI reads through SECURITY DEFINER RPCs), so no functional impact.
+- Hosted signup creates a `userSubscription` row, so the 1:1 proof upserts it.
+- Function grants checked: payment RPCs (`referral_record_invoice_payment`, `referral_record_payment_reversal`) not executable by `anon` / `authenticated`; user RPCs not executable by `anon`; only `record_referral_link_click` is open to `anon` (by design).
+
+**Still not run:** A8 and the manual cases M-01…M-54. They need test accounts on the production project, sign-ins with passwords and Stripe test-mode actions in the dashboard (the Stripe endpoint must also get `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`) — to be done by a person.
 
 ## Deploy checklist
 
