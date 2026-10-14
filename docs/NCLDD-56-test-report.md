@@ -62,7 +62,55 @@ Reviews: security review per slice (all blocking findings fixed, re-reviewed), f
 
 **A8 (2026-10-13, production, seeded `ncldd56-*@test.com` accounts via `scripts/seed_ncldd56_referral_test_users.mjs`):** **ALL PASS** — M-48 own overview only, masked invitees, REF-B sees none of REF-A's invitees; M-49 / M-34 portal only for PARTNER-1, no emails / foreign ids, `null` for REF-A and USER-X; M-50 all admin referral RPCs `42501` for four non-admins (`admin_list_coaching_bookings` keeps its pre-NCLDD-56 `{ ok: false, code: 'forbidden' }` contract, no data); M-51 anon `42501`; M-52 direct select on all six private tables `42501`; M-53 direct `coachBooking` insert `42501`; admin analytics allowed for ADMIN.
 
-**Still not run:** the manual UI cases M-01…M-47 and M-54. They need test accounts on the production project, sign-ins with passwords and Stripe test-mode actions in the dashboard (the Stripe endpoint must also get `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`) — to be done by a person.
+## Manual QA (2026-10-13…14, test environment `uncloud360.vercel.app` + Stripe sandbox)
+
+Sign-ins, sign-ups, Stripe payments / refunds / disputes by the developer; checks in the app and in SQL (read-only, QA accounts only) by Claude. Accounts: seeded `ncldd56-*@test.com`, invitees `78bubbleteam+inv1…6`, partner clients `78bubbleteam+pcl1, pcl1b, pcl2, pcl3`.
+
+| Case | Result | Evidence |
+|---|---|---|
+| M-01, M-02 | Pass | sidebar item → `/invite`; link, code, copy, credits, history, invitees, rules |
+| M-03 | Fail → fixed | copied link pointed at `uncloud360.ai` (does not serve the app) — **B-1**, fixed in `d5d3c71`; retest: `…vercel.app/signup?ref=QAREFA56` |
+| M-04 | Pass | same code after reload / re-login |
+| M-05, M-10, M-12, M-20, M-24 | Pass (SQL proofs on prod) | direct REST writes were not run from the browser; covered by `referral_attribution_protection_proof`, `referral_rewards_ledgers_proof`, `one_on_one_referral_credit_proof` |
+| M-06 | Pass | USER-X: empty `/invite`, no errors |
+| M-07 | Pass | INV-1 listed as "Testa L." (email confirmation is off in this env, so the "awaiting confirmation" status could not be seen) |
+| M-08 | Pass | `?ref` survived /pricing → /login → /signup |
+| M-09 | Pass | `john.doe@x.io` shown as "Friend"; no surname / email in DOM. Cyrillic names are rejected by onboarding validation (pre-existing, not NCLDD-56) |
+| M-11 | Pass (A4) | invalid code dropped silently |
+| M-13 | Fail → fixed | live `invoice.paid` had no `subscription`/`charge` (newer endpoint API version) and arrived before `checkout.session.completed` → no payment row, no credit — **B-2**, fixed in `9d23119` (re-read invoice with pinned API version, user from synced subscription). Retest INV-3: +1 credit. Only INV-1's two test invoices were affected |
+| M-14 | Pass | Resend `evt_1UQ7rT6…` → still 1 credit, 1 payment row |
+| M-15 | Pass | INV-3 Pro → Premium (`subscription_update`, 4873¢) → still 1 credit for INV-3 |
+| M-16 | Pass | INV-4 Premium → total 2 |
+| M-17 | Pass | INV-5 full refund → `reversal −1`, `refundedCents 2900` |
+| M-18 | Pass | all credits spent, INV-4 refunded → `reversal 0`, balance 0 (not negative), bookings kept; first later cancel settled the reversal. Cancel toast blamed the 24h rule — **B-3**, fixed in `b3caaca` |
+| M-19 | Pass | INV-6 card `…0259`: credit reversed on payment (charge state re-read in `invoice.paid`), restored on `charge.dispute.closed` (won) |
+| M-21, M-22 | Pass | Free REF-A booked Coach QA Alpha with a referral credit: `paymentSource=referral_credit`, `redemption −1`, Kota's Read generated |
+| M-23 | Pass | cancel 3 days ahead → "credits were returned", balance back |
+| M-25, M-26 | Pass (A6 + SQL proof) / Pass | no referral credit offered in chat / voice; spend order is server-side |
+| M-27 | Pass | Free with 0 credits → Premium upgrade dialog |
+| M-28…M-30 | Pass | 1 visit; same browser and owner visits not counted |
+| M-31 | Pass | visits shown separately from sign-ups (user profile, partner list) |
+| M-32, M-33 | Pass | link by email → "Portal account linked"; unknown email → clear error |
+| M-34 | Pass | portal item only for linked partners; USER-X / unlinked PARTNER-1 redirected from `/partner` |
+| M-35 | Pass | PARTNER-1 portal: link, code, terms in words, 2 sign-ups / 2 paying, $5.80 net, per-client amounts, masked names |
+| M-36 | Pass | PCL-1b Pro → commission 20% × $29 = $5.80 (`accrued`). PCL-1 signed up without the link (operator error) |
+| M-37 | Pass (by M-14 + A1 + SQL proof) | same idempotency path; Stripe Resend for partner invoice not repeated |
+| M-38 | Pass | PCL-2 full refund → `reversedCents 580` |
+| M-39 | Pass | PARTNER-2: "not confirmed", "Not calculated", "1 payment … isn't counted" |
+| M-40 | Pass | admin confirmed 10% lifetime from 2026-10-14 → history row, pending payment priced $2.90 |
+| M-41 | Pass | unlink → PARTNER-1 loses the portal item, `/partner` redirects |
+| M-42 | Pass (SQL proofs) | partner-wins covered by `referral_rewards_ledgers_proof` / `referral_overview_proof` |
+| M-43 | Pass | REF-A Referral activity: invited 5, registered 5, paid 4, earned 4, taken back 2, available 2, visits 2 |
+| M-44 | Pass | sort by sign-ups / paying / commission asc + desc |
+| M-45, M-46, M-47 | Pass | partner detail (commissions by client, terms history, account); admin bookings show "Referral credit"; old dashboard / referred-users table work |
+| M-48…M-53 | Pass (A8) | see above |
+| M-54 | Pass | USER-X redirected from `/admin/referral-partners`, `/admin/bookings` |
+
+**Fixed during QA:** B-1 referral links on a dead domain (`d5d3c71`), B-2 referral payments lost for newer Stripe event shapes (`9d23119`, webhook redeployed), B-3 misleading cancel toast (`b3caaca`); A6 test broken by regenerated types (`b3caaca`).
+
+**Notes (not fixed, low):** dates follow the browser locale ("13 октября 2026 г.") while copy is English — app-wide; "since … г.." double period in admin / portal; a fully refunded partner client still shows "Paying client" and a refunded invitee "Credit earned"; console 404s on `/admin/analytics` (pre-existing requests, page works).
+
+**Ops:** the Stripe endpoint did not deliver `charge.dispute.created` during M-19 — confirm `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed` are all enabled (test + live). Test data left in place: `ncldd56-*` accounts, `78bubbleteam+*` users, QA partners One / Two (10% terms) / Three (linked to partner-3), PARTNER-1 now unlinked.
 
 ## Deploy checklist
 
