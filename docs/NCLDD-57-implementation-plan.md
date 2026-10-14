@@ -71,7 +71,7 @@
 1. **`sessionType` CHECKs**: add `'voice_conversation'` in `chatConversation` and `coachingSessionArchive`. In `aiInsightSessionFact` / `aiMessageFeedback`, **do not widen**. The server maps `voice_conversation → 'voice'` when writing there, so insights and feedback show it as voice.
 2. **`chatMessage."realtimeItemId" text NULL`** + `UNIQUE ("conversationId","realtimeItemId") WHERE "realtimeItemId" IS NOT NULL` makes transcript writes idempotent.
 3. **Table `public."realtimeVoiceSession"`**:
-   - `id uuid pk`, `"userId" uuid → auth.users ON DELETE CASCADE`, `"conversationId" uuid → chatConversation ON DELETE CASCADE`
+   - `id uuid pk`, `"userId" uuid → auth.users ON DELETE CASCADE`, `"conversationId" uuid NULL → chatConversation ON DELETE SET NULL` (T-025: the call/cost record survives a deleted conversation)
    - `"openaiCallId" text`, `model text`, `voice text`, `"transcriptionModel" text`
    - `status text CHECK (connecting|active|ended|failed)`, `"endReason" text CHECK (user_ended|max_duration|idle_timeout|network_lost|connect_failed|mic_lost|budget_reached|crisis|error|abandoned)`
    - `"usageStatus" text CHECK (pending|complete|partial|unknown) DEFAULT 'pending'`

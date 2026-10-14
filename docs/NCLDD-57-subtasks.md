@@ -56,13 +56,13 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 
 **Goal.** All schema for NCLDD-57 except the admin read RPCs (those are in T-032).
 
-**Files.** `supabase/migrations/20261014120000_realtime_voice_conversation.sql` (bump timestamp if taken), `supabase/tests/realtime_voice_session_proof.sql`, `frontend/src/integrations/supabase/types.ts` (regenerated).
+**Files.** `supabase/migrations/20261014130000_realtime_voice_conversation.sql` (`20261014120000` was taken), `supabase/tests/realtime_voice_session_proof.sql`, `frontend/src/integrations/supabase/types.ts` (regenerated).
 
 **Do** (plan §4.1–4.6, §4.8)
 1. Header comment `-- NCLDD-57 realtime voice conversation. Additive only.`
 2. `chatConversation` + `coachingSessionArchive` `sessionType` CHECK: add `'voice_conversation'` (drop + re-add constraint by its existing name). Do **not** widen `aiInsightSessionFact` / `aiMessageFeedback` (server maps to `'voice'`).
 3. `chatMessage."realtimeItemId" text NULL` + partial unique index `("conversationId","realtimeItemId") WHERE "realtimeItemId" IS NOT NULL`.
-4. Table `public."realtimeVoiceSession"` exactly as plan §4.3 (columns, CHECKs, FKs with `ON DELETE CASCADE`, indexes on `("userId","startedAt")`, `(status,"lastHeartbeatAt")`). RLS: own-row SELECT for `authenticated`; admin SELECT via `public.is_settings_admin()`; no client INSERT/UPDATE/DELETE; `REVOKE ALL … FROM anon`; `GRANT ALL … TO service_role`.
+4. Table `public."realtimeVoiceSession"` exactly as plan §4.3 (columns, CHECKs, FKs (`userId` CASCADE; `conversationId` nullable, SET NULL — see T-027 schema notes), indexes on `("userId","startedAt")`, `(status,"lastHeartbeatAt")`). RLS: own-row SELECT for `authenticated`; admin SELECT via `public.is_settings_admin()`; no client INSERT/UPDATE/DELETE; `REVOKE ALL … FROM anon`; `GRANT ALL … TO service_role`.
 5. `aiUsageEvent`: add `"realtimeSessionId" uuid NULL REFERENCES "realtimeVoiceSession"(id) ON DELETE SET NULL`, `"externalEventId" text NULL`, `"audioInputTokens" int NOT NULL DEFAULT 0`, `"cachedAudioInputTokens" int NOT NULL DEFAULT 0`, `"audioOutputTokens" int NOT NULL DEFAULT 0`; unique `("realtimeSessionId","externalEventId")` where both not null; widen `"aiUsageEvent_source_check"` with `realtime_response`, `realtime_transcription` (same pattern as `20261013130000_ai_message_feedback.sql:112-120`).
 6. `aiModelPricing` unit CHECK: add `audio_token_in_1m`, `audio_token_cached_in_1m`, `audio_token_out_1m`. Seed price rows **only with numbers recorded in T-024's doc** (cite the source in a comment). If prices are not confirmed, leave them out (UI shows "no price set").
 7. `public.realtime_voice_sweep()` SECURITY DEFINER, `set search_path = public`, service_role only: mark stale `connecting|active` sessions (`lastHeartbeatAt < now()-interval '3 min'` or `expiresAt < now()-interval '5 min'`) as `status='ended', "endReason"='abandoned'`, set `endedAt`, `durationSeconds`, and `usageStatus` by the rules in plan §7.3. Schedule pg_cron job `realtime-voice-sweep` every 5 min (guard with `IF EXISTS` on the cron extension like other jobs in the repo).
@@ -111,6 +111,14 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 6. `tool`: registry contract (plan §5.4); registry ships **empty**; unknown name → 200 `{ error: 'tool_not_available' }`; output trimmed. Session config includes `tools` only when the registry is non-empty.
 7. Tests (mock OpenAI fetch + fake Supabase clients like `voiceBudgetGate.test.ts`): every action's happy path and auth/ownership failures; voice allowlist; Free cap; 402 budget; 409 active session; `realtime_unavailable`; no response body ever contains `sk-`, `client_secret`, or the instructions; usage idempotency/caps/model-from-session; transcript order + crisis; tool allowlist with a fake registered tool; `usageStatus` derivation; `computeCostUsd` audio units.
 8. `supabase/functions/realtime-voice/DEPLOY.md`: secrets, deploy command (`supabase functions deploy realtime-voice --project-ref szkextipgpupqoppccoy`), deploy order, smoke steps.
+
+**Schema notes from T-025 (security review).**
+- `realtimeVoiceSession."conversationId"` is nullable, `ON DELETE SET NULL` (call/cost record survives a deleted conversation). Handle a session whose conversation is gone (`transcript` → 409/410, no write).
+- No DB link between `userId` and `conversationId`: `start` must verify the conversation belongs to the caller; `transcript` must write only into the `conversationId` from the session row, never from the request body.
+- `usage` / `heartbeat` / `end` / `tool` / `transcript`: always load the session by `id AND "userId" = caller` (otherwise a user could book events on, or pre-claim `externalEventId`s of, another user's session).
+- `heartbeat` / `end` updates must include `WHERE status IN ('connecting','active')` so a session closed by `realtime_voice_sweep()` is not revived. The sweep is global (all users), cheap to call lazily at `start`.
+- Idempotent writes: `chatMessage` upsert `onConflict: "conversationId,realtimeItemId"`; `aiUsageEvent` insert `onConflict: "realtimeSessionId,externalEventId"`, ignoreDuplicates.
+- A user can change `sessionType` of their own conversation (owner UPDATE policy), so "same type" is not proof the conversation was created by the realtime flow.
 
 **Acceptance.** Tests + gates pass; `security-reviewer` + `security-web-reviewer` + `architecture-reviewer` run on the slice with findings fixed. **Do not deploy** without PM review + user go.
 
@@ -197,7 +205,7 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 
 **Goal.** Admins see Realtime Conversation separately, per session, with honest unconfirmed usage.
 
-**Files.** `supabase/migrations/20261014130000_realtime_voice_admin_reads.sql`, `supabase/tests/realtime_voice_admin_reads_proof.sql`, `frontend/src/lib/settings/admin/adminAiUsageApi.ts`, `components/settings/admin/aiUsage/{AiUsageOverviewPanel,AdminAiUsageTab}.tsx`, new `AiUsageRealtimeSessionsPanel.tsx` + tests.
+**Files.** `supabase/migrations/20261014140000_realtime_voice_admin_reads.sql` (`20261014130000` is S1), `supabase/tests/realtime_voice_admin_reads_proof.sql`, `frontend/src/lib/settings/admin/adminAiUsageApi.ts`, `components/settings/admin/aiUsage/{AiUsageOverviewPanel,AdminAiUsageTab}.tsx`, new `AiUsageRealtimeSessionsPanel.tsx` + tests.
 
 **Do** (plan §4.7, §7.3, §7.5)
 1. `admin_ai_usage_overview`: add `byVoiceSurface: { voice_messages, realtime_conversation }` with cost, events, sessions, avg cost/session, avg duration, unconfirmed sessions count. Existing output keys unchanged (`CREATE OR REPLACE`, same signature).

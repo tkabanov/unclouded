@@ -272,12 +272,16 @@ export type Database = {
       }
       aiUsageEvent: {
         Row: {
+          audioInputTokens: number
+          audioOutputTokens: number
           audioSeconds: number
+          cachedAudioInputTokens: number
           cachedInputTokens: number
           conversationId: string | null
           costIsEstimated: boolean
           costUsd: number
           createdAt: string
+          externalEventId: string | null
           id: string
           inputTokens: number
           mode: string
@@ -287,17 +291,22 @@ export type Database = {
           planTierAtEvent: string
           pricingMissing: boolean
           provider: string
+          realtimeSessionId: string | null
           source: string
           ttsChars: number
           userId: string
         }
         Insert: {
+          audioInputTokens?: number
+          audioOutputTokens?: number
           audioSeconds?: number
+          cachedAudioInputTokens?: number
           cachedInputTokens?: number
           conversationId?: string | null
           costIsEstimated?: boolean
           costUsd?: number
           createdAt?: string
+          externalEventId?: string | null
           id?: string
           inputTokens?: number
           mode: string
@@ -307,17 +316,22 @@ export type Database = {
           planTierAtEvent?: string
           pricingMissing?: boolean
           provider?: string
+          realtimeSessionId?: string | null
           source: string
           ttsChars?: number
           userId: string
         }
         Update: {
+          audioInputTokens?: number
+          audioOutputTokens?: number
           audioSeconds?: number
+          cachedAudioInputTokens?: number
           cachedInputTokens?: number
           conversationId?: string | null
           costIsEstimated?: boolean
           costUsd?: number
           createdAt?: string
+          externalEventId?: string | null
           id?: string
           inputTokens?: number
           mode?: string
@@ -327,11 +341,20 @@ export type Database = {
           planTierAtEvent?: string
           pricingMissing?: boolean
           provider?: string
+          realtimeSessionId?: string | null
           source?: string
           ttsChars?: number
           userId?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "aiUsageEvent_realtimeSessionId_fkey"
+            columns: ["realtimeSessionId"]
+            isOneToOne: false
+            referencedRelation: "realtimeVoiceSession"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       aiUserLimitOverride: {
         Row: {
@@ -577,6 +600,7 @@ export type Database = {
           createdAt: string
           id: string
           isFromUser: boolean | null
+          realtimeItemId: string | null
           responseReceived: boolean | null
           sender: string | null
           updatedAt: string
@@ -588,6 +612,7 @@ export type Database = {
           createdAt?: string
           id?: string
           isFromUser?: boolean | null
+          realtimeItemId?: string | null
           responseReceived?: boolean | null
           sender?: string | null
           updatedAt?: string
@@ -599,6 +624,7 @@ export type Database = {
           createdAt?: string
           id?: string
           isFromUser?: boolean | null
+          realtimeItemId?: string | null
           responseReceived?: boolean | null
           sender?: string | null
           updatedAt?: string
@@ -2211,6 +2237,86 @@ export type Database = {
         }
         Relationships: []
       }
+      realtimeVoiceSession: {
+        Row: {
+          connectedAt: string | null
+          conversationId: string | null
+          durationSeconds: number | null
+          endReason: string | null
+          endedAt: string | null
+          expiresAt: string
+          id: string
+          lastHeartbeatAt: string | null
+          model: string
+          openaiCallId: string | null
+          planTierAtStart: string
+          responsesReported: number
+          responsesSeen: number
+          startedAt: string
+          status: string
+          transcriptionModel: string | null
+          transcriptionsReported: number
+          transcriptionsSeen: number
+          usageStatus: string
+          userId: string
+          voice: string
+        }
+        Insert: {
+          connectedAt?: string | null
+          conversationId?: string | null
+          durationSeconds?: number | null
+          endReason?: string | null
+          endedAt?: string | null
+          expiresAt: string
+          id?: string
+          lastHeartbeatAt?: string | null
+          model: string
+          openaiCallId?: string | null
+          planTierAtStart?: string
+          responsesReported?: number
+          responsesSeen?: number
+          startedAt?: string
+          status?: string
+          transcriptionModel?: string | null
+          transcriptionsReported?: number
+          transcriptionsSeen?: number
+          usageStatus?: string
+          userId: string
+          voice: string
+        }
+        Update: {
+          connectedAt?: string | null
+          conversationId?: string | null
+          durationSeconds?: number | null
+          endReason?: string | null
+          endedAt?: string | null
+          expiresAt?: string
+          id?: string
+          lastHeartbeatAt?: string | null
+          model?: string
+          openaiCallId?: string | null
+          planTierAtStart?: string
+          responsesReported?: number
+          responsesSeen?: number
+          startedAt?: string
+          status?: string
+          transcriptionModel?: string | null
+          transcriptionsReported?: number
+          transcriptionsSeen?: number
+          usageStatus?: string
+          userId?: string
+          voice?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realtimeVoiceSession_conversationId_fkey"
+            columns: ["conversationId"]
+            isOneToOne: false
+            referencedRelation: "chatConversation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referralAttribution: {
         Row: {
           paidBeforeRewards: boolean
@@ -3711,6 +3817,7 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: string
       }
+      realtime_voice_sweep: { Args: never; Returns: number }
       record_referral_link_click: {
         Args: { p_code: string; p_visitor_id: string }
         Returns: boolean
