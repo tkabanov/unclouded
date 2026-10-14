@@ -1,6 +1,7 @@
 import {
   readSessionMemoryRecords,
 } from "../sessionMemory/sessionMemoryHelpers.ts";
+import { isVoiceSessionType } from "./realtimeVoicePrompts.ts";
 import {
   buildUnresolvedThreadsSectionLines,
 } from "../sessionMemory/unresolvedThreads.ts";
@@ -303,7 +304,7 @@ function buildAbsenceFlag(liveContext: ChatLiveContext): string[] {
 function buildSessionTypeFlag(liveContext: ChatLiveContext): string[] {
   const sessionType = liveContext.sessionType ?? "text";
   const lines = [`session_type: ${sessionType}`];
-  if (sessionType === "voice") {
+  if (isVoiceSessionType(sessionType)) {
     lines.push("Activate Voice Session Adaptation Protocol (Block 3.36) for this session.");
     if (liveContext.voiceEmotionDetected === true) {
       lines.push(

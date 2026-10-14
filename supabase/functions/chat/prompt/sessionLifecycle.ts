@@ -16,6 +16,7 @@ import {
   formatReturningMemoryHint,
   readSessionMemoryRecords,
 } from "../sessionMemory/sessionMemoryHelpers.ts";
+import { isVoiceSessionType } from "./realtimeVoicePrompts.ts";
 
 export type ChatLifecycleMode =
   | "session_open"
@@ -312,7 +313,7 @@ Template basis:
 
   if (lifecycle === "session_close") {
     const voiceCloseNote =
-      profile?.liveContext?.sessionType === "voice"
+      isVoiceSessionType(profile?.liveContext?.sessionType)
         ? " Voice session: keep the close brief enough to speak aloud; client will pause 2–3 seconds before TTS."
         : "";
     return `[SESSION CLOSE — generate ONLY the assistant closing message. The user's NEXT message will be their micro-commitment. This turn asks for it only.
@@ -329,7 +330,7 @@ Close basis (adapt; must end with the commitment question):
 
   if (lifecycle === "session_close_ack") {
     const voiceCloseNote =
-      profile?.liveContext?.sessionType === "voice"
+      isVoiceSessionType(profile?.liveContext?.sessionType)
         ? " Voice session: keep brief enough to speak aloud."
         : "";
     const valuesBridgeNote = buildSessionCloseValuesBridgeNote(profile);

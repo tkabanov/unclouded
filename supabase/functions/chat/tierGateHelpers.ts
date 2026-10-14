@@ -1,5 +1,6 @@
 import {
   resolveUserEntitlement,
+  type EntitlementTier,
   type UserEntitlementInput,
 } from "../_shared/userEntitlementHelpers.ts";
 
@@ -95,6 +96,22 @@ export function canUseJournalAiReflection(
 ): boolean {
   const currentTier = resolveCurrentTier(subscribed, tier, accountType, enterpriseTier);
   return currentTier === "pro" || currentTier === "premium";
+}
+
+const TIER_RANK: Record<EntitlementTier, number> = { free: 0, pro: 1, premium: 2 };
+
+/**
+ * NCLDD-57 §5.5: minimum plan for realtime Conversation mode. `free` = everyone today; raise it to
+ * gate the feature without touching `realtime-voice` or the client (402
+ * `realtime_conversation_tier_required`).
+ */
+export const REALTIME_CONVERSATION_MIN_TIER: EntitlementTier = "free";
+
+export function canUseRealtimeConversation(
+  tier: EntitlementTier,
+  minTier: EntitlementTier = REALTIME_CONVERSATION_MIN_TIER,
+): boolean {
+  return TIER_RANK[tier] >= TIER_RANK[minTier];
 }
 
 export function isContinuingSession(

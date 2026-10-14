@@ -7,7 +7,7 @@ export type ChatRequestBody = {
   context?: string;
   lifecycle?: ChatLifecycleMode;
   conversationId?: string;
-  sessionType?: "text" | "voice";
+  sessionType?: "text" | "voice" | "voice_conversation";
   exchangeCount?: number;
   promptTestScenarioId?: string;
   promptLibraryVersionId?: string;
@@ -25,7 +25,9 @@ export function parseChatRequestBody(raw: unknown): ChatRequestBody {
   const rawSessionType =
     typeof body.sessionType === "string" ? body.sessionType.trim() : undefined;
   const sessionType =
-    rawSessionType === "text" || rawSessionType === "voice" ? rawSessionType : undefined;
+    rawSessionType === "text" || rawSessionType === "voice" || rawSessionType === "voice_conversation"
+      ? rawSessionType
+      : undefined;
 
   const exchangeCount =
     typeof body.exchangeCount === "number" && Number.isFinite(body.exchangeCount)

@@ -121,9 +121,12 @@ export function computeCostUsd(
   return { costUsd: Math.round(cost * 1_000_000) / 1_000_000, pricingMissing: missing };
 }
 
-/** Voice sessions are `voice`; text and quick check-ins are `text`. */
+/**
+ * Voice sessions (push-to-talk and realtime `voice_conversation`, NCLDD-57) are `voice`; text and
+ * quick check-ins are `text`.
+ */
 export function modeFromSessionType(sessionType: unknown): "text" | "voice" {
-  return sessionType === "voice" ? "voice" : "text";
+  return sessionType === "voice" || sessionType === "voice_conversation" ? "voice" : "text";
 }
 
 /**

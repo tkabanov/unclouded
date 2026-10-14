@@ -8,7 +8,7 @@ import {
 export type CoachingSessionArchiveInsert = {
   userId: string;
   conversationId: string | null;
-  sessionType: "text" | "voice";
+  sessionType: "text" | "voice" | "voice_conversation";
   finalizedAt?: string;
   exchangeCount?: number | null;
   coachingModeUsed?: string | null;
@@ -122,7 +122,7 @@ function isMissingSchemaError(error: { code?: string; message?: string }): boole
 export function buildArchiveInsertFromFinalize(params: {
   userId: string;
   conversationId: string;
-  sessionType: "text" | "voice";
+  sessionType: "text" | "voice" | "voice_conversation";
   finalize: SessionFinalizePayload;
   coachingModeUsed: string;
   exchangeCount?: number | null;

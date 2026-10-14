@@ -13,27 +13,29 @@ import {
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { endsSession, evaluateAiBudgetGate } from "./aiBudgetGate.ts";
 import { classifySessionInsights } from "./insights/sessionInsightsClassifier.ts";
-import { buildSystemPrompt, type ProfileData } from "./buildSystemPrompt.ts";
+import type { ProfileData } from "./buildSystemPrompt.ts";
+import {
+  applyRequestLiveContext,
+  buildSystemWithLifecycle,
+  loadUserPromptInputs,
+} from "./buildUserSystemPrompt.ts";
 import {
   CRISIS_RESPONSE_TEXT,
   classifyCrisisInLiveContext,
   classifyCrisisInThread,
   requiresCrisisHardStop,
 } from "./crisisDetect.ts";
-import { loadServerProfile } from "./loadServerProfile.ts";
 import {
   buildFallbackSessionFinalizePayload,
   buildSessionCloseAckUserPrompt,
   buildSessionCloseUserPrompt,
   buildSessionFinalizeUserPrompt,
-  buildSessionLifecycleInstruction,
   parseSessionFinalizePayload,
   sanitizeSessionCloseReplyText,
   SESSION_CLOSE_ACK_SYSTEM_PROMPT,
   SESSION_CLOSE_SYSTEM_PROMPT,
   SESSION_FINALIZE_RETRY_SYSTEM_PROMPT,
   SESSION_FINALIZE_SYSTEM_PROMPT,
-  type ChatLifecycleMode,
 } from "./prompt/sessionLifecycle.ts";
 import {
   enforceFreeTierSessionGate,
@@ -67,15 +69,8 @@ import { handleVoiceTranscribe, handleVoiceTts, resolveVoiceRoute } from "./voic
 import { detectSignificantLifeEventInThread } from "./significantLifeEventDetect.ts";
 import { persistSignificantLifeEventFlag } from "./persistSignificantLifeEventFlag.ts";
 import { scheduleEdgeBackgroundWork } from "../_shared/edgeBackground.ts";
-import { resolvePromptLibraryLayers } from "./prompt/loadPromptLibraryVersion.ts";
-import type { PromptLibraryLayerMap } from "./prompt/promptLibraryStaticLayers.ts";
-import { resolvePromptLibraryRequestOptions } from "./prompt/promptLibraryRequestOptions.ts";
 import { getServiceClient } from "../_shared/serviceClient.ts";
-import {
-  loadPlatformAiSettings,
-  withPlatformSettings,
-  type PlatformAiSettings,
-} from "../_shared/platformAiSettings.ts";
+import { withPlatformSettings } from "../_shared/platformAiSettings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -96,20 +91,6 @@ function jsonError(status: number, error: string, extra: Record<string, unknown>
 
 function crisisHardStopResponse(crisisLevel: 2 | 3 | 4): Response {
   return jsonResponse(200, { crisis: true, crisisLevel, text: CRISIS_RESPONSE_TEXT });
-}
-
-function buildSystemWithLifecycle(
-  profileData: ProfileData | undefined,
-  context: string | undefined,
-  lifecycle: ChatLifecycleMode | undefined,
-  promptLayers?: PromptLibraryLayerMap,
-  platformSettings?: PlatformAiSettings | null,
-): string {
-  const instruction = lifecycle
-    ? buildSessionLifecycleInstruction(lifecycle, profileData ?? {}, context)
-    : undefined;
-  // Lifecycle instruction goes before the platform rules reminder + tone (NCLDD-53 BUG-1).
-  return buildSystemPrompt(profileData, context, promptLayers, platformSettings, instruction);
 }
 
 function sessionOpenMessages(): UIMessage[] {
@@ -279,28 +260,22 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(200, { title });
     }
 
-    const profileData = await loadServerProfile(supabase, user.id);
+    const promptInputs = await loadUserPromptInputs({
+      userClient: supabase,
+      serviceClient,
+      userId: user.id,
+      promptLibraryRequest: {
+        headers: req.headers,
+        body,
+        envPreferDraft: Deno.env.get("PROMPT_LIBRARY_PREFER_DRAFT") === "true",
+      },
+    });
 
-    if (!profileData) {
+    if (!promptInputs) {
       return jsonError(404, "Profile not found");
     }
 
-    // Prompt Library + platform AI settings are admin-only tables: read them with service role
-    // (user RLS client silently fell back to static layers). Draft/explicit version stay admin-only.
-    const promptLibraryOptions = resolvePromptLibraryRequestOptions(
-      profileData,
-      req.headers,
-      body,
-      Deno.env.get("PROMPT_LIBRARY_PREFER_DRAFT") === "true",
-    );
-    const [{ layers: promptLayers }, platformSettings] = await Promise.all([
-      resolvePromptLibraryLayers(serviceClient, {
-        ...promptLibraryOptions,
-        // Lazy production seed runs under service role; only attribute it to admins.
-        createdBy: profileData.roleType === "admin" ? user.id : null,
-      }),
-      loadPlatformAiSettings(serviceClient),
-    ]);
+    const { profile: profileData, promptLayers, platformSettings } = promptInputs;
 
     if (lifecycle === "prompt_test") {
       if (profileData.roleType !== "admin") {
@@ -379,21 +354,11 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (profileData.liveContext) {
-      if (requestSessionType) {
-        profileData.liveContext.sessionType = requestSessionType;
-      }
-      if (requestVoiceEmotionDetected === true) {
-        profileData.liveContext.voiceEmotionDetected = true;
-      } else {
-        profileData.liveContext.voiceEmotionDetected = false;
-      }
-      if (typeof requestExchangeCount === "number") {
-        profileData.liveContext.exchangeCount = requestExchangeCount;
-      } else {
-        profileData.liveContext.exchangeCount = extractAllUserTexts(uiMessages).length;
-      }
-    }
+    applyRequestLiveContext(profileData, {
+      sessionType: requestSessionType,
+      voiceEmotionDetected: requestVoiceEmotionDetected,
+      exchangeCount: requestExchangeCount ?? extractAllUserTexts(uiMessages).length,
+    });
 
     await applySignificantLifeEventDisclosureIfNeeded(
       supabase,
