@@ -28,6 +28,7 @@ import {
   type CoachBookingRow,
   type PreviousOneOnOneCoach,
 } from "@/lib/coach/coachBookingApi";
+import { cancelToastMessage } from "@/lib/coach/coachBookingCancelMessage";
 import { cn } from "@/lib/utils";
 
 function isUpcomingConfirmed(row: CoachBookingRow): boolean {
@@ -319,17 +320,13 @@ export default function OneOnOneBookingPanel({
           toast.error(result.message);
           return;
         }
-        toast.success(
-          result.refunded
-            ? "Session canceled — your credits were returned."
-            : "Session canceled. Credits are not refunded within 24 hours of the session.",
-        );
+        toast.success(cancelToastMessage(result.refunded, history.find((row) => row.id === bookingId)));
         await Promise.all([bootstrapCoaches(), reloadHistory(), onBooked()]);
       } finally {
         onBusyChange(false);
       }
     },
-    [busy, bootstrapCoaches, onBooked, onBusyChange, reloadHistory],
+    [busy, bootstrapCoaches, history, onBooked, onBusyChange, reloadHistory],
   );
 
   const hasPreviousCoaches = previousCoaches.length > 0;

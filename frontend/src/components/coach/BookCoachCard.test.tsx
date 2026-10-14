@@ -193,6 +193,8 @@ describe("referral coach credits are never offered for AI sessions (A6)", () => 
   it("only the human-coach booking card consumes the referral credit balance", () => {
     const consumers = Object.entries(sources)
       .filter(([path]) => !/\.test\.tsx?$/.test(path))
+      // Generated Supabase types list every RPC name; they are not consumers.
+      .filter(([path]) => path !== "/src/integrations/supabase/types.ts")
       .filter(([, code]) =>
         /useReferralCoachCredits|fetchMyReferralCoachCredits|my_referral_coach_credit_balance/.test(code),
       )
