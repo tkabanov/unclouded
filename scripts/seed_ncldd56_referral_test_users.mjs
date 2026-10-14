@@ -1,7 +1,7 @@
 /**
  * Seed NCLDD-56 referral QA accounts (docs/NCLDD-56-test-plan.md §1). Idempotent.
  *
- * Accounts (password: SEED_PASSWORD, default qwerty123), all confirmed, onboarding complete:
+ * Accounts (password: SEED_PASSWORD, required), all confirmed, onboarding complete:
  *   ncldd56-ref-a@test.com     REF-A     Free referrer, share code QAREFA56
  *   ncldd56-ref-b@test.com     REF-B     Free referrer, share code QAREFB56
  *   ncldd56-inv-b1@test.com    INV-B1    signed up with REF-B's code (isolation)
@@ -14,7 +14,7 @@
  * INV-1..3 and PCL-1..2 are not seeded: they sign up through the links during the manual cases.
  *
  * Usage (service role key required, do not commit):
- *   SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_ncldd56_referral_test_users.mjs
+ *   SEED_PASSWORD=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_ncldd56_referral_test_users.mjs
  */
 import { createRequire } from "node:module";
 
@@ -23,8 +23,12 @@ const { createClient } = require("@supabase/supabase-js");
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "https://szkextipgpupqoppccoy.supabase.co";
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const PASSWORD = process.env.SEED_PASSWORD ?? "qwerty123";
+const PASSWORD = process.env.SEED_PASSWORD?.trim();
 
+if (!PASSWORD) {
+  console.error("Missing SEED_PASSWORD (password to set on the seeded test accounts)");
+  process.exit(1);
+}
 if (!SERVICE_ROLE_KEY) {
   console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
   process.exit(1);
@@ -204,7 +208,7 @@ async function main() {
     console.log("  (INV-B1 existed before REF-B had a code; attribution is permanent — delete and re-run)");
   }
 
-  console.log(`\nAll accounts use password: ${PASSWORD}`);
+  console.log("\nAll accounts use the password from SEED_PASSWORD.");
   console.log("REF-A link: https://uncloud360.vercel.app/signup?ref=QAREFA56");
   console.log("Partner One link: https://uncloud360.vercel.app/signup?ref=QAPNRA56");
   console.log("Partner Two link: https://uncloud360.vercel.app/signup?ref=QAPNRB56");

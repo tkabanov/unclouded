@@ -5,38 +5,58 @@
  * asserting each user sees only their own data and non-admins get 42501.
  * Read-only except for one INSERT attempt into "coachBooking" that must be denied.
  *
- * Run against a TEST environment only, after the NCLDD-56 migrations are applied:
- *   SUPABASE_URL=https://<project>.supabase.co \
- *   SUPABASE_ANON_KEY=... \
- *   REF_A_EMAIL=... REF_A_PASSWORD=... \
- *   REF_B_EMAIL=... REF_B_PASSWORD=... \
- *   PARTNER_1_EMAIL=... PARTNER_1_PASSWORD=... \
- *   USER_X_EMAIL=... USER_X_PASSWORD=... \
- *   node scripts/referral_isolation_smoke.mjs
+ * Run after the NCLDD-56 migrations and scripts/seed_ncldd56_referral_test_users.mjs:
+ *   SEED_PASSWORD=... node scripts/referral_isolation_smoke.mjs
  *
- * Optional: ADMIN_EMAIL / ADMIN_PASSWORD — checks the admin RPCs succeed for an admin.
+ * Defaults: the seeded ncldd56-*@test.com accounts (password from SEED_PASSWORD, required),
+ * URL and publishable key from frontend/.env.production. Override any of them with
+ * SUPABASE_URL, SUPABASE_ANON_KEY, <USER>_EMAIL / <USER>_PASSWORD (USER = REF_A, REF_B,
+ * PARTNER_1, USER_X, ADMIN).
  */
+import fs from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(new URL("../frontend/package.json", import.meta.url));
 const { createClient } = require("@supabase/supabase-js");
 
-const SUPABASE_URL = process.env.SUPABASE_URL?.trim();
-const ANON_KEY = process.env.SUPABASE_ANON_KEY?.trim();
+function readEnvProduction() {
+  try {
+    const text = fs.readFileSync(new URL("../frontend/.env.production", import.meta.url), "utf8");
+    return Object.fromEntries(
+      text
+        .split(/\r?\n/)
+        .map((line) => line.match(/^\s*([A-Z0-9_]+)\s*=\s*"?([^"]*)"?\s*$/))
+        .filter(Boolean)
+        .map((m) => [m[1], m[2]]),
+    );
+  } catch {
+    return {};
+  }
+}
+
+const envProduction = readEnvProduction();
+const SUPABASE_URL = (process.env.SUPABASE_URL ?? envProduction.VITE_SUPABASE_URL)?.trim();
+const ANON_KEY = (process.env.SUPABASE_ANON_KEY ?? envProduction.VITE_SUPABASE_PUBLISHABLE_KEY)?.trim();
+const SEED_PASSWORD = process.env.SEED_PASSWORD?.trim();
+if (!SEED_PASSWORD) {
+  console.error("Missing SEED_PASSWORD (password of the seeded ncldd56-* test accounts)");
+  process.exit(1);
+}
+const SEED_EMAILS = {
+  REF_A: "ncldd56-ref-a@test.com",
+  REF_B: "ncldd56-ref-b@test.com",
+  PARTNER_1: "ncldd56-partner-1@test.com",
+  USER_X: "ncldd56-user-x@test.com",
+  ADMIN: "ncldd56-admin@test.com",
+};
+const credentials = (prefix) => ({
+  email: process.env[`${prefix}_EMAIL`] ?? SEED_EMAILS[prefix],
+  password: process.env[`${prefix}_PASSWORD`] ?? SEED_PASSWORD,
+});
 
 const USERS = ["REF_A", "REF_B", "PARTNER_1", "USER_X"];
-const missing = [
-  ["SUPABASE_URL", SUPABASE_URL],
-  ["SUPABASE_ANON_KEY", ANON_KEY],
-  ...USERS.flatMap((u) => [
-    [`${u}_EMAIL`, process.env[`${u}_EMAIL`]],
-    [`${u}_PASSWORD`, process.env[`${u}_PASSWORD`]],
-  ]),
-]
-  .filter(([, value]) => !value)
-  .map(([name]) => name);
-if (missing.length > 0) {
-  console.error(`Missing: ${missing.join(", ")}`);
+if (!SUPABASE_URL || !ANON_KEY) {
+  console.error("Missing SUPABASE_URL / SUPABASE_ANON_KEY (and no frontend/.env.production)");
   process.exit(1);
 }
 
@@ -74,10 +94,7 @@ function newClient() {
 
 async function signIn(prefix) {
   const client = newClient();
-  const { data, error } = await client.auth.signInWithPassword({
-    email: process.env[`${prefix}_EMAIL`],
-    password: process.env[`${prefix}_PASSWORD`],
-  });
+  const { data, error } = await client.auth.signInWithPassword(credentials(prefix));
   if (error) throw new Error(`${prefix}: sign-in failed (${error.message})`);
   return { client, userId: data.user.id };
 }
@@ -134,8 +151,10 @@ async function main() {
   // M-50: admin RPCs are 42501 for non-admins.
   for (const prefix of USERS) {
     for (const [fn, args] of ADMIN_RPCS) {
-      const { error } = await sessions[prefix].client.rpc(fn, args);
-      check(`M-50 ${prefix} ${fn} denied`, error?.code === "42501", error ? error.code : "no error");
+      const { data, error } = await sessions[prefix].client.rpc(fn, args);
+      // admin_list_coaching_bookings predates NCLDD-56 and denies with { ok: false, code: 'forbidden' }.
+      const denied = error?.code === "42501" || (data?.ok === false && data?.code === "forbidden");
+      check(`M-50 ${prefix} ${fn} denied`, denied, error ? error.code : JSON.stringify(data));
     }
   }
 
@@ -170,8 +189,8 @@ async function main() {
     );
   }
 
-  // Optional: admin sees analytics.
-  if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+  // Admin sees analytics.
+  {
     const { client } = await signIn("ADMIN");
     const { error } = await client.rpc("admin_referral_partner_metrics");
     check("ADMIN admin_referral_partner_metrics allowed", error == null, error?.message);
