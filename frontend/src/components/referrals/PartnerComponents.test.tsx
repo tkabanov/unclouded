@@ -1,10 +1,26 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import PartnerClientsList from "@/components/referrals/PartnerClientsList";
 import PartnerEarningsSummary from "@/components/referrals/PartnerEarningsSummary";
 import type { PartnerPortal } from "@/lib/referrals/partnerPortalApi";
 import { describePartnerTerms } from "@/lib/referrals/referralCopy";
+
+// Lets a test mimic locales whose long date ends with "." (e.g. ru: "13 октября 2026 г.").
+const dateFormat = vi.hoisted(() => ({ override: null as string | null }));
+
+vi.mock("@/lib/subscription/subscriptionFormat", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/subscription/subscriptionFormat")>();
+  return {
+    ...actual,
+    formatSubscriptionDate: (iso: string | null | undefined) =>
+      dateFormat.override ?? actual.formatSubscriptionDate(iso),
+  };
+});
+
+afterEach(() => {
+  dateFormat.override = null;
+});
 
 const basePortal: PartnerPortal = {
   partner: { name: "Coach Co", code: "ABCD2345", status: "active" },
@@ -31,6 +47,17 @@ describe("PartnerEarningsSummary", () => {
     render(<PartnerEarningsSummary portal={basePortal} />);
     expect(screen.getByText(/Your terms: 20% of every payment/)).toBeInTheDocument();
     expect(screen.getByText("Earned").previousSibling?.textContent).toMatch(/8[.,]70/);
+  });
+
+  it("ends the terms sentence with a single period", () => {
+    const portal = { ...basePortal, terms: { ...basePortal.terms!, effectiveFrom: "2026-10-13T12:00:00Z" } };
+    const { unmount } = render(<PartnerEarningsSummary portal={portal} />);
+    expect(screen.getByText("Your terms: 20% of every payment, from October 13, 2026.")).toBeInTheDocument();
+    unmount();
+
+    dateFormat.override = "13 октября 2026 г.";
+    render(<PartnerEarningsSummary portal={portal} />);
+    expect(screen.getByText("Your terms: 20% of every payment, from 13 октября 2026 г.")).toBeInTheDocument();
   });
 
   it("never shows an earned amount without confirmed terms", () => {

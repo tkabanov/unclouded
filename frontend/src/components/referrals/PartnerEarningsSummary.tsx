@@ -8,7 +8,7 @@ import {
   describePartnerTerms,
   formatMoney,
 } from "@/lib/referrals/referralCopy";
-import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
+import { endSentence, formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
@@ -37,9 +37,11 @@ export default function PartnerEarningsSummary({ portal }: { portal: PartnerPort
         </CardTitle>
         <CardDescription className="text-sm">
           {confirmed
-            ? `Your terms: ${describePartnerTerms(terms)}${
-                terms.effectiveFrom ? `, from ${formatSubscriptionDate(terms.effectiveFrom)}` : ""
-              }.`
+            ? endSentence(
+                `Your terms: ${describePartnerTerms(terms)}${
+                  terms.effectiveFrom ? `, from ${formatSubscriptionDate(terms.effectiveFrom)}` : ""
+                }`,
+              )
             : "Commission terms are not confirmed yet."}
         </CardDescription>
       </CardHeader>

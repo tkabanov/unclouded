@@ -24,7 +24,7 @@ import {
   validatePartnerTermsInput,
   type AdminPartnerProgram,
 } from "@/lib/settings/admin/referralProgramAdminApi";
-import { formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
+import { endSentence, formatSubscriptionDate } from "@/lib/subscription/subscriptionFormat";
 
 const SCOPE_OPTIONS: { value: PartnerTermsScope; label: string }[] = [
   { value: "lifetime", label: "Every payment (lifetime)" },
@@ -44,7 +44,7 @@ function formatUtcDate(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString(undefined, { timeZone: "UTC", year: "numeric", month: "long", day: "numeric" });
+  return date.toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "long", day: "numeric" });
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -132,10 +132,12 @@ export default function AdminReferralPartnerProgram({ partnerId }: { partnerId: 
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
             <p>
               Linked to <span className="font-medium">{program.linkedAccount.email}</span>
-              {program.linkedAccount.linkedAt
-                ? ` since ${formatSubscriptionDate(program.linkedAccount.linkedAt)}`
-                : ""}
-              . This account sees the Partner portal.
+              {endSentence(
+                program.linkedAccount.linkedAt
+                  ? ` since ${formatSubscriptionDate(program.linkedAccount.linkedAt)}`
+                  : "",
+              )}{" "}
+              This account sees the Partner portal.
             </p>
             <Button
               size="sm"

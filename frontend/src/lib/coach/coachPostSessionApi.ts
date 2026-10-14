@@ -94,10 +94,10 @@ function formatSessionWhen(iso: string | null, durationMinutes: number): string 
   const start = new Date(iso);
   if (Number.isNaN(start.getTime())) return "Unscheduled";
   const end = new Date(start.getTime() + durationMinutes * 60_000);
-  return `${start.toLocaleString(undefined, {
+  return `${start.toLocaleString("en-US", {
     dateStyle: "full",
     timeStyle: "short",
-  })} – ${end.toLocaleTimeString(undefined, { timeStyle: "short" })} (${durationMinutes} min)`;
+  })} – ${end.toLocaleTimeString("en-US", { timeStyle: "short" })} (${durationMinutes} min)`;
 }
 
 export function formatCoachPostSessionWhen(

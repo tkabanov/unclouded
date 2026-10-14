@@ -165,7 +165,7 @@ export default function AiUsageLimitsPanel() {
                 })}
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">
-                    {updatedAt ? `Updated ${new Date(updatedAt).toLocaleDateString()}` : "Never changed"}
+                    {updatedAt ? `Updated ${new Date(updatedAt).toLocaleDateString("en-US")}` : "Never changed"}
                   </span>
                   <Button
                     type="button"

@@ -1,8 +1,9 @@
 /**
  * Date and money formatting for the subscription screen.
  *
- * Dates use the browser locale and time zone. Amounts are formatted from
- * provider-supplied minor units — the app never computes a charge itself.
+ * Dates and amounts use a fixed en-US locale (the UI is English, OVR-075) and the
+ * browser time zone. Amounts are formatted from provider-supplied minor units — the
+ * app never computes a charge itself.
  */
 import type { BillingInterval, PlanPrice } from "@/lib/subscription/subscriptionState";
 
@@ -10,11 +11,16 @@ export function formatSubscriptionDate(iso: string | null | undefined): string |
   if (!iso) return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+}
+
+/** Appends a period unless the text already ends with one (some locales end dates with "."). */
+export function endSentence(text: string): string {
+  return /\.\s*$/.test(text) ? text.trimEnd() : `${text}.`;
 }
 
 export function formatMoneyFromCents(
@@ -22,7 +28,7 @@ export function formatMoneyFromCents(
   currency = "usd",
 ): string | null {
   if (typeof amountCents !== "number" || !Number.isFinite(amountCents)) return null;
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency.toUpperCase(),
     // Whole-dollar plans read better without trailing zeros.

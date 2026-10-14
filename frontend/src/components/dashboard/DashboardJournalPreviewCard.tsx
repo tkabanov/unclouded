@@ -29,7 +29,7 @@ function moodLabel(mood: string | null): string {
 }
 
 function formatPreviewDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+  return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",

@@ -76,7 +76,7 @@ export async function downloadOnboardingResultsPdf(
   doc.setTextColor(...MUTED);
   doc.text("Assessment Results", margin, y + 16);
   doc.text(
-    new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }),
+    new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
     pageWidth - margin,
     y + 16,
     { align: "right" },

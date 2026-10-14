@@ -40,7 +40,7 @@ type WorkplaceEnrollmentCodesPanelProps = {
 
 function formatCodeDate(value: string | null): string {
   if (!value) return "—";
-  return new Date(value).toLocaleDateString();
+  return new Date(value).toLocaleDateString("en-US");
 }
 
 export default function WorkplaceEnrollmentCodesPanel({

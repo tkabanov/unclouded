@@ -120,7 +120,7 @@ export default function CoachPostSessionPage() {
               </p>
               {session.submittedAt ? (
                 <p className="text-xs text-muted-foreground">
-                  Submitted {new Date(session.submittedAt).toLocaleString()}
+                  Submitted {new Date(session.submittedAt).toLocaleString("en-US")}
                 </p>
               ) : null}
               {notes.trim() ? (

@@ -22,7 +22,7 @@ const ACTION_LABELS: Record<AiLimitAuditAction, string> = {
 
 function formatWhen(iso: string): string {
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString("en-US");
 }
 
 function targetLabel(row: AiLimitAuditRow): string {

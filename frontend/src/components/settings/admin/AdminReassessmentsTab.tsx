@@ -139,7 +139,7 @@ export default function AdminReassessmentsTab() {
                         {row.isInitial ? "Initial assessment" : "Reassessment"}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(row.assessmentDate).toLocaleString()}
+                        {new Date(row.assessmentDate).toLocaleString("en-US")}
                       </span>
                     </div>
                     <p className="text-muted-foreground">

@@ -18,7 +18,7 @@ function formatWhen(iso: string | null): string {
   if (!iso) return "—";
   const parsed = Date.parse(iso);
   if (!Number.isFinite(parsed)) return "—";
-  return new Date(parsed).toLocaleString();
+  return new Date(parsed).toLocaleString("en-US");
 }
 
 function toLocalInputValue(d: Date): string {
