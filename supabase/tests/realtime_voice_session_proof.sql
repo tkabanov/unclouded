@@ -52,15 +52,18 @@ BEGIN
   EXCEPTION WHEN check_violation THEN NULL;
   END;
 
-  -- Not widened on purpose (server maps voice_conversation -> voice).
-  BEGIN
-    INSERT INTO public."aiInsightSessionFact"
-      ("userId", "conversationId", "sessionType", "sessionDate", "classifierVersion")
-    VALUES ('00000000-0000-4000-8000-0000000057a1', '00000000-0000-4000-8000-0000000057c1',
-            'voice_conversation', current_date, 1);
-    ASSERT false, 'aiInsightSessionFact accepted voice_conversation';
-  EXCEPTION WHEN check_violation THEN NULL;
-  END;
+  -- Not widened on purpose (server maps voice_conversation -> voice). Checked on the constraint
+  -- itself: an insert would be silently dropped by the consent trigger before the CHECK runs.
+  ASSERT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public."aiInsightSessionFact"'::regclass AND contype = 'c'
+      AND pg_get_constraintdef(oid) LIKE '%"sessionType"%'
+  ), 'aiInsightSessionFact sessionType CHECK is missing';
+  ASSERT NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid IN ('public."aiInsightSessionFact"'::regclass, 'public."aiMessageFeedback"'::regclass)
+      AND contype = 'c' AND pg_get_constraintdef(oid) LIKE '%voice_conversation%'
+  ), 'aiInsightSessionFact / aiMessageFeedback were widened with voice_conversation';
 END $$;
 
 -- ---------------------------------------------------------------------------

@@ -2242,8 +2242,8 @@ export type Database = {
           connectedAt: string | null
           conversationId: string | null
           durationSeconds: number | null
-          endReason: string | null
           endedAt: string | null
+          endReason: string | null
           expiresAt: string
           id: string
           lastHeartbeatAt: string | null
@@ -2265,8 +2265,8 @@ export type Database = {
           connectedAt?: string | null
           conversationId?: string | null
           durationSeconds?: number | null
-          endReason?: string | null
           endedAt?: string | null
+          endReason?: string | null
           expiresAt: string
           id?: string
           lastHeartbeatAt?: string | null
@@ -2288,8 +2288,8 @@ export type Database = {
           connectedAt?: string | null
           conversationId?: string | null
           durationSeconds?: number | null
-          endReason?: string | null
           endedAt?: string | null
+          endReason?: string | null
           expiresAt?: string
           id?: string
           lastHeartbeatAt?: string | null
