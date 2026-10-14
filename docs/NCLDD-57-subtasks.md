@@ -188,7 +188,7 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 
 **Goal.** Finished conversations live in history like other sessions; safety parity with chat.
 
-**Files.** `frontend/src/components/chat/ConversationThreadCell.tsx`, `ConversationPanelMount.tsx`, new `components/voice/realtime/RealtimeTranscriptReadOnly.tsx`, `frontend/src/lib/chat/chatSessionLifecycleApi.ts`, `chatConversationsApi.ts`, `useRealtimeConversation` (finalize call), crisis UI reuse.
+**Files.** `frontend/src/components/chat/ConversationThreadCell.tsx`, `ConversationPanelMount.tsx`, new `components/voice/realtime/RealtimeTranscriptReadOnly.tsx`, `frontend/src/lib/chat/chatSessionLifecycleApi.ts`, `chatConversationsApi.ts`, `useRealtimeConversation` (finalize call), crisis UI reuse, `supabase/migrations/20261014150000_realtime_voice_feedback_session_type.sql` (`20261014140000` is S7), `supabase/tests/realtime_voice_feedback_proof.sql`.
 
 **Do** (plan §5.2 finalize note, §6.3 history, §6.5)
 1. After `end`, call existing `session_finalize` with `sessionType: 'voice_conversation'` and the persisted transcript (session memory, `coachingSessionArchive`, memory facts, insights under consent). Toast "Conversation saved." Failure leaves the conversation unfinalized (same as voice).
@@ -196,8 +196,9 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 3. History: badge **Conversation** for `voice_conversation`; panel mount opens a read-only transcript with "Start a new conversation" → `/coaching/voice?mode=conversation`; 👍/👎 on Kota messages works.
 4. Crisis: when `transcript` returns `crisis`, show the same crisis block/resources as text chat, disable restart for the rest of the page session the same way chat does (follow existing chat behaviour; do not invent a new policy).
 5. Tests: history badge/mount, finalize payload, crisis rendering, unfinished-voice filter.
+6. Feedback session type (found in T-026): `public.set_ai_message_feedback` (`20261013130000_ai_message_feedback.sql:63`) maps `chatConversation."sessionType"` with `CASE WHEN … = 'voice' THEN 'voice' ELSE 'text' END`, so 👍/👎 on a `voice_conversation` reply is stored as `'text'`. New migration: `CREATE OR REPLACE` the function with the same signature, grants and body, only the CASE changed to `IN ('voice','voice_conversation')`. `aiMessageFeedback` CHECK stays `('text','voice')` (T-025 decision). Proof SQL: feedback on a `voice_conversation` message is stored as `'voice'`, on `text`/`voice` unchanged.
 
-**Acceptance.** Gates pass; `security-reviewer` checks the crisis path and transcript write path (user RLS, idempotency).
+**Acceptance.** Gates pass; `security-reviewer` checks the crisis path and transcript write path (user RLS, idempotency). Feedback migration SQL to PM review before apply; apply only after the user says go.
 
 ---
 
