@@ -93,13 +93,16 @@ describe("PartnerClientsList", () => {
       { displayName: "Wendy W.", joinedAt: null, status: "paying" as const, payments: 2, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 870 }] },
       { displayName: "Xena X.", joinedAt: null, status: "paying" as const, payments: 1, pendingTermsPayments: 1, earned: [] },
       { displayName: "Walter W.", joinedAt: null, status: "signed_up" as const, payments: 0, pendingTermsPayments: 0, earned: [] },
+      { displayName: "Rita R.", joinedAt: null, status: "refunded" as const, payments: 1, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 0 }] },
     ];
     render(<PartnerClientsList clients={clients} />);
     expect(screen.getByText(/8[.,]70/)).toBeInTheDocument();
     expect(screen.getByText("Not calculated")).toBeInTheDocument();
     expect(screen.getByText(/1 awaiting terms/)).toBeInTheDocument();
     expect(screen.getByText("Signed up")).toBeInTheDocument();
-    expect(screen.getByText("(3)")).toBeInTheDocument();
+    expect(screen.getByText("Refunded")).toBeInTheDocument();
+    expect(screen.getAllByText("Paying client")).toHaveLength(2);
+    expect(screen.getByText("(4)")).toBeInTheDocument();
   });
 
   it("never shows $0 for a client whose payments predate the confirmed terms", () => {

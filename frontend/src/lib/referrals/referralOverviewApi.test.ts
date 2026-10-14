@@ -16,6 +16,7 @@ describe("mapReferralOverview", () => {
       invitees: [
         { displayName: "Anna S.", joinedAt: "2026-10-01T00:00:00Z", status: "rewarded", rewardedAt: "2026-10-05T00:00:00Z" },
         { displayName: "", joinedAt: null, status: "pending_confirmation", rewardedAt: null },
+        { displayName: "Ivan P.", joinedAt: null, status: "refunded", rewardedAt: "2026-10-06T00:00:00Z" },
       ],
       credits: { earned: 1, used: 1, takenBack: 0, adjusted: 0, available: 0 },
       history: [
@@ -27,6 +28,7 @@ describe("mapReferralOverview", () => {
     expect(overview.invitees).toEqual([
       { displayName: "Anna S.", joinedAt: "2026-10-01T00:00:00Z", status: "rewarded", rewardedAt: "2026-10-05T00:00:00Z" },
       { displayName: "Friend", joinedAt: null, status: "pending_confirmation", rewardedAt: null },
+      { displayName: "Ivan P.", joinedAt: null, status: "refunded", rewardedAt: "2026-10-06T00:00:00Z" },
     ]);
     expect(overview.credits.available).toBe(0);
     expect(overview.history[0]).toMatchObject({ reason: "redemption", delta: -1 });

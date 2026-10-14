@@ -18,6 +18,7 @@ const payload = {
   terms: { commissionPercent: 20, scope: "months", scopeMonths: 12, effectiveFrom: "2026-01-01T00:00:00Z", confirmedAt: "2026-01-02T00:00:00Z" },
   clients: [
     { displayName: "Wendy W.", joinedAt: "2026-09-01T00:00:00Z", status: "paying", payments: 2, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 870 }] },
+    { displayName: "Rita R.", joinedAt: "2026-09-02T00:00:00Z", status: "refunded", payments: 1, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 0 }] },
   ],
   totals: { signups: 1, payingClients: 1, payments: 2, pendingTermsPayments: 0, earned: [{ currency: "usd", cents: 870 }] },
 };
@@ -32,6 +33,7 @@ describe("mapPartnerPortal", () => {
       displayName: "Wendy W.",
       earned: [{ currency: "usd", cents: 870 }],
     });
+    expect(portal?.clients[1]?.status).toBe("refunded");
     expect(portal?.totals.earned).toEqual([{ currency: "usd", cents: 870 }]);
   });
 

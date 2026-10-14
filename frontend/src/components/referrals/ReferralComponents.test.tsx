@@ -11,17 +11,19 @@ describe("ReferralInviteesList", () => {
   it("shows masked names with their status", () => {
     render(
       <ReferralInviteesList
-        totalInvited={2}
+        totalInvited={3}
         invitees={[
           { displayName: "Anna S.", joinedAt: "2026-10-01T12:00:00Z", status: "rewarded", rewardedAt: "2026-10-05T12:00:00Z" },
+          { displayName: "Ivan P.", joinedAt: "2026-10-02T12:00:00Z", status: "refunded", rewardedAt: "2026-10-06T12:00:00Z" },
           { displayName: "Friend", joinedAt: null, status: "pending_confirmation", rewardedAt: null },
         ]}
       />,
     );
     expect(screen.getByText("Anna S.")).toBeInTheDocument();
     expect(screen.getByText("Credit earned")).toBeInTheDocument();
+    expect(screen.getByText("Payment refunded")).toBeInTheDocument();
     expect(screen.getByText("Awaiting email confirmation")).toBeInTheDocument();
-    expect(screen.getByText("(2)")).toBeInTheDocument();
+    expect(screen.getByText("(3)")).toBeInTheDocument();
   });
 
   it("explains the empty state", () => {

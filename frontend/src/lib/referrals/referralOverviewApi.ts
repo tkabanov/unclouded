@@ -5,7 +5,8 @@ import { callRpc } from "@/lib/supabase/rpc";
  * Names arrive already masked (first name + last initial) from the database.
  */
 
-export type ReferralInviteeStatus = "pending_confirmation" | "signed_up" | "rewarded";
+/** "refunded": the friend's rewarded payment was fully refunded / disputed and the credit taken back. */
+export type ReferralInviteeStatus = "pending_confirmation" | "signed_up" | "rewarded" | "refunded";
 
 export type ReferralInvitee = {
   displayName: string;
@@ -55,6 +56,7 @@ const INVITEE_STATUSES: readonly ReferralInviteeStatus[] = [
   "pending_confirmation",
   "signed_up",
   "rewarded",
+  "refunded",
 ];
 
 const CREDIT_REASONS: readonly ReferralCreditReason[] = [

@@ -31,6 +31,7 @@ export const INVITEE_STATUS_LABELS: Record<ReferralInviteeStatus, string> = {
   pending_confirmation: "Awaiting email confirmation",
   signed_up: "Signed up",
   rewarded: "Credit earned",
+  refunded: "Payment refunded",
 };
 
 export function referralHistoryLabel(reason: ReferralCreditReason): string {
@@ -75,6 +76,7 @@ export const PARTNER_CLIENT_STATUS_LABELS: Record<PartnerClientStatus, string> =
   pending_confirmation: "Awaiting email confirmation",
   signed_up: "Signed up",
   paying: "Paying client",
+  refunded: "Refunded",
 };
 
 export function describePartnerTerms(terms: PartnerTerms): string {

@@ -15,7 +15,8 @@ export type PartnerTerms = {
   confirmedAt: string | null;
 };
 
-export type PartnerClientStatus = "pending_confirmation" | "signed_up" | "paying";
+/** "refunded": every payment of the client was fully refunded / disputed. */
+export type PartnerClientStatus = "pending_confirmation" | "signed_up" | "paying" | "refunded";
 
 export type MoneyAmount = { currency: string; cents: number };
 
@@ -48,7 +49,7 @@ export type PartnerPortal = {
 type Raw = Record<string, unknown>;
 
 const SCOPES: readonly PartnerTermsScope[] = ["first_payment", "months", "lifetime"];
-const CLIENT_STATUSES: readonly PartnerClientStatus[] = ["pending_confirmation", "signed_up", "paying"];
+const CLIENT_STATUSES: readonly PartnerClientStatus[] = ["pending_confirmation", "signed_up", "paying", "refunded"];
 
 function asRecord(value: unknown): Raw | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Raw) : null;
