@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { AiInsightsConsentGate } from "@/components/aiInsights/AiInsightsConsentGate";
 import VoiceSessionPanel from "@/components/voice/VoiceSessionPanel";
+import RealtimeTranscriptReadOnly from "@/components/voice/realtime/RealtimeTranscriptReadOnly";
 import type { ChatAiProfileData } from "@/lib/chat/chatAiReplyStub";
 import {
   fetchConversationById,
@@ -66,6 +67,18 @@ export default function ConversationPanelMount({
       >
         Loading conversation…
       </div>
+    );
+  }
+
+  // NCLDD-57: a realtime conversation can't be continued from history; show its transcript.
+  if (sessionType === "voice_conversation") {
+    return (
+      <RealtimeTranscriptReadOnly
+        key={conversationId}
+        conversationId={conversationId}
+        onboardingData={onboardingData}
+        className={className}
+      />
     );
   }
 

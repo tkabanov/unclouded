@@ -677,6 +677,7 @@ describe("transcript", () => {
     ["bad id", [{ itemId: "a b", role: "user", text: "x" }]],
     ["duplicate ids", [{ itemId: "i", role: "user", text: "x" }, { itemId: "i", role: "user", text: "y" }]],
     ["too long", [{ itemId: "i", role: "user", text: "x".repeat(8001) }]],
+    ["reserved crisis id", [{ itemId: "crisis_abc", role: "user", text: "x" }]],
     ["not an array", "nope"],
   ])("rejects %s", async (_label, bad) => {
     const row = seedSession();
@@ -691,7 +692,10 @@ describe("transcript", () => {
       items: [{ itemId: "item_u9", role: "user", text: "Honestly I want to die." }],
     });
     expect(result.body).toMatchObject({ ok: true, crisis: { level: 3, text: CRISIS_RESPONSE_TEXT } });
-    expect(db.rows("chatMessage")).toHaveLength(1);
+    expect(db.rows("chatMessage").map((m) => [m.sender, m.content, m.realtimeItemId])).toEqual([
+      ["user", "Honestly I want to die.", "item_u9"],
+      ["assistant", CRISIS_RESPONSE_TEXT, `crisis_${row.id}`],
+    ]);
     expect(db.rows("chatConversation")[0].hadCrisisEscalation).toBe(true);
     expect(db.rows("profiles")[0].hasPriorCrisisSession).toBe(true);
     expect(session(row.id)).toMatchObject({ status: "ended", endReason: "crisis" });
@@ -711,6 +715,33 @@ describe("transcript", () => {
       items: [{ itemId: "u2", role: "user", text: "ok" }],
     });
     expect(result.body.crisis).toMatchObject({ level: 2 });
+  });
+
+  it("crisis found in the final flush records crisis as the end reason, so Retry is refused", async () => {
+    const row = seedSession({ status: "ended", endReason: "network_lost", endedAt: NOW.toISOString() });
+    const result = await handleRealtimeAction(ctx(), "transcript", {
+      realtimeSessionId: row.id,
+      items: [{ itemId: "u1", role: "user", text: "I want to die" }],
+    });
+    expect(result.body.crisis).toBeTruthy();
+    expect(session(row.id).endReason).toBe("crisis");
+    const retry = await handleRealtimeAction(ctx(), "start", {
+      sdpOffer: SDP,
+      voice: "marin",
+      conversationId: row.conversationId,
+    });
+    expect(retry.body.code).toBe("invalid_conversation");
+  });
+
+  it("a conversation flagged with a crisis can never be reused", async () => {
+    const conversation = db.seed("chatConversation", {
+      userId: USER,
+      sessionType: "voice_conversation",
+      hadCrisisEscalation: true,
+    });
+    const retry = await handleRealtimeAction(ctx(), "start", { sdpOffer: SDP, voice: "marin", conversationId: conversation.id });
+    expect(retry.body.code).toBe("invalid_conversation");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("accepts the final flush after end, not later", async () => {

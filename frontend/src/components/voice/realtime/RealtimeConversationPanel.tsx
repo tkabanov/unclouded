@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2 } from "lucide-react";
+import { toast } from "sonner";
+import { CrisisSupportCard } from "@/components/crisis";
 import { Button } from "@/components/ui/button";
 import { useRealtimeConversation } from "@/hooks/useRealtimeConversation";
 import { REALTIME_MIC_PERMISSION_HINT, REALTIME_OFFLINE_MESSAGE } from "@/lib/realtime/realtimeErrors";
 import { isLivePhase, isSessionBusy } from "@/lib/realtime/realtimeSessionMachine";
 import { readStoredRealtimeVoice, storeRealtimeVoice, type RealtimeVoice } from "@/lib/realtime/realtimeVoices";
 import { formatRemaining, REALTIME_TIME_WARNING_MESSAGE } from "@/lib/realtime/realtimeUi";
+import { finalizeRealtimeConversation, shouldFinalizeOnEnd } from "@/lib/realtime/realtimeFinalize";
 import { cn } from "@/lib/utils";
 import { RealtimeErrorNotice } from "./RealtimeErrorNotice";
 import { RealtimeOrb } from "./RealtimeOrb";
@@ -69,9 +72,50 @@ export default function RealtimeConversationPanel({ onBusyChange, className }: R
   // Unmount (mode switch, sidebar link) ends the session in the hook; unlock the toggle too.
   useEffect(() => () => onBusyChange?.(false), [onBusyChange]);
 
+  // S6: finalize through chat `session_finalize`. Final ends finalize at once; recoverable ends
+  // wait (Try again reuses the conversation) until a new conversation starts or the panel closes.
+  const finalizedRef = useRef(new Set<string>());
+  const pendingFinalizeRef = useRef<string | null>(null);
+  const finalize = useCallback((conversationId: string) => {
+    if (finalizedRef.current.has(conversationId)) return;
+    finalizedRef.current.add(conversationId);
+    if (pendingFinalizeRef.current === conversationId) pendingFinalizeRef.current = null;
+    finalizeRealtimeConversation(conversationId)
+      .then((result) => {
+        if (result === "saved") toast.success("Conversation saved.");
+      })
+      .catch((err) => {
+        // Stays unfinalized, like a voice session whose finalize failed.
+        console.warn("realtime finalize failed", err);
+        toast.error("Couldn't save the conversation summary.");
+      });
+  }, []);
+
+  const endedConversationId = phase === "ended" ? conversation.conversationId : null;
+  const crisisSeen = crisis !== null;
+  useEffect(() => {
+    if (!endedConversationId) return;
+    // A crisis found while flushing after End: not finalized, like a chat thread after a crisis.
+    if (crisisSeen) {
+      if (pendingFinalizeRef.current === endedConversationId) pendingFinalizeRef.current = null;
+      return;
+    }
+    if (shouldFinalizeOnEnd(state.endReason)) finalize(endedConversationId);
+    else if (state.endReason !== "crisis") pendingFinalizeRef.current = endedConversationId;
+  }, [crisisSeen, endedConversationId, finalize, state.endReason]);
+
+  useEffect(
+    () => () => {
+      if (pendingFinalizeRef.current) finalize(pendingFinalizeRef.current);
+    },
+    [finalize],
+  );
+
   const limitReached = error?.kind === "limit_reached" || (phase === "ended" && state.endReason === "budget_reached");
   const limitNotice = limitReached ? (error?.message ?? conversation.endMessage) : null;
-  const startBlocked = !online || limitReached || crisis !== null;
+  // Like chat after a crisis hard stop: this conversation is over, a new one may start.
+  const startBlocked = !online || limitReached;
+  const showCrisisResources = crisis !== null || error?.kind === "crisis";
   const showTranscript = conversation.transcript.length > 0 || live;
   const startLabel =
     phase === "idle"
@@ -86,7 +130,10 @@ export default function RealtimeConversationPanel({ onBusyChange, className }: R
   };
 
   // Called straight from the tap handler: the hook unlocks audio before any await.
-  const startNew = () => conversation.start(voice, null);
+  const startNew = () => {
+    conversation.start(voice, null);
+    if (pendingFinalizeRef.current) finalize(pendingFinalizeRef.current);
+  };
 
   return (
     <div className={cn("flex min-h-0 flex-col overflow-hidden", className)}>
@@ -137,6 +184,12 @@ export default function RealtimeConversationPanel({ onBusyChange, className }: R
             className="w-full max-w-md rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-foreground"
           >
             {crisis.text}
+          </div>
+        ) : null}
+
+        {showCrisisResources ? (
+          <div className="w-full max-w-md">
+            <CrisisSupportCard />
           </div>
         ) : null}
 

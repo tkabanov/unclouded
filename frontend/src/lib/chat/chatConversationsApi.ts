@@ -9,7 +9,8 @@ import {
 
 export { DEFAULT_CONVERSATION_TITLE, isDefaultConversationTitle };
 
-export const CHAT_SESSION_TYPES = ["text", "voice"] as const;
+/** `voice_conversation` = NCLDD-57 realtime Conversation mode. */
+export const CHAT_SESSION_TYPES = ["text", "voice", "voice_conversation"] as const;
 export type ChatSessionType = (typeof CHAT_SESSION_TYPES)[number];
 
 /** Stored in profiles.onboardingData when chatconversation table is absent. */

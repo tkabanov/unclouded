@@ -12,6 +12,15 @@ vi.mock("@/hooks/useRealtimeConversation", () => ({
   useRealtimeConversation: () => hook,
 }));
 
+const finalizeMock = vi.fn(async (_conversationId: string) => "saved" as const);
+vi.mock("@/lib/realtime/realtimeFinalize", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/realtime/realtimeFinalize")>()),
+  finalizeRealtimeConversation: (conversationId: string) => finalizeMock(conversationId),
+}));
+const toastSuccess = vi.fn();
+const toastError = vi.fn();
+vi.mock("sonner", () => ({ toast: { success: (...a: unknown[]) => toastSuccess(...a), error: (...a: unknown[]) => toastError(...a) } }));
+
 import RealtimeConversationPanel from "./RealtimeConversationPanel";
 import { RealtimeTranscript } from "./RealtimeTranscript";
 import { RealtimeOrb } from "./RealtimeOrb";
@@ -47,6 +56,9 @@ function renderPanel(onBusyChange = vi.fn()) {
 }
 
 beforeEach(() => {
+  finalizeMock.mockClear();
+  toastSuccess.mockClear();
+  toastError.mockClear();
   window.localStorage.clear();
   vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
 });
@@ -187,14 +199,90 @@ describe("RealtimeConversationPanel", () => {
     expect(screen.getByRole("button", { name: "Start new conversation" })).toBeEnabled();
   });
 
-  it("crisis: shows the crisis text and blocks restart", () => {
+  it("crisis: shows the crisis text and resources; like chat, only a new conversation can start", () => {
     hook = makeHook(
       { phase: "ended", hasSession: true, endReason: "crisis" },
-      { crisis: { level: 3, text: "Please call or text 988." } },
+      { crisis: { level: 3, text: "Please call or text 988." }, conversationId: "c1" },
     );
     renderPanel();
     expect(screen.getByRole("alert")).toHaveTextContent("Please call or text 988.");
-    expect(screen.getByRole("button", { name: "Start new conversation" })).toBeDisabled();
+    expect(screen.getByText("Crisis Resources")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Start new conversation" })).toBeEnabled();
+    expect(finalizeMock).not.toHaveBeenCalled();
+  });
+
+  it("crisis refusal at start shows the resources too", () => {
+    hook = makeHook(
+      { phase: "error", error: { kind: "crisis", code: "crisis" } },
+      { error: { kind: "crisis", code: "crisis", message: "Please call or text 988." } },
+    );
+    renderPanel();
+    expect(screen.getByText("Please call or text 988.")).toBeInTheDocument();
+    expect(screen.getByText("Crisis Resources")).toBeInTheDocument();
+  });
+
+  it("finalizes once after a final end and toasts", async () => {
+    hook = makeHook({ phase: "ended", hasSession: true, endReason: "user_ended" }, { conversationId: "c1" });
+    const { rerender } = render(
+      <TooltipProvider>
+        <RealtimeConversationPanel />
+      </TooltipProvider>,
+    );
+    rerender(
+      <TooltipProvider>
+        <RealtimeConversationPanel />
+      </TooltipProvider>,
+    );
+    await vi.waitFor(() => expect(toastSuccess).toHaveBeenCalledWith("Conversation saved."));
+    expect(finalizeMock).toHaveBeenCalledTimes(1);
+    expect(finalizeMock).toHaveBeenCalledWith("c1");
+  });
+
+  it("does not finalize when a crisis was found during the final flush", () => {
+    hook = makeHook(
+      { phase: "ended", hasSession: true, endReason: "user_ended" },
+      { conversationId: "c1", crisis: { level: 2, text: "Please call or text 988." } },
+    );
+    renderPanel();
+    expect(finalizeMock).not.toHaveBeenCalled();
+  });
+
+  it("finalize failure keeps the conversation unfinalized and says so", async () => {
+    finalizeMock.mockRejectedValueOnce(new Error("500"));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    hook = makeHook({ phase: "ended", hasSession: true, endReason: "max_duration" }, { conversationId: "c1" });
+    renderPanel();
+    await vi.waitFor(() => expect(toastError).toHaveBeenCalled());
+  });
+
+  it("after a recoverable end, finalizes only when a new conversation starts", () => {
+    hook = makeHook(
+      { phase: "ended", hasSession: true, endReason: "network_lost" },
+      { canRetry: true, conversationId: "c1" },
+    );
+    renderPanel();
+    expect(finalizeMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(finalizeMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Start new conversation" }));
+    expect(hook.start).toHaveBeenCalledWith("marin", null);
+    expect(finalizeMock).toHaveBeenCalledWith("c1");
+  });
+
+  it("after a recoverable end, finalizes when the panel closes", () => {
+    hook = makeHook(
+      { phase: "ended", hasSession: true, endReason: "mic_lost" },
+      { canRetry: true, conversationId: "c1" },
+    );
+    const { unmount } = render(
+      <TooltipProvider>
+        <RealtimeConversationPanel />
+      </TooltipProvider>,
+    );
+    expect(finalizeMock).not.toHaveBeenCalled();
+    unmount();
+    expect(finalizeMock).toHaveBeenCalledWith("c1");
   });
 
   it("stores a newly picked voice", () => {

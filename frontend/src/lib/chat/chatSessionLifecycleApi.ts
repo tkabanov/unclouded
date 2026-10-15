@@ -140,7 +140,7 @@ export async function finalizeSessionFromThread(
   profileData?: ProfileData,
   context?: string,
   conversationId?: string,
-  sessionType?: "text" | "voice",
+  sessionType?: "text" | "voice" | "voice_conversation",
 ): Promise<SessionFinalizePayload> {
   if (!conversationId?.trim()) {
     throw new Error("conversationId is required to finalize a session");

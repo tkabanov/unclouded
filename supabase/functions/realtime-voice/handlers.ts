@@ -74,6 +74,7 @@ const ITEM_ID = /^[A-Za-z0-9_.:-]{1,128}$/;
 const TOOL_NAME = /^[A-Za-z0-9_-]{1,64}$/;
 /** Saved user turns rescanned together with new ones (plan §5.2 `transcript`). */
 const CRISIS_CONTEXT_TURNS = 3;
+const CRISIS_ITEM_PREFIX = "crisis_";
 /** Retry may reuse a conversation at most this many realtime sessions (Free cap counts per conversation). */
 export const MAX_SESSIONS_PER_CONVERSATION = 5;
 /** Only these endings are recoverable by Retry in the same conversation (client `canRetryAfter`). */
@@ -248,13 +249,21 @@ async function closeSession(
 async function ownedOpenConversation(ctx: RealtimeContext, conversationId: string) {
   const { data, error } = await ctx.userClient
     .from("chatConversation")
-    .select("id, sessionType, finalizedAt")
+    .select("id, sessionType, finalizedAt, hadCrisisEscalation")
     .eq("id", conversationId)
     .eq("userId", ctx.userId)
     .maybeSingle();
   if (error) throw new Error(`load conversation failed: ${error.code ?? error.message}`);
-  const row = data as { id: string; sessionType: string; finalizedAt: string | null } | null;
-  return row && row.sessionType === "voice_conversation" && !row.finalizedAt ? row : null;
+  const row = data as {
+    id: string;
+    sessionType: string;
+    finalizedAt: string | null;
+    hadCrisisEscalation: boolean | null;
+  } | null;
+  // A conversation that hit the crisis hard stop is over, like a chat thread (crisis on every turn).
+  return row && row.sessionType === "voice_conversation" && !row.finalizedAt && row.hadCrisisEscalation !== true
+    ? row
+    : null;
 }
 
 async function handleStart(ctx: RealtimeContext, body: Record<string, unknown>): Promise<ActionResult> {
@@ -593,6 +602,8 @@ function parseTranscriptItems(raw: unknown): TranscriptItem[] | null {
     if (!entry || typeof entry !== "object") return null;
     const item = entry as Record<string, unknown>;
     if (typeof item.itemId !== "string" || !ITEM_ID.test(item.itemId) || seen.has(item.itemId)) return null;
+    // `crisis_<sessionId>` is reserved for the server's crisis reply.
+    if (item.itemId.startsWith(CRISIS_ITEM_PREFIX)) return null;
     if (item.role !== "user" && item.role !== "assistant") return null;
     if (typeof item.text !== "string" || item.text.length > MAX_TRANSCRIPT_TEXT) return null;
     seen.add(item.itemId);
@@ -676,7 +687,30 @@ async function handleTranscript(ctx: RealtimeContext, body: Record<string, unkno
   for (const flag of flags) {
     if (flag.error) console.warn("crisis flag failed", flag.error.code ?? flag.error.message);
   }
-  if (isOpen(row)) await closeSession(ctx, row, "crisis");
+  // Chat shows the crisis text as Kota's reply in the thread; save it the same way (once per session).
+  const { error: crisisMessageError } = await ctx.userClient.from("chatMessage").upsert(
+    {
+      conversationId,
+      userId: ctx.userId,
+      content: CRISIS_RESPONSE_TEXT,
+      sender: "assistant",
+      isFromUser: false,
+      realtimeItemId: `${CRISIS_ITEM_PREFIX}${row.id}`,
+    },
+    { onConflict: "conversationId,realtimeItemId", ignoreDuplicates: true },
+  );
+  if (crisisMessageError) console.warn("crisis message failed", crisisMessageError.code ?? crisisMessageError.message);
+  if (isOpen(row)) {
+    await closeSession(ctx, row, "crisis");
+  } else if (row.endReason !== "crisis") {
+    // Found during the final flush after `end`: record it so Retry can't reuse this conversation.
+    const { error: reasonError } = await ctx.admin
+      .from("realtimeVoiceSession")
+      .update({ endReason: "crisis" })
+      .eq("id", row.id)
+      .eq("userId", ctx.userId);
+    if (reasonError) console.warn("crisis end reason failed", reasonError.code ?? reasonError.message);
+  }
   return ok({ crisis: { level: crisisLevel, text: CRISIS_RESPONSE_TEXT } });
 }
 

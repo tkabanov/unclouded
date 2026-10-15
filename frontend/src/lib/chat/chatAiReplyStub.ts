@@ -90,7 +90,7 @@ type CallChatEdgeParams = {
   context?: string;
   profileData?: ChatAiProfileData;
   conversationId?: string;
-  sessionType?: "text" | "voice";
+  sessionType?: "text" | "voice" | "voice_conversation";
   exchangeCount?: number;
   expectJson?: boolean;
   voiceEmotionDetected?: boolean;

@@ -39,9 +39,9 @@ export default function ConversationThreadCell({
       <MessageCircle className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
       <span className="min-w-0 flex-1 truncate text-sm">
         {conversation.title}
-        {conversation.sessionType === "voice" ? (
+        {conversation.sessionType === "voice" || conversation.sessionType === "voice_conversation" ? (
           <span className="ml-1.5 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-secondary-foreground">
-            Voice
+            {conversation.sessionType === "voice" ? "Voice" : "Conversation"}
           </span>
         ) : null}
       </span>
