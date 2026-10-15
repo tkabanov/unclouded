@@ -17,7 +17,7 @@ export default defineConfig({
     ],
     server: {
       deps: {
-        inline: [/supabase\/functions\/chat/],
+        inline: [/supabase\/functions\/chat/, /supabase\/functions\/realtime-voice/],
       },
     },
     env: {

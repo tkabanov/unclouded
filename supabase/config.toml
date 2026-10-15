@@ -25,6 +25,10 @@ verify_jwt = true
 [functions.prompt-library]
 verify_jwt = true
 
+# NCLDD-57: Conversation mode (OpenAI Realtime). JWT required; the function also checks ownership.
+[functions.realtime-voice]
+verify_jwt = true
+
 # Section 3 — PuP 360 PDF narrative assembly (Pro / Premium).
 [functions.generate-pup-pdf]
 verify_jwt = true

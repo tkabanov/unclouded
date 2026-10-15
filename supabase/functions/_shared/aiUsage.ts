@@ -27,7 +27,9 @@ export type AiUsageSource =
   | "kota_read"
   | "pup_pdf"
   | "prompt_test"
-  | "insights_classify";
+  | "insights_classify"
+  | "realtime_response"
+  | "realtime_transcription";
 
 export type AiPlanTier = "free" | "pro" | "premium";
 
@@ -37,6 +39,10 @@ export type AiUsageAmounts = {
   cachedInputTokens?: number;
   audioSeconds?: number;
   ttsChars?: number;
+  /** NCLDD-57 realtime audio tokens; `audioInputTokens` includes its cached part. */
+  audioInputTokens?: number;
+  cachedAudioInputTokens?: number;
+  audioOutputTokens?: number;
 };
 
 export type PricingRow = {
@@ -97,6 +103,9 @@ export function computeCostUsd(
   const output = finiteNonNegative(usage.outputTokens);
   const audioMinutes = finiteNonNegative(usage.audioSeconds) / 60;
   const ttsMillionChars = finiteNonNegative(usage.ttsChars) / 1_000_000;
+  const cachedAudio = finiteNonNegative(usage.cachedAudioInputTokens);
+  const uncachedAudio = Math.max(finiteNonNegative(usage.audioInputTokens) - cachedAudio, 0);
+  const audioOutput = finiteNonNegative(usage.audioOutputTokens);
 
   let cost = 0;
   let missing = false;
@@ -117,6 +126,9 @@ export function computeCostUsd(
   add(output, "token_out_1m", 1_000_000);
   add(audioMinutes, "audio_minute", 1);
   add(ttsMillionChars, "tts_1m_chars", 1);
+  add(uncachedAudio, "audio_token_in_1m", 1_000_000);
+  add(cachedAudio, "audio_token_cached_in_1m", 1_000_000, "audio_token_in_1m");
+  add(audioOutput, "audio_token_out_1m", 1_000_000);
 
   return { costUsd: Math.round(cost * 1_000_000) / 1_000_000, pricingMissing: missing };
 }

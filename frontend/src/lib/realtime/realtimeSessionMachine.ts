@@ -31,6 +31,7 @@ export type RealtimeErrorKind =
   | RealtimeMicErrorKind
   | "limit_reached"
   | "session_active"
+  | "crisis"
   | "start_failed";
 
 export type RealtimeSessionState = {
@@ -91,6 +92,7 @@ export function isSessionBusy(phase: RealtimePhase): boolean {
 function startFailedKind(code: string | null): RealtimeErrorKind {
   if (isRealtimeLimitCode(code)) return "limit_reached";
   if (code === "realtime_session_active") return "session_active";
+  if (code === "crisis") return "crisis";
   return "start_failed";
 }
 

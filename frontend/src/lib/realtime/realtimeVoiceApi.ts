@@ -46,6 +46,7 @@ const KNOWN_CODES: ReadonlySet<string> = new Set([
   "realtime_conversation_tier_required",
   "realtime_session_active",
   "realtime_unavailable",
+  "crisis",
 ]);
 
 /** HTTP status + body → typed error code. */

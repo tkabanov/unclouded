@@ -131,6 +131,12 @@ describe("start", () => {
     expect(env.peer.closed).toBe(true);
   });
 
+  it("shows the crisis text when start is refused for a live crisis signal (no retry)", async () => {
+    env.api.start.mockRejectedValueOnce(new RealtimeApiError("crisis", 403, "Please call or text 988."));
+    await ctrl.start("marin");
+    expect(ctrl.getSnapshot()).toMatchObject({ error: { message: "Please call or text 988." }, canRetry: false });
+  });
+
   it("maps 409 and generic start failures", async () => {
     env.api.start.mockRejectedValueOnce(new RealtimeApiError("realtime_session_active", 409));
     await ctrl.start("marin");

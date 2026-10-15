@@ -210,6 +210,8 @@ Extend `computeCostUsd` in `_shared/aiUsage.ts`: text in/cached/out × `token_*`
 ### 7.4 Limits
 Realtime counts against the **voice** monthly limit (`check_ai_budget(voice)` at `start` and on each `heartbeat`). If the limit is reached mid-session, the session is ended softly (Kota is not cut off mid-sentence: the client waits for `output_audio_buffer.stopped` ≤ 5 s). Fails open, as today.
 
+**S3 change (security review):** `heartbeat` now closes the session and hangs up the OpenAI call itself on `budget_reached` / `max_duration`, so a modified client cannot ignore the stop. The client's ≤ 5 s drain still runs, but the server may cut Kota's last sentence.
+
 ### 7.5 Admin UI
 - `adminAiUsageApi.ts`: types/mapper for `byVoiceSurface`, `fetchAdminRealtimeSessions`.
 - `AiUsageOverviewPanel.tsx`: a **Voice: messages vs conversation** card (cost, sessions, avg cost/session, avg duration, unconfirmed count).
@@ -233,7 +235,8 @@ Realtime counts against the **voice** monthly limit (`check_ai_budget(voice)` at
 - **Client-reported usage:** the browser can understate its own usage (affects only its own budget/statistics). Mitigations: per-event caps, counters vs `responsesSeen`, `partial/unknown` statuses. The full fix is a sideband server worker (`wss …?call_id=`) outside Supabase edge. That is a separate task if the client needs audit-grade accounting.
 - **The client can send `session.update`** over the data channel (change instructions). This affects only the user's own session. KB rights stay safe because tools run only through the server allowlist under the user's JWT, and unknown tools are rejected. Write this as a residual risk in the OVR.
 - `realtimeVoiceSession` has no sensitive columns. Own-rows RLS + isolation proof.
-- Rate limits on `start` (cost protection) and 1 active session per user.
+- Rate limits on `start` (cost protection) and 1 active session per user (check at `start` + partial unique index, migration `20261015120000`).
+- **S3 security review (T-027) mitigations:** stops enforced server-side (above); `start` hangs up the caller's swept (`abandoned`) calls younger than 65 min (the SQL sweeper can't hang up); Retry may reuse a conversation only after a recoverable end (`network_lost|connect_failed|mic_lost|error`) and at most 5 realtime sessions per conversation (bounds the Free per-conversation session count); self-reported `*Seen` counters are capped at connected seconds + 10. **Residual:** a client that never reports usage and never starts again keeps one call alive until OpenAI's 60-min cap; only server-side metering (sideband) closes that.
 
 ## 11. Tests
 - **Unit (Vitest):** `realtimeSessionMachine`, `transcriptAssembler` (deltas, out-of-order completion, interruption, failed transcription), `persistQueue` (order, idempotency, timeout), `realtimeUsage` (all usage fields, no usage), `realtimeVoices`, `computeCostUsd` (audio units, pricingMissing), `usageStatus` derivation.

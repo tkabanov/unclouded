@@ -55,6 +55,11 @@ describe("apiErrorMessage", () => {
     expect(apiErrorMessage("realtime_conversation_tier_required")).toMatch(/isn't included/);
   });
 
+  it("shows the server's crisis text", () => {
+    expect(apiErrorMessage("crisis", "Call 988.")).toBe("Call 988.");
+    expect(apiErrorMessage("crisis")).toMatch(/988/);
+  });
+
   it("has copy for every other code", () => {
     expect(apiErrorMessage("realtime_session_active")).toBe(REALTIME_SESSION_ACTIVE_MESSAGE);
     const codes: RealtimeApiErrorCode[] = [

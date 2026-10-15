@@ -29,6 +29,7 @@ export type RealtimeApiErrorCode =
   | "realtime_conversation_tier_required"
   | "realtime_session_active"
   | "realtime_unavailable"
+  | "crisis"
   | "rate_limited"
   | "unauthorized"
   | "invalid_response"
@@ -81,6 +82,9 @@ export function apiErrorMessage(code: RealtimeApiErrorCode, serverMessage?: stri
       return serverMessage?.trim() || "Conversation mode isn't included in your plan.";
     case "realtime_session_active":
       return REALTIME_SESSION_ACTIVE_MESSAGE;
+    case "crisis":
+      // The server sends the same crisis text as chat.
+      return serverMessage?.trim() || "Please reach out for support. If you are in crisis, call or text 988.";
     case "rate_limited":
       return "Too many attempts. Please wait a moment and try again.";
     case "unauthorized":
