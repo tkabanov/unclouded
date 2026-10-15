@@ -12,7 +12,6 @@ import {
 } from "../_shared/aiUsage.ts";
 import { authenticateRequest } from "../_shared/supabase-auth.ts";
 import { endsSession, evaluateAiBudgetGate } from "./aiBudgetGate.ts";
-import { classifySessionInsights } from "./insights/sessionInsightsClassifier.ts";
 import type { ProfileData } from "./buildSystemPrompt.ts";
 import {
   applyRequestLiveContext,
@@ -26,29 +25,17 @@ import {
   requiresCrisisHardStop,
 } from "./crisisDetect.ts";
 import {
-  buildFallbackSessionFinalizePayload,
   buildSessionCloseAckUserPrompt,
   buildSessionCloseUserPrompt,
-  buildSessionFinalizeUserPrompt,
-  parseSessionFinalizePayload,
   sanitizeSessionCloseReplyText,
   SESSION_CLOSE_ACK_SYSTEM_PROMPT,
   SESSION_CLOSE_SYSTEM_PROMPT,
-  SESSION_FINALIZE_RETRY_SYSTEM_PROMPT,
-  SESSION_FINALIZE_SYSTEM_PROMPT,
 } from "./prompt/sessionLifecycle.ts";
 import {
   enforceFreeTierSessionGate,
   canUseJournalAiReflection,
 } from "./tierGate.ts";
 import { parseChatRequestBody } from "./parseChatRequestBody.ts";
-import { persistSessionMemory } from "./persistSessionMemory.ts";
-import {
-  buildArchiveInsertFromFinalize,
-  persistCoachingSessionArchive,
-} from "./sessionMemory/coachingSessionArchive.ts";
-import { extractMemoryFacts } from "./extractMemoryFacts.ts";
-import { resolveCoachingModes } from "./prompt/resolveCoachingModes.ts";
 import { truncateConversationMessages } from "./truncateConversationMessages.ts";
 import { applySessionMemoryCompressionIfNeeded } from "./sessionMemory/sessionArcSummary.ts";
 import { evaluatePromptTestDivergence } from "./promptTest/divergenceCheck.ts";
@@ -64,7 +51,8 @@ import {
   extractLatestUserAssistantPair,
   sanitizeConversationTitle,
 } from "./prompt/conversationTitle.ts";
-import { extractAllUserTexts, buildSessionTranscript } from "./crisisDetect.ts";
+import { extractAllUserTexts } from "./crisisDetect.ts";
+import { runSessionFinalize } from "./sessionMemory/runSessionFinalize.ts";
 import { handleVoiceTranscribe, handleVoiceTts, resolveVoiceRoute } from "./voice/voiceEdgeHandlers.ts";
 import { detectSignificantLifeEventInThread } from "./significantLifeEventDetect.ts";
 import { persistSignificantLifeEventFlag } from "./persistSignificantLifeEventFlag.ts";
@@ -474,93 +462,23 @@ Deno.serve(async (req: Request) => {
         return jsonError(400, "conversationId is required for session finalize");
       }
 
-      const finalizePrompt = buildSessionFinalizeUserPrompt(uiMessages, profileData);
-      let parsed = null;
-
-      for (let attempt = 0; attempt < 2 && !parsed; attempt += 1) {
-        const result = await generateText({
-          model,
-          system:
-            attempt === 0 ? SESSION_FINALIZE_SYSTEM_PROMPT : SESSION_FINALIZE_RETRY_SYSTEM_PROMPT,
-          prompt: finalizePrompt,
-        });
-        trackUsage("session_finalize", result.usage);
-        parsed = parseSessionFinalizePayload(result.text);
-        if (!parsed) {
-          console.warn("session_finalize JSON parse failed", {
-            attempt,
-            preview: result.text.slice(0, 400),
-          });
-        }
-      }
-
-      parsed ??= buildFallbackSessionFinalizePayload(uiMessages);
+      const parsed = await runSessionFinalize({
+        db: supabase,
+        serviceClient,
+        model,
+        modelId,
+        userId: user.id,
+        conversationId,
+        sessionType: requestSessionType ?? "text",
+        conversationMode: conversationInfo.mode,
+        ownedConversation: conversationInfo.owned,
+        profileData,
+        uiMessages,
+        trackUsage,
+      });
       if (!parsed) {
         return jsonError(500, "Failed to parse session finalize payload");
       }
-
-      const coachingModeUsed = resolveCoachingModes(profileData).primary;
-      const finalizeExchangeCount = extractAllUserTexts(uiMessages).length;
-      const sessionType = requestSessionType ?? "text";
-      await persistSessionMemory(
-        supabase,
-        user.id,
-        conversationId,
-        parsed,
-        coachingModeUsed,
-        finalizeExchangeCount,
-      );
-
-      await persistCoachingSessionArchive(
-        supabase,
-        buildArchiveInsertFromFinalize({
-          userId: user.id,
-          conversationId,
-          sessionType,
-          finalize: parsed,
-          coachingModeUsed,
-          exchangeCount: finalizeExchangeCount,
-          hadCrisisEscalation: false,
-          profileResults: profileData.results ?? null,
-          onboardingData: profileData.onboardingData ?? null,
-        }),
-      );
-
-      // REQ-01: post-session longitudinal memory extraction (background; worker held via waitUntil).
-      const openaiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
-      if (openaiKey) {
-        const transcript = buildSessionTranscript(uiMessages);
-        if (transcript.trim()) {
-          scheduleEdgeBackgroundWork(
-            extractMemoryFacts(supabase, user.id, transcript, openaiKey, (model, usage) =>
-              trackUsage("memory_extract", usage, model),
-            ),
-          );
-        }
-      }
-
-      // NCLDD-55: consent-gated Insights classification (background; closed taxonomy keys only).
-      // Recorded as mode `other` so it never counts against the user's monthly AI limit.
-      if (openaiKey && conversationInfo.owned) {
-        scheduleEdgeBackgroundWork(
-          classifySessionInsights({
-            admin: serviceClient,
-            generate: ({ system: insightsSystem, prompt }) =>
-              generateText({ model, system: insightsSystem, prompt, temperature: 0 }),
-            userId: user.id,
-            conversationId,
-            sessionType: conversationInfo.mode,
-            transcript: buildSessionTranscript(uiMessages),
-            onUsage: (usage) => trackUsage("insights_classify", usage, modelId, "other"),
-          }),
-        );
-      }
-
-      // Clear prior-crisis flag after a clean completed session (no L2+ this turn).
-      await supabase
-        .from("profiles")
-        .update({ hasPriorCrisisSession: false })
-        .eq("id", user.id);
 
       return jsonResponse(200, parsed);
     }

@@ -156,3 +156,6 @@ verify_jwt = false
 # Wix Bookings confirm/cancel → Premium credit redeem or hold release.
 [functions.wix-bookings-webhook]
 verify_jwt = false
+
+[functions.auto-finalize-sessions]
+verify_jwt = false
