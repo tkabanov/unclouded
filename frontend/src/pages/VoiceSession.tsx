@@ -4,6 +4,10 @@ import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { AiInsightsConsentGate } from "@/components/aiInsights/AiInsightsConsentGate";
 import VoiceSessionPanel from "@/components/voice/VoiceSessionPanel";
+import RealtimeConversationPanel from "@/components/voice/realtime/RealtimeConversationPanel";
+import { VoiceModeToggle } from "@/components/voice/VoiceModeToggle";
+import { parseVoiceMode, type VoiceMode } from "@/lib/realtime/realtimeUi";
+import { canUseRealtimeConversationForUser } from "@/lib/entitlements/realtimeConversationAccess";
 import {
   formatCustomerRoleTypesForDisplay,
   parseCustomerRoleTypesFromProfile,
@@ -27,6 +31,15 @@ export default function VoiceSession() {
   const [startingNewSession, setStartingNewSession] = useState(false);
 
   const conversationId = searchParams.get("id");
+  // NCLDD-57: Voice messages (OVR-057 flow) | Conversation (OpenAI Realtime).
+  const mode = parseVoiceMode(searchParams.get("mode"));
+  const [realtimeBusy, setRealtimeBusy] = useState(false);
+  const conversationAllowed = canUseRealtimeConversationForUser({
+    tier: profile?.tier ?? null,
+    subscribed: profile?.subscribed ?? false,
+    accountType: profile?.accountType ?? null,
+    enterpriseTier: profile?.enterpriseTier ?? null,
+  });
 
   const context = useMemo(() => {
     if (!profile) return undefined;
@@ -62,7 +75,8 @@ export default function VoiceSession() {
       return;
     }
 
-    if (conversationId) {
+    // Conversation mode creates its conversation on Start; no OVR-057 resume/create here.
+    if (mode === "conversation" || conversationId) {
       setBootstrapping(false);
       return;
     }
@@ -109,6 +123,7 @@ export default function VoiceSession() {
     })();
   }, [
     conversationId,
+    mode,
     navigate,
     profile?.accountType,
     profile?.enterpriseTier,
@@ -168,10 +183,37 @@ export default function VoiceSession() {
     user?.id,
   ]);
 
+  const handleModeChange = useCallback(
+    (next: VoiceMode) => {
+      if (next === mode) return;
+      stopKotaSpeech();
+      setRealtimeBusy(false);
+      setSearchParams(next === "conversation" ? { mode: "conversation" } : {}, { replace: true });
+    },
+    [mode, setSearchParams],
+  );
+
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100dvh-4rem-env(safe-area-inset-top))] min-h-[480px] flex-col px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:px-6">
-        {bootstrapping || !conversationId || !user ? (
+      <div className="flex h-[calc(100dvh-4rem-env(safe-area-inset-top))] min-h-[480px] flex-col gap-3 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:px-6">
+        <div className="flex justify-center pt-1 md:justify-start">
+          <VoiceModeToggle
+            mode={mode}
+            onChange={handleModeChange}
+            disabled={realtimeBusy}
+            conversationLocked={!conversationAllowed}
+          />
+        </div>
+        {mode === "conversation" ? (
+          user ? (
+            <AiInsightsConsentGate>
+              <RealtimeConversationPanel
+                onBusyChange={setRealtimeBusy}
+                className="flex-1 min-h-0 rounded-xl border border-border bg-card"
+              />
+            </AiInsightsConsentGate>
+          ) : null
+        ) : bootstrapping || !conversationId || !user ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             Starting voice session…
           </div>

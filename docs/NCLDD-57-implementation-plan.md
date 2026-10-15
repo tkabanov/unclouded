@@ -182,7 +182,7 @@ The exact field names (especially `truncation`, `transcription.language`) are **
 | Network lost mid-session | `pc.connectionState` `disconnected` (10 s grace) → `failed`; `offline` | `network_lost`, end, Try again (new realtime session in the **same** conversation) |
 | Setup failed | `start` 5xx/`realtime_unavailable`, `setRemoteDescription` error, ICE timeout 15 s | `connect_failed`, Try again |
 | Limits | 402 `ai_monthly_limit_reached` / `free_tier_session_limit`, `heartbeat.stop='budget_reached'` | Same banner as voice messages, Start disabled |
-| Second tab | 409 `realtime_session_active` | "A conversation is already running in another tab" + "End it and start here" |
+| Second tab | 409 `realtime_session_active` | "A conversation is already running in another tab" + "End it and start here" (deferred in S5b: no API ends another tab's session; the UI shows the message + Start new conversation) |
 | 60 min | `expiresAt` timer / server close | "This conversation reached the 60-minute limit" + Start new conversation |
 | Server error event | `error` on the data channel | Fatal ones end the session; the rest are logged |
 | Crisis | `transcript` → `crisis` | `response.cancel` + `output_audio_buffer.clear`, end, show the same crisis block as text chat |
