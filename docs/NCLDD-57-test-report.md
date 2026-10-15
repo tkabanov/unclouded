@@ -89,8 +89,8 @@ Defects / notes:
 - **QA-1 (defect, §8.2):** `aiModelPricing` has no `token_in_1m` for `gpt-4o-mini-transcribe`
   (migration `20261014130000`). OpenAI reports 1 text input token per transcription, so every
   `realtime_transcription` row has `pricingMissing = true`; admin shows "no price set" on the model
-  and on the session total. Fix: migration `20261015120000_realtime_transcribe_text_input_price.sql`
-  (price row + re-price earlier rows; dry run in a rolled-back transaction OK) — **not applied yet**.
+  and on the session total. Fix: migration `20261015142903_realtime_transcribe_text_input_price.sql`
+  (price row + re-price earlier rows) — applied to production 2026-10-15: 4 price rows, 6/6 transcription rows re-priced, admin no longer shows "no price set".
 - QA-2 (minor): Realtime sessions "Started" uses local time (`toLocaleString` without
   `timeZone: "UTC"`) while the page says "UTC dates" (12:09 PM shown for 09:09 UTC). Fixed: shown in
   UTC with a "UTC" suffix; checked in the browser (9:09 AM UTC).
