@@ -4,6 +4,7 @@
  * Invoke via pg_cron → invoke_scheduled_edge_function('auto-finalize-sessions'):
  *   POST /functions/v1/auto-finalize-sessions
  *   Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>
+ *   or x-cron-secret: <AUTO_FINALIZE_SESSIONS_CRON_SECRET> (vault: auto_finalize_sessions_cron_secret)
  *
  * Picks conversations with no activity for AUTO_FINALIZE_IDLE_HOURS (default 24) and runs the
  * same `session_finalize` core as the chat edge (memory, archive, finalizedAt, memory facts,
@@ -158,9 +159,12 @@ Deno.serve(async (req) => {
     return json({ error: "Missing Supabase env" }, 500);
   }
 
+  // Cron sends the vault service key (may differ from this env's key) plus x-cron-secret.
   const auth = req.headers.get("Authorization") ?? "";
   const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  if (!bearer || bearer !== serviceKey) {
+  const cronSecret = Deno.env.get("AUTO_FINALIZE_SESSIONS_CRON_SECRET");
+  const cronOk = Boolean(cronSecret) && req.headers.get("x-cron-secret") === cronSecret;
+  if (!cronOk && (!bearer || bearer !== serviceKey)) {
     return json({ error: "Unauthorized" }, 401);
   }
 
