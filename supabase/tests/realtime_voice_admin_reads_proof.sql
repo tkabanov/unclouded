@@ -1,4 +1,4 @@
--- Proof for NCLDD-57 S7 (20261015130000_realtime_voice_admin_reads).
+-- Proof for NCLDD-57 S7 (20261015094100_realtime_voice_admin_reads).
 -- Run AFTER the migration, as postgres (SQL editor).
 -- Self-contained: throwaway users and rows dated 2026-01-05 (before any real ledger data), ends in
 -- ROLLBACK. Every check is an ASSERT; success ends with 'realtime voice admin reads proof: ALL PASS'.
@@ -127,9 +127,8 @@ BEGIN
   ASSERT (row3 -> 'totalCostUsd') = 'null'::jsonb, 'unknown usage returns a null total, not $0';
 
   -- Totals match the ledger.
-  ASSERT (SELECT sum(coalesce((x ->> 'totalCostUsd')::numeric, 0)) FROM jsonb_array_elements(r -> 'rows') x) =
-         (SELECT sum("costUsd") FROM public."aiUsageEvent"
-          WHERE "realtimeSessionId"::text LIKE '00000000-0000-4000-8000-0000000575e%'),
+  -- Seeded session-linked ledger rows: 0.50 + 0.10 + 0.20 (read as admin role, no table access).
+  ASSERT (SELECT sum(coalesce((x ->> 'totalCostUsd')::numeric, 0)) FROM jsonb_array_elements(r -> 'rows') x) = 0.80,
     'row totals = aiUsageEvent sums';
 
   -- Filters and paging.

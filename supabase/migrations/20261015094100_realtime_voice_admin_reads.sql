@@ -4,7 +4,7 @@
 --     avg duration, unconfirmed sessions (realtime usageStatus partial/unknown).
 --   * admin_ai_realtime_sessions(...): one row per realtime call (plan §4.7).
 -- Both SECURITY DEFINER, is_settings_admin() guard (42501). Additive only.
--- PM REVIEW REQUIRED — do NOT apply until PM accepts this SQL.
+-- Applied 2026-10-15 after user go; proof: supabase/tests/realtime_voice_admin_reads_proof.sql (ALL PASS).
 
 CREATE OR REPLACE FUNCTION public.admin_ai_usage_overview(
   p_from date,
