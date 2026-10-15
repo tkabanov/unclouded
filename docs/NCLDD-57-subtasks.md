@@ -188,7 +188,7 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 
 **Goal.** Finished conversations live in history like other sessions; safety parity with chat.
 
-**Files.** `frontend/src/components/chat/ConversationThreadCell.tsx`, `ConversationPanelMount.tsx`, new `components/voice/realtime/RealtimeTranscriptReadOnly.tsx`, `frontend/src/lib/chat/chatSessionLifecycleApi.ts`, `chatConversationsApi.ts`, `useRealtimeConversation` (finalize call), crisis UI reuse, `supabase/migrations/20261014150000_realtime_voice_feedback_session_type.sql` (`20261014140000` is S7), `supabase/tests/realtime_voice_feedback_proof.sql`.
+**Files.** `frontend/src/components/chat/ConversationThreadCell.tsx`, `ConversationPanelMount.tsx`, new `components/voice/realtime/RealtimeTranscriptReadOnly.tsx`, `frontend/src/lib/chat/chatSessionLifecycleApi.ts`, `chatConversationsApi.ts`, `useRealtimeConversation` (finalize call), crisis UI reuse, `supabase/migrations/20261015071908_realtime_voice_feedback_session_type.sql` (applied 2026-10-15 as `20261015071908`), `supabase/tests/realtime_voice_feedback_proof.sql`.
 
 **Do** (plan §5.2 finalize note, §6.3 history, §6.5)
 1. After `end`, call existing `session_finalize` with `sessionType: 'voice_conversation'` and the persisted transcript (session memory, `coachingSessionArchive`, memory facts, insights under consent). Toast "Conversation saved." Failure leaves the conversation unfinalized (same as voice).

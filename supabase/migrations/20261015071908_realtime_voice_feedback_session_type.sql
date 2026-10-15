@@ -3,7 +3,7 @@
 -- other than 'voice' to 'text', so 'voice_conversation' feedback was recorded as text.
 -- Same signature, body and grants; only the sessionType CASE changes. aiMessageFeedback's
 -- CHECK stays ('text', 'voice') on purpose (see 20261014130000_realtime_voice_conversation.sql).
--- PM REVIEW REQUIRED — do NOT apply until PM accepts this SQL.
+-- Applied 2026-10-15 after user go; proof: supabase/tests/realtime_voice_feedback_proof.sql (ALL PASS).
 
 /**
  * Set (rating = 1 | -1) or clear (rating = 0) the caller's feedback on one assistant message

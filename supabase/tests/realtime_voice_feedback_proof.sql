@@ -1,4 +1,4 @@
--- Proof for NCLDD-57 S6 (20261014150000_realtime_voice_feedback_session_type).
+-- Proof for NCLDD-57 S6 (20261015071908_realtime_voice_feedback_session_type).
 -- Run AFTER the migration, as postgres (SQL editor).
 -- Self-contained: throwaway user inside the transaction, ends in ROLLBACK.
 -- Every check is an ASSERT; success ends with 'realtime voice feedback proof: ALL PASS'.
