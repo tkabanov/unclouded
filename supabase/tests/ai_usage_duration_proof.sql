@@ -1,5 +1,5 @@
 -- Proof for AI Usage session duration: 20261015151739_ai_usage_duration_from_first_call and
--- 20261015170000_ai_usage_duration_capped_gaps (sum of gaps between AI calls, each <= 600 s).
+-- 20261015152330_ai_usage_duration_capped_gaps (sum of gaps between AI calls, each <= 600 s).
 -- Run AFTER the migration, as postgres (SQL editor).
 -- Self-contained: throwaway users and rows dated 2026-01-06 (before any real ledger data), ends in
 -- ROLLBACK. Every check is an ASSERT; success ends with 'ai usage duration proof: ALL PASS'.
