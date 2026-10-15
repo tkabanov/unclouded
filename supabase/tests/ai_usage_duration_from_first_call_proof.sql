@@ -1,4 +1,4 @@
--- Proof for 20261015160000_ai_usage_duration_from_first_call.
+-- Proof for 20261015151739_ai_usage_duration_from_first_call.
 -- Run AFTER the migration, as postgres (SQL editor).
 -- Self-contained: throwaway users and rows dated 2026-01-06 (before any real ledger data), ends in
 -- ROLLBACK. Every check is an ASSERT; success ends with 'ai usage duration proof: ALL PASS'.
