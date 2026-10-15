@@ -55,6 +55,48 @@
 
 | Date | Device / browser | Tester | Sections | Result / notes |
 |---|---|---|---|---|
-| | Chrome desktop | | | |
+| 2026-10-15 | Chrome (Claude browser pane, mic blocked) + DB/logs | Claude | §1.1, §1.4, §3.3, §3.4 (pre-start), §5.3, §7.1–7.3, §8 (partial), §10.1–10.2, §10.6, §11.2–11.3 | Partial pass, 1 defect (QA-1). Details below. No voice: §2, §4, §5.1–5.2, §6, §9, §10.3–10.5, §10.7, §12, §13 still open. |
+| | Chrome desktop (real mic) | | | |
 | | iOS Safari | | | |
 | | Android Chrome | | | |
+
+### 2026-10-15 run (no-voice subset)
+
+Pass:
+- §1.1 Voice messages is default and resumes the unfinished voice conversation (an empty one gets the
+  usual greeting — pre-NCLDD-57 behaviour). §1.4 toggle: URL `?mode=conversation` ↔ dropped; Voice
+  messages resumes the same conversation id.
+- §10.1 Hint hidden because the pane reports mic permission `denied` (shown only for `prompt` — needs
+  a real browser). §10.2 Start with mic blocked → "Microphone access is blocked…" + Try again, muted
+  orb (§3.3), no `realtime-voice` request.
+- §10.6 (emulated `navigator.onLine=false` + `offline` event) → Start disabled, "You're offline…";
+  re-enabled on `online`.
+- §5.3 Cedar remembered after reload (`localStorage unclouded.realtimeVoice=cedar`).
+- §3.4 375 px: no horizontal scroll, Start in the footer; dark theme OK (pre-start only).
+- §7.1 card "Voice: messages vs conversation" present; Conversation $0.10 / 1 session = ledger sum
+  $0.104. §7.2 row for the 09:09 UTC session: tokens match the DB (text 41275/27392/274, audio
+  143/0/411), events 3/3 · 3/3, "Ended by user". §7.3 plan filter Pro → empty.
+- §8 (DB only, session `8cb48a73`): 3 `realtime_response` rows for 3 Kota replies, 3
+  `realtime_transcription` rows for 3 user turns, `chatMessage` rows carry `realtimeItemId` in order;
+  response `costUsd` recomputed from `aiModelPricing` exactly (e.g. 0.06666). OpenAI dashboard
+  comparison not done.
+- §11.2 production build (`vite build`) grepped for `sk-…`, `OPENAI_API_KEY`, `api.openai.com`,
+  `client_secret` — no matches. §11.3 `realtime-voice` function logs (24 h): only
+  `instructions above soft limit { promptTokens: 16132 }` and `realtime hangup failed 404` — no key,
+  prompt text or OpenAI bodies.
+
+Defects / notes:
+- **QA-1 (defect, §8.2):** `aiModelPricing` has no `token_in_1m` for `gpt-4o-mini-transcribe`
+  (migration `20261014130000`). OpenAI reports 1 text input token per transcription, so every
+  `realtime_transcription` row has `pricingMissing = true`; admin shows "no price set" on the model
+  and on the session total. Fix: migration `20261015120000_realtime_transcribe_text_input_price.sql`
+  (price row + re-price earlier rows; dry run in a rolled-back transaction OK) — **not applied yet**.
+- QA-2 (minor): Realtime sessions "Started" uses local time (`toLocaleString` without
+  `timeZone: "UTC"`) while the page says "UTC dates" (12:09 PM shown for 09:09 UTC). Fixed: shown in
+  UTC with a "UTC" suffix; checked in the browser (9:09 AM UTC).
+- QA-3 (noise): `end` → OpenAI `hangup` returns 404 ~6 s after the session ended (call already
+  closed by OpenAI after the peer connection closed). Harmless; consider treating 404 as success.
+- QA-4 (observation): prompt ≈ 16k tokens (above soft limit) → ~13.7k input tokens per response;
+  the first response cost $0.067. `startedAt` → `connectedAt` took 15 s on that session — check in
+  the real-mic run.
+- QA-5 (minor UI): unselected toggle option has low contrast in dark theme.

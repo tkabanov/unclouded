@@ -56,9 +56,12 @@ const END_REASON_LABELS: Record<string, string> = {
   abandoned: "Abandoned",
 };
 
+/** UTC, like the rest of AI Usage ("UTC dates"). */
 function formatStarted(iso: string): string {
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+  return Number.isNaN(date.getTime())
+    ? "—"
+    : `${date.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })} UTC`;
 }
 
 /** Response / transcription parts follow the total's rule: unknown → "—", partial → "≥ $X". */

@@ -15,6 +15,8 @@ call with the server key and returns only the SDP answer + session ids. Design:
    - `20261015071908_realtime_voice_feedback_session_type.sql` — 👍/👎 on Conversation replies stored as `voice`.
    - `20261015090144_realtime_voice_one_open_session.sql` — one open session per user (the 409 below relies on it).
    - `20261015094100_realtime_voice_admin_reads.sql` — AI Usage split + Realtime sessions tab.
+   - `20261015120000_realtime_transcribe_text_input_price.sql` — `token_in_1m` for
+     `gpt-4o-mini-transcribe` + re-price earlier transcription rows (data only, not applied yet).
    Check: `select to_regclass('public."realtimeVoiceSession"');`
 2. `chat` is deployed from the same commit or later (S2 shared prompt builder, `voice_conversation`
    accepted by `session_finalize`).

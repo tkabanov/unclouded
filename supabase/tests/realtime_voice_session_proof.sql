@@ -210,7 +210,7 @@ BEGIN
     'gpt-realtime-2.1 price rows missing';
   ASSERT (SELECT count(*) FROM public."aiModelPricing" WHERE model = 'gpt-realtime-2.1-mini') = 6,
     'gpt-realtime-2.1-mini price rows missing';
-  ASSERT (SELECT count(*) FROM public."aiModelPricing" WHERE model = 'gpt-4o-mini-transcribe') = 3,
+  ASSERT (SELECT count(*) FROM public."aiModelPricing" WHERE model = 'gpt-4o-mini-transcribe') = 4,
     'gpt-4o-mini-transcribe price rows missing';
   -- Existing models keep their prices.
   ASSERT (SELECT "usdPerUnit" FROM public."aiModelPricing"

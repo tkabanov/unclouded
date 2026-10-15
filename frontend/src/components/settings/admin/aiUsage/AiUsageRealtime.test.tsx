@@ -174,6 +174,8 @@ describe("AiUsageRealtimeSessionsPanel", () => {
     expect(within(rows[3]).getByText("not connected")).toBeInTheDocument();
     expect(within(rows[3]).getByText("Didn't connect")).toBeInTheDocument();
     expect(within(rows[0]).getByText(/alex@example\.com/)).toHaveTextContent("Basic");
+    // UTC like the rest of AI Usage, whatever the admin's local time zone.
+    expect(within(rows[0]).getByText("Oct 15, 2026, 10:00 AM UTC")).toBeInTheDocument();
   });
 
   it("sends period, plan and usage status filters to the RPC", async () => {

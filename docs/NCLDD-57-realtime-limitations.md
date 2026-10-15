@@ -89,11 +89,11 @@ Source: [server events](https://developers.openai.com/api/reference/resources/re
 |---|---|---|---|---|---|---|
 | `gpt-realtime-2.1` | $4.00 | $0.40 | $24.00 | $32.00 | $0.40 | $64.00 |
 | `gpt-realtime-2.1-mini` | $0.60 | $0.06 | $2.40 | $10.00 | $0.30 | $20.00 |
-| `gpt-4o-mini-transcribe` | — | — | $5.00 | $1.25 | — | — |
+| `gpt-4o-mini-transcribe` | $1.25 | — | $5.00 | $1.25 | — | — |
 
 - Transcription is billed separately on its own rate card (≈ $0.003/min for `gpt-4o-mini-transcribe`).
 - Audio tokens: user audio ≈ 1 token / 100 ms, assistant audio ≈ 1 token / 50 ms ([costs guide](https://developers.openai.com/api/docs/guides/realtime-costs)).
-- `aiModelPricing` needs rows for both realtime models with units `token_in_1m`, `token_cached_in_1m`, `token_out_1m`, **`audio_token_in_1m`, `audio_token_cached_in_1m`, `audio_token_out_1m`** (new units, S1), and `gpt-4o-mini-transcribe` with `audio_token_in_1m` + `token_out_1m` (+ `audio_minute` for `{type:"duration"}` usage).
+- `aiModelPricing` needs rows for both realtime models with units `token_in_1m`, `token_cached_in_1m`, `token_out_1m`, **`audio_token_in_1m`, `audio_token_cached_in_1m`, `audio_token_out_1m`** (new units, S1), and `gpt-4o-mini-transcribe` with `audio_token_in_1m` + `token_out_1m` (+ `audio_minute` for `{type:"duration"}` usage) + `token_in_1m` (the transcription usage reports a few text input tokens; added in `20261015120000` after manual QA).
 
 **Rough cost (own estimate, not from docs):** a 10-min session, ~20 turns, half the time each side speaks, ~13k-token prompt mostly cached → `gpt-realtime-2.1` ≈ **$0.6–0.9**, `-mini` ≈ **$0.2–0.3**. Assistant audio output dominates. Feeds client question Q1 (limits).
 
