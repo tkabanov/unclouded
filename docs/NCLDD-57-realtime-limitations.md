@@ -171,3 +171,26 @@ A throwaway Node 24 probe (kept outside the repo, not committed; WHATWG `fetch` 
 - A ~26.6k-token prompt is accepted at call creation → no 16k instructions cap at session setup.
 
 **Caveat.** No response was generated (no audio), so a cap enforced only at response time can't be ruled out. Keep the soft-limit warning from §3 and check one real spoken turn with a long admin prompt during T-030/T-033 QA.
+
+---
+
+## 7. Final: constraints and how the shipped code handles them (T-033)
+
+| Constraint | Status | Workaround in the code |
+|---|---|---|
+| Standard API key must stay on the server | Done | Unified interface (D1): `realtime-voice` posts the SDP offer with the key; the browser receives only the SDP answer + session ids (no ephemeral `client_secret`). Tests assert no `sk-` / `client_secret` / instructions in responses; the production bundle contains no key or `api.openai.com`. |
+| 60-min session limit, end signal not documented (C6) | Done | Our session ends at 58 min (`expiresAt`): client timer + server `heartbeat` closes the session and hangs up; `error.code = session_expired` and a data-channel close near expiry end as `max_duration`; 5-min warning in the UI; "Start new conversation" afterwards. |
+| Voice can't change mid-session (C9) | Done | Voice picked before Start, locked during the session with "Voice can be changed for the next conversation". |
+| Item events inconsistent (`added`/`created`/`done`), out-of-order transcription (C5) | Done | `transcriptAssembler` dedupes by item id and orders by `previous_item_id`; `persistQueue` saves in order, a user turn whose transcript never arrives is saved as `[inaudible]` after 8 s. |
+| Interruptions over WebRTC | Done (approximate) | Server truncates unplayed audio; the client marks Kota's reply `interrupted`. The saved text is what the transcript contained when it stopped, which can be slightly more than was heard. |
+| Transcription usage is tokens **or** duration (C3); cached tokens split per modality (C4) | Done | `realtimeUsage` maps both; `computeCostUsd` prices `audio_token_*` units (C12); transcription is its own ledger row (`realtime_transcription`). |
+| No server-side usage stream in Supabase Edge (sideband needs a long-lived socket) | Residual | Usage is client-reported with strict caps, idempotency, model from the session row, counters vs `*Seen`; unconfirmed sessions are `partial` ("≥ $X") / `unknown` ("—"), never $0. The server enforces budget/time stops and hangs up swept calls at the next start. A client that goes silent and never starts again keeps one call until OpenAI's 60-min cap. Full fix: a sideband worker outside Edge. |
+| OpenAI sends `session.created` / `session.updated` (with the full `instructions`: admin global prompt, platform rules, prohibited topics) to the browser over the data channel | Residual — needs a product decision | Not removable: the server sets the config, OpenAI echoes it to the peer. The client ignores the event, but a user inspecting the `RTCDataChannel` can read the coaching prompt. Admin prompt text must be treated as visible to Conversation users (no secrets in it). Found in the final security review (T-033). |
+| Budget only sees reported usage | Residual (follow-up) | `check_ai_budget` sums `aiUsageEvent`; a client that never reports usage isn't stopped by the budget (one call at a time, ≤ 58 min, Retry ≤ 5 per conversation). Cheaper follow-up: charge a minimum estimate from `durationSeconds` of `partial`/`unknown` sessions in the budget check. |
+| Client can send `session.update` over the data channel | Residual | Affects only the caller's own session; tools run only through the server allowlist with the user's RLS client (registry empty today). |
+| Crisis detection runs on the user transcript, which can arrive after Kota starts answering | Residual | On a hit: `response.cancel` + `output_audio_buffer.clear`, call hung up, chat crisis text + resources, conversation closed for good. A short window where Kota is already speaking remains. |
+| Instructions size cap undocumented (C11) | Done | Full shared prompt is sent (13k tokens today; 26.6k accepted at setup); above ~16k estimated tokens a warning is logged, OpenAI 4xx is logged as `prompt_too_large`; nothing is cut. |
+| `idle_timeout_ms` only with server VAD (C8) | Done | Our own idle end (10 min without speech) in the client, `idleTimeoutSec` from `start`. |
+| Autoplay on iOS/Android | Done | Audio element created and unlocked in the Start tap handler; `NotAllowedError` → "Tap to enable sound". |
+| Kota speaking first | Not done | semantic VAD starts the first response when the user speaks; an opening turn would need a client `response.create` (follow-up). |
+| Knowledge base retrieval | Not done | Tool channel ready (server registry, allowlist, argument validation, trimming); registry empty until NCLDD-54; the realtime addendum forbids claiming lookups or sources unless a tool returned them. |

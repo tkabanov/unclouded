@@ -479,11 +479,17 @@ async function handleHeartbeat(ctx: RealtimeContext, body: Record<string, unknow
   if (!isOpen(row)) return notActive();
 
   const now = ctx.now();
-  const seen = capSeen(row, { responsesSeen, transcriptionsSeen }, now);
+  // The client sends heartbeats only once the call is live: a heartbeat on a `connecting` session
+  // proves it connected even if `connected` never came (it can't hide as a $0 "not connected").
+  const connectedAt = row.connectedAt ?? row.startedAt;
+  const live = { ...row, connectedAt };
+  const seen = capSeen(live, { responsesSeen, transcriptionsSeen }, now);
   const { error } = await ctx.admin
     .from("realtimeVoiceSession")
     .update({
       ...seen,
+      status: "active",
+      connectedAt,
       lastHeartbeatAt: now.toISOString(),
     })
     .eq("id", row.id)
@@ -493,12 +499,12 @@ async function handleHeartbeat(ctx: RealtimeContext, body: Record<string, unknow
 
   // Stops are enforced here (session closed + call hung up), not left to the client.
   if (now.getTime() >= new Date(row.expiresAt).getTime()) {
-    await closeSession(ctx, { ...row, ...seen }, "max_duration");
+    await closeSession(ctx, { ...live, ...seen }, "max_duration");
     return ok({ stop: "max_duration" });
   }
   const budget = await checkAiBudget(ctx.admin, ctx.userId, "voice");
   if (budget.allowed) return ok();
-  await closeSession(ctx, { ...row, ...seen }, "budget_reached");
+  await closeSession(ctx, { ...live, ...seen }, "budget_reached");
   return ok({ stop: "budget_reached" });
 }
 

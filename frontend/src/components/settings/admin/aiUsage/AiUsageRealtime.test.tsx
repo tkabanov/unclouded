@@ -166,7 +166,10 @@ describe("AiUsageRealtimeSessionsPanel", () => {
     expect(within(rows[0]).getByText(formatUsd(0.6))).toBeInTheDocument();
     expect(within(rows[1]).getByText(`≥ ${formatUsd(0.2)}`)).toBeInTheDocument();
     expect(within(rows[1]).getByText("Partial")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("—")).toBeInTheDocument();
+    // Unknown: total and both parts are "—", never "$0.00"; partial parts are lower bounds.
+    expect(within(rows[2]).getAllByText("—")).toHaveLength(3);
+    expect(within(rows[2]).queryByText(formatUsd(0))).toBeNull();
+    expect(within(rows[1]).getByText(`≥ ${formatUsd(0.5)}`)).toBeInTheDocument();
     expect(within(rows[2]).getByText("Unknown")).toBeInTheDocument();
     expect(within(rows[3]).getByText("not connected")).toBeInTheDocument();
     expect(within(rows[3]).getByText("Didn't connect")).toBeInTheDocument();

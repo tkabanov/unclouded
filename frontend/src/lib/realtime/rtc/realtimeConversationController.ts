@@ -555,6 +555,13 @@ export class RealtimeConversationController {
 
   private async heartbeat(session: Session): Promise<void> {
     if (!this.alive(session) || !session.realtimeSessionId) return;
+    // Keep the token for the pagehide keepalive `end` fresh (JWTs expire within a long call).
+    void this.deps
+      .getAccessToken()
+      .then((token) => {
+        if (token) this.accessToken = token;
+      })
+      .catch(() => undefined);
     try {
       const { stop } = await this.deps.api.heartbeat(session.realtimeSessionId, this.counters());
       if (!this.alive(session) || !stop) return;

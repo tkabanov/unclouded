@@ -117,11 +117,11 @@ export function endReasonMessage(reason: RealtimeEndReason): string | null {
     case "idle_timeout":
       return "The conversation ended after a long silence.";
     case "network_lost":
-      return "The connection was lost. Your transcript is saved.";
+      return "The connection was lost. Tap Try again to continue this conversation.";
     case "connect_failed":
       return "We couldn't connect the conversation. Please try again.";
     case "mic_lost":
-      return "Your microphone was disconnected. Your transcript is saved.";
+      return "Your microphone was disconnected. Tap Try again to continue this conversation.";
     case "budget_reached":
       return formatMonthlyAiLimitMessage("voice");
     case "error":

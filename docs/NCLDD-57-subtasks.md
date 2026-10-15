@@ -25,7 +25,7 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 | T-030 | S5b Conversation UI on `/coaching/voice` | max | T-029 | 4 h |
 | T-031 | S6 History, finalize, crisis flow | ultracode | T-027, T-030 | 3 h |
 | T-032 | S7 AI Usage: realtime split + sessions tab | ultracode | T-025 | 4 h |
-| T-033 | S8 Docs, OVR-075, test plan, reviews, QA | max | all | 4 h |
+| T-033 | S8 Docs, OVR-076, test plan, reviews, QA | max | all | 4 h |
 
 ---
 
@@ -224,7 +224,7 @@ Parallel-safe after S0: {S1, S2, S4}. After S1: {S3 (needs S2 too), S7}. S5a can
 **Goal.** Close the ticket with docs and evidence.
 
 **Do**
-1. `docs/product-overrides.md`: append **OVR-075** (Conversation mode: `voice_conversation`, no OVR-057 auto-resume, no close ritual, voice per device, all plans with gating helper, shared voice limit, usage statuses, crisis window, client `session.update` residual risk, KB pending NCLDD-54, deploy order). Update the examples list in `.claude/rules/product-overrides.md` only if needed.
+1. `docs/product-overrides.md`: append **OVR-076** (OVR-075 was taken by the en-US locale entry; Conversation mode: `voice_conversation`, no OVR-057 auto-resume, no close ritual, voice per device, all plans with gating helper, shared voice limit, usage statuses, crisis window, client `session.update` residual risk, KB pending NCLDD-54, deploy order). Update the examples list in `.claude/rules/product-overrides.md` only if needed.
 2. Finalize `docs/NCLDD-57-realtime-limitations.md` (DoD: documented constraints + workarounds).
 3. `docs/NCLDD-57-test-plan.md`: ticket QA checklist expanded into steps with expected results (old voice messages before/after, start/speak/interrupt/resume/end, visual states, transcript order, voice choice, rules/prohibited topics, KB note, AI Usage split, usage vs OpenAI logs incl. transcription, network drop → not $0, mic deny/revoke, key not in client/network, 60-min limit).
 4. Run full reviewer set on the combined diff (security, security-web, architecture, fidelity); fix findings.

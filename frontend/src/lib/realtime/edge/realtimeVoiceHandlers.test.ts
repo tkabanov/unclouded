@@ -1,12 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  REALTIME_END_REASONS,
   handleRealtimeAction,
   isRealtimeAction,
   type RealtimeContext,
 } from "../../../../../supabase/functions/realtime-voice/handlers.ts";
 import { parseCallId } from "../../../../../supabase/functions/realtime-voice/openaiCalls.ts";
 import { deriveUsageStatus } from "../../../../../supabase/functions/realtime-voice/usage.ts";
-import { buildRealtimeSessionConfig } from "../../../../../supabase/functions/realtime-voice/sessionConfig.ts";
+import {
+  REALTIME_VOICE_ALLOWLIST,
+  buildRealtimeSessionConfig,
+} from "../../../../../supabase/functions/realtime-voice/sessionConfig.ts";
+import { REALTIME_VOICES } from "../realtimeVoices";
+import { canRetryAfter, type RealtimeEndReason } from "../realtimeErrors";
 import type { RealtimeTool } from "../../../../../supabase/functions/realtime-voice/tools/registry.ts";
 import { clearAiPricingCache, computeCostUsd } from "../../../../../supabase/functions/_shared/aiUsage.ts";
 import { CRISIS_RESPONSE_TEXT } from "../../../../../supabase/functions/chat/crisisDetect.ts";
@@ -432,6 +438,14 @@ describe("connected / heartbeat / end", () => {
     expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/hangup"), expect.anything());
   });
 
+  it("a heartbeat on a connecting session marks it connected (no hidden $0 call)", async () => {
+    const row = seedSession({ status: "connecting", connectedAt: null });
+    await handleRealtimeAction(ctx(), "heartbeat", { realtimeSessionId: row.id, responsesSeen: 2, transcriptionsSeen: 1 });
+    expect(session(row.id)).toMatchObject({ status: "active", connectedAt: row.startedAt, responsesSeen: 2 });
+    const ended = await handleRealtimeAction(ctx(), "end", { realtimeSessionId: row.id, reason: "connect_failed", responsesSeen: 2, transcriptionsSeen: 1 });
+    expect(ended.body.usageStatus).toBe("unknown");
+  });
+
   it("heartbeat validates counters and refuses closed sessions", async () => {
     const row = seedSession();
     expect((await handleRealtimeAction(ctx(), "heartbeat", { realtimeSessionId: row.id, responsesSeen: -1, transcriptionsSeen: 0 })).status).toBe(400);
@@ -818,7 +832,8 @@ describe("helpers", () => {
   it("deriveUsageStatus (plan §7.3)", () => {
     const base = { connectedAt: "t", responsesSeen: 2, responsesReported: 2, transcriptionsSeen: 1, transcriptionsReported: 1 };
     expect(deriveUsageStatus(base)).toBe("complete");
-    expect(deriveUsageStatus({ ...base, connectedAt: null, responsesReported: 0 })).toBe("complete");
+    expect(deriveUsageStatus({ ...base, connectedAt: null, responsesSeen: 0, transcriptionsSeen: 0, responsesReported: 0, transcriptionsReported: 0 })).toBe("complete");
+    expect(deriveUsageStatus({ ...base, connectedAt: null, responsesReported: 0, transcriptionsReported: 0 })).toBe("unknown");
     expect(deriveUsageStatus({ ...base, responsesReported: 1 })).toBe("partial");
     expect(deriveUsageStatus({ ...base, responsesReported: 0, transcriptionsReported: 0 })).toBe("unknown");
   });
@@ -835,5 +850,37 @@ describe("helpers", () => {
     });
     expect(result).toEqual({ costUsd: 5 + 5 + 20, pricingMissing: false });
     expect(computeCostUsd([], "openai", "m", { audioOutputTokens: 1 }).pricingMissing).toBe(true);
+  });
+});
+
+describe("client / server parity", () => {
+  it("voice lists match", () => {
+    expect([...REALTIME_VOICES].sort()).toEqual([...REALTIME_VOICE_ALLOWLIST].sort());
+  });
+
+  it("every server end reason is a client end reason, and Retry reuse matches the client's Try again", async () => {
+    // The client type is a union; check the runtime lists agree on retryability.
+    const retryable = REALTIME_END_REASONS.filter((reason) => canRetryAfter(reason as RealtimeEndReason));
+    expect(retryable.sort()).toEqual(["connect_failed", "error", "mic_lost", "network_lost"]);
+    // Server reuse after each reason (one prior session, then Retry).
+    for (const reason of REALTIME_END_REASONS) {
+      db = new FakeDb();
+      db.rpcHandlers.check_ai_budget = () => ({ data: { allowed: true, tier: "free" }, error: null });
+      db.rpcHandlers.realtime_voice_sweep = () => ({ data: 0, error: null });
+      db.rpcHandlers.consume_chat_session = () => ({ data: { allowed: true, recorded: true }, error: null });
+      const conversation = db.seed("chatConversation", { userId: USER, sessionType: "voice_conversation" });
+      db.seed("realtimeVoiceSession", {
+        userId: USER,
+        conversationId: conversation.id,
+        model: "m",
+        voice: "marin",
+        status: "ended",
+        endReason: reason,
+        startedAt: NOW.toISOString(),
+        expiresAt: NOW.toISOString(),
+      });
+      const result = await handleRealtimeAction(ctx(), "start", { sdpOffer: SDP, voice: "marin", conversationId: conversation.id });
+      expect(result.status === 200, reason).toBe(canRetryAfter(reason as RealtimeEndReason));
+    }
   });
 });

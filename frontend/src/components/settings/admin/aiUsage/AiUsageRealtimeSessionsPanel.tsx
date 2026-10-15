@@ -26,6 +26,7 @@ import {
   AI_TIER_LABELS,
   fetchAiRealtimeSessions,
   realtimeSessionCostLabel,
+  type AiRealtimeSessionRow,
   type AiRealtimeSessionsPage,
   type AiRealtimeUsageStatus,
 } from "@/lib/settings/admin/adminAiUsageApi";
@@ -57,7 +58,14 @@ const END_REASON_LABELS: Record<string, string> = {
 
 function formatStarted(iso: string): string {
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+}
+
+/** Response / transcription parts follow the total's rule: unknown → "—", partial → "≥ $X". */
+function partCost(row: Pick<AiRealtimeSessionRow, "usageStatus" | "notConnected">, value: number): string {
+  if (row.notConnected) return formatUsd(0);
+  if (row.usageStatus === "unknown") return "—";
+  return row.usageStatus === "partial" ? `≥ ${formatUsd(value)}` : formatUsd(value);
 }
 
 /** NCLDD-57 — one row per realtime Conversation call (plan §4.7, §7.3). */
@@ -200,8 +208,8 @@ export default function AiUsageRealtimeSessionsPanel() {
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       {row.audioInputTokens} / {row.cachedAudioInputTokens} / {row.audioOutputTokens}
                     </td>
-                    <td className="px-3 py-2 text-right">{formatUsd(row.responseCostUsd)}</td>
-                    <td className="px-3 py-2 text-right">{formatUsd(row.transcriptionCostUsd)}</td>
+                    <td className="px-3 py-2 text-right">{partCost(row, row.responseCostUsd)}</td>
+                    <td className="px-3 py-2 text-right">{partCost(row, row.transcriptionCostUsd)}</td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                         <span>{cost.amount}</span>

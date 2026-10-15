@@ -102,7 +102,7 @@ Then regenerate `frontend/src/integrations/supabase/types.ts` (watch UTF-8, see 
 
 | Action | Input | What it does | Output |
 |---|---|---|---|
-| `start` | `{ sdpOffer, voice, conversationId? }` | 1) `canUseRealtimeConversation(tier)` (today: always true). 2) Validate `voice` against the allowlist. 3) Sweep stale sessions of this user. Max **1 active** session per user (409 `realtime_session_active`, with an option to `end` the old one). 4) Conversation: create a `voice_conversation`, or reuse the passed one if it belongs to the user, has the same type and `finalizedAt IS NULL` (Retry). 5) `consume_chat_session` (Free 7/mo, counted per conversation, so Retry is not charged twice). 6) `check_ai_budget(voice)` → 402 `ai_monthly_limit_reached`. 7) `buildUserSystemPrompt(...)` + realtime addendum + opening instruction. 8) Build the session config (§5.3). 9) `POST /v1/realtime/calls` (multipart). 10) Insert `realtimeVoiceSession` (connecting, expiresAt). | `{ realtimeSessionId, conversationId, sdpAnswer, model, voice, expiresAt, heartbeatSec, idleTimeoutSec }`. **No keys, no instructions** |
+| `start` | `{ sdpOffer, voice, conversationId? }` | 1) `canUseRealtimeConversation(tier)` (today: always true). 2) Validate `voice` against the allowlist. 3) Sweep stale sessions of this user. Max **1 active** session per user (409 `realtime_session_active`, with an option to `end` the old one). 4) Conversation: create a `voice_conversation`, or reuse the passed one if it belongs to the user, has the same type and `finalizedAt IS NULL` (Retry). 5) `consume_chat_session` (Free 7/mo, counted per conversation, so Retry is not charged twice). 6) `check_ai_budget(voice)` → 402 `ai_monthly_limit_reached`. 7) `buildUserSystemPrompt(...)` + realtime addendum (opening instruction not built in S3: Kota does not speak first — follow-up, see limitations §7). 8) Build the session config (§5.3). 9) `POST /v1/realtime/calls` (multipart). 10) Insert `realtimeVoiceSession` (connecting, expiresAt). | `{ realtimeSessionId, conversationId, sdpAnswer, model, voice, expiresAt, heartbeatSec, idleTimeoutSec }`. **No keys, no instructions** |
 | `connected` | `{ realtimeSessionId }` | `status=active`, `connectedAt=now()` | `{ ok }` |
 | `heartbeat` | `{ realtimeSessionId, responsesSeen, transcriptionsSeen }` | Updates counters and `lastHeartbeatAt`. Checks budget: if spent → `{ stop:'budget_reached' }`. If past `expiresAt` → `{ stop:'max_duration' }` | `{ ok, stop? }` |
 | `usage` | `{ realtimeSessionId, kind:'response'|'transcription', externalEventId, model, usage }` | Ownership + status (active or ended ≤ 10 min ago). Strict schema: non-negative integers, sane caps (e.g. ≤ 200k tokens per event), `externalEventId` format. The model is taken **from the session**, not the payload (except transcription model, also from the session). Cost from `aiModelPricing`. Insert `aiUsageEvent` (idempotent). `responsesReported++` | `{ ok, duplicate? }` |
@@ -117,7 +117,7 @@ Finalizing the conversation uses the existing `chat` `session_finalize` with `se
 {
   "type": "realtime",
   "model": "<OPENAI_REALTIME_MODEL>",
-  "instructions": "<buildUserSystemPrompt + realtime addendum + opening>",
+  "instructions": "<buildUserSystemPrompt + realtime addendum>",
   "audio": {
     "input": {
       "turn_detection": { "type": "semantic_vad", "create_response": true, "interrupt_response": true },
@@ -224,7 +224,7 @@ Realtime counts against the **voice** monthly limit (`check_ai_budget(voice)` at
 - **Prompt size risk:** the admin base prompt can be up to 100k characters, and the realtime model's context is limited. In the spike, measure tokens of the real prompt. If it is too large: (a) `token_limits.post_instructions`, (b) a compact voice variant of the user-data/context blocks. Document it in the limitations.
 
 ## 9. Product overrides and docs
-- **OVR-075** in `docs/product-overrides.md`: Conversation mode (D2, D9, D10), all plans (D-gating), shared voice limit, crisis window, usage statuses, no KB until NCLDD-54.
+- **OVR-076** (OVR-075 was taken by the en-US locale entry) in `docs/product-overrides.md`: Conversation mode (D2, D9, D10), all plans (D-gating), shared voice limit, crisis window, usage statuses, no KB until NCLDD-54.
 - `supabase/functions/realtime-voice/DEPLOY.md`: secrets, deploy order, smoke test.
 - `docs/NCLDD-57-realtime-limitations.md`: technical limits and workarounds (60 min, voice is fixed, no sideband in edge → client-reported usage, crisis window, prompt size, iOS autoplay, out-of-order transcription).
 - `docs/NCLDD-57-test-plan.md`: the QA checklist from the ticket, step by step.
@@ -233,6 +233,7 @@ Realtime counts against the **voice** monthly limit (`check_ai_budget(voice)` at
 ## 10. Security and known limitations
 - The standard key is used only in `realtime-voice` (`Deno.env`). Tests: no response of any action contains `sk-`/`client_secret`/`instructions`. Grep the built bundle for `sk-`, `OPENAI`.
 - **Client-reported usage:** the browser can understate its own usage (affects only its own budget/statistics). Mitigations: per-event caps, counters vs `responsesSeen`, `partial/unknown` statuses. The full fix is a sideband server worker (`wss …?call_id=`) outside Supabase edge. That is a separate task if the client needs audit-grade accounting.
+- **Instructions are visible to the browser:** OpenAI sends `session.created` with the full session config (incl. `instructions`) over the data channel. "No instructions" in the `start` response holds, but a user can read the prompt from the data channel (final security review, T-033). Product decision: accept (no secrets in admin prompts) or move to a server-side sideband.
 - **The client can send `session.update`** over the data channel (change instructions). This affects only the user's own session. KB rights stay safe because tools run only through the server allowlist under the user's JWT, and unknown tools are rejected. Write this as a residual risk in the OVR.
 - `realtimeVoiceSession` has no sensitive columns. Own-rows RLS + isolation proof.
 - Rate limits on `start` (cost protection) and 1 active session per user (check at `start` + partial unique index, migration `20261015090144`).
@@ -259,7 +260,7 @@ Realtime counts against the **voice** monthly limit (`check_ai_budget(voice)` at
 | S5 | Hook + UI | §6.2–6.4, toggle, orb, picker, transcript, errors | 7 h |
 | S6 | History + finalize + crisis | §6.3 history, finalize, crisis flow | 3 h |
 | S7 | AI Usage | §4.7 RPC, §7.5 UI + tests | 4 h |
-| S8 | Docs + reviews + QA | OVR-075, DEPLOY, limitations, test plan, reviewers, manual QA | 4 h |
+| S8 | Docs + reviews + QA | OVR-076, DEPLOY, limitations, test plan, reviewers, manual QA | 4 h |
 
 Total ≈ 36 h. Commits go straight to `main`, one per slice.
 

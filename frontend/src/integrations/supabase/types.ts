@@ -3285,6 +3285,17 @@ export type Database = {
         Returns: Json
       }
       admin_ai_plan_limits: { Args: never; Returns: Json }
+      admin_ai_realtime_sessions: {
+        Args: {
+          p_from: string
+          p_limit?: number
+          p_offset?: number
+          p_status?: string
+          p_tier?: string
+          p_to: string
+        }
+        Returns: Json
+      }
       admin_ai_usage_overview: {
         Args: { p_from: string; p_tier?: string; p_to: string }
         Returns: Json

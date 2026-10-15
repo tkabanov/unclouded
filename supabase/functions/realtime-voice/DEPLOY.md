@@ -9,9 +9,13 @@ call with the server key and returns only the SDP answer + session ids. Design:
 
 ## Prerequisites
 
-1. Migration `20261014130000_realtime_voice_conversation.sql` is applied (table
-   `realtimeVoiceSession`, `aiUsageEvent` realtime columns/sources, pricing rows,
-   `realtime_voice_sweep()` + cron). Check: `select to_regclass('public."realtimeVoiceSession"');`
+1. Migrations applied, in order (all applied to production on 2026-10-15):
+   - `20261014130000_realtime_voice_conversation.sql` — table `realtimeVoiceSession`, `aiUsageEvent`
+     realtime columns/sources, pricing rows, `realtime_voice_sweep()` + cron.
+   - `20261015071908_realtime_voice_feedback_session_type.sql` — 👍/👎 on Conversation replies stored as `voice`.
+   - `20261015090144_realtime_voice_one_open_session.sql` — one open session per user (the 409 below relies on it).
+   - `20261015094100_realtime_voice_admin_reads.sql` — AI Usage split + Realtime sessions tab.
+   Check: `select to_regclass('public."realtimeVoiceSession"');`
 2. `chat` is deployed from the same commit or later (S2 shared prompt builder, `voice_conversation`
    accepted by `session_finalize`).
 

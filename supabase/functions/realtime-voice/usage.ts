@@ -85,7 +85,8 @@ export type UsageCounters = {
  * everything the client saw was recorded → complete; some recorded → partial; none → unknown.
  */
 export function deriveUsageStatus(row: UsageCounters): "complete" | "partial" | "unknown" {
-  if (!row.connectedAt) return "complete";
+  // Events seen means the call ran, whatever `connectedAt` says.
+  if (!row.connectedAt && row.responsesSeen + row.transcriptionsSeen === 0) return "complete";
   if (row.responsesReported >= row.responsesSeen && row.transcriptionsReported >= row.transcriptionsSeen) {
     return "complete";
   }
