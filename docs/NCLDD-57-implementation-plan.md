@@ -235,7 +235,7 @@ Realtime counts against the **voice** monthly limit (`check_ai_budget(voice)` at
 - **Client-reported usage:** the browser can understate its own usage (affects only its own budget/statistics). Mitigations: per-event caps, counters vs `responsesSeen`, `partial/unknown` statuses. The full fix is a sideband server worker (`wss …?call_id=`) outside Supabase edge. That is a separate task if the client needs audit-grade accounting.
 - **The client can send `session.update`** over the data channel (change instructions). This affects only the user's own session. KB rights stay safe because tools run only through the server allowlist under the user's JWT, and unknown tools are rejected. Write this as a residual risk in the OVR.
 - `realtimeVoiceSession` has no sensitive columns. Own-rows RLS + isolation proof.
-- Rate limits on `start` (cost protection) and 1 active session per user (check at `start` + partial unique index, migration `20261015120000`).
+- Rate limits on `start` (cost protection) and 1 active session per user (check at `start` + partial unique index, migration `20261015090144`).
 - **S3 security review (T-027) mitigations:** stops enforced server-side (above); `start` hangs up the caller's swept (`abandoned`) calls younger than 65 min (the SQL sweeper can't hang up); Retry may reuse a conversation only after a recoverable end (`network_lost|connect_failed|mic_lost|error`) and at most 5 realtime sessions per conversation (bounds the Free per-conversation session count); self-reported `*Seen` counters are capped at connected seconds + 10. **Residual:** a client that never reports usage and never starts again keeps one call alive until OpenAI's 60-min cap; only server-side metering (sideband) closes that.
 
 ## 11. Tests
