@@ -51,6 +51,7 @@ const ERRORS = {
   users: "Couldn't load AI usage by user.",
   detail: "Couldn't load this user's AI limits.",
   audit: "Couldn't load the AI limit history.",
+  realtime: "Couldn't load realtime sessions.",
   save: "Couldn't save the change.",
 } as const;
 
@@ -99,7 +100,31 @@ export type AiUsageOverview = {
     currentTier: AiPlanTier;
   }>;
   avgDurationSeconds: { text: number | null; voice: number | null };
+  /** NCLDD-57: null until the S7 migration is applied. */
+  byVoiceSurface: { voiceMessages: AiVoiceSurfaceStats; realtimeConversation: AiVoiceSurfaceStats } | null;
 };
+
+export type AiVoiceSurfaceStats = {
+  spendUsd: number;
+  events: number;
+  sessions: number;
+  avgCostPerSessionUsd: number;
+  avgDurationSeconds: number | null;
+  /** Realtime sessions whose usage is partial/unknown (always 0 for voice messages). */
+  unconfirmedSessions: number;
+};
+
+function voiceSurface(raw: unknown): AiVoiceSurfaceStats {
+  const r = rec(raw);
+  return {
+    spendUsd: num(r.spendUsd),
+    events: num(r.events),
+    sessions: num(r.sessions),
+    avgCostPerSessionUsd: num(r.avgCostPerSessionUsd),
+    avgDurationSeconds: numOrNull(r.avgDurationSeconds),
+    unconfirmedSessions: num(r.unconfirmedSessions),
+  };
+}
 
 function kpis(raw: unknown): AiUsageKpis {
   const r = rec(raw);
@@ -149,6 +174,13 @@ export function mapAiUsageOverview(raw: unknown): AiUsageOverview {
       currentTier: tier(u.currentTier),
     })),
     avgDurationSeconds: { text: numOrNull(dur.text), voice: numOrNull(dur.voice) },
+    byVoiceSurface:
+      r.byVoiceSurface && typeof r.byVoiceSurface === "object"
+        ? {
+            voiceMessages: voiceSurface(rec(r.byVoiceSurface).voice_messages),
+            realtimeConversation: voiceSurface(rec(r.byVoiceSurface).realtime_conversation),
+          }
+        : null,
   };
 }
 
@@ -411,4 +443,125 @@ export function describeAuditValue(action: AiLimitAuditAction, value: Raw): stri
       return "Plan default";
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Realtime sessions (NCLDD-57 S7)
+// ---------------------------------------------------------------------------
+
+export type AiRealtimeUsageStatus = "pending" | "complete" | "partial" | "unknown";
+export const AI_REALTIME_USAGE_STATUSES: readonly AiRealtimeUsageStatus[] = ["complete", "partial", "unknown", "pending"];
+
+export type AiRealtimeSessionRow = {
+  id: string;
+  userId: string;
+  displayName: string;
+  email: string | null;
+  planTier: AiPlanTier;
+  startedAt: string;
+  connectedAt: string | null;
+  endedAt: string | null;
+  durationSeconds: number | null;
+  model: string;
+  voice: string;
+  transcriptionModel: string | null;
+  status: string;
+  endReason: string | null;
+  usageStatus: AiRealtimeUsageStatus;
+  notConnected: boolean;
+  responsesSeen: number;
+  responsesReported: number;
+  transcriptionsSeen: number;
+  transcriptionsReported: number;
+  inputTokens: number;
+  cachedInputTokens: number;
+  outputTokens: number;
+  audioInputTokens: number;
+  cachedAudioInputTokens: number;
+  audioOutputTokens: number;
+  responseCostUsd: number;
+  transcriptionCostUsd: number;
+  totalCostUsd: number;
+  pricingMissing: boolean;
+};
+
+export type AiRealtimeSessionsPage = { total: number; rows: AiRealtimeSessionRow[] };
+
+export type AiRealtimeSessionsQuery = {
+  from: string;
+  to: string;
+  tier?: AiPlanTier | null;
+  usageStatus?: AiRealtimeUsageStatus | null;
+  limit?: number;
+  offset?: number;
+};
+
+function usageStatus(value: unknown): AiRealtimeUsageStatus {
+  return value === "complete" || value === "partial" || value === "unknown" ? value : "pending";
+}
+
+export function mapAiRealtimeSessionRow(raw: Raw): AiRealtimeSessionRow {
+  return {
+    id: str(raw.id),
+    userId: str(raw.userId),
+    displayName: str(raw.displayName),
+    email: strOrNull(raw.email),
+    planTier: tier(raw.planTier),
+    startedAt: str(raw.startedAt),
+    connectedAt: strOrNull(raw.connectedAt),
+    endedAt: strOrNull(raw.endedAt),
+    durationSeconds: numOrNull(raw.durationSeconds),
+    model: str(raw.model),
+    voice: str(raw.voice),
+    transcriptionModel: strOrNull(raw.transcriptionModel),
+    status: str(raw.status),
+    endReason: strOrNull(raw.endReason),
+    usageStatus: usageStatus(raw.usageStatus),
+    notConnected: raw.notConnected === true,
+    responsesSeen: num(raw.responsesSeen),
+    responsesReported: num(raw.responsesReported),
+    transcriptionsSeen: num(raw.transcriptionsSeen),
+    transcriptionsReported: num(raw.transcriptionsReported),
+    inputTokens: num(raw.inputTokens),
+    cachedInputTokens: num(raw.cachedInputTokens),
+    outputTokens: num(raw.outputTokens),
+    audioInputTokens: num(raw.audioInputTokens),
+    cachedAudioInputTokens: num(raw.cachedAudioInputTokens),
+    audioOutputTokens: num(raw.audioOutputTokens),
+    responseCostUsd: num(raw.responseCostUsd),
+    transcriptionCostUsd: num(raw.transcriptionCostUsd),
+    totalCostUsd: num(raw.totalCostUsd),
+    pricingMissing: raw.pricingMissing === true,
+  };
+}
+
+export async function fetchAiRealtimeSessions(query: AiRealtimeSessionsQuery): Promise<AiRealtimeSessionsPage> {
+  const result = await callRpc(
+    "admin_ai_realtime_sessions",
+    {
+      p_from: query.from,
+      p_to: query.to,
+      p_tier: query.tier ?? null,
+      p_status: query.usageStatus ?? null,
+      p_limit: query.limit ?? 25,
+      p_offset: query.offset ?? 0,
+    },
+    ERRORS.realtime,
+  );
+  return { total: num(result.total), rows: arr(result.rows).map(mapAiRealtimeSessionRow) };
+}
+
+/**
+ * Plan §7.3 display: never show an unconfirmed session as $0. Partial → "≥ $X" (lower bound),
+ * unknown → "—", a call that never connected → "$0.00" with the "not connected" label.
+ */
+export function realtimeSessionCostLabel(
+  row: Pick<AiRealtimeSessionRow, "totalCostUsd" | "usageStatus" | "notConnected">,
+  formatUsd: (value: number) => string,
+): { amount: string; unconfirmed: boolean; note: string | null } {
+  if (row.notConnected) return { amount: formatUsd(0), unconfirmed: false, note: "not connected" };
+  if (row.usageStatus === "unknown") return { amount: "—", unconfirmed: true, note: null };
+  if (row.usageStatus === "partial") return { amount: `≥ ${formatUsd(row.totalCostUsd)}`, unconfirmed: true, note: null };
+  if (row.usageStatus === "pending") return { amount: formatUsd(row.totalCostUsd), unconfirmed: true, note: "in progress" };
+  return { amount: formatUsd(row.totalCostUsd), unconfirmed: false, note: null };
 }

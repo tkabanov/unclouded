@@ -40,6 +40,7 @@ import {
   resolvePeriod,
 } from "@/lib/settings/admin/aiUsagePeriod";
 import { cn } from "@/lib/utils";
+import AiUsageVoiceSurfaceCard from "@/components/settings/admin/aiUsage/AiUsageVoiceSurfaceCard";
 
 const CHART_COLORS = [
   "hsl(var(--primary))",
@@ -272,6 +273,13 @@ export default function AiUsageOverviewPanel() {
               <EmptyChart>No data for this period.</EmptyChart>
             )}
           </Section>
+
+          {data.byVoiceSurface ? (
+            <AiUsageVoiceSurfaceCard
+              voiceMessages={data.byVoiceSurface.voiceMessages}
+              realtimeConversation={data.byVoiceSurface.realtimeConversation}
+            />
+          ) : null}
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Section title="Spend by mode" hint="“Other” covers insights, PDFs and tests; it is not limited.">

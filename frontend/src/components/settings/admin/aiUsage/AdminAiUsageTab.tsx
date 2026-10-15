@@ -1,5 +1,6 @@
 import AiUsageLimitsPanel from "@/components/settings/admin/aiUsage/AiUsageLimitsPanel";
 import AiUsageOverviewPanel from "@/components/settings/admin/aiUsage/AiUsageOverviewPanel";
+import AiUsageRealtimeSessionsPanel from "@/components/settings/admin/aiUsage/AiUsageRealtimeSessionsPanel";
 import AiUsageUsersPanel from "@/components/settings/admin/aiUsage/AiUsageUsersPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -19,6 +20,7 @@ export default function AdminAiUsageTab() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="limits">Limits</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="realtime">Realtime sessions</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <AiUsageOverviewPanel />
@@ -28,6 +30,9 @@ export default function AdminAiUsageTab() {
         </TabsContent>
         <TabsContent value="users">
           <AiUsageUsersPanel />
+        </TabsContent>
+        <TabsContent value="realtime">
+          <AiUsageRealtimeSessionsPanel />
         </TabsContent>
       </Tabs>
     </div>
