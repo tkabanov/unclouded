@@ -26,7 +26,7 @@ export function RealtimeTranscript({ items, className }: RealtimeTranscriptProps
 
   return (
     <div
-      className={cn("flex flex-col gap-2 overflow-y-auto px-1", className)}
+      className={cn("flex flex-col gap-2 px-1", className)}
       aria-label="Conversation transcript"
       role="log"
     >

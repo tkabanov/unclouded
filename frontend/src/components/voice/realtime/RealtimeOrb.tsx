@@ -41,11 +41,13 @@ export interface RealtimeOrbProps {
   phase: RealtimePhase;
   /** Smoothed 0..1 level (mic while the user speaks, Kota while speaking). */
   level: number;
+  /** Smaller orb once the transcript takes the space. */
+  compact?: boolean;
   className?: string;
 }
 
 /** NCLDD-57 — animated status orb; reduced motion keeps only colour + label. */
-export function RealtimeOrb({ phase, level, className }: RealtimeOrbProps) {
+export function RealtimeOrb({ phase, level, compact = false, className }: RealtimeOrbProps) {
   const reduceMotion = useReducedMotion();
   const visual = visualFor(phase);
   const levelScale = 1 + Math.min(1, Math.max(0, level)) * 0.35;
@@ -80,14 +82,20 @@ export function RealtimeOrb({ phase, level, className }: RealtimeOrbProps) {
   }
 
   return (
-    <div className={cn("flex flex-col items-center gap-4", className)}>
-      <div className="relative flex h-40 w-40 items-center justify-center sm:h-48 sm:w-48">
+    <div className={cn("flex shrink-0 flex-col items-center", compact ? "gap-2" : "gap-4", className)}>
+      <div
+        className={cn(
+          "relative flex items-center justify-center",
+          compact ? "h-24 w-24" : "h-40 w-40 sm:h-48 sm:w-48",
+        )}
+      >
         <motion.div
           data-testid="realtime-orb"
           data-visual={visual}
           aria-hidden
           className={cn(
-            "h-28 w-28 rounded-full bg-gradient-to-br shadow-lg sm:h-32 sm:w-32",
+            "rounded-full bg-gradient-to-br shadow-lg",
+            compact ? "h-16 w-16" : "h-28 w-28 sm:h-32 sm:w-32",
             COLOR[visual],
           )}
           animate={animate}

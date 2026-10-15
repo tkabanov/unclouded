@@ -116,8 +116,9 @@ export default function RealtimeConversationPanel({ onBusyChange, className }: R
         ) : null}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center gap-4 overflow-hidden px-4 py-6">
-        <RealtimeOrb phase={phase} level={conversation.level} />
+      {/* One scroll area for orb, notices and transcript; controls stay pinned in the footer. */}
+      <div className="flex min-h-0 flex-1 flex-col items-center gap-4 overflow-y-auto px-4 py-6">
+        <RealtimeOrb phase={phase} level={conversation.level} compact={showTranscript} />
 
         {conversation.playbackBlocked ? (
           <Button type="button" variant="secondary" size="sm" onClick={conversation.resumePlayback}>
@@ -152,9 +153,11 @@ export default function RealtimeConversationPanel({ onBusyChange, className }: R
         ) : null}
 
         {showTranscript ? (
-          <RealtimeTranscript items={conversation.transcript} className="w-full max-w-2xl min-h-0 flex-1" />
+          <RealtimeTranscript items={conversation.transcript} className="w-full max-w-2xl" />
         ) : null}
+      </div>
 
+      <div className="flex shrink-0 flex-col items-center gap-3 border-t border-border px-4 py-4">
         <div className="flex w-full max-w-md flex-col items-center gap-3">
           <RealtimeVoicePicker value={voice} onChange={changeVoice} locked={busy} />
 
