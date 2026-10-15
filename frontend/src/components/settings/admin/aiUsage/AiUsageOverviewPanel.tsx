@@ -440,7 +440,7 @@ export default function AiUsageOverviewPanel() {
                 </CardContent>
               </Card>
               <p className="text-xs text-muted-foreground">
-                Duration is approximate: first AI call to the session's end, or to the last AI call.
+                Duration is approximate: time between AI calls; pauses over 10 minutes count as 10 minutes.
               </p>
             </div>
           </div>
