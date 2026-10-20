@@ -30,3 +30,10 @@ frontend/.vercel
 supabase/ops/api-keys.json
 supabase/.temp/
 
+
+# Local scratch / ad-hoc ops files
+/tmp*
+scripts/__pycache__/
+scripts/_update_temp.js
+supabase/.branches/
+.playwright-mcp/
