@@ -18,8 +18,8 @@ architecture — it tracks what's left to actually ship to the stores.
 | Register bundle id `com.provenunderpressure.unclouded` in App Store Connect | TODO(owner) | Blocked on Apple Developer enrollment |
 | Register the same application id in Play Console | TODO(owner) | Blocked on Play Console account |
 | Generate/store the iOS distribution certificate + provisioning profile (or enable Xcode "Automatic" signing, already set in `project.pbxproj`) | TODO(owner) | Not started |
-| Generate the Android release signing keystore; record its SHA-256 fingerprint | TODO(owner) | Not started — **blocks `assetlinks.json`** (see `mobile/README.md` MOB-12 section) |
-| Record the Apple **Team ID**; paste into `frontend/public/.well-known/apple-app-site-association`'s `appID` (currently `TODOTEAMID.com.provenunderpressure.unclouded`) | TODO(owner) | Not started |
+| Generate the Android release signing keystore; record its SHA-256 fingerprint (plus the Play App Signing key's) as Vercel build env `ANDROID_CERT_SHA256` | TODO(owner) | Not started — **blocks `assetlinks.json`** (see §9) |
+| Record the Apple **Team ID**; set it as Vercel build env `APPLE_TEAM_ID` (generates `/.well-known/apple-app-site-association`, see §9) | TODO(owner) | Not started |
 | Decide keystore custody (who holds the release keystore + password; a lost keystore means the app can never be updated under the same listing) | TODO(owner) | Not started |
 | Create a TestFlight internal testing group and add testers | TODO(owner) | Blocked on Apple Developer enrollment |
 | Create a Play Console internal testing track and add testers | TODO(owner) | Blocked on Play Console account |
@@ -164,3 +164,37 @@ exists anywhere in the repo — all of those are still TODO(owner) per §1.
 (`*.jks`, `*.keystore`, `*.p8`, `*.p12`, `*.mobileprovision`,
 `google-services.json`, `GoogleService-Info.plist`) so a future `git add .`
 can't accidentally stage one.
+
+## 9. Client-account migration runbook
+
+The app moves to client-owned accounts (Apple Developer, Google Play,
+Firebase, Supabase, Vercel/domain, Stripe). Code holds **no** account-specific
+value outside the places below, so the move is configuration only — no code
+change. What must still *work* afterwards:
+`docs/mobile-app-wrapper-implementation-plan.md` → "Client-account migration: redirects".
+
+| Value | Where it is set | Consumers |
+|---|---|---|
+| App host (prod origin) | `mobile/app-identity.json` → `appHost`, then `cd mobile && npm run sync` (runs `scripts/apply-identity.mjs` + `cap sync`) | `capacitor.config.ts` (`server.url`, `allowNavigation`), `www/offline.html` Retry target, Android App Links intent filter, iOS associated domains |
+| Supabase host (WebView allowlist) | `mobile/app-identity.json` → `supabaseHost` | `capacitor.config.ts` `allowNavigation` |
+| Bundle / application id | `mobile/app-identity.json` → `appId` (locked, LLC-owned; not expected to change) | `capacitor.config.ts`, `android/app/build.gradle`, iOS `project.pbxproj`, generated `.well-known` files |
+| Apple Team ID | Vercel env `APPLE_TEAM_ID` (Production) | `/.well-known/apple-app-site-association`, generated at `vite build` by `frontend/src/lib/platform/wellKnownFiles.ts` |
+| Android signing SHA-256 (release key + Play App Signing key) | Vercel env `ANDROID_CERT_SHA256`, comma-separated | `/.well-known/assetlinks.json` (same generator) |
+| Web app origin | Vercel env `VITE_APP_URL` | Auth redirects (`frontend/src/lib/appUrl.ts`), share/referral/coach-form link fallbacks |
+| Supabase URL + publishable key | Vercel env `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (+ `VITE_PROMPT_TEST_*`) | Frontend client |
+| Edge redirect origin | Supabase edge secrets `APP_ORIGIN` (canonical) and `APP_ORIGINS` (extra allowed, comma-separated) | Stripe return URLs, email CTAs, invites (`supabase/functions/_shared/appOrigin.ts`). Its built-in fallback/preview list names the current Vercel project — set `APP_ORIGIN` in the client project so the fallback is never used. |
+| Firebase project | `mobile/android/app/google-services.json` and iOS `GoogleService-Info.plist` (both gitignored), edge secret `FCM_SERVICE_ACCOUNT_JSON` | Native push (`MOB-09`/`MOB-10`) |
+| VAPID keys | Vercel `VITE_VAPID_PUBLIC_KEY`; edge secrets `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push. New keys invalidate existing web-push subscriptions — users re-subscribe. |
+| Supabase Auth URLs | Client Supabase Dashboard → Auth → URL configuration: Site URL = new origin; Redirect URLs include `<origin>/reset_pw` and `<origin>/**` | Signup confirm, password reset |
+| Stripe | Client Stripe account: webhook endpoint → `<supabase>/functions/v1/stripe-webhook`, its secret in edge env; Checkout/Portal return URLs come from `appOrigin.ts` | Billing |
+
+Guard rails:
+
+- `cd mobile && npm run identity:check` fails if any native file drifted from
+  `app-identity.json` (also runs in `.github/workflows/mobile-build.yml`).
+- With `APPLE_TEAM_ID` / `ANDROID_CERT_SHA256` unset the build still succeeds
+  and writes visible `TODO` placeholders (the OS just fails link
+  verification). A malformed value fails the build instead of shipping a
+  broken file.
+- A native release is needed only if `app-identity.json` changed (host or id);
+  everything else ships with a web deploy or a secret change.

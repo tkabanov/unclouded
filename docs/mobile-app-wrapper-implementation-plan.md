@@ -7,6 +7,8 @@
 | **Audience** | Coding agents |
 | **Overrides** | None existing for mobile. `MOB-00` **must append a new `OVR-###`**: the shipped platform is a **React/Vite + Supabase** app, not Bubble — Section 10 / US-700 "Bubble wrapper" is superseded by a Capacitor wrapper around the deployed web app. |
 | **Conflict** | US-704 ("direct users to web checkout") vs Apple Guideline 3.1.1/3.1.3 (no linking out to purchase from inside the app, outside the External Purchase Link entitlement). Must be locked in `MOB-00` before any billing-related native work. |
+| **Wrapper** | **Capacitor** (locked in `MOB-00`): a native iOS/Android shell in `mobile/` that loads the deployed web app. No React Native / Flutter / Bubble wrapper. |
+| **Client-account migration** | The app will be moved to the client's own accounts (Apple Developer, Google Play, Firebase, Supabase, Vercel/domain, Stripe). After the move **all redirects must keep working** — see [Client-account migration: redirects](#client-account-migration-redirects). |
 | **Prereq** | Web app deployed at a stable production origin (control-plane task **T-018**). The wrapper loads that origin; the plan assumes `VITE_APP_URL` / prod host is final. |
 
 **How to use**
@@ -577,6 +579,30 @@ Wave 4  MOB-13 (store readiness / release ops) ──► MOB-14 (device E2E + te
 | 2 | `MOB-03` first, then `MOB-04` ‖ `MOB-05` ‖ `MOB-07`; `MOB-06` after | `MOB-04` and `MOB-06` both touch subscription code — run sequentially or split by file (`subscriptionApi` vs `subscriptionActions`/components) |
 | 3 | `MOB-09` → `MOB-10` → `MOB-11` sequential; `MOB-12` parallel to the push chain | `MOB-09` and `MOB-12` both touch the notification tap handler — `MOB-09` stubs, `MOB-12` owns routing |
 | 4 | `MOB-13` then `MOB-14` | `MOB-14` alone, needs devices |
+
+---
+
+## Client-account migration: redirects
+
+The wrapper and web app will be transferred to client-owned accounts. Every redirect must work correctly after the transfer, on web and inside the native app.
+
+Rules for all tasks:
+
+- No hard-coded origins, bundle ids, team ids, package names or project refs in code. Read them from env / `capacitor.config.ts` / one config module (`frontend/src/lib/appUrl.ts`).
+- Every redirect target is derived from the configured origin, never from a dev or agency host.
+
+Implemented (migration is config-only): mobile host/ids live in `mobile/app-identity.json` (`npm run identity` / `identity:check`); `.well-known` files are generated at build from `APPLE_TEAM_ID` / `ANDROID_CERT_SHA256`; frontend origin fallbacks read `VITE_APP_URL`. Value → location table: [`docs/mobile-app-release-ops.md` §9](./mobile-app-release-ops.md#9-client-account-migration-runbook). The checklist below needs the client accounts.
+
+Checklist to re-verify after the move (owner: `MOB-13` / `MOB-14`):
+
+- [ ] Supabase Auth: Site URL + Redirect URLs list the client origin (and the app's deep-link scheme if used); signup confirm, magic link and password reset (`/reset_pw`) land in the right place on web and in the app.
+- [ ] OAuth providers (if any): callback URLs updated in each provider console.
+- [ ] Stripe: Checkout success/cancel URLs and Customer Portal return URL point to the client origin; webhooks registered in the client Stripe account.
+- [ ] Universal links / App Links: `apple-app-site-association` and `assetlinks.json` served from the client origin with the client's team id, bundle id and signing SHA-256 (incl. Play App Signing key).
+- [ ] Capacitor `server.url`, `allowNavigation` and app-link intent filters / associated domains use the client domain.
+- [ ] Push notification payload links (FCM/APNs in the client Firebase/Apple accounts) open the correct in-app route.
+- [ ] External flows opened via `openExternalUrl` (Stripe portal, Meet/Calendar, LinkedIn share) return to the app/origin correctly.
+- [ ] Old host → new host redirects (301) in place if the domain changes, without breaking `/.well-known/*` (must be served directly, no redirect).
 
 ---
 

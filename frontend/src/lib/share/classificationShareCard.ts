@@ -49,8 +49,9 @@ export function buildClassificationShareCardMetadata(params: {
 
 /** Personal referral signup link (no classification card required). */
 export function buildReferralShareUrl(referralCode: string, origin?: string): string {
-  // Default to the app's own origin: uncloud360.ai does not serve the app yet.
-  const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "https://uncloud360.ai";
+  // Default to the app's own origin; no hard-coded host (client-account migration).
+  const fallbackOrigin =
+    typeof window !== "undefined" ? window.location.origin : (import.meta.env.VITE_APP_URL ?? "");
   const resolvedOrigin = (origin ?? fallbackOrigin).replace(/\/$/, "");
   const code = generateReferralCode(referralCode);
   return `${resolvedOrigin}/signup?ref=${encodeURIComponent(code)}`;

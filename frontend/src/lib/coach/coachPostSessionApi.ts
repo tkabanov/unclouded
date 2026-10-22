@@ -24,7 +24,7 @@ export function coachPostSessionFormUrl(token: string): string {
   const origin =
     typeof window !== "undefined" && window.location.origin
       ? window.location.origin
-      : "https://uncloud360.vercel.app";
+      : (import.meta.env.VITE_APP_URL ?? "");
   return `${origin}/coach-session/${encodeURIComponent(trimmed)}`;
 }
 

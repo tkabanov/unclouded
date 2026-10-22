@@ -30,13 +30,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Native files match app-identity.json
+        run: npm run identity:check
+
       - name: Sync Capacitor
         run: npx cap sync android
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          # capacitor-android compiles with sourceCompatibility 21 (mobile/README.md).
+          java-version: "21"
 
       - name: Assemble debug APK
         working-directory: mobile/android

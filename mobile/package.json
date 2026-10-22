@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "description": "Capacitor native shell (iOS + Android) wrapping the deployed Unclouded web app.",
   "scripts": {
-    "sync": "cap sync",
+    "identity": "node scripts/apply-identity.mjs",
+    "identity:check": "node scripts/apply-identity.mjs --check",
+    "sync": "node scripts/apply-identity.mjs && cap sync",
     "open:ios": "cap open ios",
     "open:android": "cap open android",
     "build:android": "cd android && gradlew assembleDebug"

@@ -145,7 +145,7 @@ export default function ClassificationShareCard({
   }, [user]);
 
   const resolvedOrigin =
-    origin ?? (typeof window !== "undefined" ? window.location.origin : "https://uncloud360.ai");
+    origin ?? (typeof window !== "undefined" ? window.location.origin : (import.meta.env.VITE_APP_URL ?? ""));
 
   const card = useMemo(
     () =>

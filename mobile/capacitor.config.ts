@@ -1,4 +1,6 @@
 import type { CapacitorConfig } from "@capacitor/cli";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * MOB-00 lock: the shell loads the deployed web app via `server.url` (no
@@ -14,14 +16,28 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * The `appendUserAgent` marker format (`UncloudedApp/<version> (<platform>)`)
  * is fixed by MOB-02's `nativeApp.ts` UA_MARKER_PATTERN — changing it here
  * requires updating that regex too.
+ *
+ * Origin/identity values live only in `app-identity.json` (client-account
+ * migration: edit that file, run `npm run identity`, then `npx cap sync`).
  */
-const APP_VERSION = "1.0.0";
-const PROD_ORIGIN = "uncloud360.vercel.app";
-const SUPABASE_HOST = "szkextipgpupqoppccoy.supabase.co";
+type AppIdentity = {
+  appId: string;
+  appName: string;
+  appVersion: string;
+  appHost: string;
+  supabaseHost: string;
+};
+
+const identity: AppIdentity = JSON.parse(
+  readFileSync(join(__dirname, "app-identity.json"), "utf8"),
+);
+const APP_VERSION = identity.appVersion;
+const PROD_ORIGIN = identity.appHost;
+const SUPABASE_HOST = identity.supabaseHost;
 
 const config: CapacitorConfig = {
-  appId: "com.provenunderpressure.unclouded",
-  appName: "Unclouded",
+  appId: identity.appId,
+  appName: identity.appName,
   webDir: "www",
   server: {
     url: `https://${PROD_ORIGIN}`,

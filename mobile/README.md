@@ -45,8 +45,18 @@ npx cap open ios       # opens ios/App/App.xcworkspace in Xcode (macOS only)
 
 Run/debug from the IDE as normal. The app loads `capacitor.config.ts`'s
 `server.url` (production origin) — to point at a local dev build instead,
-temporarily change `PROD_ORIGIN` in `capacitor.config.ts` to your machine's
-LAN IP + Vite dev port and re-run `cap sync` (never commit that change).
+temporarily change `appHost` in `app-identity.json` to your machine's
+LAN IP + Vite dev port and re-run `npm run sync` (never commit that change).
+
+## Origin / identity config
+
+`app-identity.json` is the only place the app host, Supabase host, bundle id,
+display name and version are written. `capacitor.config.ts` reads it;
+`scripts/apply-identity.mjs` (`npm run identity`, also part of `npm run sync`)
+writes the same values into `www/offline.html`, the Android App Links intent
+filter, the iOS associated-domains entitlement, `build.gradle` and the Xcode
+project. `npm run identity:check` fails on drift. Client-account migration
+steps: `docs/mobile-app-release-ops.md` §9.
 
 ## Where things live
 
@@ -70,18 +80,18 @@ LAN IP + Vite dev port and re-run `cap sync` (never commit that change).
   Gradle/Xcode boilerplate beyond what's documented here.
 - **MOB-12 deep links** — `ios/App/App/App.entitlements` (associated domains)
   and the `AndroidManifest.xml` App Links `<intent-filter android:autoVerify="true">`
-  both point at `uncloud360.vercel.app`; the matching
-  `frontend/public/.well-known/apple-app-site-association` and `assetlinks.json`
-  files must be reachable at that origin for the OS to verify the link once
+  both point at `appHost` from `app-identity.json`; the matching
+  `/.well-known/apple-app-site-association` and `assetlinks.json` (generated
+  at `vite build` by `frontend/src/lib/platform/wellKnownFiles.ts`) must be
+  reachable at that origin for the OS to verify the link once
   deployed (Vercel is configured in `vercel.json` to serve `.well-known/*`
   as-is with the right content type, instead of falling through to the SPA
-  rewrite). Two values in those two files are placeholders that only exist
-  once the real accounts/keys do (**MOB-13**, human ops):
-  - `apple-app-site-association`'s `appID` needs the real Apple Developer
-    **Team ID** prefix (currently `TODOTEAMID.com.provenunderpressure.unclouded`).
-  - `assetlinks.json`'s `sha256_cert_fingerprints` needs the SHA-256
-    fingerprint of the release signing keystore (`keytool -list -v -keystore
-    <path> | grep SHA256`), once that keystore exists.
+  rewrite). Two values come from Vercel build env and stay `TODO`
+  placeholders until the real accounts/keys exist (**MOB-13**, human ops):
+  - `APPLE_TEAM_ID` — Apple Developer **Team ID** (prefix of `appID`).
+  - `ANDROID_CERT_SHA256` — comma-separated SHA-256 fingerprints of the
+    release keystore (`keytool -list -v -keystore <path> | grep SHA256`) and
+    the Play App Signing key.
   - In-app routing: `frontend/src/lib/platform/deepLinkRouting.ts` (+
     `DeepLinkListener` mounted in `App.tsx`) maps an incoming URL to an
     in-app route only when it's same-origin; anything else opens externally

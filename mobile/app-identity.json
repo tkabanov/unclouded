@@ -1,0 +1,7 @@
+{
+  "appId": "com.provenunderpressure.unclouded",
+  "appName": "Unclouded",
+  "appVersion": "1.0.0",
+  "appHost": "uncloud360.vercel.app",
+  "supabaseHost": "szkextipgpupqoppccoy.supabase.co"
+}
