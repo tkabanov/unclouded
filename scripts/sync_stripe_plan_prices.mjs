@@ -12,7 +12,7 @@
  *   STRIPE_SECRET_KEY=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/sync_stripe_plan_prices.mjs
  *
  * After this, set the same STRIPE_SECRET_KEY on Supabase Edge Functions:
- *   npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... --project-ref szkextipgpupqoppccoy
+ *   npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... --project-ref <project-ref>
  */
 import { createRequire } from "node:module";
 
@@ -21,7 +21,12 @@ const { createClient } = require("@supabase/supabase-js");
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim();
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-const SUPABASE_URL = process.env.SUPABASE_URL ?? "https://szkextipgpupqoppccoy.supabase.co";
+const SUPABASE_URL = process.env.SUPABASE_URL?.trim();
+
+if (!SUPABASE_URL) {
+  console.error("Missing SUPABASE_URL");
+  process.exit(1);
+}
 
 if (!STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY");
@@ -184,7 +189,7 @@ async function main() {
   await syncSuccessPlanAddonPrice(admin);
 
   console.log("\nDone. Deploy secret if needed:");
-  console.log("  npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... --project-ref szkextipgpupqoppccoy");
+  console.log("  npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... --project-ref <project-ref>");
 }
 
 main().catch((err) => {

@@ -19,6 +19,7 @@
  *
  * Optional:
  *   OAUTH_PORT=53682
+ *   SUPABASE_PROJECT_REF=<ref>  (fills the printed `secrets set` commands)
  */
 import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
@@ -27,7 +28,7 @@ const CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim();
 const CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim();
 const PORT = Number(process.env.OAUTH_PORT ?? 53682);
 const SCOPE = "https://www.googleapis.com/auth/calendar";
-const PROJECT_REF = "szkextipgpupqoppccoy";
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF?.trim() || "<project-ref>";
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error("Missing GOOGLE_OAUTH_CLIENT_ID and/or GOOGLE_OAUTH_CLIENT_SECRET");

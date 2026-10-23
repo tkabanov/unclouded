@@ -37,7 +37,12 @@ const here = dirname(fileURLToPath(import.meta.url));
 loadDotEnvFile(join(here, ".env.local"));
 loadDotEnvFile(join(here, ".env"));
 
-const SUPABASE_URL = process.env.SUPABASE_URL ?? "https://szkextipgpupqoppccoy.supabase.co";
+const SUPABASE_URL = process.env.SUPABASE_URL?.trim();
+
+if (!SUPABASE_URL) {
+  console.error("Missing SUPABASE_URL");
+  process.exit(1);
+}
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = "qwerty123";
 const EMAIL = process.env.SEED_EMAIL ?? "csc-first@test.com";
