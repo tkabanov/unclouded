@@ -37,21 +37,17 @@ export async function changePassword(
 
 export { sendPasswordResetEmail } from "@/lib/auth/passwordResetApi";
 
-type UntypedSupabase = {
-  from: (table: string) => ReturnType<typeof supabase.from>;
-};
-
-/** delete-confirm-btn workflow parity: erase user-owned rows then sign out. */
-export async function requestAccountDeletion(userId: string): Promise<void> {
-  const client = supabase as unknown as UntypedSupabase;
-  const { error: journalError } = await client
-    .from("journalEntry")
-    .delete()
-    .eq("userId", userId);
-  if (journalError) throw journalError;
-
-  const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId);
-  if (profileError) throw profileError;
+/**
+ * NCLDD-63 (OVR-081): full account deletion via the `delete-account` edge function — cancels
+ * Stripe, removes stored files and deletes the auth user (all data cascades). Then signs out.
+ */
+export async function requestAccountDeletion(): Promise<void> {
+  const { data, error } = await supabase.functions.invoke("delete-account", {
+    body: { confirm: true },
+  });
+  if (error || (data as { ok?: boolean } | null)?.ok !== true) {
+    throw new Error("Couldn't delete your account. Please contact support.");
+  }
 
   await signOutEverywhere();
 }

@@ -1,4 +1,5 @@
 import { buildChatContextBlock } from "./prompt/chatContext.ts";
+import { buildImportedContextBlock } from "./prompt/importedContext.ts";
 import {
   buildBasePromptBlock,
   buildPlatformRulesBlock,
@@ -420,6 +421,8 @@ export function buildSystemPrompt(
     ),
   );
   blocks.push(buildUserDataBlock(safeProfile, confidenceLevel));
+  const importedContextBlock = buildImportedContextBlock(safeProfile.importedContext);
+  if (importedContextBlock) blocks.push(importedContextBlock);
   blocks.push(buildChatContextBlock(safeProfile));
 
   if (context?.trim()) {

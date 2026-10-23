@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import SettingsAboutYouSection from "@/components/settings/SettingsAboutYouSection";
 import { SettingsAiInsightsConsentSection } from "@/components/settings/SettingsAiInsightsConsentSection";
 import SettingsEnrollmentCodeSection from "@/components/settings/SettingsEnrollmentCodeSection";
+import SettingsImportedContextSection from "@/components/settings/SettingsImportedContextSection";
 import SettingsKnowYourselfSection from "@/components/settings/SettingsKnowYourselfSection";
 import SettingsReferralStatsSection from "@/components/settings/SettingsReferralStatsSection";
 import {
@@ -203,6 +204,8 @@ export default function SettingsProfileTab() {
         onRoleTypesChange={(roles) => updateField("roleTypes", roles)}
         onChange={updateAboutYouField}
       />
+
+      <SettingsImportedContextSection />
 
       <SettingsWorkplaceAggregateOptInSection />
 

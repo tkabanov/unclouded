@@ -76,7 +76,7 @@ export default function SettingsSecurityTab() {
     if (!user || deleting) return;
     setDeleting(true);
     try {
-      await requestAccountDeletion(user.id);
+      await requestAccountDeletion();
       toast.success("Your account and data have been deleted.");
       setDeleteOpen(false);
       navigate("/", { replace: true });

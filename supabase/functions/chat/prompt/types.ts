@@ -64,6 +64,8 @@ export type ProfileData = {
   liveContext?: ChatLiveContext | null;
   aboutYou?: AboutYouProfileData | null;
   moduleProfile?: ModuleProfileFields | null;
+  /** NCLDD-63: user-imported background text (exists only with consent). */
+  importedContext?: string | null;
 };
 
 export interface ChatLatestCheckIn {

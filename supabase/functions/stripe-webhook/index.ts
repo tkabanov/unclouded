@@ -96,6 +96,19 @@ async function syncSubscription(
     return null;
   }
 
+  // NCLDD-63: delete-account cancels Stripe before removing the user; the follow-up
+  // subscription events must not fail (and retry) on the now-missing user.
+  const { data: profileRow, error: profileError } = await service
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+  if (profileError) throw new Error(`Couldn't check profile: ${profileError.message}`);
+  if (!profileRow) {
+    console.warn(`stripe-webhook: user ${userId} no longer exists (subscription ${subscription.id})`);
+    return null;
+  }
+
   await syncStripeSubscriptionForUser(service, prices, userId, subscription);
 
   if (customerId) {

@@ -145,6 +145,27 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 /**
+ * NCLDD-63: user-imported background text (owner RLS). Missing table or read error → null, so chat
+ * keeps working when this ships before the migration.
+ */
+async function loadImportedContext(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("userImportedContext")
+    .select("content")
+    .eq("userId", userId)
+    .maybeSingle();
+  if (error) {
+    console.warn("chat: imported context unavailable", error.message);
+    return null;
+  }
+  const content = (data as { content?: unknown } | null)?.content;
+  return typeof content === "string" && content.trim() ? content : null;
+}
+
+/**
  * Load profile fields and liveContext for the authenticated user — all server truth.
  */
 export async function loadServerProfile(
@@ -162,7 +183,10 @@ export async function loadServerProfile(
 
   const row = data as ProfileRow;
   const onboardingData = asRecord(row.onboardingData);
-  const liveContext = await loadServerLiveContext(supabase, userId, onboardingData);
+  const [liveContext, importedContext] = await Promise.all([
+    loadServerLiveContext(supabase, userId, onboardingData),
+    loadImportedContext(supabase, userId),
+  ]);
 
   const aboutYou = {
     ageRange: typeof row.ageRange === "string" ? row.ageRange : null,
@@ -239,5 +263,6 @@ export async function loadServerProfile(
     liveContext,
     aboutYou: hasAboutYou ? aboutYou : null,
     moduleProfile,
+    importedContext,
   };
 }
