@@ -133,7 +133,6 @@ export const LANDING_MONTHLY_PRICES = {
   free: 0,
   pro: 29,
   premium: 79,
-  foundingPro: 19,
 } as const;
 
 export const LANDING_YEARLY_PRICES = {
@@ -141,26 +140,41 @@ export const LANDING_YEARLY_PRICES = {
   premium: 790,
 } as const;
 
-/** Short feature bullets for the landing pricing section (aligned with card descriptions). */
-export const LANDING_PLAN_BULLETS: Record<TierSlug, readonly string[]> = {
+export type LandingPlanBullet = {
+  label: string;
+  /** Live coaching items render first with a "Live" tag. */
+  live?: boolean;
+};
+
+/** Landing-only taglines (the subscription screen keeps `PLAN_CATALOG` taglines). */
+export const LANDING_PLAN_TAGLINES: Record<TierSlug, string> = {
+  [TIER.FREE]: "Your full PuP 360 diagnostic, AI coaching, and journal.",
+  [TIER.PRO]: "Unlimited AI coaching plus live group coaching every month.",
+  [TIER.PREMIUM]: "Everything in Pro, plus private 1:1 live coaching.",
+};
+
+/** Short feature bullets for the landing pricing section (NCLDD-60 client copy). */
+export const LANDING_PLAN_BULLETS: Record<TierSlug, readonly LandingPlanBullet[]> = {
   [TIER.FREE]: [
-    "7 AI coaching sessions per month",
-    "3 Free-tier guided coaching paths",
-    "Daily check-in & journal",
-    "Crisis resources always available",
+    { label: "3 AI coaching sessions per month (up to 1 hour each)" },
+    { label: "3 Free-tier guided paths" },
+    { label: "Daily check-in & journal; crisis resources always available" },
   ],
   [TIER.PRO]: [
-    "Unlimited AI coaching sessions",
-    "40+ Free and Pro guided coaching paths",
-    "90-day reassessment with PDF summary",
-    "One group coaching session per month",
-    "AI journal reflection",
+    { label: "1 live group coaching session per month", live: true },
+    { label: "Unlimited AI coaching sessions (up to 1 hour each)" },
+    { label: "40+ Free and Pro guided paths" },
+    { label: "90-day reassessment with PDF summary" },
+    { label: "AI journal reflection; everything in Free" },
   ],
   [TIER.PREMIUM]: [
-    "Everything in Pro",
-    "Monthly credits for 30-minute 1:1 sessions",
-    "All 55 paths including Premium-only content",
-    "On-demand reassessment after day 30",
-    "Full PuP 360 PDF diagnostic report",
+    {
+      label: "Live 1:1 sessions each month (30 minutes each) + 1 live group session per month",
+      live: true,
+    },
+    { label: "Unlimited AI coaching sessions (up to 1 hour each)" },
+    { label: "All 55 guided paths, including Premium-only content" },
+    { label: "On-demand reassessment after day 30 + full PuP 360 PDF diagnostic report" },
+    { label: "Everything in Pro" },
   ],
 };

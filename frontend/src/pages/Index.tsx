@@ -15,11 +15,13 @@ import {
   Check,
   Building2,
   BarChart3,
+  TrendingUp,
   Star,
   Heart,
   Phone,
   MessageCircle,
   Plus,
+  Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,15 +48,16 @@ import {
   readReferralCodeFromSearch,
 } from "@/lib/share/referralAttribution";
 import { recordReferralLinkVisit } from "@/lib/share/referralLinkClick";
-import { capturePlanFromSearch, FOUNDING_SIGNUP_PLAN } from "@/lib/share/planAttribution";
+import { capturePlanFromSearch } from "@/lib/share/planAttribution";
 import { captureUtmFromSearch } from "@/lib/share/utmAttribution";
 import { subscriptionPath } from "@/lib/subscription/routes";
 import { TIER } from "@/lib/enums/tier";
 import {
   LANDING_MONTHLY_PRICES,
   LANDING_PLAN_BULLETS,
+  LANDING_PLAN_TAGLINES,
   LANDING_YEARLY_PRICES,
-  planCatalogEntry,
+  type LandingPlanBullet,
 } from "@/lib/subscription/planCatalog";
 
 /* ── shared bits ─────────────────────────────────────── */
@@ -112,6 +115,28 @@ function FeatureCard({
   );
 }
 
+function PlanBullet({ bullet, inverted }: { bullet: LandingPlanBullet; inverted?: boolean }) {
+  return (
+    <li className={cn("flex items-start gap-3 text-sm", !inverted && "text-foreground")}>
+      <Check className={cn("mt-0.5 h-4 w-4 shrink-0", !inverted && "text-primary")} />
+      <span>
+        {bullet.live ? (
+          <span
+            className={cn(
+              "mr-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+              inverted ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground",
+            )}
+          >
+            <Video className="h-3 w-3" />
+            Live
+          </span>
+        ) : null}
+        {bullet.label}
+      </span>
+    </li>
+  );
+}
+
 /* ── page ────────────────────────────────────────────── */
 
 const SIGNUP_PATH = "/signup";
@@ -135,17 +160,6 @@ const Index = () => {
   const openSubscriptionFromLanding = () => {
     if (authenticated) {
       goToSubscriptionManagement();
-      return;
-    }
-    pendingSubscriptionScreenRef.current = true;
-    setSignupOpen(false);
-    setLoginOpen(true);
-  };
-
-  const openFoundingFromLanding = () => {
-    capturePlanFromSearch(`?plan=${FOUNDING_SIGNUP_PLAN}`);
-    if (authenticated) {
-      navigate(subscriptionPath({ plan: FOUNDING_SIGNUP_PLAN }));
       return;
     }
     pendingSubscriptionScreenRef.current = true;
@@ -363,9 +377,9 @@ const Index = () => {
               <span className="bg-gradient-brand bg-clip-text text-transparent">Move forward.</span>
             </h1>
             <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-              Uncloud360 is your private AI coaching companion — helping you grow professionally,
-              emotionally, and personally. Not therapy. Not medical advice. Just clear, intelligent
-              coaching built around you.
+              Uncloud360 starts by understanding you. Take the PuP 360 diagnostic, discover your
+              classification, and get AI coaching that adapts as you grow: professionally,
+              emotionally, and personally. Not therapy. Not medical advice.
             </p>
             <div
               className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
@@ -390,7 +404,7 @@ const Index = () => {
                   className={cn("group w-full sm:w-auto", bubbleStyle("Button_primary_"))}
                   onClick={() => start("signup")}
                 >
-                  Get Started Free
+                  Take the Free Diagnostic
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               )}
@@ -414,26 +428,25 @@ const Index = () => {
               <div className="mb-5 flex justify-center">
                 <SectionTag icon={Lightbulb}>How It Works</SectionTag>
               </div>
-              <h2 className="text-3xl font-bold text-foreground md:text-4xl">Coaching built for real life</h2>
+              <h2 className="text-3xl font-bold text-foreground md:text-4xl">Coaching that starts with you</h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                Uncloud360 learns your goals, adapts to your mode, and delivers intelligent coaching —
-                all while keeping your data completely private. Your employer never sees your personal
-                conversations or journal entries.
+                Uncloud360 begins with the PuP 360 diagnostic. From there, every conversation is
+                tailored to your classification, goals, and history, and your data stays private.
               </p>
             </div>
 
             <div className="mt-12 grid gap-6 md:grid-cols-3">
-              <FeatureCard icon={UserCircle2} title="Set your mode">
-                Choose your primary coaching focus — Life &amp; Health, Professional, or Emotional — and
-                pick a sub-mode that fits where you are right now.
+              <FeatureCard icon={UserCircle2} title="Discover your classification">
+                Start with the PuP 360 diagnostic. Your results identify your classification and set
+                your starting coaching focus.
               </FeatureCard>
-              <FeatureCard icon={MessageSquare} title="Chat, journal, grow">
-                Talk to your AI coach, keep a private journal, complete guided paths, and log daily
-                check-ins. Everything adapts to your current focus and history.
+              <FeatureCard icon={MessageSquare} title="Coaching that adapts">
+                Chat with your AI coach, journal, complete guided paths, and check in daily. As your
+                conversations evolve, your coaching focus adjusts with you.
               </FeatureCard>
-              <FeatureCard icon={Lock} title="Your data stays yours">
-                All personal entries are private to you. If your employer sponsors your account, they
-                only ever see anonymized, aggregate-level trends — never your individual data.
+              <FeatureCard icon={TrendingUp} title="Track your growth">
+                Reassess over time and see real progress. Your data stays yours. If your employer
+                sponsors your account, they only see anonymized, aggregate trends.
               </FeatureCard>
             </div>
 
@@ -458,8 +471,8 @@ const Index = () => {
               One app, every dimension of growth
             </h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Switch between modes at any time. Your history travels with you — only the focus and tone
-              shift to match where you are.
+              Your classification sets your starting focus. As you grow, your coaching shifts with you,
+              and you can change focus anytime. Your history always travels with you.
             </p>
           </div>
 
@@ -476,7 +489,6 @@ const Index = () => {
                 title: "Professional",
                 desc: "Accelerate your career, sharpen your executive presence, manage workplace stress, and navigate the complexities of modern professional life.",
                 subs: ["Executive Coaching", "Career Growth", "Stress & Burnout"],
-                highlighted: true,
               },
               {
                 icon: Brain,
@@ -487,10 +499,7 @@ const Index = () => {
             ].map((mode) => (
               <Card
                 key={mode.title}
-                className={cn(
-                  "h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
-                  mode.highlighted ? "border-primary ring-1 ring-primary/30 shadow-md" : "border-border"
-                )}
+                className="h-full border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
                 <CardContent className="p-7 space-y-4">
                   <div className="flex items-center gap-3">
@@ -528,8 +537,8 @@ const Index = () => {
               </div>
               <h2 className="text-3xl font-bold text-foreground md:text-4xl">Simple, transparent pricing</h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                Start free. Upgrade when you're ready. All plans include crisis resources and a
-                coaching-only AI that respects your privacy.
+                Start free with your full PuP 360 diagnostic. Upgrade when you're ready. Every plan
+                includes crisis resources and private, coaching-only AI.
               </p>
             </div>
 
@@ -544,13 +553,10 @@ const Index = () => {
                     <span className="text-4xl font-extrabold text-foreground">$0</span>
                     <span className="text-muted-foreground"> /month</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{planCatalogEntry(TIER.FREE).tagline}</p>
+                  <p className="text-sm text-muted-foreground">{LANDING_PLAN_TAGLINES[TIER.FREE]}</p>
                   <ul className="space-y-3 pt-1">
                     {LANDING_PLAN_BULLETS[TIER.FREE].map((f) => (
-                      <li key={f} className="flex items-center gap-3 text-sm text-foreground">
-                        <Check className="h-4 w-4 shrink-0 text-primary" />
-                        {f}
-                      </li>
+                      <PlanBullet key={f.label} bullet={f} />
                     ))}
                   </ul>
                   {!authenticated && (
@@ -592,32 +598,12 @@ const Index = () => {
                   <p className="text-sm opacity-90">
                     Or ${LANDING_YEARLY_PRICES.pro}/year — save 2 months
                   </p>
-                  <p className="text-sm opacity-90">
-                    Founding Member: ${LANDING_MONTHLY_PRICES.foundingPro}/mo for your first 12 months
-                    (first 100 members).
-                  </p>
-                  <p className="text-sm opacity-90">{planCatalogEntry(TIER.PRO).tagline}</p>
+                  <p className="text-sm opacity-90">{LANDING_PLAN_TAGLINES[TIER.PRO]}</p>
                   <ul className="space-y-3 pt-1">
                     {LANDING_PLAN_BULLETS[TIER.PRO].map((f) => (
-                      <li key={f} className="flex items-center gap-3 text-sm">
-                        <Check className="h-4 w-4 shrink-0" />
-                        {f}
-                      </li>
+                      <PlanBullet key={f.label} bullet={f} inverted />
                     ))}
                   </ul>
-                  {!authenticated ? (
-                    <Button
-                      data-style-ref="Button_outline_"
-                      variant="outline"
-                      className={cn(
-                        "w-full border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10",
-                        bubbleStyle("Button_outline_"),
-                      )}
-                      onClick={openFoundingFromLanding}
-                    >
-                      Join as Founding Member
-                    </Button>
-                  ) : null}
                   {authenticated ? (
                     <Button
                       data-style-ref="Button_primary_"
@@ -659,13 +645,10 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground">
                     Or ${LANDING_YEARLY_PRICES.premium}/year — save 2 months
                   </p>
-                  <p className="text-sm text-muted-foreground">{planCatalogEntry(TIER.PREMIUM).tagline}</p>
+                  <p className="text-sm text-muted-foreground">{LANDING_PLAN_TAGLINES[TIER.PREMIUM]}</p>
                   <ul className="space-y-3 pt-1">
                     {LANDING_PLAN_BULLETS[TIER.PREMIUM].map((f) => (
-                      <li key={f} className="flex items-center gap-3 text-sm text-foreground">
-                        <Check className="h-4 w-4 shrink-0 text-primary" />
-                        {f}
-                      </li>
+                      <PlanBullet key={f.label} bullet={f} />
                     ))}
                   </ul>
                   {authenticated ? (
@@ -701,23 +684,24 @@ const Index = () => {
             </div>
             <h2 className="text-3xl font-bold text-foreground md:text-4xl">Coaching as an employee benefit</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Partner with Uncloud360 to give your team private, AI-powered coaching that supports
-              resilience, focus, and growth — without compromising individual privacy.
+              Give your team private, AI-powered coaching, and give leadership real insight into how
+              your workforce is evolving, without compromising individual privacy.
             </p>
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             <FeatureCard icon={Lock} title="Total employee privacy">
-              Personal conversations, journal entries, and check-ins are completely private. Employers
-              never see individual records — guaranteed.
+              Personal conversations, journal entries, and check-ins stay private. Employers never see
+              individual records, because privacy is built into the platform by design.
             </FeatureCard>
-            <FeatureCard icon={BarChart3} title="Anonymized team insights">
-              Leadership receives aggregate wellness trends and engagement metrics — no names, no
-              drill-down. Understand your team without surveilling them.
+            <FeatureCard icon={BarChart3} title="Real insights, over time">
+              Watch how your team's scores evolve across stability, performance, and alignment. You
+              see anonymized, aggregate trends only, with no names and no drill-down. Understand your
+              team without surveilling them.
             </FeatureCard>
-            <FeatureCard icon={Star} title="Pro access for your whole team">
-              Workplace-linked employees automatically receive Pro-tier access to all coaching modes,
-              guided paths, journal AI reflections, and advanced insights.
+            <FeatureCard icon={Star} title="Coaching for your whole team">
+              Sponsored employees receive Pro or Premium access, depending on your plan. That
+              includes all coaching modes, guided paths, journal AI reflections, and live coaching.
             </FeatureCard>
           </div>
 
@@ -759,7 +743,7 @@ const Index = () => {
               {[
                 { icon: Phone, title: "988 Suicide & Crisis Lifeline", action: "Call or text 988", note: "Available 24/7, free and confidential", href: "tel:988" },
                 { icon: MessageCircle, title: "Crisis Text Line", action: "Text HOME to 741741", note: "Free 24/7 crisis counseling via text", href: "sms:741741" },
-                { icon: Plus, title: "SAMHSA Helpline", action: "1-800-662-4357", note: "Substance use & mental health referrals", href: "tel:1-800-662-4357" },
+                { icon: Plus, title: "SAMHSA National Helpline", action: "1-800-662-4357", note: "Substance use & mental health referrals", href: "tel:1-800-662-4357" },
               ].map((c) => (
                 <Card key={c.title} className="h-full">
                   <CardContent className="p-6 text-center space-y-2">
