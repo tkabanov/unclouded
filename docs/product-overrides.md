@@ -794,5 +794,16 @@ When implementing or restoring UI/flows, **prefer this file over Bubble/Lovable/
 | **Date** | 2026-10-23 |
 | **Overrides** | Bubble/Lovable landing copy ("Set your mode", "Get Started Free" hero CTA, Founding Member line + "Join as Founding Member" button on the Pro card, "SAMHSA Helpline") |
 | **Authoritative spec** | YouTrack NCLDD-60, client doc "Uncloud360 Landing Page Copy Update" (2026-10-22) |
-| **Current behavior** | The public landing page (`/`) leads with the PuP 360 diagnostic (hero CTA "Take the Free Diagnostic"), How It Works is classification-first, and the Professional mode card no longer has a highlighted border. Pricing cards show Free = 3 AI sessions/month, every AI session capped at 1 hour, and live coaching items first with a "Live" tag on Pro and Premium. The landing page no longer shows the Founding Member offer (the subscription screens and backend are unchanged). Workplace copy says leadership sees score trends over time; the word "guaranteed" is removed. Third crisis card is "SAMHSA National Helpline". **Landing-only:** `PLAN_CATALOG` / subscription screens / backend still say Free = 7 sessions until the client confirms; the Premium 1:1 session count is still undecided, so the card says "Live 1:1 sessions each month (30 minutes each)" without a number. |
+| **Current behavior** | The public landing page (`/`) leads with the PuP 360 diagnostic (hero CTA "Take the Free Diagnostic"), How It Works is classification-first, and the Professional mode card no longer has a highlighted border. Pricing cards show Free = 3 AI sessions/month, every AI session capped at 1 hour, and live coaching items first with a "Live" tag on Pro and Premium. The landing page no longer shows the Founding Member offer (see OVR-079 for the closed campaign). Workplace copy says leadership sees score trends over time; the word "guaranteed" is removed. Third crisis card is "SAMHSA National Helpline". **Landing-only:** `PLAN_CATALOG` / subscription screens / backend still say Free = 7 sessions until the client confirms; the Premium 1:1 session count is still undecided, so the card says "Live 1:1 sessions each month (30 minutes each)" without a number. |
 | **Code** | `frontend/src/pages/Index.tsx`, `frontend/src/lib/subscription/planCatalog.ts` (`LANDING_PLAN_BULLETS`, `LANDING_PLAN_TAGLINES`) |
+
+### OVR-079 — Founding Member campaign closed to new users
+
+| | |
+|---|---|
+| **Date** | 2026-10-23 |
+| **Overrides** | OVR-026 (campaign entry: `?plan=founding` link, "Become a Founding Member" card, $19 checkout for new users) |
+| **Authoritative spec** | Developer instruction 2026-10-23 (NCLDD-60: "remove Founding Member completely") |
+| **Current behavior** | Nobody new can enter the campaign: `?plan=founding` is ignored (not stored, not sent as signup metadata), `isFoundingEligible` is true **only** for users who are already `isFoundingMember`, so the subscription screen no longer shows the founding offer and `stripe-checkout` charges standard $29 Pro to everyone else (including users whose profile still has `signupPlan = founding`). **Existing members are untouched**: they keep $19 until the 12-month conversion, the lifecycle cron, forfeit rules, cancel/upgrade warnings and the Founding label from OVR-026 still apply. DB tables, RPCs, Stripe prices and email templates were not removed. |
+| **Code** | `frontend/src/lib/share/planAttribution.ts` (+ test), `supabase/functions/_shared/foundingMember.ts` (used by `stripe-checkout`) |
+| **Deploy** | Redeploy edge function `stripe-checkout`, then the frontend. |

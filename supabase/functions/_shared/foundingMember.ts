@@ -17,15 +17,12 @@ export type FoundingEligibilityInput = {
 };
 
 /**
- * Whether the discounted Pro rate should be used. Already-enrolled members keep
- * it; new users qualify only when they arrived through the founding campaign.
- * Once forfeited (Premium upgrade or cancel→expiry), the offer cannot return.
- * The 100-slot cap is enforced in SQL by `claim_founding_member_slot`.
+ * Whether the discounted Pro rate should be used. The campaign is closed
+ * (OVR-079): only already-enrolled members keep the rate; `signupPlan` no
+ * longer qualifies anyone new.
  */
 export function isFoundingEligible(input: FoundingEligibilityInput): boolean {
-  if (input.isFoundingMember === true) return true;
-  if (input.foundingDiscountForfeitedAt) return false;
-  return (input.signupPlan ?? "").trim().toLowerCase() === FOUNDING_SIGNUP_PLAN;
+  return input.isFoundingMember === true;
 }
 
 /** Date on which the discount ends and standard Pro pricing begins. */

@@ -6,12 +6,12 @@ export const FOUNDING_SIGNUP_PLAN = "founding";
 
 const PENDING_SIGNUP_PLAN_STORAGE_KEY = "uncloud360.pendingSignupPlan";
 
-/** Normalize and validate an inbound signup plan from a marketing link. */
-export function normalizeSignupPlan(raw: string | null | undefined): string | null {
-  if (!raw?.trim()) return null;
-  const normalized = raw.trim().toLowerCase();
-  if (normalized !== FOUNDING_SIGNUP_PLAN) return null;
-  return normalized;
+/**
+ * Normalize an inbound signup plan from a marketing link. The only plan that ever
+ * existed was `founding`; the campaign is closed (OVR-079), so nothing is accepted.
+ */
+export function normalizeSignupPlan(_raw: string | null | undefined): string | null {
+  return null;
 }
 
 export function readPlanFromSearch(search: string): string | null {
@@ -66,7 +66,5 @@ export type FoundingEligibilityInput = {
 
 /** Mirrors `supabase/functions/_shared/foundingMember.ts` — UI price preview only; charge uses the edge function. */
 export function isFoundingEligible(input: FoundingEligibilityInput): boolean {
-  if (input.isFoundingMember === true) return true;
-  if (input.foundingDiscountForfeitedAt) return false;
-  return normalizeSignupPlan(input.signupPlan ?? null) === FOUNDING_SIGNUP_PLAN;
+  return input.isFoundingMember === true;
 }

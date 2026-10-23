@@ -17,22 +17,12 @@ describe("planAttribution", () => {
     clearPendingSignupPlan();
   });
 
-  it("normalizes founding plan values", () => {
-    expect(normalizeSignupPlan("FOUNDING")).toBe(FOUNDING_SIGNUP_PLAN);
-  });
-
-  it("rejects unknown plan values", () => {
+  it("ignores the closed founding campaign link (OVR-079)", () => {
+    expect(normalizeSignupPlan("FOUNDING")).toBeNull();
     expect(normalizeSignupPlan("pro")).toBeNull();
-    expect(normalizeSignupPlan("")).toBeNull();
-  });
-
-  it("reads plan from search params", () => {
-    expect(readPlanFromSearch("?plan=founding&ref=K8234V9B")).toBe(FOUNDING_SIGNUP_PLAN);
-  });
-
-  it("persists pending founding plan for signup", () => {
+    expect(readPlanFromSearch("?plan=founding&ref=K8234V9B")).toBeNull();
     capturePlanFromSearch("?plan=founding");
-    expect(peekPendingSignupPlan()).toBe(FOUNDING_SIGNUP_PLAN);
+    expect(peekPendingSignupPlan()).toBeNull();
   });
 
   it("builds signup auth metadata", () => {
@@ -42,13 +32,13 @@ describe("planAttribution", () => {
     expect(buildSignupPlanMetadata(null)).toBeUndefined();
   });
 
-  it("isFoundingEligible when enrolled or signupPlan is founding", () => {
+  it("isFoundingEligible only for already-enrolled members", () => {
     expect(isFoundingEligible({ isFoundingMember: true })).toBe(true);
-    expect(isFoundingEligible({ signupPlan: "founding" })).toBe(true);
+    expect(isFoundingEligible({ signupPlan: "founding" })).toBe(false);
     expect(isFoundingEligible({ signupPlan: "pro", isFoundingMember: false })).toBe(false);
   });
 
-  it("isFoundingEligible is false after the discount was forfeited", () => {
+  it("isFoundingEligible keeps enrolled members and blocks forfeited ones", () => {
     expect(
       isFoundingEligible({
         signupPlan: "founding",
