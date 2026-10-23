@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import type { BillingInterval } from "@/lib/subscription/subscriptionState";
 import { cn } from "@/lib/utils";
 
-const INTERVALS: readonly { value: BillingInterval; label: string; tbd?: boolean }[] = [
+const INTERVALS: readonly { value: BillingInterval; label: string }[] = [
   { value: "month", label: "Monthly" },
-  { value: "year", label: "Yearly (TBD)", tbd: true },
+  { value: "year", label: "Yearly" },
 ];
 
 export interface BillingIntervalToggleProps {
@@ -36,7 +36,7 @@ export default function BillingIntervalToggle({
             variant="ghost"
             size="sm"
             aria-selected={selected}
-            disabled={disabled && !interval.tbd ? true : disabled}
+            disabled={disabled}
             className={cn(
               "rounded-md px-4 text-sm",
               selected && "bg-background text-foreground shadow-sm",
