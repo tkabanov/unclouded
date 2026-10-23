@@ -4,8 +4,9 @@ import {
   isFreeTierUser,
   readMonthlyUsage,
 } from "../../../../supabase/functions/chat/tierGateHelpers.ts";
+import { SESSION_TIME_LIMIT_CODE } from "../../../../supabase/functions/chat/sessionTimeLimit.ts";
 
-export { FREE_TIER_SESSION_LIMIT, FREE_TIER_UPSELL_MESSAGE };
+export { FREE_TIER_SESSION_LIMIT, FREE_TIER_UPSELL_MESSAGE, SESSION_TIME_LIMIT_CODE };
 
 /** NCLDD-52: server code when the monthly AI spend limit for text or voice is used up. */
 export const AI_MONTHLY_LIMIT_CODE = "ai_monthly_limit_reached";
@@ -17,9 +18,21 @@ export function formatMonthlyAiLimitMessage(mode: AiLimitMode = "text"): string 
   return `You've reached this month's AI ${mode} limit. It resets on the 1st (UTC).`;
 }
 
-/** Errors that block the whole coaching session UI (Free-tier sessions or monthly AI budget). */
+/**
+ * Errors that block the whole coaching session UI (Free-tier sessions, monthly AI budget, or the
+ * 60-minute session cap on a session with nothing to close).
+ */
 export function isSessionLimitCode(code: string | undefined | null): boolean {
-  return code === FREE_TIER_LIMIT_CODE || code === AI_MONTHLY_LIMIT_CODE;
+  return (
+    code === FREE_TIER_LIMIT_CODE ||
+    code === AI_MONTHLY_LIMIT_CODE ||
+    code === SESSION_TIME_LIMIT_CODE
+  );
+}
+
+/** NCLDD-64: the session hit its 60-minute cap; the UI moves straight to the close ritual. */
+export function isSessionTimeLimitCode(code: string | undefined | null): boolean {
+  return code === SESSION_TIME_LIMIT_CODE;
 }
 
 /**
@@ -41,7 +54,9 @@ export function isChatComposerDisabled(input: {
 
 /** Banner text shown above a blocked session. */
 export function sessionLimitNoticeFor(code: string | undefined | null, message: string): string {
-  return code === AI_MONTHLY_LIMIT_CODE ? message : FREE_TIER_UPSELL_MESSAGE;
+  return code === AI_MONTHLY_LIMIT_CODE || code === SESSION_TIME_LIMIT_CODE
+    ? message
+    : FREE_TIER_UPSELL_MESSAGE;
 }
 
 export type SessionLimitCheckInput = {

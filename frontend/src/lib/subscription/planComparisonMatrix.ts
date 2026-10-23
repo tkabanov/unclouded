@@ -30,7 +30,7 @@ export const PLAN_COMPARISON_SECTIONS: readonly PlanComparisonSection[] = [
     title: "Core coaching",
     rows: [
       { label: "Complete PuP 360 diagnostic", included: cells(true, true, true) },
-      { label: "7 AI coaching sessions per month", included: cells(true, false, false) },
+      { label: "3 AI coaching sessions per month", included: cells(true, false, false) },
       { label: "Unlimited AI coaching sessions", included: cells(false, true, true) },
       { label: "3 free-tier guided coaching paths", included: cells(true, false, false) },
       { label: "40+ Free & Pro guided paths", included: cells(false, true, true) },

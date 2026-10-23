@@ -29,10 +29,6 @@ import {
 } from "../_shared/stripeSubscriptionReconcile.ts";
 import { syncStripeSubscriptionForUser } from "../_shared/stripeSubscriptionSync.ts";
 import {
-  FOUNDING_SIGNUP_PLAN,
-  isFoundingEligible,
-} from "../_shared/foundingMember.ts";
-import {
   normalizeStatus,
   resolveEffectiveTier,
   type BillingInterval,
@@ -227,15 +223,9 @@ Deno.serve(async (req) => {
     }
 
     const prices = await loadPlanPrices(service);
-    const wantsFoundingRate =
-      tier === "pro" &&
-      isFoundingEligible({
-        signupPlan: profile.signupPlan,
-        isFoundingMember: subscription?.isFoundingMember ?? false,
-        foundingDiscountForfeitedAt: subscription?.foundingDiscountForfeitedAt ?? null,
-      });
-
-    const price = selectPlanPrice(prices, tier, interval, wantsFoundingRate);
+    // NCLDD-64 / OVR-080: new checkouts always use the standard rate. Enrolled Founding Members
+    // keep their $19 Stripe subscription; they never come through a new checkout.
+    const price = selectPlanPrice(prices, tier, interval, false);
     if (!price?.stripePriceId) {
       return json(
         {
@@ -247,24 +237,6 @@ Deno.serve(async (req) => {
         },
         409,
       );
-    }
-
-    if (wantsFoundingRate) {
-      const { data: slotsRemaining, error: slotsError } = await service.rpc(
-        "founding_member_slots_remaining",
-      );
-      if (slotsError) {
-        console.error("founding_member_slots_remaining failed", slotsError);
-      } else if (typeof slotsRemaining === "number" && slotsRemaining <= 0) {
-        return json(
-          {
-            status: "founding_full",
-            message:
-              "The Founding Member offer is full. Choose standard Pro at $29/month to continue.",
-          },
-          409,
-        );
-      }
     }
 
     const customerId = await ensureStripeCustomer(
@@ -338,7 +310,6 @@ Deno.serve(async (req) => {
       interval,
       isFoundingRate: price.isFoundingRate,
       previousStatus: normalizeStatus(subscription?.status),
-      signupPlan: profile.signupPlan === FOUNDING_SIGNUP_PLAN ? FOUNDING_SIGNUP_PLAN : null,
     });
   } catch (err) {
     console.error("stripe-checkout failed", err);

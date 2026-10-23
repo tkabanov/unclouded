@@ -40,9 +40,9 @@ export const LOCKED_FEATURES: Record<LockedFeatureKey, LockedFeature> = {
   chatSessionLimit: {
     key: "chatSessionLimit",
     requiredTier: TIER.PRO,
-    title: "You've used all 7 sessions this month",
+    title: "You've used all 3 sessions this month",
     description:
-      "Free includes 7 AI coaching sessions each month. Upgrade to keep going without a cap, and " +
+      "Free includes 3 AI coaching sessions each month. Upgrade to keep going without a cap, and " +
       "your coach will remember what you've worked through.",
     benefits: [
       "Unlimited AI coaching sessions",

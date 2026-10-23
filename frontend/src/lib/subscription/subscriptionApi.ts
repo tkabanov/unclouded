@@ -140,8 +140,6 @@ export function parseSubscriptionOverview(raw: unknown): SubscriptionOverview {
         typeof credits.requiredPerSession === "number" ? credits.requiredPerSession : 2,
     },
     prices: parsePlanPrices(row.prices),
-    foundingSlotsRemaining:
-      typeof row.foundingSlotsRemaining === "number" ? row.foundingSlotsRemaining : 0,
     successPlanAddon: {
       active: addon.active === true,
       purchased: addon.purchased === true,
@@ -189,7 +187,6 @@ async function loadSubscriptionOverviewFromProfile(): Promise<SubscriptionOvervi
       requiredPerSession: CREDITS_PER_ONE_ON_ONE_SESSION,
     },
     prices: [],
-    foundingSlotsRemaining: 0,
     successPlanAddon: {
       active: false,
       purchased: false,
@@ -232,7 +229,6 @@ export type CheckoutResult =
       message: string;
       overview: SubscriptionOverview | null;
     }
-  | { status: "founding_full"; message: string }
   | { status: "already_purchased"; message: string }
   | { status: "pro_required"; message: string }
   | { status: "blocked"; message: string };
@@ -321,15 +317,6 @@ export async function startCheckout(
       status: "already_subscribed",
       message: await getEdgeFunctionErrorMessage(data, error, SUBSCRIPTION_ERROR_MESSAGES.checkout),
       overview: payload.overview ? parseSubscriptionOverview(payload.overview) : null,
-    };
-  }
-
-  if (payload?.status === "founding_full") {
-    return {
-      status: "founding_full",
-      message:
-        payload.message ??
-        "The Founding Member offer is full. You can still upgrade to Pro at the standard $29/month rate.",
     };
   }
 

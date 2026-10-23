@@ -36,6 +36,12 @@ import {
   canUseJournalAiReflection,
 } from "./tierGate.ts";
 import { parseChatRequestBody } from "./parseChatRequestBody.ts";
+import {
+  isSessionPastTimeLimit,
+  isTimeLimitedLifecycle,
+  SESSION_TIME_LIMIT_CODE,
+  SESSION_TIME_LIMIT_MESSAGE,
+} from "./sessionTimeLimit.ts";
 import { truncateConversationMessages } from "./truncateConversationMessages.ts";
 import { applySessionMemoryCompressionIfNeeded } from "./sessionMemory/sessionArcSummary.ts";
 import { evaluatePromptTestDivergence } from "./promptTest/divergenceCheck.ts";
@@ -174,7 +180,7 @@ Deno.serve(async (req: Request) => {
     // field such as `context`, which a client could use to dodge the budget.
     const conversationInfo =
       lifecycle === "prompt_test"
-        ? { mode: "text" as const, owned: false }
+        ? { mode: "text" as const, owned: false, createdAt: null }
         : await lookupConversation(supabase, conversationId, user.id, requestSessionType);
     const usageMode: AiUsageMode = lifecycle === "prompt_test" ? "other" : conversationInfo.mode;
     let usageTier: AiPlanTier | null = null;
@@ -385,6 +391,12 @@ Deno.serve(async (req: Request) => {
         });
       }
     } else {
+      // NCLDD-64: 60-minute cap per session (checked first so a blocked call never counts as a
+      // new Free session); wrap-up calls stay allowed.
+      if (isTimeLimitedLifecycle(lifecycle) && isSessionPastTimeLimit(conversationInfo.createdAt)) {
+        return jsonError(409, SESSION_TIME_LIMIT_MESSAGE, { code: SESSION_TIME_LIMIT_CODE });
+      }
+
       const tierGate = await enforceFreeTierSessionGate(
         supabase,
         user.id,

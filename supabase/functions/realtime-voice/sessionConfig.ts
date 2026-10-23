@@ -27,10 +27,11 @@ export function isAllowedRealtimeVoice(value: unknown): value is RealtimeVoiceNa
 }
 
 /**
- * OpenAI ends a call at 60 min; the end signal is not documented (C6), so our own end comes
- * 2 min earlier. The client ends at `expiresAt`, heartbeat answers `max_duration` after it.
+ * NCLDD-64 / OVR-080: an AI session lasts at most 60 min (product rule, was 58). OpenAI also ends
+ * a call at 60 min with an undocumented signal (C6), so its cut may race ours at the very end.
+ * The client ends at `expiresAt`, heartbeat answers `max_duration` after it.
  */
-export const REALTIME_SESSION_MAX_MS = 58 * 60_000;
+export const REALTIME_SESSION_MAX_MS = 60 * 60_000;
 export const REALTIME_HEARTBEAT_SEC = 30;
 /** Idle auto-end is ours (C8: `idle_timeout_ms` is server_vad only). */
 export const REALTIME_IDLE_TIMEOUT_SEC = 10 * 60;

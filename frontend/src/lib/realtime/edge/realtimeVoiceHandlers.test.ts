@@ -126,7 +126,7 @@ describe("start", () => {
       voice: "cedar",
       heartbeatSec: 30,
       idleTimeoutSec: 600,
-      expiresAt: new Date(NOW.getTime() + 58 * 60_000).toISOString(),
+      expiresAt: new Date(NOW.getTime() + 60 * 60_000).toISOString(),
     });
     const body = JSON.stringify(result.body);
     expect(body).not.toContain("sk-");

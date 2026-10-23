@@ -44,7 +44,7 @@ export const PLAN_CATALOG: readonly PlanCatalogEntry[] = [
     features: [
       ...included(
         "Complete PuP 360 diagnostic — all 16 questions, full classification",
-        "7 AI coaching sessions per month",
+        "3 AI coaching sessions per month",
         "3 Free-tier guided coaching paths",
         "All 6 deep-dive assessment modules",
         "Personalized dashboard with classification, scores, focus areas",

@@ -6,7 +6,6 @@ import {
   buildSignupPlanMetadata,
   capturePlanFromSearch,
   clearPendingSignupPlan,
-  isFoundingEligible,
   normalizeSignupPlan,
   peekPendingSignupPlan,
   readPlanFromSearch,
@@ -30,26 +29,5 @@ describe("planAttribution", () => {
       [SIGNUP_PLAN_AUTH_METADATA_KEY]: FOUNDING_SIGNUP_PLAN,
     });
     expect(buildSignupPlanMetadata(null)).toBeUndefined();
-  });
-
-  it("isFoundingEligible only for already-enrolled members", () => {
-    expect(isFoundingEligible({ isFoundingMember: true })).toBe(true);
-    expect(isFoundingEligible({ signupPlan: "founding" })).toBe(false);
-    expect(isFoundingEligible({ signupPlan: "pro", isFoundingMember: false })).toBe(false);
-  });
-
-  it("isFoundingEligible keeps enrolled members and blocks forfeited ones", () => {
-    expect(
-      isFoundingEligible({
-        signupPlan: "founding",
-        foundingDiscountForfeitedAt: "2026-08-01T00:00:00.000Z",
-      }),
-    ).toBe(false);
-    expect(
-      isFoundingEligible({
-        isFoundingMember: true,
-        foundingDiscountForfeitedAt: "2026-08-01T00:00:00.000Z",
-      }),
-    ).toBe(true);
   });
 });

@@ -13,7 +13,11 @@ import {
   type ConversationListItem,
 } from "@/lib/chat/chatConversationsApi";
 import { generateAiReplyStub, type ChatAiProfileData, ChatEdgeError } from "@/lib/chat/chatAiReplyStub";
-import { isSessionLimitCode, sessionLimitNoticeFor } from "@/lib/chat/chatSessionLimit";
+import {
+  isSessionLimitCode,
+  isSessionTimeLimitCode,
+  sessionLimitNoticeFor,
+} from "@/lib/chat/chatSessionLimit";
 import { touchConversationAfterMessage } from "@/lib/chat/chatConversationsApi";
 import {
   fetchMessagesForConversation,
@@ -260,6 +264,24 @@ export default function VoiceSessionPanel({
     [context, conversationId, onSessionClosed, profileData],
   );
 
+  /** Ask Kota for the close message and wait for the commitment (caller owns the busy flag). */
+  const requestCloseFor = useCallback(
+    async (thread: ChatMessage[]) => {
+      const closeText = await requestSessionClose(
+        thread,
+        profileData,
+        context,
+        conversationId,
+        "voice",
+      );
+      await playVoiceCloseRitualSilence();
+      const { assistantMessage } = await sendAssistantMessage(closeText, thread);
+      setClosePromptMessageId(assistantMessage.id);
+      setAwaitingCommitment(true);
+    },
+    [context, conversationId, profileData, sendAssistantMessage],
+  );
+
   const sendVoiceTurn = useCallback(
     async (text: string, voiceEmotionDetected?: boolean) => {
       const trimmed = text.trim();
@@ -320,7 +342,15 @@ export default function VoiceSessionPanel({
           const { nextThread } = await sendAssistantMessage(assistantText, threadForAi);
           void maybeGenerateConversationTitle(nextThread);
         } catch (error) {
-          if (error instanceof ChatEdgeError && isSessionLimitCode(error.code)) {
+          if (error instanceof ChatEdgeError && isSessionTimeLimitCode(error.code)) {
+            // NCLDD-64: 60 minutes are up — go straight to the close ritual.
+            toast.info(error.message);
+            try {
+              await requestCloseFor(threadForAi);
+            } catch {
+              toast.error("Couldn't close the session. Please try again.");
+            }
+          } else if (error instanceof ChatEdgeError && isSessionLimitCode(error.code)) {
             setSessionLimitNotice(sessionLimitNoticeFor(error.code, error.message));
             if (!sessionLimitToastShown.current) {
               sessionLimitToastShown.current = true;
@@ -347,6 +377,7 @@ export default function VoiceSessionPanel({
       messages,
       onboardingData,
       profileData,
+      requestCloseFor,
       sendAssistantMessage,
       sessionClosed,
       userId,
@@ -358,31 +389,13 @@ export default function VoiceSessionPanel({
 
     setAwaitingAssistantReply(true);
     try {
-      const closeText = await requestSessionClose(
-        messages,
-        profileData,
-        context,
-        conversationId,
-        "voice",
-      );
-      await playVoiceCloseRitualSilence();
-      const { assistantMessage } = await sendAssistantMessage(closeText, messages);
-      setClosePromptMessageId(assistantMessage.id);
-      setAwaitingCommitment(true);
+      await requestCloseFor(messages);
     } catch {
       toast.error("Couldn't close the session. Please try again.");
     } finally {
       setAwaitingAssistantReply(false);
     }
-  }, [
-    awaitingAssistantReply,
-    context,
-    conversationId,
-    messages,
-    profileData,
-    sendAssistantMessage,
-    sessionClosed,
-  ]);
+  }, [awaitingAssistantReply, messages, requestCloseFor, sessionClosed]);
 
   const voiceRecorder = useVoiceSessionRecorder({
     enabled: !sessionClosed && !sessionLimitBlocked,

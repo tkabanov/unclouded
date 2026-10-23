@@ -38,7 +38,7 @@ describe("monthly AI limit copy (NCLDD-52)", () => {
     expect(isSessionLimitCode(null)).toBe(false);
   });
 
-  it("keeps the AI budget notice distinct from the Free 7-session upsell", () => {
+  it("keeps the AI budget notice distinct from the Free 3-session upsell", () => {
     const aiMessage = formatMonthlyAiLimitMessage("voice");
     expect(sessionLimitNoticeFor(AI_MONTHLY_LIMIT_CODE, aiMessage)).toBe(aiMessage);
     expect(sessionLimitNoticeFor(FREE_TIER_LIMIT_CODE, "anything")).toBe(FREE_TIER_UPSELL_MESSAGE);

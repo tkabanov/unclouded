@@ -15,15 +15,12 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptionFlow } from "@/hooks/useSubscriptionFlow";
 import { useSubscriptionOverview } from "@/hooks/useSubscriptionOverview";
 import { TIER, type TierSlug } from "@/lib/enums/tier";
-import { isNativeApp } from "@/lib/platform/nativeApp";
 import { useUserProfile } from "@/lib/userProfile";
-import { isFoundingEligible, capturePlanFromSearch, peekPendingSignupPlan } from "@/lib/share/planAttribution";
+import { capturePlanFromSearch } from "@/lib/share/planAttribution";
 import {
   cancelDialogCopy,
   downgradeDialogCopy,
   foundingPricingNotice,
-  foundingSlotsRemainingMessage,
-  FOUNDING_SLOTS_FULL_MESSAGE,
   checkoutSuccessMessage,
   checkoutSuccessPendingMessage,
   successPlanAddonCheckoutPendingMessage,
@@ -62,7 +59,6 @@ import {
   resolveAccessEndsAt,
   type BillingInterval,
 } from "@/lib/subscription/subscriptionState";
-import { ShieldCheck } from "lucide-react";
 
 const PLAN_TIERS: readonly TierSlug[] = [TIER.FREE, TIER.PRO, TIER.PREMIUM];
 
@@ -121,24 +117,11 @@ export default function SettingsSubscriptionTab() {
   const activeRecord = record ?? FREE_SUBSCRIPTION_RECORD;
   const effectiveTier = overview?.effectiveTier ?? resolveEffectiveTier(activeRecord);
   const prices = overview?.prices ?? [];
-  const foundingSlotsRemaining = overview?.foundingSlotsRemaining ?? 0;
-  const foundingCampaignEligible = isFoundingEligible({
-    isFoundingMember: activeRecord.isFoundingMember,
-    signupPlan: profile?.signupPlan ?? peekPendingSignupPlan(),
-    foundingDiscountForfeitedAt: activeRecord.foundingDiscountForfeitedAt,
-  });
-  /** Checkout / Free→Pro offer only — not for already-paid standard Pro. */
-  const preferFoundingCheckoutRate =
-    foundingCampaignEligible &&
-    foundingSlotsRemaining > 0 &&
-    effectiveTier === TIER.FREE;
   /**
-   * Pro card label/price: enrolled FM keeps $19 branding; Free users see the
-   * campaign offer; post-conversion (and any standard Pro) always shows $29.
-   * Do not key off `signupPlan` alone — it survives after FM ends (SUB-FM-004).
+   * Pro card label/price: only an enrolled FM keeps $19 branding. The campaign is closed
+   * (OVR-079 / OVR-080), so Free users and standard Pro always see $29.
    */
-  const presentProAsFounding =
-    activeRecord.isFoundingMember || preferFoundingCheckoutRate;
+  const presentProAsFounding = activeRecord.isFoundingMember;
 
   const flow = useSubscriptionFlow({
     record,
@@ -431,9 +414,6 @@ export default function SettingsSubscriptionTab() {
     };
   });
 
-  const foundingProPrice = findPlanPrice(prices, TIER.PRO, "month", true);
-  const standardProPrice = findPlanPrice(prices, TIER.PRO, "month", false);
-
   return (
     <div className="flex flex-col gap-6">
       {showCheckoutSuccessBanner ? (
@@ -518,47 +498,6 @@ export default function SettingsSubscriptionTab() {
         />
       ) : null}
 
-      {!isEnterprise &&
-      !isNativeApp() &&
-      foundingCampaignEligible &&
-      !activeRecord.isFoundingMember &&
-      effectiveTier === TIER.FREE ? (
-        <div className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <ShieldCheck className="h-5 w-5" aria-hidden />
-            </span>
-            <div className="space-y-1">
-              <p className="font-semibold text-foreground">
-                Founding Member — {formatPlanPrice(foundingProPrice)}
-                {BILLING_INTERVAL_SUFFIX.month}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {foundingSlotsRemaining > 0
-                  ? `Get Pro access at a discounted price for your first 12 months. Available only to the first 100 eligible users. Converts to standard Pro at ${formatPlanPrice(standardProPrice)}${BILLING_INTERVAL_SUFFIX.month} afterwards. ${foundingSlotsRemainingMessage(foundingSlotsRemaining)}`
-                  : FOUNDING_SLOTS_FULL_MESSAGE}
-              </p>
-            </div>
-          </div>
-          {foundingSlotsRemaining > 0 ? (
-            <Button
-              type="button"
-              className="shrink-0"
-              disabled={!!flow.pendingAction}
-              onClick={() =>
-                flow.handlePlanCardAction({
-                  kind: "upgrade",
-                  targetTier: TIER.PRO,
-                  label: "Become a Founding Member",
-                })
-              }
-            >
-              {flow.pendingLabelFor("startCheckout") ?? "Become a Founding Member"}
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
-
       {!isEnterprise && activeRecord.hasPaymentMethodOnFile ? (
         <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
@@ -631,9 +570,7 @@ export default function SettingsSubscriptionTab() {
                 prices,
                 checkoutTier,
                 interval,
-                checkoutTier === TIER.PRO
-                  ? presentProAsFounding
-                  : activeRecord.isFoundingMember,
+                presentProAsFounding,
               )
             : null
         }

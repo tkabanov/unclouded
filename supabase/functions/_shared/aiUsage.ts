@@ -287,21 +287,27 @@ export async function lookupConversation(
   conversationId: string | null | undefined,
   userId: string,
   fallbackSessionType?: unknown,
-): Promise<{ mode: "text" | "voice"; owned: boolean }> {
+): Promise<{ mode: "text" | "voice"; owned: boolean; createdAt: string | null }> {
   if (conversationId && isValidUuid(conversationId)) {
     try {
       const { data } = await client
         .from("chatConversation")
-        .select("sessionType")
+        .select("sessionType, createdAt")
         .eq("id", conversationId.trim())
         .eq("userId", userId)
         .maybeSingle();
-      if (data?.sessionType) return { mode: modeFromSessionType(data.sessionType), owned: true };
+      if (data?.sessionType) {
+        return {
+          mode: modeFromSessionType(data.sessionType),
+          owned: true,
+          createdAt: typeof data.createdAt === "string" ? data.createdAt : null,
+        };
+      }
     } catch (err) {
       console.warn("lookupConversation failed", err);
     }
   }
-  return { mode: modeFromSessionType(fallbackSessionType), owned: false };
+  return { mode: modeFromSessionType(fallbackSessionType), owned: false, createdAt: null };
 }
 
 export async function resolveConversationMode(

@@ -75,7 +75,6 @@ export type SubscriptionOverview = {
   subscription: SubscriptionRecord | null;
   credits: { balance: number; requiredPerSession: number };
   prices: PlanPrice[];
-  foundingSlotsRemaining: number;
   successPlanAddon: {
     active: boolean;
     purchased: boolean;
