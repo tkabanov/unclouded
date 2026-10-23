@@ -68,6 +68,8 @@ export default function SettingsImportedContextSection() {
   const [saving, setSaving] = useState(false);
   const [reading, setReading] = useState(false);
   const [preview, setPreview] = useState<ImportedFileText[] | null>(null);
+  // Kept separate from `preview` so the dialog keeps its content while the close animation runs.
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
@@ -104,6 +106,7 @@ export default function SettingsImportedContextSection() {
     setReading(true);
     try {
       setPreview(await Promise.all(Array.from(files).map(readImportedFile)));
+      setPreviewOpen(true);
     } finally {
       setReading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -112,7 +115,7 @@ export default function SettingsImportedContextSection() {
 
   const acceptPreview = () => {
     if (preview) setDraft((prev) => appendImportedText(prev, preview));
-    setPreview(null);
+    setPreviewOpen(false);
   };
 
   const handleSave = async () => {
@@ -286,7 +289,7 @@ export default function SettingsImportedContextSection() {
         </div>
       )}
 
-      <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{COPY.previewTitle}</DialogTitle>
@@ -309,7 +312,7 @@ export default function SettingsImportedContextSection() {
             ))}
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setPreview(null)}>
+            <Button type="button" variant="outline" onClick={() => setPreviewOpen(false)}>
               {COPY.cancelButton}
             </Button>
             <Button
