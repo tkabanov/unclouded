@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isCheckInSubmittedToday,
+  isCheckInTableUnavailable,
   mapDailyCheckInRow,
   resolveCheckInFeelingWord,
   resolveTodayCheckIn,
@@ -8,6 +9,25 @@ import {
 import { computeDaysSinceLastCompletedSession } from "../../../../supabase/functions/chat/liveContext/sessionGapHelpers.ts";
 
 describe("checkInHelpers", () => {
+  it("falls back only when the dailyCheckin table is missing, not a column", () => {
+    expect(
+      isCheckInTableUnavailable({ code: "42P01", message: 'relation "dailyCheckin" does not exist' }),
+    ).toBe(true);
+    expect(isCheckInTableUnavailable({ code: "PGRST205" })).toBe(true);
+    expect(
+      isCheckInTableUnavailable({
+        code: "42703",
+        message: "column dailyCheckin.microCommitmentStatus does not exist",
+      }),
+    ).toBe(false);
+    expect(
+      isCheckInTableUnavailable({
+        code: "PGRST204",
+        message: "Could not find the 'microCommitmentStatus' column of 'dailyCheckin' in the schema cache",
+      }),
+    ).toBe(false);
+  });
+
   it("treats only today's check-in as session-open data", () => {
     const stale = {
       date: "2020-01-01T09:00:00.000Z",

@@ -6,7 +6,10 @@ import {
   resolveEffectiveCheckInStreak,
   toCheckInDateKey,
 } from "../../../../supabase/functions/chat/liveContext/streakHelpers.ts";
-import { mapDailyCheckInRow } from "../../../../supabase/functions/chat/liveContext/checkInHelpers.ts";
+import {
+  isCheckInTableUnavailable,
+  mapDailyCheckInRow,
+} from "../../../../supabase/functions/chat/liveContext/checkInHelpers.ts";
 
 /** Bubble user field from workflow bTIWG streak update. */
 export const DAILY_CHECK_IN_STREAK_FIELD = "dailyCheckInStreak" as const;
@@ -58,16 +61,7 @@ type UntypedSupabase = {
   from: (table: string) => ReturnType<typeof supabase.from>;
 };
 
-function isSchemaUnavailable(error: { code?: string; message?: string }): boolean {
-  const message = error.message?.toLowerCase() ?? "";
-  return (
-    error.code === "42P01" ||
-    error.code === "PGRST205" ||
-    message.includes("relation") ||
-    message.includes("does not exist") ||
-    message.includes("could not find the table")
-  );
-}
+const isSchemaUnavailable = isCheckInTableUnavailable;
 
 function toDateKey(date: Date): string {
   return toCheckInDateKey(date);
@@ -242,7 +236,6 @@ async function tryInsertCheckinTable(
   const microCommitmentStatus = input.microCommitmentStatus?.trim();
   if (microCommitmentStatus) {
     payload.microCommitmentStatus = microCommitmentStatus;
-    payload.micro_commitment_status = microCommitmentStatus;
   }
 
   const { error } = await client.from("dailyCheckin").insert(payload);

@@ -18,6 +18,7 @@ import {
 import { resolveEffectiveCheckInStreak } from "./liveContext/streakHelpers.ts";
 import {
   isCheckInSubmittedToday,
+  isCheckInTableUnavailable,
   mapDailyCheckInRow,
 } from "./liveContext/checkInHelpers.ts";
 import { resolveDaysSinceLastCompletedSession } from "./liveContext/sessionGapHelpers.ts";
@@ -48,7 +49,7 @@ async function fetchTodayCheckIn(
     .limit(8);
 
   if (error) {
-    if (!isSchemaUnavailable(error)) throw error;
+    if (!isCheckInTableUnavailable(error)) throw error;
     return readTodayCheckInFromOnboarding(userId, onboardingData);
   }
 
@@ -76,7 +77,7 @@ async function fetchCheckInDateKeys(
     .eq("userId", userId);
 
   if (error) {
-    if (!isSchemaUnavailable(error)) throw error;
+    if (!isCheckInTableUnavailable(error)) throw error;
     const raw = onboardingData?.daily_checkins;
     if (!Array.isArray(raw)) return [];
     return raw

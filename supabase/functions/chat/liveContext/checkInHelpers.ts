@@ -1,6 +1,22 @@
 import type { ChatLatestCheckIn } from "../prompt/types.ts";
 import { toCheckInDateKey } from "./streakHelpers.ts";
 
+/**
+ * True only when the `dailyCheckin` table itself is missing (onboarding fallback is valid).
+ * A missing column (42703 / PGRST204) is a schema bug and must surface, not fall back silently.
+ */
+export function isCheckInTableUnavailable(error: { code?: string; message?: string }): boolean {
+  if (error.code === "42703" || error.code === "PGRST204") return false;
+  const message = error.message?.toLowerCase() ?? "";
+  if (message.includes("column")) return false;
+  return (
+    error.code === "42P01" ||
+    error.code === "PGRST205" ||
+    message.includes("could not find the table") ||
+    (message.includes("relation") && message.includes("does not exist"))
+  );
+}
+
 export function isCheckInSubmittedToday(
   checkIn: ChatLatestCheckIn | null | undefined,
   referenceDate: Date = new Date(),
